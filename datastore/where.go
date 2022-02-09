@@ -153,15 +153,10 @@ func whereObject(engine Engine, k string, v interface{}) string {
 	queryParts := make([]string, 0)
 
 	// we don't know the type, we handle the rangeValue as a map[string]interface{}
-	vJSON, err := json.Marshal(v)
-	if err != nil {
-		return ""
-	}
+	vJSON, _ := json.Marshal(v) // nolint: errchkjson // this check might break the current code
 
 	var rangeV map[string]interface{}
-	if err = json.Unmarshal(vJSON, &rangeV); err != nil {
-		return ""
-	}
+	_ = json.Unmarshal(vJSON, &rangeV)
 
 	for rangeKey, rangeValue := range rangeV {
 		if engine == MySQL || engine == SQLite {

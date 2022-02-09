@@ -30,7 +30,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tonicpow/go-minercraft v0.7.0
-	github.com/tonicpow/go-paymail v0.7.0
+	github.com/tonicpow/go-paymail v0.7.1
 	github.com/tryvium-travels/memongo v0.4.0
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.8.3
@@ -123,3 +123,6 @@ require (
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
+
+// replace github.com/dgrijalva/jwt-go => github.com/dgrijalva/jwt-go v4.0.0-preview1
+replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.2.0

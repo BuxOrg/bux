@@ -723,7 +723,7 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 			" ADD INDEX " + idxName + " ( (CAST(xpub_in_ids AS CHAR(64) ARRAY)) )")
 		if tx.Error != nil {
 			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
-			return nil
+			return nil // nolint: nilerr // error is not needed
 		}
 	}
 
@@ -738,7 +738,7 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 			" ADD INDEX " + idxName + " ( (CAST(xpub_out_ids AS CHAR(64) ARRAY)) )")
 		if tx.Error != nil {
 			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
-			return nil
+			return nil // nolint: nilerr // error is not needed
 		}
 	}
 

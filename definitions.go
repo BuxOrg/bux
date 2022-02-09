@@ -8,6 +8,7 @@ import (
 
 // Defaults for engine functionality
 const (
+	databaseLongReadTimeout    = 30 * time.Second  // For all "GET" or "SELECT" methods
 	defaultCacheLockTTL        = 20                // in Seconds
 	defaultCacheLockTTW        = 10                // in Seconds
 	defaultDatabaseReadTimeout = 10 * time.Second  // For all "GET" or "SELECT" methods

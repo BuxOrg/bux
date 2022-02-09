@@ -233,7 +233,7 @@ func getUtxosByConditions(ctx context.Context, conditions map[string]interface{}
 	if err := getModels(
 		ctx, NewBaseModel(
 			ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, pageSize, page, orderByField, sortDirection, defaultDatabaseReadTimeout,
+		&models, conditions, pageSize, page, orderByField, sortDirection, databaseLongReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

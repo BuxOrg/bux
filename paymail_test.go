@@ -143,7 +143,7 @@ func Test_startP2PTransaction(t *testing.T) {
 			testServerURL+"/p2p-payment-destination/{alias}@{domain.tld}", 1000,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 		assert.Equal(t, "z0bac4ec-6f15-42de-9ef4-e60bfdabf4f7", payload.Reference)
 		assert.Equal(t, 1, len(payload.Outputs))
 		assert.Equal(t, "16fkwYn8feXEbK7iCTg5KMx9Rx9GzZ9HuE", payload.Outputs[0].Address)
@@ -205,10 +205,43 @@ func Test_getCapabilities(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 		assert.Equal(t, true, getCmd.Called)
 		assert.Equal(t, paymail.DefaultBsvAliasVersion, payload.BsvAlias)
 		assert.Equal(t, 3, len(payload.Capabilities))
+	})
+
+	t.Run("[mocked] - server error", func(t *testing.T) {
+		client := newTestPaymailClient(t, []string{testDomain})
+
+		redisClient, redisConn := xtester.LoadMockRedis(
+			testIdleTimeout,
+			testMaxConnLifetime,
+			testMaxActiveConnections,
+			testMaxIdleConnections,
+		)
+
+		tc, err := NewClient(context.Background(),
+			WithRedisConnection(redisClient),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
+			WithDebugging(),
+		)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		// Get command
+		getCmd := redisConn.Command(cache.GetCommand, cacheKeyCapabilities+testDomain).Expect(nil)
+
+		mockValidResponse(http.StatusBadRequest, false, testDomain)
+		var payload *paymail.CapabilitiesPayload
+		payload, err = getCapabilities(
+			context.Background(), tc.Cachestore(), client, testDomain,
+		)
+		require.Error(t, err)
+		require.Nil(t, payload)
+		assert.Equal(t, true, getCmd.Called)
 	})
 
 	t.Run("valid response - no cache found", func(t *testing.T) {
@@ -228,7 +261,7 @@ func Test_getCapabilities(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 		assert.Equal(t, paymail.DefaultBsvAliasVersion, payload.BsvAlias)
 		assert.Equal(t, 3, len(payload.Capabilities))
 	})
@@ -250,7 +283,7 @@ func Test_getCapabilities(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 		assert.Equal(t, paymail.DefaultBsvAliasVersion, payload.BsvAlias)
 		assert.Equal(t, 3, len(payload.Capabilities))
 
@@ -260,7 +293,7 @@ func Test_getCapabilities(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 		assert.Equal(t, paymail.DefaultBsvAliasVersion, payload.BsvAlias)
 		assert.Equal(t, 3, len(payload.Capabilities))
 	})
@@ -302,7 +335,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 		assert.Equal(t, true, getCmd.Called)
 
 		// Get command
@@ -315,7 +348,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			testAlias, testDomain, defaultAddressResolutionPurpose, defaultSenderPaymail,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, resolvePayload)
+		require.NotNil(t, resolvePayload)
 		assert.Equal(t, true, getCmd2.Called)
 		assert.Equal(t, "1Cat862cjhp8SgLLMvin5gyk5UScasg1P9", resolvePayload.Address)
 		assert.Equal(t, "76a9147f11c8f67a2781df0400ebfb1f31b4c72a780b9d88ac", resolvePayload.Output)
@@ -342,7 +375,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 
 		// Resolve address
 		var resolvePayload *paymail.ResolutionPayload
@@ -351,7 +384,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			testAlias, testDomain, defaultAddressResolutionPurpose, defaultSenderPaymail,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, resolvePayload)
+		require.NotNil(t, resolvePayload)
 		assert.Equal(t, "1Cat862cjhp8SgLLMvin5gyk5UScasg1P9", resolvePayload.Address)
 		assert.Equal(t, "76a9147f11c8f67a2781df0400ebfb1f31b4c72a780b9d88ac", resolvePayload.Output)
 		assert.Equal(t, "", resolvePayload.Signature)
@@ -377,7 +410,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			context.Background(), tc.Cachestore(), client, testDomain,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, payload)
+		require.NotNil(t, payload)
 
 		// Resolve address
 		var resolvePayload *paymail.ResolutionPayload
@@ -386,7 +419,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			testAlias, testDomain, defaultAddressResolutionPurpose, defaultSenderPaymail,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, resolvePayload)
+		require.NotNil(t, resolvePayload)
 		assert.Equal(t, "1Cat862cjhp8SgLLMvin5gyk5UScasg1P9", resolvePayload.Address)
 
 		time.Sleep(1 * time.Second)
@@ -397,7 +430,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			testAlias, testDomain, defaultAddressResolutionPurpose, defaultSenderPaymail,
 		)
 		require.NoError(t, err)
-		assert.NotNil(t, resolvePayload)
+		require.NotNil(t, resolvePayload)
 		assert.Equal(t, "1Cat862cjhp8SgLLMvin5gyk5UScasg1P9", resolvePayload.Address)
 	})
 }

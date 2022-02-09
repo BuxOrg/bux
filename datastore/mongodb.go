@@ -234,11 +234,18 @@ func processMongoConditions(conditions *map[string]interface{}) {
 			if _, ok = (*conditions)["$and"].([]map[string]interface{}); ok {
 				and = (*conditions)["$and"].([]map[string]interface{})
 			} else {
-				a, _ := json.Marshal((*conditions)["$and"])
-				_ = json.Unmarshal(a, &and)
+				a, err := json.Marshal((*conditions)["$and"])
+				if err != nil {
+					// todo: How to handle the error?
+					continue
+				}
+				if err = json.Unmarshal(a, &and); err != nil {
+					// todo: How to handle the error?
+					continue
+				}
 			}
 			for _, c := range and {
-				processMongoConditions(&c) //nolint:gosec // needs reference
+				processMongoConditions(&c) // nolint: scopelint,gosec // ignore for now
 			}
 		}
 		if key == "$or" {
@@ -246,11 +253,18 @@ func processMongoConditions(conditions *map[string]interface{}) {
 			if _, ok = (*conditions)["$or"].([]map[string]interface{}); ok {
 				or = (*conditions)["$or"].([]map[string]interface{})
 			} else {
-				a, _ := json.Marshal((*conditions)["$or"])
-				_ = json.Unmarshal(a, &or)
+				a, err := json.Marshal((*conditions)["$or"])
+				if err != nil {
+					// todo: How to handle the error?
+					continue
+				}
+				if err = json.Unmarshal(a, &or); err != nil {
+					// todo: How to handle the error?
+					continue
+				}
 			}
 			for _, c := range or {
-				processMongoConditions(&c) //nolint:gosec // needs reference
+				processMongoConditions(&c) // nolint: scopelint,gosec // ignore for now
 			}
 		}
 	}
@@ -258,9 +272,16 @@ func processMongoConditions(conditions *map[string]interface{}) {
 
 func processXpubMetadataConditions(conditions *map[string]interface{}) {
 	// marshal / unmarshal into standard map[string]interface{}
-	m, _ := json.Marshal((*conditions)["xpub_metadata"])
+	m, err := json.Marshal((*conditions)["xpub_metadata"])
+	if err != nil {
+		// todo: How to handle the error?
+		return
+	}
 	var r map[string]interface{}
-	_ = json.Unmarshal(m, &r)
+	if err = json.Unmarshal(m, &r); err != nil {
+		// todo: How to handle the error?
+		return
+	}
 
 	for xPub, xr := range r {
 		xPubMetadata := make([]map[string]interface{}, 0)
@@ -286,9 +307,16 @@ func processXpubMetadataConditions(conditions *map[string]interface{}) {
 }
 
 func processXpubOutputValueConditions(conditions *map[string]interface{}) {
-	m, _ := json.Marshal((*conditions)["xpub_output_value"])
+	m, err := json.Marshal((*conditions)["xpub_output_value"])
+	if err != nil {
+		// todo: How to handle the error?
+		return
+	}
 	var r map[string]interface{}
-	_ = json.Unmarshal(m, &r)
+	if err = json.Unmarshal(m, &r); err != nil {
+		// todo: How to handle the error?
+		return
+	}
 
 	xPubOutputValue := make([]map[string]interface{}, 0)
 	for xPub, value := range r {
@@ -313,9 +341,16 @@ func processXpubOutputValueConditions(conditions *map[string]interface{}) {
 
 func processMetadataConditions(conditions *map[string]interface{}) {
 	// marshal / unmarshal into standard map[string]interface{}
-	m, _ := json.Marshal((*conditions)["metadata"])
+	m, err := json.Marshal((*conditions)["metadata"])
+	if err != nil {
+		// todo: How to handle the error?
+		return
+	}
 	var r map[string]interface{}
-	_ = json.Unmarshal(m, &r)
+	if err = json.Unmarshal(m, &r); err != nil {
+		// todo: How to handle the error?
+		return
+	}
 
 	metadata := make([]map[string]interface{}, 0)
 	for key, value := range r {

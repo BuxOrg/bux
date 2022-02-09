@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // todo: finish unit tests!
@@ -183,9 +184,12 @@ func TestClient_getMongoQueryConditions(t *testing.T) {
 				},
 			},
 		}
-		c, _ := json.Marshal(condition)
+		c, err := json.Marshal(condition)
+		require.NoError(t, err)
+
 		var cc interface{}
-		_ = json.Unmarshal(c, &cc)
+		err = json.Unmarshal(c, &cc)
+		require.NoError(t, err)
 		queryConditions := getMongoQueryConditions(mockModel{}, cc.(map[string]interface{}))
 		expected := []map[string]interface{}{{
 			"xpub_metadata.x": "xpubID",

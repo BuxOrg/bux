@@ -6,14 +6,14 @@ import (
 )
 
 // AfterDeleted will fire after a successful delete in the Datastore
-func (m *Model) AfterDeleted(_ context.Context) error { // nolint:unparam // eventually will use ctx
+func (m *Model) AfterDeleted(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
 	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
 	return nil
 }
 
 // BeforeUpdating will fire before updating a model in the Datastore
-func (m *Model) BeforeUpdating(_ context.Context) error { // nolint:unparam // eventually will use ctx & error
+func (m *Model) BeforeUpdating(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " BeforeUpdate hook...")
 	m.DebugLog("end: " + m.Name() + " BeforeUpdate hook")
 	return nil

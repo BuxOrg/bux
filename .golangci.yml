@@ -312,7 +312,6 @@ linters:
     - bodyclose
     - revive
     - unconvert
-    - dupl
     - misspell
     - ineffassign
     - dogsled
@@ -329,10 +328,12 @@ linters:
     - whitespace
     - wsl
     - goerr113
+    - contextcheck
     - godot
     - testpackage
     - nestif
     - nlreturn
+    - dupl
   disable-all: false
   presets:
     - bugs

@@ -47,7 +47,7 @@ func LoadRealRedis(
 	maxIdle int,
 	dependency bool,
 	newRelic bool,
-) (client *cache.Client, conn redis.Conn, err error) { // nolint:unparam // might use one day
+) (client *cache.Client, conn redis.Conn, err error) {
 	client, err = cache.Connect(
 		context.Background(),
 		connectionURL,

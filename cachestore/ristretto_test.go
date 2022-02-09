@@ -65,7 +65,7 @@ func Test_writeLockRistretto(t *testing.T) {
 	t.Run("missing secret", func(t *testing.T) {
 		c := newTestRistrettoClient(t)
 
-		success, err := writeLockRistretto(c.Ristretto(), testKey, "", 1, 30)
+		success, err := writeLockRistretto(c.Ristretto(), testKey, "", 2, 30)
 		assert.Equal(t, false, success)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, ErrSecretRequired)

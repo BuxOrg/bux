@@ -50,7 +50,7 @@ func (tx *txAccumulator) getGormTx() *gorm.DB {
 	return nil
 }
 
-func processConditions(tx buxWhereInterface, conditions map[string]interface{}, engine Engine, varNum *int, parentKey *string) map[string]interface{} {
+func processConditions(tx buxWhereInterface, conditions map[string]interface{}, engine Engine, varNum *int, parentKey *string) map[string]interface{} { // nolint: unparam // ignore for now
 
 	for key, condition := range conditions {
 		if key == "$and" {
@@ -85,12 +85,17 @@ func processConditions(tx buxWhereInterface, conditions map[string]interface{}, 
 				switch v.Kind() { //nolint:exhaustive // not all cases are needed
 				case reflect.Map:
 					if _, ok := condition.(map[string]interface{}); ok {
-						processConditions(tx, condition.(map[string]interface{}), engine, varNum, &key)
+						processConditions(tx, condition.(map[string]interface{}), engine, varNum, &key) // nolint: scopelint // ignore for now
 					} else {
-						c, _ := json.Marshal(condition)
+						c, err := json.Marshal(condition)
+						if err != nil {
+							continue
+						}
 						var cc map[string]interface{}
-						_ = json.Unmarshal(c, &cc)
-						processConditions(tx, cc, engine, varNum, &key)
+						if err = json.Unmarshal(c, &cc); err != nil {
+							continue
+						}
+						processConditions(tx, cc, engine, varNum, &key) // nolint: scopelint // ignore for now
 					}
 				default:
 					varName := "var" + strconv.Itoa(*varNum)
@@ -153,10 +158,15 @@ func whereObject(engine Engine, k string, v interface{}) string {
 	queryParts := make([]string, 0)
 
 	// we don't know the type, we handle the rangeValue as a map[string]interface{}
-	vJSON, _ := json.Marshal(v)
+	vJSON, err := json.Marshal(v)
+	if err != nil {
+		return ""
+	}
+
 	var rangeV map[string]interface{}
-	// todo: ignoring errors
-	_ = json.Unmarshal(vJSON, &rangeV)
+	if err = json.Unmarshal(vJSON, &rangeV); err != nil {
+		return ""
+	}
 
 	for rangeKey, rangeValue := range rangeV {
 		if engine == MySQL || engine == SQLite {
@@ -165,12 +175,22 @@ func whereObject(engine Engine, k string, v interface{}) string {
 				rangeValue = "\"" + escapeDBString(rangeValue.(string)) + "\""
 				queryParts = append(queryParts, "JSON_EXTRACT("+k+", '$."+rangeKey+"') = "+rangeValue.(string))
 			default:
-				metadataJSON, _ := json.Marshal(vv)
+				metadataJSON, err := json.Marshal(vv)
+				if err != nil {
+					// todo: How to handle errors? Continue? break?
+					continue
+				}
 				var metadata map[string]interface{}
-				// todo: ignoring errors
-				_ = json.Unmarshal(metadataJSON, &metadata)
+				if err = json.Unmarshal(metadataJSON, &metadata); err != nil {
+					// todo: How to handle errors? Continue? break?
+					continue
+				}
 				for kk, vvv := range metadata {
-					mJSON, _ := json.Marshal(vvv)
+					mJSON, err := json.Marshal(vvv)
+					if err != nil {
+						// todo: How to handle errors? Continue? break?
+						continue
+					}
 					vvv = string(mJSON)
 					queryParts = append(queryParts, "JSON_EXTRACT("+k+", '$."+rangeKey+"."+kk+"') = "+vvv.(string))
 				}
@@ -180,8 +200,11 @@ func whereObject(engine Engine, k string, v interface{}) string {
 			case string:
 				rangeValue = "\"" + escapeDBString(rangeValue.(string)) + "\""
 			default:
-				// todo: ignoring errors
-				metadataJSON, _ := json.Marshal(vv)
+				metadataJSON, err := json.Marshal(vv)
+				if err != nil {
+					// todo: How to handle errors? Continue? break?
+					continue
+				}
 				rangeValue = string(metadataJSON)
 			}
 			queryParts = append(queryParts, k+"::jsonb @> '{\""+rangeKey+"\":"+rangeValue.(string)+"}'::jsonb")

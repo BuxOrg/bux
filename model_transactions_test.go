@@ -174,7 +174,7 @@ func TestTransaction_BeforeCreating(t *testing.T) {
 // TestTransaction_BeforeCreating will test the method BeforeCreating()
 func (ts *EmbeddedDBTestSuite) TestTransaction_BeforeCreating() {
 	ts.T().Run("[sqlite] [in-memory] - valid transaction", func(t *testing.T) {
-		tc := ts.genericDBClient(t, datastore.SQLite, false)
+		tc := ts.genericDBClient(t, datastore.SQLite, true)
 		defer tc.Close(tc.ctx)
 
 		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)

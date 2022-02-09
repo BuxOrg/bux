@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/BuxOrg/bux/cachestore"
@@ -17,7 +18,7 @@ func getCapabilities(ctx context.Context, cache cachestore.ClientInterface, clie
 	capabilities := new(paymail.CapabilitiesPayload)
 	if err := cache.GetModel(
 		ctx, cacheKeyCapabilities+domain, capabilities,
-	); err != nil && err != cachestore.ErrKeyNotFound {
+	); err != nil && !errors.Is(err, cachestore.ErrKeyNotFound) {
 		return nil, err
 	} else if capabilities != nil && len(capabilities.Capabilities) > 0 {
 		return capabilities, nil
@@ -71,7 +72,7 @@ func resolvePaymailAddress(ctx context.Context, cache cachestore.ClientInterface
 	resolution := new(paymail.ResolutionPayload)
 	if err := cache.GetModel(
 		ctx, cacheKeyAddressResolution+alias+"-"+domain, resolution,
-	); err != nil && err != cachestore.ErrKeyNotFound {
+	); err != nil && !errors.Is(err, cachestore.ErrKeyNotFound) {
 		return nil, err
 	} else if resolution != nil && len(resolution.Output) > 0 {
 		return resolution, nil

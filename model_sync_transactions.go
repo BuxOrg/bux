@@ -298,7 +298,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		ctx, syncTx.ID, transaction.Hex, 15*time.Second,
 	); err != nil {
 		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "broadcast error: "+err.Error())
-		return nil
+		return nil // nolint: nilerr // error is not needed
 	}
 
 	// Create status message

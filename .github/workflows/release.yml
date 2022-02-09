@@ -24,6 +24,10 @@ jobs:
         uses: actions/setup-go@v2.1.5
         with:
           go-version: 1.17
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.4.0
+        with:
+          redis-version: 6
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2.8.1
         with:

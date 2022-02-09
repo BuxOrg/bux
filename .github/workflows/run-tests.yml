@@ -48,6 +48,10 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2.4.0
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.4.0
+        with:
+          redis-version: 6
       - name: Cache code
         uses: actions/cache@v2.1.7
         with:

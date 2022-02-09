@@ -1,0 +1,206 @@
+package datastore
+
+import (
+	"context"
+	"database/sql"
+
+	"github.com/newrelic/go-agent/v3/newrelic"
+	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm/logger"
+)
+
+// ClientOps allow functional options to be supplied
+// that overwrite default client options.
+type ClientOps func(c *clientOptions)
+
+// defaultClientOptions will return an clientOptions struct with the default settings
+//
+// Useful for starting with the default and then modifying as needed
+func defaultClientOptions() *clientOptions {
+
+	// Set the default options
+	return &clientOptions{
+		autoMigrate:     false,
+		engine:          Empty,
+		newRelicEnabled: false,
+		sqLite: &SQLiteConfig{
+			CommonConfig: CommonConfig{
+				Debug: false,
+			},
+		},
+	}
+}
+
+// getTxnCtx will check for an existing transaction
+func (c *clientOptions) getTxnCtx(ctx context.Context) context.Context {
+	if c.newRelicEnabled {
+		txn := newrelic.FromContext(ctx)
+		if txn != nil {
+			ctx = newrelic.NewContext(ctx, txn)
+		}
+	}
+	return ctx
+}
+
+// WithAutoMigrate will enable auto migrate database mode (given models)
+//
+// Pointers of structs (IE: &models.Xpub{})
+func WithAutoMigrate(migrateModels ...interface{}) ClientOps {
+	return func(c *clientOptions) {
+		if len(migrateModels) == 0 {
+			return
+		}
+		for index, model := range migrateModels {
+			if model != nil {
+				c.autoMigrate = true
+				// todo: make a function to ensure these are unique models (no duplicates)
+				c.migrateModels = append(c.migrateModels, migrateModels[index])
+			}
+		}
+	}
+}
+
+// WithDebugging will enable debugging mode
+func WithDebugging() ClientOps {
+	return func(c *clientOptions) {
+		c.debug = true
+	}
+}
+
+// WithNewRelic will enable the NewRelic wrapper
+func WithNewRelic() ClientOps {
+	return func(c *clientOptions) {
+		c.newRelicEnabled = true
+	}
+}
+
+// WithSQLite will set the datastore to use SQLite
+func WithSQLite(config *SQLiteConfig) ClientOps {
+	return func(c *clientOptions) {
+		if config == nil {
+			return
+		}
+		c.sqLite = config
+		c.sqLite.MaxIdleConnections = maxIdleConnectionsSQLite // @mrz set this for issues connecting to SQLite
+		c.engine = SQLite
+		c.tablePrefix = config.TablePrefix
+		if c.sqLite.Debug {
+			c.debug = true
+		}
+	}
+}
+
+// WithSQL will load a datastore using either an SQL database config or existing connection
+func WithSQL(engine Engine, configs []*SQLConfig) ClientOps {
+	return func(c *clientOptions) {
+
+		// Do not set if engine is wrong
+		if engine != MySQL && engine != PostgreSQL {
+			return
+		}
+
+		// Loop configurations
+		for _, config := range configs {
+
+			// Don't add empty configs
+			if config == nil {
+				continue
+			}
+
+			// Set the defaults if using config vs existing connection
+			config.Driver = engine.String()
+			if config.ExistingConnection == nil {
+				c.sqlConfigs = append(c.sqlConfigs, config.sqlDefaults(engine))
+			} else {
+				c.sqlConfigs = append(c.sqlConfigs, config)
+			}
+			if config.Debug {
+				c.debug = true
+			}
+			c.tablePrefix = config.TablePrefix
+		}
+
+		// Set the engine
+		if len(c.sqlConfigs) > 0 {
+			c.engine = engine
+		}
+	}
+}
+
+// WithSQLConnection will set the datastore to an existing connection for MySQL or PostgreSQL
+func WithSQLConnection(engine Engine, sqlDB *sql.DB, tablePrefix string) ClientOps {
+	return func(c *clientOptions) {
+
+		// Do not set if engine is wrong
+		if engine != MySQL && engine != PostgreSQL {
+			return
+		}
+
+		// Do not set if db is nil
+		if sqlDB == nil {
+			return
+		}
+
+		// this was set for mock testing in MySQL
+		// failed to initialize database, got error all expectations were already fulfilled,
+		// call to Query 'SELECT VERSION()' with args [] was not expected
+		skipInitializeWithVersion := false
+		if engine == MySQL {
+			skipInitializeWithVersion = true
+		}
+
+		c.sqlConfigs = []*SQLConfig{{
+			CommonConfig: CommonConfig{
+				Debug:       c.debug,
+				TablePrefix: tablePrefix,
+			},
+			Driver:                    engine.String(),
+			ExistingConnection:        sqlDB,
+			SkipInitializeWithVersion: skipInitializeWithVersion,
+		}}
+		c.engine = engine
+		c.tablePrefix = tablePrefix
+	}
+}
+
+// WithMongo will set the datastore to use MongoDB
+func WithMongo(config *MongoDBConfig) ClientOps {
+	return func(c *clientOptions) {
+		if config == nil {
+			return
+		}
+		c.engine = MongoDB
+		c.tablePrefix = config.TablePrefix
+		c.mongoDBConfig = config
+		if config.Debug {
+			c.debug = true
+		}
+	}
+}
+
+// WithMongoConnection will set the datastore to use an existing Mongo database connection
+func WithMongoConnection(database *mongo.Database, tablePrefix string) ClientOps {
+	return func(c *clientOptions) {
+		if database == nil {
+			return
+		}
+		c.engine = MongoDB
+		c.tablePrefix = tablePrefix
+		c.mongoDBConfig = &MongoDBConfig{
+			CommonConfig: CommonConfig{
+				Debug:       c.debug,
+				TablePrefix: tablePrefix,
+			},
+			ExistingConnection: database,
+		}
+	}
+}
+
+// WithLogger will set the custom logger interface
+func WithLogger(customLogger logger.Interface) ClientOps {
+	return func(c *clientOptions) {
+		if customLogger != nil {
+			c.logger = customLogger
+		}
+	}
+}

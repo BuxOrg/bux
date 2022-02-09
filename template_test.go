@@ -1,4 +1,4 @@
-package template
+package bux
 
 import (
 	"testing"

@@ -17,7 +17,7 @@ endif
 .PHONY: clean install-all-contributors update-contributors
 
 all: ## Runs multiple commands
-	@$(MAKE) test
+	@$(MAKE) test-all-db
 
 clean: ## Remove previous builds and any cached data
 	@echo "cleaning local cache..."
@@ -32,6 +32,14 @@ install-all-contributors: ## Installs all contributors locally
 
 release:: ## Runs common.release then runs godocs
 	@$(MAKE) godocs
+
+test-all-db: ## Runs all tests including embedded database tests
+	@echo "running all tests including embedded database tests..."
+	@go test ./... -v -tags="$(GO_BUILD_TAGS) database_tests"
+
+test-all-db-ci: ## Runs all tests including embedded database tests (CI)
+	@echo "running all tests including embedded database tests..."
+	@go test ./... -coverprofile=coverage.txt -covermode=atomic -tags="$(GO_BUILD_TAGS) database_tests"
 
 update-contributors: ## Regenerates the contributors html/list
 	@echo "generating contributor html..."

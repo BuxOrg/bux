@@ -1,10 +1,10 @@
-// Package template is Golang starter template for new Go libraries
+// Package bux is the Bitcoin UTXO & xPub Management Suite
 //
 // If you have any suggestions or comments, please feel free to open an issue on
 // this GitHub repository!
 //
-// By MrZ (https://github.com/mrz1836)
-package template
+// By BuxOrg (https://github.com/BuxOrg)
+package bux
 
 // Greet will say hi!
 func Greet() string {

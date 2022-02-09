@@ -1,3 +1,6 @@
+# Set the custom build tags
+GO_BUILD_TAGS=json1
+
 # Common makefile commands & variables between projects
 include .make/common.mk
 

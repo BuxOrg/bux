@@ -87,14 +87,9 @@ func processConditions(tx buxWhereInterface, conditions map[string]interface{}, 
 					if _, ok := condition.(map[string]interface{}); ok {
 						processConditions(tx, condition.(map[string]interface{}), engine, varNum, &key) // nolint: scopelint // ignore for now
 					} else {
-						c, err := json.Marshal(condition)
-						if err != nil {
-							continue
-						}
+						c, _ := json.Marshal(condition) // nolint: errchkjson // this check might break the current code
 						var cc map[string]interface{}
-						if err = json.Unmarshal(c, &cc); err != nil {
-							continue
-						}
+						_ = json.Unmarshal(c, &cc)
 						processConditions(tx, cc, engine, varNum, &key) // nolint: scopelint // ignore for now
 					}
 				default:
@@ -175,22 +170,11 @@ func whereObject(engine Engine, k string, v interface{}) string {
 				rangeValue = "\"" + escapeDBString(rangeValue.(string)) + "\""
 				queryParts = append(queryParts, "JSON_EXTRACT("+k+", '$."+rangeKey+"') = "+rangeValue.(string))
 			default:
-				metadataJSON, err := json.Marshal(vv)
-				if err != nil {
-					// todo: How to handle errors? Continue? break?
-					continue
-				}
+				metadataJSON, _ := json.Marshal(vv) // nolint: errchkjson // this check might break the current code
 				var metadata map[string]interface{}
-				if err = json.Unmarshal(metadataJSON, &metadata); err != nil {
-					// todo: How to handle errors? Continue? break?
-					continue
-				}
+				_ = json.Unmarshal(metadataJSON, &metadata)
 				for kk, vvv := range metadata {
-					mJSON, err := json.Marshal(vvv)
-					if err != nil {
-						// todo: How to handle errors? Continue? break?
-						continue
-					}
+					mJSON, _ := json.Marshal(vvv) // nolint: errchkjson // this check might break the current code
 					vvv = string(mJSON)
 					queryParts = append(queryParts, "JSON_EXTRACT("+k+", '$."+rangeKey+"."+kk+"') = "+vvv.(string))
 				}
@@ -200,11 +184,7 @@ func whereObject(engine Engine, k string, v interface{}) string {
 			case string:
 				rangeValue = "\"" + escapeDBString(rangeValue.(string)) + "\""
 			default:
-				metadataJSON, err := json.Marshal(vv)
-				if err != nil {
-					// todo: How to handle errors? Continue? break?
-					continue
-				}
+				metadataJSON, _ := json.Marshal(vv) // nolint: errchkjson // this check might break the current code
 				rangeValue = string(metadataJSON)
 			}
 			queryParts = append(queryParts, k+"::jsonb @> '{\""+rangeKey+"\":"+rangeValue.(string)+"}'::jsonb")

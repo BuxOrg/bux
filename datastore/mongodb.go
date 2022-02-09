@@ -104,8 +104,7 @@ func (c *Client) incrementWithMongo(
 		return
 	}
 	var newModel map[string]interface{}
-	err = bson.Unmarshal(rawValue, &newModel)
-	if err != nil {
+	if err = bson.Unmarshal(rawValue, &newModel); err != nil {
 		return
 	}
 
@@ -234,15 +233,8 @@ func processMongoConditions(conditions *map[string]interface{}) {
 			if _, ok = (*conditions)["$and"].([]map[string]interface{}); ok {
 				and = (*conditions)["$and"].([]map[string]interface{})
 			} else {
-				a, err := json.Marshal((*conditions)["$and"])
-				if err != nil {
-					// todo: How to handle the error?
-					continue
-				}
-				if err = json.Unmarshal(a, &and); err != nil {
-					// todo: How to handle the error?
-					continue
-				}
+				a, _ := json.Marshal((*conditions)["$and"]) // nolint: errchkjson // this check might break the current code
+				_ = json.Unmarshal(a, &and)
 			}
 			for _, c := range and {
 				processMongoConditions(&c) // nolint: scopelint,gosec // ignore for now
@@ -253,15 +245,8 @@ func processMongoConditions(conditions *map[string]interface{}) {
 			if _, ok = (*conditions)["$or"].([]map[string]interface{}); ok {
 				or = (*conditions)["$or"].([]map[string]interface{})
 			} else {
-				a, err := json.Marshal((*conditions)["$or"])
-				if err != nil {
-					// todo: How to handle the error?
-					continue
-				}
-				if err = json.Unmarshal(a, &or); err != nil {
-					// todo: How to handle the error?
-					continue
-				}
+				a, _ := json.Marshal((*conditions)["$or"]) // nolint: errchkjson // this check might break the current code
+				_ = json.Unmarshal(a, &or)
 			}
 			for _, c := range or {
 				processMongoConditions(&c) // nolint: scopelint,gosec // ignore for now
@@ -272,16 +257,9 @@ func processMongoConditions(conditions *map[string]interface{}) {
 
 func processXpubMetadataConditions(conditions *map[string]interface{}) {
 	// marshal / unmarshal into standard map[string]interface{}
-	m, err := json.Marshal((*conditions)["xpub_metadata"])
-	if err != nil {
-		// todo: How to handle the error?
-		return
-	}
+	m, _ := json.Marshal((*conditions)["xpub_metadata"]) // nolint: errchkjson // this check might break the current code
 	var r map[string]interface{}
-	if err = json.Unmarshal(m, &r); err != nil {
-		// todo: How to handle the error?
-		return
-	}
+	_ = json.Unmarshal(m, &r)
 
 	for xPub, xr := range r {
 		xPubMetadata := make([]map[string]interface{}, 0)
@@ -307,16 +285,9 @@ func processXpubMetadataConditions(conditions *map[string]interface{}) {
 }
 
 func processXpubOutputValueConditions(conditions *map[string]interface{}) {
-	m, err := json.Marshal((*conditions)["xpub_output_value"])
-	if err != nil {
-		// todo: How to handle the error?
-		return
-	}
+	m, _ := json.Marshal((*conditions)["xpub_output_value"]) // nolint: errchkjson // this check might break the current code
 	var r map[string]interface{}
-	if err = json.Unmarshal(m, &r); err != nil {
-		// todo: How to handle the error?
-		return
-	}
+	_ = json.Unmarshal(m, &r)
 
 	xPubOutputValue := make([]map[string]interface{}, 0)
 	for xPub, value := range r {
@@ -341,16 +312,9 @@ func processXpubOutputValueConditions(conditions *map[string]interface{}) {
 
 func processMetadataConditions(conditions *map[string]interface{}) {
 	// marshal / unmarshal into standard map[string]interface{}
-	m, err := json.Marshal((*conditions)["metadata"])
-	if err != nil {
-		// todo: How to handle the error?
-		return
-	}
+	m, _ := json.Marshal((*conditions)["metadata"]) // nolint: errchkjson // this check might break the current code
 	var r map[string]interface{}
-	if err = json.Unmarshal(m, &r); err != nil {
-		// todo: How to handle the error?
-		return
-	}
+	_ = json.Unmarshal(m, &r)
 
 	metadata := make([]map[string]interface{}, 0)
 	for key, value := range r {

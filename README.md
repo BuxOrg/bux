@@ -64,7 +64,7 @@
 
 ## Installation
 
-**go-template** requires a [supported release of Go](https://golang.org/doc/devel/release.html#policy).
+**bux** requires a [supported release of Go](https://golang.org/doc/devel/release.html#policy).
 ```shell script
 go get -u github.com/BuxOrg/bux
 ```

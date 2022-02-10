@@ -37,6 +37,12 @@
 
 <br/>
 
+----
+#### DISCLAIMER
+> BUX is still considered _"ALPHA"_ and should not be used in production until v1.0.0
+----
+<br/>
+
 #### BUX: Out-of-the-box Features:
 - xPub & UTXO State Management (state, tip, balance, utxos, destinations)
 - Bring your own Database (MySQL, PostgreSQL, SQLite, Mongo or interface your own)

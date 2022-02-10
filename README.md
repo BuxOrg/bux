@@ -17,6 +17,7 @@
 <br/>
 
 ## Table of Contents
+- [About](#about)
 - [Installation](#installation)
 - [Documentation](#documentation)
 - [Examples & Tests](#examples--tests)
@@ -25,6 +26,33 @@
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
+
+<br/>
+
+## About
+
+> **TLDR;**
+>
+>Application developers should focus on their applications and should not be bogged down with managing UTXOs or XPubs. Developers should be able to use an open-source, easy to install solution to rapidly build full-featured Bitcoin applications.
+
+<br/>
+
+#### BUX: Out-of-the-box Features:
+- xPub & UTXO State Management (state, tip, balance, utxos, destinations)
+- Bring your own Database (MySQL, PostgreSQL, SQLite, Mongo or interface your own)
+- Caching (Ristretto, mCache, Redis or custom)
+- Task Management (TaskQ, Machinery or custom)
+- Transaction Processing (queue, broadcast, update state of xpubs)
+- Plugins using [BRFC standards](http://bsvalias.org/01-brfc-specifications.html)
+
+#### **Project Assumptions: MVP**
+- _No private keys are used_, only the xPub (or access key) is given to bux
+- (BYOX) `Bring your own xPub`
+- Signing a transaction is outside this application (IE: buxServer or buxWallet)
+- All transactions need to be submitted to the bux service to effectively track utxo states
+- Database can be backed up, but not regenerated from chain
+  - Certain data is not on chain, plus re-scanning xPub is expensive and not easily possible with WOC and limitations with blockchair
+
 
 <br/>
 
@@ -78,7 +106,20 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 <summary><strong><code>Package Dependencies</code></strong></summary>
 <br/>
 
+- [bitcoinschema/go-bitcoin](https://github.com/bitcoinschema/go-bitcoin)
+- [bitcoinschema/go-map](https://github.com/bitcoinschema/go-map)
+- [gorm.io/gorm](https://gorm.io/gorm)
+- [libsv/go-bk](https://github.com/libsv/go-bk)
+- [libsv/go-bt](https://github.com/libsv/go-bt)
+- [mrz1836/go-cache](https://github.com/mrz1836/go-cache)
+- [mrz1836/go-logger](https://github.com/mrz1836/go-logger)
+- [mrz1836/go-mattercloud](https://github.com/mrz1836/go-mattercloud)
+- [mrz1836/go-nownodes](https://github.com/mrz1836/go-nownodes)
+- [mrz1836/go-whatsonchain](https://github.com/mrz1836/go-whatsonchain)
+- [newrelic/go-agent](https://github.com/newrelic/go-agent)
 - [stretchr/testify](https://github.com/stretchr/testify)
+- [tonicpow/go-minercraft](https://github.com/tonicpow/go-minercraft)
+- [tonicpow/go-paymail](https://github.com/tonicpow/go-paymail)
 </details>
 
 <details>

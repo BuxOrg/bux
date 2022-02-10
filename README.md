@@ -1,18 +1,18 @@
 # BUX
 > Bitcoin UTXO & xPub Management Suite
 
-[![Release](https://img.shields.io/github/release-pre/BuxOrg/bux.svg?logo=github&style=flat&v=1)](https://github.com/BuxOrg/bux/releases)
-[![Build Status](https://img.shields.io/github/workflow/status/BuxOrg/bux/run-go-tests?logo=github&v=1)](https://github.com/BuxOrg/bux/actions)
-[![Report](https://goreportcard.com/badge/github.com/BuxOrg/bux?style=flat&v=1)](https://goreportcard.com/report/github.com/BuxOrg/bux)
-[![codecov](https://codecov.io/gh/BuxOrg/bux/branch/master/graph/badge.svg?v=1)](https://codecov.io/gh/BuxOrg/bux)
-[![Mergify Status](https://img.shields.io/endpoint.svg?url=https://gh.mergify.io/badges/BuxOrg/bux&style=flat&v=1)](https://mergify.io)
-[![Go](https://img.shields.io/github/go-mod/go-version/BuxOrg/bux?v=1)](https://golang.org/)
+[![Release](https://img.shields.io/github/release-pre/BuxOrg/bux.svg?logo=github&style=flat&v=2)](https://github.com/BuxOrg/bux/releases)
+[![Build Status](https://img.shields.io/github/workflow/status/BuxOrg/bux/run-go-tests?logo=github&v=2)](https://github.com/BuxOrg/bux/actions)
+[![Report](https://goreportcard.com/badge/github.com/BuxOrg/bux?style=flat&v=2)](https://goreportcard.com/report/github.com/BuxOrg/bux)
+[![codecov](https://codecov.io/gh/BuxOrg/bux/branch/master/graph/badge.svg?v=2)](https://codecov.io/gh/BuxOrg/bux)
+[![Mergify Status](https://img.shields.io/endpoint.svg?url=https://gh.mergify.io/badges/BuxOrg/bux&style=flat&v=2)](https://mergify.io)
+[![Go](https://img.shields.io/github/go-mod/go-version/BuxOrg/bux?v=2)](https://golang.org/)
 <br>
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/BuxOrg/bux)
-[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat)](https://github.com/RichardLitt/standard-readme)
-[![Makefile Included](https://img.shields.io/badge/Makefile-Supported%20-brightgreen?=flat&logo=probot)](Makefile)
-[![Sponsor](https://img.shields.io/badge/sponsor-mrz1836-181717.svg?logo=github&style=flat&v=1)](https://github.com/sponsors/mrz1836)
-[![Donate](https://img.shields.io/badge/donate-bitcoin-ff9900.svg?logo=bitcoin&style=flat&v=1)](https://gobitcoinsv.com/#sponsor?utm_source=github&utm_medium=sponsor-link&utm_campaign=bux&utm_term=bux&utm_content=bux)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod&v=2)](https://gitpod.io/#https://github.com/BuxOrg/bux)
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat&v=2)](https://github.com/RichardLitt/standard-readme)
+[![Makefile Included](https://img.shields.io/badge/Makefile-Supported%20-brightgreen?=flat&logo=probot&v=2)](Makefile)
+[![Sponsor](https://img.shields.io/badge/sponsor-mrz1836-181717.svg?logo=github&style=flat&v=2)](https://github.com/sponsors/mrz1836)
+[![Donate](https://img.shields.io/badge/donate-bitcoin-ff9900.svg?logo=bitcoin&style=flat&v=2)](https://gobitcoinsv.com/#sponsor?utm_source=github&utm_medium=sponsor-link&utm_campaign=bux&utm_term=bux&utm_content=bux)
 
 <br/>
 
@@ -74,7 +74,7 @@ go get -u github.com/BuxOrg/bux
 ## Documentation
 View the generated [documentation](https://pkg.go.dev/github.com/BuxOrg/bux)
 
-[![GoDoc](https://godoc.org/github.com/BuxOrg/bux?status.svg&style=flat&v=1)](https://pkg.go.dev/github.com/BuxOrg/bux)
+[![GoDoc](https://godoc.org/github.com/BuxOrg/bux?status.svg&style=flat&v=2)](https://pkg.go.dev/github.com/BuxOrg/bux)
 
 <br/>
 
@@ -258,7 +258,7 @@ The most basic way to show your support is to star :star2: the project, or to ra
 You can also support this project by [becoming a sponsor on GitHub](https://github.com/sponsors/mrz1836) :clap:
 or by making a [**bitcoin donation**](https://gobitcoinsv.com/#sponsor?utm_source=github&utm_medium=sponsor-link&utm_campaign=bux&utm_term=bux&utm_content=bux) to ensure this journey continues indefinitely! :rocket:
 
-[![Stars](https://img.shields.io/github/stars/BuxOrg/bux?label=Please%20like%20us&style=social)](https://github.com/BuxOrg/bux/stargazers)
+[![Stars](https://img.shields.io/github/stars/BuxOrg/bux?label=Please%20like%20us&style=social&v=2)](https://github.com/BuxOrg/bux/stargazers)
 
 <br/>
 
@@ -287,4 +287,4 @@ Thank you to these wonderful people ([emoji key](https://allcontributors.org/doc
 
 ## License
 
-[![License](https://img.shields.io/github/license/BuxOrg/bux.svg?style=flat&v=1)](LICENSE)
+[![License](https://img.shields.io/github/license/BuxOrg/bux.svg?style=flat&v=2)](LICENSE)

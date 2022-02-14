@@ -28,16 +28,17 @@ type (
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
-		httpClient        HTTPInterface                // Custom HTTP client (Minercraft, WOC, MatterCloud)
-		mAPI              *mAPIConfig                  // mAPI configuration
-		matterCloud       mattercloud.ClientInterface  // MatterCloud client
-		matterCloudAPIKey string                       // If set, use this key on the client
-		minercraft        minercraft.ClientInterface   // Minercraft client
-		network           Network                      // Current network (mainnet, testnet, stn)
-		nowNodes          nownodes.ClientInterface     // NOWNodes client
-		nowNodesAPIKey    string                       // If set, use this key
-		queryTimeout      time.Duration                // Timeout for transaction query
-		whatsOnChain      whatsonchain.ClientInterface // WhatsOnChain client
+		httpClient         HTTPInterface                // Custom HTTP client (Minercraft, WOC, MatterCloud)
+		mAPI               *mAPIConfig                  // mAPI configuration
+		matterCloud        mattercloud.ClientInterface  // MatterCloud client
+		matterCloudAPIKey  string                       // If set, use this key on the client
+		minercraft         minercraft.ClientInterface   // Minercraft client
+		network            Network                      // Current network (mainnet, testnet, stn)
+		nowNodes           nownodes.ClientInterface     // NOWNodes client
+		nowNodesAPIKey     string                       // If set, use this key
+		queryTimeout       time.Duration                // Timeout for transaction query
+		whatsOnChain       whatsonchain.ClientInterface // WhatsOnChain client
+		whatsOnChainAPIKey string                       // If set, use this key
 	}
 
 	// mAPIConfig is specific for mAPI configuration

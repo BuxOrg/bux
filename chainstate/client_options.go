@@ -149,6 +149,15 @@ func WithMatterCloudAPIKey(apiKey string) ClientOps {
 	}
 }
 
+// WithWhatsOnChainAPIKey will set a custom WhatsOnChain API key
+func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
+	return func(c *clientOptions) {
+		if len(apiKey) > 0 {
+			c.config.whatsOnChainAPIKey = apiKey
+		}
+	}
+}
+
 // WithBroadcastMiners will set a list of miners for broadcasting
 func WithBroadcastMiners(miners []*minercraft.Miner) ClientOps {
 	return func(c *clientOptions) {

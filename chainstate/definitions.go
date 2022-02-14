@@ -4,10 +4,11 @@ import "time"
 
 // Chainstate configuration defaults
 const (
-	defaultBroadcastTimeOut = 15 * time.Second
-	defaultQueryTimeOut     = 15 * time.Second
-	defaultUserAgent        = "go-chainstate: " + version
-	version                 = "v0.1.0"
+	defaultBroadcastTimeOut      = 15 * time.Second
+	defaultQueryTimeOut          = 15 * time.Second
+	defaultUserAgent             = "go-chainstate: " + version
+	version                      = "v0.1.0"
+	whatsOnChainRateLimitWithKey = 20
 )
 
 // Internal network names

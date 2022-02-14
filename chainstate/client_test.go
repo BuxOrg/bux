@@ -82,7 +82,7 @@ func TestNewClient(t *testing.T) {
 
 	t.Run("custom mattercloud client", func(t *testing.T) {
 		customClient, err := mattercloud.NewClient(
-			"dummy-key", MainNet.MatterCloud(), mattercloud.ClientDefaultOptions(), nil,
+			testDummyKey, MainNet.MatterCloud(), mattercloud.ClientDefaultOptions(), nil,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, customClient)
@@ -101,12 +101,21 @@ func TestNewClient(t *testing.T) {
 	t.Run("custom matter cloud api key", func(t *testing.T) {
 		c, err := NewClient(
 			context.Background(),
-			WithMatterCloudAPIKey("dummy-key"),
+			WithMatterCloudAPIKey(testDummyKey),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 		assert.NotNil(t, c.MatterCloud())
-		// assert.Equal(t, "dummy-key", c.MatterCloudAPIKey())
+	})
+
+	t.Run("custom whats on chain api key", func(t *testing.T) {
+		c, err := NewClient(
+			context.Background(),
+			WithWhatsOnChainAPIKey(testDummyKey),
+		)
+		require.NoError(t, err)
+		require.NotNil(t, c)
+		assert.NotNil(t, c.WhatsOnChain())
 	})
 
 	t.Run("custom minercraft client", func(t *testing.T) {

@@ -21,6 +21,13 @@ func (c *Client) defaultMinercraftOptions() (opts *minercraft.ClientOptions) {
 func (c *Client) defaultWhatsOnChainOptions() (opts *whatsonchain.Options) {
 	opts = whatsonchain.ClientDefaultOptions()
 	opts.UserAgent = defaultUserAgent
+
+	// Set a custom API key
+	// todo: rate limit should be customizable
+	if len(c.options.config.whatsOnChainAPIKey) > 0 {
+		opts.APIKey = c.options.config.whatsOnChainAPIKey
+		opts.RateLimit = whatsOnChainRateLimitWithKey
+	}
 	return
 }
 

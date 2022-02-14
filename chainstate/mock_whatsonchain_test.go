@@ -58,6 +58,10 @@ func (w *whatsOnChainBase) BulkUnspentTransactions(context.Context, *whatsonchai
 	return
 }
 
+func (w *whatsOnChainBase) BulkUnspentTransactionsProcessor(context.Context, *whatsonchain.AddressList) (response whatsonchain.BulkUnspentResponse, err error) {
+	return
+}
+
 func (w *whatsOnChainBase) DecodeTransaction(context.Context, string) (txInfo *whatsonchain.TxInfo, err error) {
 	return
 }
@@ -127,6 +131,10 @@ func (w *whatsOnChainBase) GetMerkleProofTSC(context.Context, string) (merkleRes
 }
 
 func (w *whatsOnChainBase) GetRawTransactionData(context.Context, string) (string, error) {
+	return "", nil
+}
+
+func (w *whatsOnChainBase) BulkRawTransactionDataProcessor(context.Context, string) (string, error) {
 	return "", nil
 }
 

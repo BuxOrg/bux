@@ -75,6 +75,10 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 		}
 	}
 
+	if !c.IsInputUtxoCheckEnabled() {
+		transaction.InputUtxoChecksOff(true)
+	}
+
 	// Process & save the transaction model
 	if err = transaction.Save(ctx); err != nil {
 		return nil, err

@@ -625,8 +625,8 @@ github.com/mrz1836/go-sanitize v1.1.5 h1:LOywG3ijK/B/D9ik3hsniyIzA1JVZlM2wmp3Q/C
 github.com/mrz1836/go-sanitize v1.1.5/go.mod h1:HnnbbJTcBhbr770WyRL4SA95I4FFOnGg/RTLJybsuN8=
 github.com/mrz1836/go-validate v0.2.0 h1:F8AcgJRW0B/hUNFAXijrN/EGqYlAIkIIpMDkIMMRUho=
 github.com/mrz1836/go-validate v0.2.0/go.mod h1:IoGAb4rTAL6KgAxOiWL4ICwLqxGbKCKT1GyaSuE/4bk=
-github.com/mrz1836/go-whatsonchain v0.9.3 h1:ScxaLynpqb1p4PziuNCyEEypz4RMWLBpD66IwnEc+X4=
-github.com/mrz1836/go-whatsonchain v0.9.3/go.mod h1:qVch/m2I8ecQGqapkH4/41/mWoFO0J03R9QEPTOPSw4=
+github.com/mrz1836/go-whatsonchain v0.9.4 h1:ptd96Os7S362MwaovuEIUaQSim7TAcJ+CzH+g+oGDuE=
+github.com/mrz1836/go-whatsonchain v0.9.4/go.mod h1:qVch/m2I8ecQGqapkH4/41/mWoFO0J03R9QEPTOPSw4=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nats-io/jwt v0.3.0/go.mod h1:fRYCDE99xlTsqUzISS1Bi75UBJ6ljOJQOAAu5VglpSg=

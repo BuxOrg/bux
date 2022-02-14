@@ -17,12 +17,13 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jarcoal/httpmock v1.1.0
 	github.com/libsv/go-bk v0.1.6
+	github.com/libsv/go-bt v1.0.4
 	github.com/libsv/go-bt/v2 v2.1.0-beta.2.0.20211221142324-0d686850c5e0
 	github.com/mrz1836/go-cache v0.6.4
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.5
-	github.com/mrz1836/go-whatsonchain v0.9.3
+	github.com/mrz1836/go-whatsonchain v0.9.4
 	github.com/newrelic/go-agent/v3 v3.15.2
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
@@ -82,7 +83,6 @@ require (
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/lestrrat-go/strftime v1.0.5 // indirect
 	github.com/lib/pq v1.10.4 // indirect
-	github.com/libsv/go-bt v1.0.4 // indirect
 	github.com/matryer/respond v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.11 // indirect
 	github.com/miekg/dns v1.1.46 // indirect

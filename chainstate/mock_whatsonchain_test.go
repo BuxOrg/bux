@@ -58,6 +58,10 @@ func (w *whatsOnChainBase) BulkUnspentTransactions(context.Context, *whatsonchai
 	return
 }
 
+func (w *whatsOnChainBase) BulkUnspentTransactionsProcessor(context.Context, *whatsonchain.AddressList) (response whatsonchain.BulkUnspentResponse, err error) {
+	return
+}
+
 func (w *whatsOnChainBase) DecodeTransaction(context.Context, string) (txInfo *whatsonchain.TxInfo, err error) {
 	return
 }
@@ -130,6 +134,10 @@ func (w *whatsOnChainBase) GetRawTransactionData(context.Context, string) (strin
 	return "", nil
 }
 
+func (w *whatsOnChainBase) BulkRawTransactionDataProcessor(context.Context, *whatsonchain.TxHashes) (whatsonchain.TxList, error) {
+	return nil, nil
+}
+
 func (w *whatsOnChainBase) GetRawTransactionOutputData(context.Context, string, int) (string, error) {
 	return "", nil
 }
@@ -160,6 +168,10 @@ func (w *whatsOnChainBase) Network() whatsonchain.NetworkType {
 
 func (w *whatsOnChainBase) UserAgent() string {
 	return "default-user-agent"
+}
+
+func (w *whatsOnChainBase) RateLimit() int {
+	return 3
 }
 
 type whatsOnChainTxOnChain struct {

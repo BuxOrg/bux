@@ -36,6 +36,9 @@ func defaultClientOptions() *clientOptions {
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
 		itc: true,
 
+		// By default check input utxos
+		inputUtxoCheck: true,
+
 		// Blank chainstate config
 		chainstate: &chainstateOptions{
 			ClientInterface: nil,
@@ -221,6 +224,13 @@ func WithModels(models ...interface{}) ClientOps {
 func WithITCDisabled() ClientOps {
 	return func(c *clientOptions) {
 		c.itc = false
+	}
+}
+
+// WithInputUTxoCheckDisabled will disable checking the inputs utxos
+func WithInputUtxoCheckDisabled() ClientOps {
+	return func(c *clientOptions) {
+		c.inputUtxoCheck = false
 	}
 }
 

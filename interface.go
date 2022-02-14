@@ -69,6 +69,7 @@ type ClientInterface interface {
 	GetTaskPeriod(name string) time.Duration
 	IsDebug() bool
 	IsITCEnabled() bool
+	IsInputUtxoCheckEnabled() bool
 	IsNewRelicEnabled() bool
 	Logger() logger.Interface
 	ModifyPaymailConfig(config *server.Configuration, defaultFromPaymail, defaultNote string)

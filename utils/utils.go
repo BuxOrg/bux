@@ -47,7 +47,7 @@ func GetChildNumsFromHex(hexHash string) ([]uint32, error) {
 	size := 8
 	splitLength := int(math.Ceil(float64(strLen) / float64(size)))
 	childNums := make([]uint32, 0)
-	maxInt32 := int64(1<<(32-1) - 1)
+	maxInt32 := uint32(1<<(32-1) - 1)
 	for i := 0; i < splitLength; i++ {
 		start := i * size
 		stop := start + size
@@ -58,13 +58,11 @@ func GetChildNumsFromHex(hexHash string) ([]uint32, error) {
 		if err != nil {
 			return nil, err
 		}
-		if num > maxInt32 {
-			num = num - maxInt32
-			if num > maxInt32 {
-				num = maxInt32
-			}
+		num32 := uint32(num)
+		if num32 > maxInt32 {
+			num32 = num32 - maxInt32
 		}
-		childNums = append(childNums, uint32(num))
+		childNums = append(childNums, num32)
 	}
 
 	return childNums, nil

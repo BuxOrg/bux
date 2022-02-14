@@ -1,32 +1,21 @@
 package importer
 
-import (
-	"context"
-	"log"
-	"net"
-	"net/http"
-	"os"
-	"sort"
+/*
+// WhatsOnChainAPIKey is the WOC key
+var WhatsOnChainAPIKey = os.Getenv("WOC_API_KEY")
 
-	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/utils"
-	"github.com/libsv/go-bk/bip32"
-	"github.com/libsv/go-bt"
-	"github.com/mrz1836/go-whatsonchain"
-)
-
-var WhatsOnChainApiKey = os.Getenv("WOC_API_KEY")
-
-func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.ExtendedKey, depth, gapLimit int, path string) error {
+// ImportXpub will import an xPub into the bux engine
+func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.ExtendedKey, depth, gapLimit uint32, path string) error {
 	options := whatsonchain.ClientDefaultOptions()
 	options.RateLimit = 20
-	client := whatsonchain.NewClient(whatsonchain.NetworkMain, options, buildHttpClient())
-	allTransactions := []*whatsonchain.HistoryRecord{}
+	client := whatsonchain.NewClient(whatsonchain.NetworkMain, options, buildHTTPClient())
+	var allTransactions []*whatsonchain.HistoryRecord
 
 	addressList := whatsonchain.AddressList{}
+
 	// Derive internal addresses until gap limit
 	log.Printf("Deriving internal addresses...")
-	for i := 0; i < depth; i++ {
+	for i := uint32(0); i < depth; i++ {
 		log.Printf("path m/1/%v", i)
 		dest, err := buxClient.NewDestination(ctx, xpub.String(), utils.ChainInternal, utils.ScriptTypePubKeyHash, nil)
 		if err != nil {
@@ -37,7 +26,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 
 	// Derive external addresses until gap limit
 	log.Printf("Deriving external addresses...")
-	for i := 0; i < depth; i++ {
+	for i := uint32(0); i < depth; i++ {
 		log.Printf("path m/0/%v", i)
 		dest, err := buxClient.NewDestination(ctx, xpub.String(), utils.ChainExternal, utils.ScriptTypePubKeyHash, nil)
 		if err != nil {
@@ -59,7 +48,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		txHashes.TxIDs = append(txHashes.TxIDs, t.TxHash)
 	}
 
-	rawTxs := []string{}
+	var rawTxs []string
 	txInfos, err := client.BulkRawTransactionDataProcessor(context.Background(), &txHashes)
 	if err != nil {
 		return err
@@ -69,7 +58,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		if err != nil {
 			return err
 		}
-		vins := []whatsonchain.VinInfo{}
+		var vins []whatsonchain.VinInfo
 		for _, in := range tx.Inputs {
 			vin := whatsonchain.VinInfo{
 				TxID: in.PreviousTxID,
@@ -80,6 +69,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		rawTxs = append(rawTxs, txInfos[i].Hex)
 	}
 	log.Printf("Sorting transactions to be recorded...")
+
 	// Sort all transactions by block height
 	sort.Slice(txInfos, func(i, j int) bool {
 		return txInfos[i].BlockHeight < txInfos[j].BlockHeight
@@ -89,7 +79,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 	for i := 0; i < len(txInfos); i++ {
 		info := txInfos[i]
 		bh := info.BlockHeight
-		sameBlockTxs := []*whatsonchain.TxInfo{}
+		var sameBlockTxs []*whatsonchain.TxInfo
 		sameBlockTxs = append(sameBlockTxs, info)
 		// Loop through all remaining txs until block height is not the same
 		for j := i + 1; j < len(txInfos); j++ {
@@ -102,7 +92,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		if len(sameBlockTxs) == 1 {
 			continue
 		}
-		// Sort transactions by whether or not previous txs are referenced in the inputs
+		// Sort transactions by whether previous txs are referenced in the inputs
 		sort.Slice(sameBlockTxs, func(i, j int) bool {
 			for _, in := range sameBlockTxs[i].Vin {
 				if in.TxID == sameBlockTxs[j].Hash {
@@ -114,6 +104,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		copy(txInfos[i:i+len(sameBlockTxs)], sameBlockTxs)
 		i += len(sameBlockTxs) - 1
 	}
+
 	// Record transactions in bux
 	err = recordTransactions(ctx, rawTxs, buxClient)
 	if err != nil {
@@ -122,10 +113,10 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 	return nil
 }
 
-// Remove duplicate transactions
+// removeDuplicates will remove duplicate transactions
 func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchain.HistoryRecord {
 	keys := make(map[string]bool)
-	list := []*whatsonchain.HistoryRecord{}
+	var list []*whatsonchain.HistoryRecord
 
 	for _, tx := range transactions {
 		if _, value := keys[tx.TxHash]; !value {
@@ -136,7 +127,7 @@ func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchai
 	return list
 }
 
-// Record transactions into database
+// recordTransactions will record transactions into database
 func recordTransactions(ctx context.Context, rawTxs []string, buxClient bux.ClientInterface) error {
 	for _, rawTx := range rawTxs {
 		_, err := buxClient.RecordTransaction(ctx, "", rawTx, "")
@@ -148,23 +139,24 @@ func recordTransactions(ctx context.Context, rawTxs []string, buxClient bux.Clie
 	return nil
 }
 
-// Get all transactions related to an address
+// getAddressesTransactions will get all transactions related to an address
 func getAddressesTransactions(addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
 	options := whatsonchain.ClientDefaultOptions()
 	options.RateLimit = 20
-	client := whatsonchain.NewClient(whatsonchain.NetworkMain, options, buildHttpClient())
+	client := whatsonchain.NewClient(whatsonchain.NetworkMain, options, buildHTTPClient())
 	histories, err := client.BulkUnspentTransactionsProcessor(context.TODO(), &addressList)
 	if err != nil {
 		return nil, err
 	}
-	txs := []*whatsonchain.HistoryRecord{}
+	var txs []*whatsonchain.HistoryRecord
 	for _, h := range histories {
 		txs = append(txs, h.Utxos...)
 	}
 	return txs, nil
 }
 
-func buildHttpClient() *http.Client {
+// buildHTTPClient will make a new HTTP client
+func buildHTTPClient() *http.Client {
 	options := whatsonchain.ClientDefaultOptions()
 	// dial is the net dialer for clientDefaultTransport
 	dial := &net.Dialer{KeepAlive: options.DialerKeepAlive, Timeout: options.DialerTimeout}
@@ -178,19 +170,22 @@ func buildHttpClient() *http.Client {
 		Proxy:                 http.ProxyFromEnvironment,
 		TLSHandshakeTimeout:   options.TransportTLSHandshakeTimeout,
 	}
-	tr := &customTransport{apiKey: WhatsOnChainApiKey, rt: clientDefaultTransport}
+	tr := &customTransport{apiKey: WhatsOnChainAPIKey, rt: clientDefaultTransport}
 
 	return &http.Client{Transport: tr}
 }
 
+// customTransport is a transport struct
 type customTransport struct {
 	apiKey string
 	// keep a reference to the client's original transport
 	rt http.RoundTripper
 }
 
+// RoundTrip is an implemented method
 func (t *customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	// set your auth headers here
 	r.Header.Set("woc-api-key", t.apiKey)
 	return t.rt.RoundTrip(r)
 }
+*/

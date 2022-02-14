@@ -60,10 +60,9 @@ func GetChildNumsFromHex(hexHash string) ([]uint32, error) {
 		}
 		if num > maxInt32 {
 			num = num - maxInt32
-		}
-		// todo: @siggi is this a safe change? re: https://github.com/BuxOrg/bux/issues/4
-		if num > maxInt32 {
-			num = maxInt32
+			if num > maxInt32 {
+				num = maxInt32
+			}
 		}
 		childNums = append(childNums, uint32(num))
 	}

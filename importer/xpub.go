@@ -2,7 +2,6 @@ package importer
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -10,9 +9,6 @@ import (
 	"sort"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/cachestore"
-	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt"
@@ -25,8 +21,9 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 	options := whatsonchain.ClientDefaultOptions()
 	options.RateLimit = 20
 	client := whatsonchain.NewClient(whatsonchain.NetworkMain, options, buildHttpClient())
-	gap := 0
 	allTransactions := []*whatsonchain.HistoryRecord{}
+
+	addressList := whatsonchain.AddressList{}
 	// Derive internal addresses until gap limit
 	log.Printf("Deriving internal addresses...")
 	for i := 0; i < depth; i++ {
@@ -35,17 +32,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		if err != nil {
 			return err
 		}
-		// Get history for address
-		txs, err := getAddressTransactions(dest.Address)
-		if err != nil {
-			return err
-		}
-		if len(txs) == 0 {
-			gap++
-			continue
-		}
-		allTransactions = append(allTransactions, txs...)
-
+		addressList.Addresses = append(addressList.Addresses, dest.Address)
 	}
 
 	// Derive external addresses until gap limit
@@ -56,17 +43,14 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		if err != nil {
 			return err
 		}
-		// Get history for address
-		txs, err := getAddressTransactions(dest.Address)
-		if err != nil {
-			return err
-		}
-		if len(txs) == 0 {
-			gap++
-			continue
-		}
-		allTransactions = append(allTransactions, txs...)
+		addressList.Addresses = append(addressList.Addresses, dest.Address)
 	}
+
+	allTransactions, err := getAddressesTransactions(addressList)
+	if err != nil {
+		return err
+	}
+
 	// Remove any duplicate transactions from all historical txs
 	allTransactions = removeDuplicates(allTransactions)
 
@@ -75,29 +59,6 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 		txHashes.TxIDs = append(txHashes.TxIDs, t.TxHash)
 	}
 
-	// Get all transaction data for each tx in preparation to sort by previous
-	// txs
-	// TODO: Just get the raw tx and cast it to a bt.Tx. Super inefficient to
-	// make more API calls
-	/*txInfos := []*whatsonchain.TxInfo{}
-	for i := 0; i < len(txHashes.TxIDs); i += 20 {
-		num := 20
-		bulk := whatsonchain.TxHashes{}
-		txSubset := txHashes.TxIDs[i:]
-		if len(txSubset) < 20 {
-			num = len(txSubset)
-		}
-		bulk.TxIDs = txSubset[i : i+num-1]
-
-		// Get raw transaction data
-		info, err := client.BulkTransactionDetails(context.Background(), &bulk)
-		if err != nil {
-			log.Printf("ERR: %v", err)
-			return err
-		}
-
-		txInfos = append(txInfos, info...)
-	}*/
 	rawTxs := []string{}
 	txInfos, err := client.BulkRawTransactionDataProcessor(context.Background(), &txHashes)
 	if err != nil {
@@ -161,6 +122,7 @@ func ImportXpub(ctx context.Context, buxClient bux.ClientInterface, xpub *bip32.
 	return nil
 }
 
+// Remove duplicate transactions
 func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchain.HistoryRecord {
 	keys := make(map[string]bool)
 	list := []*whatsonchain.HistoryRecord{}
@@ -174,6 +136,7 @@ func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchai
 	return list
 }
 
+// Record transactions into database
 func recordTransactions(ctx context.Context, rawTxs []string, buxClient bux.ClientInterface) error {
 	for _, rawTx := range rawTxs {
 		_, err := buxClient.RecordTransaction(ctx, "", rawTx, "")
@@ -185,21 +148,18 @@ func recordTransactions(ctx context.Context, rawTxs []string, buxClient bux.Clie
 	return nil
 }
 
-func parseXpub(xpubStr string) (*bip32.ExtendedKey, error) {
-	return utils.ValidateXPub(xpubStr)
-}
-
-func getAddressTransactions(address string) ([]*whatsonchain.HistoryRecord, error) {
+// Get all transactions related to an address
+func getAddressesTransactions(addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
 	options := whatsonchain.ClientDefaultOptions()
 	options.RateLimit = 20
 	client := whatsonchain.NewClient(whatsonchain.NetworkMain, options, buildHttpClient())
-	history, err := client.AddressHistory(context.TODO(), address)
+	histories, err := client.BulkUnspentTransactionsProcessor(context.TODO(), &addressList)
 	if err != nil {
 		return nil, err
 	}
 	txs := []*whatsonchain.HistoryRecord{}
-	for _, h := range history {
-		txs = append(txs, h)
+	for _, h := range histories {
+		txs = append(txs, h.Utxos...)
 	}
 	return txs, nil
 }
@@ -233,64 +193,4 @@ func (t *customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	// set your auth headers here
 	r.Header.Set("woc-api-key", t.apiKey)
 	return t.rt.RoundTrip(r)
-}
-
-/*func getAddressTransactionsBitbus(address string) ([]string, error) {
-	transactions := []string{}
-	query := []byte(`
-  {
-    "q": {
-      "find": { "out.e.a": "ADDRESS" },
-      "sort": { "blk.i": 1 },
-      "project": { "blk": 1, "tx.h": 1, "out.f3": 1 },
-      "limit": 100
-    }
-  }`)
-	query = bytes.Replace(query, []byte("ADDRESS"), []byte(address), 1)
-	client := http.Client{}
-	req, err := http.NewRequest("POST", "https://txo.bitbus.network/block", bytes.NewBuffer(query))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("token", PlanariaToken)
-	resp, err := client.Do(req)
-	defer resp.Body.Close()
-	reader := bufio.NewReader(resp.Body)
-	for {
-		line, err := reader.ReadBytes('\n')
-		if err == io.EOF {
-			break
-		}
-		json := gjson.ParseBytes(line)
-		tx_id := gjson.Get(json.String(), "tx.h")
-		transactions = append(transactions, tx_id.Str)
-	}
-	if err != nil {
-		return transactions, err
-	}
-
-	return transactions, nil
-}*/
-
-func initBuxClient(ctx context.Context, debug bool) (bux.ClientInterface, error) {
-	var options []bux.ClientOps
-	if debug {
-		options = append(options, bux.WithDebugging())
-	}
-	options = append(options, bux.WithAutoMigrate(bux.BaseModels...))
-	options = append(options, bux.WithRistretto(cachestore.DefaultRistrettoConfig()))
-	options = append(options, bux.WithTaskQ(taskmanager.DefaultTaskQConfig("imp_queue"), taskmanager.FactoryMemory))
-	options = append(options, bux.WithSQLite(&datastore.SQLiteConfig{
-		CommonConfig: datastore.CommonConfig{
-			Debug:       false,
-			TablePrefix: "xapi",
-		},
-		DatabasePath: "./import.db", // "" for in memory
-		Shared:       true,
-	}))
-
-	x, err := bux.NewClient(ctx, options...)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	return x, err
 }

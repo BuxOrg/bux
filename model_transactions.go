@@ -69,7 +69,6 @@ type Transaction struct {
 	transactionService transactionInterface `gorm:"-" bson:"-"` // Used for interfacing methods
 	utxos              []Utxo               `gorm:"-" bson:"-"` // json:"destinations,omitempty"
 	xPubID             string               `gorm:"-" bson:"-"` // XPub of the user registering this transaction
-	inputUtxoChecksOff bool                 `gorm:"-" bson:"-"` // Whether to turn off the checks of the input utxos that match a draft transaction
 }
 
 // newTransactionBase creates the standard transaction model base
@@ -255,11 +254,6 @@ func _getTransactions(ctx context.Context, conditions map[string]interface{}, pa
 	}
 
 	return transactions, nil
-}
-
-// InputUtxoChecksOff will set the inputUtxoChecksOff option on the transaction
-func (m *Transaction) InputUtxoChecksOff(check bool) {
-	m.inputUtxoChecksOff = check
 }
 
 // GetModelName will get the name of the current model
@@ -563,6 +557,7 @@ func (m *Transaction) processInputs(ctx context.Context) (err error) {
 
 	// Pre-build the options
 	opts := m.GetOptions(false)
+	client := m.Client()
 
 	var utxo *Utxo
 
@@ -576,14 +571,16 @@ func (m *Transaction) processInputs(ctx context.Context) (err error) {
 			opts...,
 		); err != nil {
 			return
-		} else if utxo != nil {
+		} else if utxo != nil { // Found a UTXO record
 
-			isSpent := len(utxo.SpendingTxID.String) > 0
-			if isSpent {
+			// Is Spent?
+			if len(utxo.SpendingTxID.String) > 0 {
 				return ErrUtxoAlreadySpent
 			}
 
-			if !m.inputUtxoChecksOff {
+			// Only if IUC is enabled (or client is nil which means its enabled by default)
+			if client == nil || client.IsIUCEnabled() {
+
 				// check whether the utxo is spent
 				isReserved := len(utxo.DraftID.String) > 0
 				matchesDraft := m.draftTransaction != nil && utxo.DraftID.String == m.draftTransaction.ID

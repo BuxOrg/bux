@@ -400,8 +400,10 @@ func TestTransaction_processInputs(t *testing.T) {
 	})
 
 	t.Run("inputUtxoChecksOff", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
-		transaction.InputUtxoChecksOff(true)
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}), WithIUCDisabled())
+		defer deferMe()
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{
@@ -420,7 +422,6 @@ func TestTransaction_processInputs(t *testing.T) {
 			},
 		}
 
-		ctx := context.Background()
 		err := transaction.processInputs(ctx)
 		require.NoError(t, err)
 	})

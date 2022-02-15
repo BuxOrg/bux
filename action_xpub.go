@@ -90,7 +90,7 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, depth uint32, o
 		return nil, err
 	}
 
-	// todo: add opts to each model for metadata?
+	// todo: add opts to each model for storing metadata
 	// opts
 
 	// Start an accumulator

@@ -36,8 +36,8 @@ func defaultClientOptions() *clientOptions {
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
 		itc: true,
 
-		// By default check input utxos
-		inputUtxoCheck: true,
+		// By default check input utxos (unless disabled by the user)
+		iuc: true,
 
 		// Blank chainstate config
 		chainstate: &chainstateOptions{
@@ -227,10 +227,10 @@ func WithITCDisabled() ClientOps {
 	}
 }
 
-// WithInputUTxoCheckDisabled will disable checking the inputs utxos
-func WithInputUtxoCheckDisabled() ClientOps {
+// WithIUCDisabled will disable checking the input utxos
+func WithIUCDisabled() ClientOps {
 	return func(c *clientOptions) {
-		c.inputUtxoCheck = false
+		c.iuc = false
 	}
 }
 
@@ -489,6 +489,33 @@ func WithCustomChainstate(chainState chainstate.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
 		if chainState != nil {
 			c.chainstate.ClientInterface = chainState
+		}
+	}
+}
+
+// WithWhatsOnChainAPIKey will set the API key
+func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
+	return func(c *clientOptions) {
+		if len(apiKey) > 0 {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithWhatsOnChainAPIKey(apiKey))
+		}
+	}
+}
+
+// WithNowNodesAPIKey will set the API key
+func WithNowNodesAPIKey(apiKey string) ClientOps {
+	return func(c *clientOptions) {
+		if len(apiKey) > 0 {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithNowNodesAPIKey(apiKey))
+		}
+	}
+}
+
+// WithMatterCloudAPIKey will set the API key
+func WithMatterCloudAPIKey(apiKey string) ClientOps {
+	return func(c *clientOptions) {
+		if len(apiKey) > 0 {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMatterCloudAPIKey(apiKey))
 		}
 	}
 }

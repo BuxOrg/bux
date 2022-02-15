@@ -43,9 +43,3 @@ func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchai
 	}
 	return list
 }
-
-// recordTransactions will record transactions into database
-func (c *Client) recordTransactions(ctx context.Context, xPubKey string, rawTxs []string, buxClient ClientInterface) error {
-
-	return nil
-}

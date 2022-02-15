@@ -25,18 +25,18 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cacheStore     *cacheStoreOptions  // Configuration options for Cachestore (ristretto, redis, etc.)
-		chainstate     *chainstateOptions  // Configuration options for Chainstate (broadcast, sync, etc.)
-		dataStore      *dataStoreOptions   // Configuration options for the DataStore (MySQL, etc.)
-		debug          bool                // If the client is in debug mode
-		itc            bool                // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
-		inputUtxoCheck bool                // check input utxos when saving transactions
-		logger         glogger.Interface   // Internal logging
-		models         *modelOptions       // Configuration options for the loaded models
-		newRelic       *newRelicOptions    // Configuration options for NewRelic
-		paymail        *paymailOptions     // Paymail options & client
-		taskManager    *taskManagerOptions // Configuration options for the TaskManager (TaskQ, etc.)
-		userAgent      string              // User agent for all outgoing requests
+		cacheStore  *cacheStoreOptions  // Configuration options for Cachestore (ristretto, redis, etc.)
+		chainstate  *chainstateOptions  // Configuration options for Chainstate (broadcast, sync, etc.)
+		dataStore   *dataStoreOptions   // Configuration options for the DataStore (MySQL, etc.)
+		debug       bool                // If the client is in debug mode
+		itc         bool                // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
+		iuc         bool                // (Input UTXO Check) True will check input utxos when saving transactions
+		logger      glogger.Interface   // Internal logging
+		models      *modelOptions       // Configuration options for the loaded models
+		newRelic    *newRelicOptions    // Configuration options for NewRelic
+		paymail     *paymailOptions     // Paymail options & client
+		taskManager *taskManagerOptions // Configuration options for the TaskManager (TaskQ, etc.)
+		userAgent   string              // User agent for all outgoing requests
 	}
 
 	// chainstateOptions holds the chainstate configuration and client
@@ -381,9 +381,9 @@ func (c *Client) IsITCEnabled() bool {
 	return c.options.itc
 }
 
-// IsInputUtxoCheckDisabled() will return whether we are skipping input utxo check
-func (c *Client) IsInputUtxoCheckEnabled() bool {
-	return c.options.inputUtxoCheck
+// IsIUCEnabled will return the flag (bool)
+func (c *Client) IsIUCEnabled() bool {
+	return c.options.iuc
 }
 
 // ModifyTaskPeriod will modify a cron task's duration period from the default

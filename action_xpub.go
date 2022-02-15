@@ -97,31 +97,31 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 	woc := c.Chainstate().WhatsOnChain()
 	var allTransactions []*whatsonchain.HistoryRecord
 
-	// Assume gap of 20 addresses, if no txs are found for 20
+	// Assume gap of 10 addresses, if no txs are found for 10
 	// internal/external derivations, assume we've found everything
 	gapHit := false
 	for !gapHit {
 		// Derive internal addresses until depth
 		c.Logger().Info(ctx, "Deriving internal addresses...")
 		addressList := whatsonchain.AddressList{}
-		addresses, err := c.deriveAddresses(ctx, xPub.String(), utils.ChainInternal, 20)
+		addresses, err := c.deriveAddresses(ctx, xPub.String(), utils.ChainInternal, 10)
 		if err != nil {
 			return nil, err
 		}
-		results.InternalAddresses += 20
+		results.InternalAddresses += 10
 		addressList.Addresses = append(addressList.Addresses, addresses...)
 
 		// Derive external addresses until gap limit
 		c.Logger().Info(ctx, "Deriving external addresses...")
-		addresses, err = c.deriveAddresses(ctx, xPub.String(), utils.ChainExternal, 20)
+		addresses, err = c.deriveAddresses(ctx, xPub.String(), utils.ChainExternal, 10)
 		if err != nil {
 			return nil, err
 		}
-		results.ExternalAddresses += 20
+		results.ExternalAddresses += 10
 		addressList.Addresses = append(addressList.Addresses, addresses...)
 
 		// Get all transactions for those addresses
-		transactions, err := getAllTransactionsFromAddresses(
+		transactions, addressesWithTransactions, err := getAllTransactionsFromAddresses(
 			ctx, woc, addressList,
 		)
 		if err != nil {
@@ -130,6 +130,7 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 		if len(transactions) == 0 {
 			gapHit = true
 		}
+		results.AddressesWithTransactions = append(results.AddressesWithTransactions, addressesWithTransactions...)
 		allTransactions = append(allTransactions, transactions...)
 	}
 	// Remove any duplicate transactions from all historical txs

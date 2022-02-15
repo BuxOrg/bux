@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
@@ -15,8 +16,8 @@ type ImportResults struct {
 	TransactionsImported int    `json:"transactions_imported"`
 }
 
-// getTransactionsFromAddresses will get all transactions related to addresses
-func getTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
+// getUnspentTransactionsFromAddresses will get all unspent transactions related to addresses
+func getUnspentTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
 	histories, err := client.BulkUnspentTransactionsProcessor(
 		ctx, &addressList,
 	)
@@ -28,6 +29,32 @@ func getTransactionsFromAddresses(ctx context.Context, client whatsonchain.Clien
 		txs = append(txs, h.Utxos...)
 	}
 	return txs, nil
+}
+
+// getAllTransactionsFromAddresses will get all transactions related to addresses
+func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
+	var txs []*whatsonchain.HistoryRecord
+	for _, address := range addressList.Addresses {
+		history, err := client.AddressHistory(ctx, address)
+		if err != nil {
+			return nil, err
+		}
+		txs = append(txs, history...)
+	}
+	return txs, nil
+}
+
+// deriveAddresses will derive a new set of addresses for an xpub
+func (c *Client) deriveAddresses(ctx context.Context, xpub string, chain uint32, amount int) ([]string, error) {
+	addressList := []string{}
+	for i := 0; i < amount; i++ {
+		destination, err := c.NewDestination(ctx, xpub, chain, utils.ScriptTypePubKeyHash, nil)
+		if err != nil {
+			return []string{}, err
+		}
+		addressList = append(addressList, destination.Address)
+	}
+	return addressList, nil
 }
 
 // removeDuplicates will remove duplicate transactions

@@ -82,7 +82,7 @@ func (c *Client) GetXpubByID(ctx context.Context, xPubID string) (*Xpub, error) 
 }
 
 // ImportXpub will import a given xPub and all related destinations and transactions
-func (c *Client) ImportXpub(ctx context.Context, xPubKey string, depth uint32, opts ...ModelOps) (*ImportResults, error) {
+func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*ImportResults, error) {
 
 	// Validate the xPub
 	xPub, err := utils.ValidateXPub(xPubKey)
@@ -90,51 +90,48 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, depth uint32, o
 		return nil, err
 	}
 
-	// todo: add opts to each model for storing metadata
-	// opts
-
 	// Start an accumulator
 	results := &ImportResults{Key: xPub.String()}
 
-	// Derive internal addresses until depth
-	c.Logger().Info(ctx, "Deriving internal addresses...")
-	addressList := whatsonchain.AddressList{}
-	var destination *Destination
-	for i := uint32(0); i < depth; i++ {
-		// log.Printf("path m/1/%v", i)
-		if destination, err = c.NewDestination(
-			ctx, xPub.String(), utils.ChainInternal, utils.ScriptTypePubKeyHash, nil,
-		); err != nil {
-			return nil, err
-		}
-		addressList.Addresses = append(addressList.Addresses, destination.Address)
-		results.InternalAddresses++
-	}
-
-	// Derive external addresses until gap limit
-	c.Logger().Info(ctx, "Deriving external addresses...")
-	for i := uint32(0); i < depth; i++ {
-		// log.Printf("path m/0/%v", i)
-		if destination, err = c.NewDestination(
-			ctx, xPub.String(), utils.ChainExternal, utils.ScriptTypePubKeyHash, nil,
-		); err != nil {
-			return nil, err
-		}
-		addressList.Addresses = append(addressList.Addresses, destination.Address)
-		results.ExternalAddresses++
-	}
-
 	// Set the WOC client
 	woc := c.Chainstate().WhatsOnChain()
-
-	// Get all transactions for those addresses
 	var allTransactions []*whatsonchain.HistoryRecord
-	if allTransactions, err = getTransactionsFromAddresses(
-		ctx, woc, addressList,
-	); err != nil {
-		return nil, err
-	}
 
+	// Assume gap of 20 addresses, if no txs are found for 20
+	// internal/external derivations, assume we've found everything
+	gapHit := false
+	for !gapHit {
+		// Derive internal addresses until depth
+		c.Logger().Info(ctx, "Deriving internal addresses...")
+		addressList := whatsonchain.AddressList{}
+		addresses, err := c.deriveAddresses(ctx, xPub.String(), utils.ChainInternal, 20)
+		if err != nil {
+			return nil, err
+		}
+		results.InternalAddresses += 20
+		addressList.Addresses = append(addressList.Addresses, addresses...)
+
+		// Derive external addresses until gap limit
+		c.Logger().Info(ctx, "Deriving external addresses...")
+		addresses, err = c.deriveAddresses(ctx, xPub.String(), utils.ChainExternal, 20)
+		if err != nil {
+			return nil, err
+		}
+		results.ExternalAddresses += 20
+		addressList.Addresses = append(addressList.Addresses, addresses...)
+
+		// Get all transactions for those addresses
+		transactions, err := getAllTransactionsFromAddresses(
+			ctx, woc, addressList,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if len(transactions) == 0 {
+			gapHit = true
+		}
+		allTransactions = append(allTransactions, transactions...)
+	}
 	// Remove any duplicate transactions from all historical txs
 	allTransactions = removeDuplicates(allTransactions)
 

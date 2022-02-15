@@ -9,11 +9,12 @@ import (
 
 // ImportResults are the results from the import
 type ImportResults struct {
-	ExternalAddresses    int    `json:"external_addresses"`
-	InternalAddresses    int    `json:"internal_addresses"`
-	Key                  string `json:"key"`
-	TransactionsFound    int    `json:"transactions_found"`
-	TransactionsImported int    `json:"transactions_imported"`
+	ExternalAddresses         int      `json:"external_addresses"`
+	InternalAddresses         int      `json:"internal_addresses"`
+	AddressesWithTransactions []string `json:"addresses_with_transactions"`
+	Key                       string   `json:"key"`
+	TransactionsFound         int      `json:"transactions_found"`
+	TransactionsImported      int      `json:"transactions_imported"`
 }
 
 // getUnspentTransactionsFromAddresses will get all unspent transactions related to addresses
@@ -32,16 +33,20 @@ func getUnspentTransactionsFromAddresses(ctx context.Context, client whatsonchai
 }
 
 // getAllTransactionsFromAddresses will get all transactions related to addresses
-func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
+func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, []string, error) {
+	addressesWithTransactions := []string{}
 	var txs []*whatsonchain.HistoryRecord
 	for _, address := range addressList.Addresses {
 		history, err := client.AddressHistory(ctx, address)
 		if err != nil {
-			return nil, err
+			return nil, addressesWithTransactions, err
+		}
+		if len(history) > 0 {
+			addressesWithTransactions = append(addressesWithTransactions, address)
 		}
 		txs = append(txs, history...)
 	}
-	return txs, nil
+	return txs, addressesWithTransactions, nil
 }
 
 // deriveAddresses will derive a new set of addresses for an xpub

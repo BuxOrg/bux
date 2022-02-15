@@ -9,12 +9,12 @@ include .make/go.mk
 
 ## Not defined? Use default repo name which is the application
 ifeq ($(REPO_NAME),)
-	REPO_NAME="go-template"
+	REPO_NAME="bux"
 endif
 
 ## Not defined? Use default repo owner
 ifeq ($(REPO_OWNER),)
-	REPO_OWNER="mrz1836"
+	REPO_OWNER="BuxOrg"
 endif
 
 .PHONY: clean install-all-contributors update-contributors

@@ -219,9 +219,16 @@ uses [Go version 1.17.x](https://golang.org/doc/go1.17). View the [configuration
 
 <br/>
 
-Run all tests (including integration tests)
+Run all unit tests (excluding database tests)
 ```shell script
 make test
+```
+
+<br/>
+
+Run database integration tests
+```shell script
+make test-all-db
 ```
 
 <br/>

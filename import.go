@@ -17,6 +17,7 @@ type ImportResults struct {
 	TransactionsImported      int      `json:"transactions_imported"`
 }
 
+/*
 // getUnspentTransactionsFromAddresses will get all unspent transactions related to addresses
 func getUnspentTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
 	histories, err := client.BulkUnspentTransactionsProcessor(
@@ -31,6 +32,7 @@ func getUnspentTransactionsFromAddresses(ctx context.Context, client whatsonchai
 	}
 	return txs, nil
 }
+*/
 
 // getAllTransactionsFromAddresses will get all transactions related to addresses
 func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, []string, error) {

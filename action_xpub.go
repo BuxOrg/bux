@@ -98,33 +98,40 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 	var allTransactions []*whatsonchain.HistoryRecord
 
 	// Assume gap of 10 addresses, if no txs are found for 10
+	maxGapLimit := 10
+
 	// internal/external derivations, assume we've found everything
 	gapHit := false
 	for !gapHit {
+
 		// Derive internal addresses until depth
 		c.Logger().Info(ctx, "Deriving internal addresses...")
 		addressList := whatsonchain.AddressList{}
-		addresses, err := c.deriveAddresses(ctx, xPub.String(), utils.ChainInternal, 10)
-		if err != nil {
+		var addresses []string
+		if addresses, err = c.deriveAddresses(
+			ctx, xPub.String(), utils.ChainInternal, maxGapLimit,
+		); err != nil {
 			return nil, err
 		}
-		results.InternalAddresses += 10
+		results.InternalAddresses += maxGapLimit
 		addressList.Addresses = append(addressList.Addresses, addresses...)
 
 		// Derive external addresses until gap limit
 		c.Logger().Info(ctx, "Deriving external addresses...")
-		addresses, err = c.deriveAddresses(ctx, xPub.String(), utils.ChainExternal, 10)
-		if err != nil {
+		if addresses, err = c.deriveAddresses(
+			ctx, xPub.String(), utils.ChainExternal, maxGapLimit,
+		); err != nil {
 			return nil, err
 		}
-		results.ExternalAddresses += 10
+		results.ExternalAddresses += maxGapLimit
 		addressList.Addresses = append(addressList.Addresses, addresses...)
 
 		// Get all transactions for those addresses
-		transactions, addressesWithTransactions, err := getAllTransactionsFromAddresses(
+		var transactions []*whatsonchain.HistoryRecord
+		var addressesWithTransactions []string
+		if transactions, addressesWithTransactions, err = getAllTransactionsFromAddresses(
 			ctx, woc, addressList,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, err
 		}
 		if len(transactions) == 0 {
@@ -213,7 +220,7 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 	// Record transactions in bux
 	for _, rawTx := range rawTxs {
 		if _, err = c.RecordTransaction(
-			ctx, xPubKey, rawTx, "",
+			ctx, xPubKey, rawTx, "", opts...,
 		); err != nil {
 			return nil, err
 		}

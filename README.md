@@ -1,5 +1,5 @@
 # BUX
-> Bitcoin UTXO & xPub Management Suite
+> Bitcoin UTXO & xPub Management Engine
 
 [![Release](https://img.shields.io/github/release-pre/BuxOrg/bux.svg?logo=github&style=flat&v=2)](https://github.com/BuxOrg/bux/releases)
 [![Build Status](https://img.shields.io/github/workflow/status/BuxOrg/bux/run-go-tests?logo=github&v=2)](https://github.com/BuxOrg/bux/actions)
@@ -39,25 +39,25 @@
 
 ----
 #### DISCLAIMER
-> BUX is still considered _"ALPHA"_ and should not be used in production until v1.0.0
+> BUX is still considered _"ALPHA"_ and should not be used in production until a major v1.0.0 release 
 ----
 <br/>
 
 #### BUX: Out-of-the-box Features:
-- xPub & UTXO State Management (state, tip, balance, utxos, destinations)
-- Bring your own Database (MySQL, PostgreSQL, SQLite, Mongo or interface your own)
-- Caching (Ristretto, mCache, Redis or custom)
-- Task Management (TaskQ, Machinery or custom)
-- Transaction Processing (queue, broadcast, update state of xpubs)
-- Plugins using [BRFC standards](http://bsvalias.org/01-brfc-specifications.html)
+- xPub & UTXO State Management (state, balance, utxos, destinations)
+- Bring your own Database ([MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), [SQLite](https://www.sqlite.org), [Mongo](https://www.mongodb.com/) or [interface](datastore/interface.go) your own)
+- Caching ([Ristretto](https://github.com/dgraph-io/ristretto), [mCache](https://github.com/OrlovEvgeny/go-mcache), [Redis](https://redis.io/) or [interface](cachestore/interface.go) your own)
+- Task Management ([TaskQ](https://github.com/vmihailenco/taskq), [Machinery](https://github.com/RichardKnop/machinery) or [interface](taskmanager/interface.go) your own)
+- Transaction Syncing (queue, broadcast, push to mempool or on-chain,or [interface](chainstate/interface.go) your own)
+- Future plugins using [BRFC standards](http://bsvalias.org/01-brfc-specifications.html)
 
 #### **Project Assumptions: MVP**
 - _No private keys are used_, only the xPub (or access key) is given to bux
 - (BYOX) `Bring your own xPub`
-- Signing a transaction is outside this application (IE: buxServer or buxWallet)
+- Signing a transaction is outside this application (IE: bux-server or bux-wallet)
 - All transactions need to be submitted to the bux service to effectively track utxo states
 - Database can be backed up, but not regenerated from chain
-  - Certain data is not on chain, plus re-scanning xPub is expensive and not easily possible with WOC and limitations with blockchair
+  - Certain data is not on chain, plus re-scanning an xPub is expensive and not easily possible with 3rd party limitations
 
 
 <br/>
@@ -114,6 +114,7 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 
 - [bitcoinschema/go-bitcoin](https://github.com/bitcoinschema/go-bitcoin)
 - [bitcoinschema/go-map](https://github.com/bitcoinschema/go-map)
+- [dgraph-io/ristretto](https://github.com/dgraph-io/ristretto)
 - [gorm.io/gorm](https://gorm.io/gorm)
 - [libsv/go-bk](https://github.com/libsv/go-bk)
 - [libsv/go-bt](https://github.com/libsv/go-bt)
@@ -123,9 +124,12 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 - [mrz1836/go-nownodes](https://github.com/mrz1836/go-nownodes)
 - [mrz1836/go-whatsonchain](https://github.com/mrz1836/go-whatsonchain)
 - [newrelic/go-agent](https://github.com/newrelic/go-agent)
+- [OrlovEvgeny/go-mcache](https://github.com/OrlovEvgeny/go-mcache)
+- [robfig/cron](https://github.com/robfig/cron)
 - [stretchr/testify](https://github.com/stretchr/testify)
 - [tonicpow/go-minercraft](https://github.com/tonicpow/go-minercraft)
 - [tonicpow/go-paymail](https://github.com/tonicpow/go-paymail)
+- [vmihailenco/taskq/v3](https://github.com/vmihailenco/taskq)
 </details>
 
 <details>

@@ -39,7 +39,7 @@
 
 ----
 #### DISCLAIMER
-> BUX is still considered _"ALPHA"_ and should not be used in production until a major v1.0.0 release 
+> BUX is still considered _"ALPHA"_ and should not be used in production until a major v1.0.0 is released.
 ----
 <br/>
 
@@ -298,4 +298,4 @@ Thank you to these wonderful people ([emoji key](https://allcontributors.org/doc
 
 ## License
 
-[![License](https://img.shields.io/github/license/BuxOrg/bux.svg?style=flat&v=2)](LICENSE)
+[![License](https://img.shields.io/badge/license-Open%20BSV-brightgreen.svg?style=flat)](/LICENSE)

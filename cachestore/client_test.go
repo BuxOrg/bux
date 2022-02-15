@@ -71,7 +71,7 @@ func TestNewClient(t *testing.T) {
 	t.Run("[redis] - bad redis connection", func(t *testing.T) {
 		c, err := NewClient(context.Background(),
 			WithRedis(&RedisConfig{
-				URL: "redis://localbadhost:1919",
+				URL: RedisPrefix + "localbadhost:1919",
 			}),
 			WithDebugging(),
 		)

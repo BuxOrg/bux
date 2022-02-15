@@ -16,7 +16,7 @@ import (
 const (
 	testIdleTimeout          = 240 * time.Second
 	testKey                  = "test-key"
-	testLocalConnectionURL   = "redis://localhost:6379"
+	testLocalConnectionURL   = RedisPrefix + "localhost:6379"
 	testMaxActiveConnections = 0
 	testMaxConnLifetime      = 60 * time.Second
 	testMaxIdleConnections   = 10

@@ -319,7 +319,29 @@ func TestWithRedis(t *testing.T) {
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(t)), taskmanager.FactoryMemory),
 			WithRedis(&cachestore.RedisConfig{
-				URL: "redis://localhost:6379",
+				URL: cachestore.RedisPrefix + "localhost:6379",
+			}),
+			WithSQLite(tester.SQLiteTestConfig(t, false, true)),
+		)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		cs := tc.Cachestore()
+		require.NotNil(t, cs)
+		assert.Equal(t, cachestore.Redis, cs.Engine())
+	})
+
+	t.Run("missing redis prefix", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping live local redis tests")
+		}
+
+		tc, err := NewClient(
+			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(t)), taskmanager.FactoryMemory),
+			WithRedis(&cachestore.RedisConfig{
+				URL: "localhost:6379",
 			}),
 			WithSQLite(tester.SQLiteTestConfig(t, false, true)),
 		)
@@ -438,7 +460,7 @@ func TestWithTaskQ(t *testing.T) {
 				},
 			),
 			WithRedis(&cachestore.RedisConfig{
-				URL: "redis://localhost:6379",
+				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
 			WithSQLite(tester.SQLiteTestConfig(t, false, true)),
 		)

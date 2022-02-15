@@ -469,6 +469,9 @@ func WithTaskQUsingRedis(config *taskq.QueueOptions, redisOptions *redis.Options
 
 			// Create a new redis client
 			if config.Redis == nil {
+
+				// Remove prefix if found
+				redisOptions.Addr = strings.Replace(redisOptions.Addr, cachestore.RedisPrefix, "", -1)
 				config.Redis = redis.NewClient(redisOptions)
 			}
 
@@ -519,5 +522,3 @@ func WithMatterCloudAPIKey(apiKey string) ClientOps {
 		}
 	}
 }
-
-// todo: finish these options for loading chainstate!

@@ -118,6 +118,24 @@ func TestWithRedis(t *testing.T) {
 		assert.Equal(t, Redis, c.Engine())
 	})
 
+	t.Run("missing redis prefix", func(t *testing.T) {
+
+		if testing.Short() {
+			t.Skip("skipping live local redis tests")
+		}
+
+		config := &RedisConfig{
+			URL: "localhost:6379",
+		}
+		opts := []ClientOps{WithDebugging(), WithRedis(config)}
+		c, err := NewClient(context.Background(), opts...)
+		require.NotNil(t, c)
+		require.NoError(t, err)
+
+		assert.Equal(t, DefaultRedisMaxIdleTimeout.String(), c.RedisConfig().MaxIdleTimeout.String())
+		assert.Equal(t, Redis, c.Engine())
+	})
+
 	t.Run("apply verbose config", func(t *testing.T) {
 
 		if testing.Short() {

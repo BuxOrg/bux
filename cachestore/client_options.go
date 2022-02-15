@@ -2,6 +2,7 @@ package cachestore
 
 import (
 	"context"
+	"strings"
 
 	"github.com/OrlovEvgeny/go-mcache"
 	"github.com/dgraph-io/ristretto"
@@ -60,6 +61,11 @@ func WithRedis(redisConfig *RedisConfig) ClientOps {
 		// Don't panic if nil is passed
 		if redisConfig == nil {
 			return
+		}
+
+		// Add prefix if missing
+		if !strings.Contains(redisConfig.URL, RedisPrefix) {
+			redisConfig.URL = RedisPrefix + redisConfig.URL
 		}
 
 		// Set the config and engine

@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	// testLocalConnectionURL   = "redis://localhost:6379"
 	defaultDatabaseName      = "bux"
 	defaultNewRelicTx        = "testing-transaction"
 	defaultNewRelicApp       = "testing-app"

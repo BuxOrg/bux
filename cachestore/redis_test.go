@@ -31,7 +31,7 @@ func Test_loadRedisClient(t *testing.T) {
 			t.Skip("skipping test: redis is required")
 		}
 		c, err := loadRedisClient(context.Background(), &RedisConfig{
-			URL:            "redis://badurl:2343",
+			URL:            RedisPrefix + "badurl:2343",
 			DependencyMode: true,
 		}, true)
 		require.Nil(t, c)

@@ -21,7 +21,7 @@
           "infra",
           "code",
           "maintenance",
-          "security"
+          "business"
         ]
       },
       {
@@ -43,6 +43,17 @@
           "contributions": [
               "infra",
               "code"
+          ]
+      },
+      {
+          "login": "rohenaz",
+          "name": "Satchmo",
+          "avatar_url": "https://avatars.githubusercontent.com/u/456719?v=4",
+          "profile": "https://github.com/rohenaz",
+          "contributions": [
+              "blog",
+              "content",
+              "design"
           ]
       }
     ]

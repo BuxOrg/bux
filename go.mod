@@ -19,7 +19,7 @@ require (
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.4
 	github.com/libsv/go-bt/v2 v2.1.0-beta.2.0.20211221142324-0d686850c5e0
-	github.com/mrz1836/go-cache v0.6.4
+	github.com/mrz1836/go-cache v0.6.5
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.5
@@ -30,6 +30,7 @@ require (
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.7.0
+	github.com/tidwall/gjson v1.14.0
 	github.com/tonicpow/go-minercraft v0.7.0
 	github.com/tonicpow/go-paymail v0.7.1
 	github.com/tryvium-travels/memongo v0.4.0
@@ -87,7 +88,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.11 // indirect
 	github.com/miekg/dns v1.1.46 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
-	github.com/mrz1836/go-api-router v0.4.10 // indirect
+	github.com/mrz1836/go-api-router v0.4.11 // indirect
 	github.com/mrz1836/go-parameters v0.2.8 // indirect
 	github.com/mrz1836/go-sanitize v1.1.5 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
@@ -100,7 +101,6 @@ require (
 	github.com/spf13/afero v1.8.1 // indirect
 	github.com/src-d/go-oniguruma v1.1.0 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
-	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
@@ -120,7 +120,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/genproto v0.0.0-20220211171837-173942840c17 // indirect
+	google.golang.org/genproto v0.0.0-20220216160803-4663080d8bc8 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

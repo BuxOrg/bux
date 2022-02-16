@@ -58,9 +58,9 @@ type Transaction struct {
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-create;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
 
 	// Virtual Fields
-	OutputValue int64                `json:"-" toml:"-" bson:"-,omitempty"`
-	Status      SyncStatus           `json:"-" toml:"-" yaml:"-" gorm:"-" bson:"-"`
-	Direction   TransactionDirection `json:"-" toml:"-" yaml:"-" gorm:"-" bson:"-"`
+	OutputValue int64                `json:"output_value" toml:"-" yaml:"-" gorm:"-" bson:"-,omitempty"`
+	Status      SyncStatus           `json:"status" toml:"-" yaml:"-" gorm:"-" bson:"-"`
+	Direction   TransactionDirection `json:"direction" toml:"-" yaml:"-" gorm:"-" bson:"-"`
 	// Confirmations  uint64       `json:"-" toml:"-" yaml:"-" gorm:"-" bson:"-"`
 
 	// Private for internal use

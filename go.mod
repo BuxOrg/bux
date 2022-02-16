@@ -100,6 +100,9 @@ require (
 	github.com/spf13/afero v1.8.1 // indirect
 	github.com/src-d/go-oniguruma v1.1.0 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/tidwall/gjson v1.14.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	github.com/vektah/gqlparser/v2 v2.3.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect

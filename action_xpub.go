@@ -127,17 +127,17 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 		addressList.Addresses = append(addressList.Addresses, addresses...)
 
 		// Get all transactions for those addresses
-		var transactions []*whatsonchain.HistoryRecord
-		var addressesWithTransactions []string
-		if transactions, addressesWithTransactions, err = getAllTransactionsFromAddresses(
+		/*transactions, addressesWithTransactions, err := getAllTransactionsFromAddresses(
 			ctx, woc, addressList,
-		); err != nil {
+		)*/
+		transactions, err := getTransactionsFromAddressesViaBitbus(addressList.Addresses)
+		if err != nil {
 			return nil, err
 		}
 		if len(transactions) == 0 {
 			gapHit = true
 		}
-		results.AddressesWithTransactions = append(results.AddressesWithTransactions, addressesWithTransactions...)
+		//results.AddressesWithTransactions = append(results.AddressesWithTransactions, addressesWithTransactions...)
 		allTransactions = append(allTransactions, transactions...)
 	}
 	// Remove any duplicate transactions from all historical txs

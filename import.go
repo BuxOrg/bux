@@ -1,10 +1,17 @@
 package bux
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-whatsonchain"
+	"github.com/tidwall/gjson"
 )
 
 // ImportResults are the results from the import
@@ -76,4 +83,73 @@ func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchai
 		}
 	}
 	return list
+}
+
+func getTransactionsFromAddressesViaBitbus(addresses []string) ([]*whatsonchain.HistoryRecord, error) {
+	transactions := []*whatsonchain.HistoryRecord{}
+	parentQuery := []byte(`
+  {
+    "q": {
+			"find": { "$or": [ { "out.e.a": "ADDRESS" }, {"in.e.a": "ADDRESS"} ] },
+      "sort": { "blk.i": 1 },
+      "project": { "blk": 1, "tx.h": 1, "out.f3": 1 },
+      "limit": LIMIT,
+			"skip": OFFSET
+    }
+  }`)
+	for _, address := range addresses {
+		doneWithPagination := false
+		offset := 0
+		limit := 100
+		for !doneWithPagination {
+			query := bytes.Replace(parentQuery, []byte("ADDRESS"), []byte(address), 2)
+			query = bytes.Replace(query, []byte("OFFSET"), []byte(strconv.Itoa(offset)), 1)
+			query = bytes.Replace(query, []byte("LIMIT"), []byte(strconv.Itoa(limit)), 1)
+			txs, err := bitbusRequest(query)
+			if err != nil {
+				return transactions, err
+			}
+			transactions = append(transactions, txs...)
+			if len(txs) < 100 {
+				doneWithPagination = true
+			}
+			offset += 100
+		}
+	}
+
+	return transactions, nil
+}
+
+func bitbusRequest(query []byte) ([]*whatsonchain.HistoryRecord, error) {
+	planariaToken := os.Getenv("PLANARIA_TOKEN")
+	client := http.Client{}
+	transactions := []*whatsonchain.HistoryRecord{}
+	req, err := http.NewRequest("POST", "https://txo.bitbus.network/block", bytes.NewBuffer(query))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("token", planariaToken)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	reader := bufio.NewReader(resp.Body)
+	for {
+		line, err := reader.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		}
+		json := gjson.ParseBytes(line)
+		tx_id := gjson.Get(json.String(), "tx.h")
+		if tx_id.Str == "" {
+			break
+		}
+		record := &whatsonchain.HistoryRecord{
+			TxHash: tx_id.Str,
+		}
+		transactions = append(transactions, record)
+	}
+	return transactions, nil
 }

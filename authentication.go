@@ -36,39 +36,47 @@ func (c *Client) AuthenticateRequest(ctx context.Context, req *http.Request, adm
 		}
 	}
 
+	if req.Body == nil {
+		return req, ErrMissingBody
+	}
+	defer func() {
+		_ = req.Body.Close()
+	}()
+	b, err := io.ReadAll(req.Body)
+	if err != nil {
+		return req, err
+	}
+
+	req.Body = io.NopCloser(bytes.NewReader(b))
+
+	authTime, _ := strconv.Atoi(req.Header.Get(AuthHeaderTime))
+	authData := &AuthPayload{
+		AuthHash:     req.Header.Get(AuthHeaderHash),
+		AuthNonce:    req.Header.Get(AuthHeaderNonce),
+		AuthTime:     int64(authTime),
+		BodyContents: string(b),
+		Signature:    req.Header.Get(AuthSignature),
+	}
+
 	// adminRequired will always force checking of a signature
 	if (requireSigning || adminRequired) && !signingDisabled {
-		if req.Body == nil {
-			return req, ErrMissingBody
-		}
-		defer func() {
-			_ = req.Body.Close()
-		}()
-		b, err := io.ReadAll(req.Body)
-		if err != nil {
-			return req, err
-		}
-
-		req.Body = io.NopCloser(bytes.NewReader(b))
-
-		authTime, _ := strconv.Atoi(req.Header.Get(AuthHeaderTime))
-		authData := &AuthPayload{
-			AuthHash:     req.Header.Get(AuthHeaderHash),
-			AuthNonce:    req.Header.Get(AuthHeaderNonce),
-			AuthTime:     int64(authTime),
-			BodyContents: string(b),
-			Signature:    req.Header.Get(AuthSignature),
-		}
 		if err = c.checkSignature(ctx, xPubOrAccessKey, authData); err != nil {
 			return req, err
 		}
+		req = setOnRequest(req, authSigned, true)
 	} else {
+		// check the signature and add to request, but do not fail if incorrect
+		err = c.checkSignature(ctx, xPubOrAccessKey, authData)
+		req = setOnRequest(req, authSigned, err == nil)
+
 		// Validate that the xPub is an HD key (length, validation)
 		// NOTE: you can not use an access key if signing is turned off
-		if _, err := utils.ValidateXPub(xPubOrAccessKey); err != nil {
+		if _, err = utils.ValidateXPub(xPubOrAccessKey); err != nil {
 			return req, err
 		}
 	}
+
+	req = setOnRequest(req, adminRequest, adminRequired)
 
 	// Set the data back onto the request
 	return setOnRequest(setOnRequest(req, xPubKey, xPubOrAccessKey), xPubHashKey, utils.Hash(xPubOrAccessKey)), nil
@@ -226,6 +234,11 @@ func getSigningMessage(xPub string, auth *AuthPayload) string {
 // GetXpubFromRequest gets the stored xPub from the request if found
 func GetXpubFromRequest(req *http.Request) (string, bool) {
 	return getFromRequest(req, xPubKey)
+}
+
+// IsAdminRequest gets the stored xPub from the request if found
+func IsAdminRequest(req *http.Request) (bool, bool) {
+	return getBoolFromRequest(req, adminRequest)
 }
 
 // GetXpubHashFromRequest gets the stored xPub hash from the request if found

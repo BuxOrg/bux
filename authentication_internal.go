@@ -48,8 +48,10 @@ type AuthPayload struct {
 type paramRequestKey string
 
 const (
-	xPubKey     paramRequestKey = "xpub"
-	xPubHashKey paramRequestKey = "xpub_hash"
+	xPubKey      paramRequestKey = "xpub"
+	xPubHashKey  paramRequestKey = "xpub_hash"
+	adminRequest paramRequestKey = "auth_admin"
+	authSigned   paramRequestKey = "auth_signed"
 )
 
 // createBodyHash will create the hash of the body, removing any carriage returns
@@ -114,5 +116,11 @@ func setOnRequest(req *http.Request, keyName paramRequestKey, value interface{})
 // getFromRequest gets the stored value from the request if found
 func getFromRequest(req *http.Request, key paramRequestKey) (v string, ok bool) {
 	v, ok = req.Context().Value(key).(string)
+	return
+}
+
+// getBoolFromRequest gets the stored bool value from the request if found
+func getBoolFromRequest(req *http.Request, key paramRequestKey) (v bool, ok bool) {
+	v, ok = req.Context().Value(key).(bool)
 	return
 }

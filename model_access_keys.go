@@ -69,6 +69,40 @@ func GetAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 	return key, nil
 }
 
+// GetAccessKeys will get all the access kets that match the metadata search
+func GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error) {
+
+	// Construct an empty model
+	var models []AccessKey
+	conditions := map[string]interface{}{
+		xPubIDField: xPubID,
+	}
+
+	if metadata != nil {
+		conditions[metadataField] = metadata
+	}
+
+	// Get the records
+	if err := getModels(
+		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		&models, conditions, 0, 0, "", "", defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Loop and enrich
+	accessKeys := make([]*AccessKey, 0)
+	for index := range models {
+		models[index].enrich(ModelDestination, opts...)
+		accessKeys = append(accessKeys, &models[index])
+	}
+
+	return accessKeys, nil
+}
+
 // GetModelName will get the name of the current model
 func (m *AccessKey) GetModelName() string {
 	return ModelAccessKey.String()

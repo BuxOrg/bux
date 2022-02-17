@@ -18,7 +18,7 @@ const (
 	// testAccessKey         = "9b2a4421edd88782a193ea8195cce1fe9b632df575c88d70f20a1fdf6835b764"
 	// testAccessKeyAddress  = "1HuoHijPa7BqQNiV953pd3taqnmyhgDXFt"
 	// testAccessKeyID       = "b7b91e8aca22b4ee33f3f0e48c00cd4631dc2dbba1f773829883eaae42fa2234"
-	// testAccessKeyPKH      = "b97e4834a13d188ab0588dc2aaff11a6658771cd"
+	testAccessKeyPKH = "b97e4834a13d188ab0588dc2aaff11a6658771cd"
 	// testAccessKeyPublic   = "02719a5e3623bee13f8116f1db4ee54603c993e020087960f31d2e0b4cbd97d175"
 	// testSignatureAuthNonce = `dec0535f13b7ed61c2b188b7fe8fd5f578d6931aa90b6063c653ce0f8eefacf1`
 	// testSignatureAuthTime  = "1643828414038"
@@ -70,11 +70,6 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		var authData *AuthPayload
-		authData, err = createSignature(key, `{}`)
-		require.NoError(t, err)
-		require.NotNil(t, authData)
-
 		err = SetSignature(&req.Header, key, `{}`)
 		require.NoError(t, err)
 
@@ -82,11 +77,11 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		defer deferMe()
 
 		req, err = client.AuthenticateRequest(
-			context.Background(), req, []string{authData.xPub}, false, true, false,
+			context.Background(), req, []string{}, false, true, false,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, req)
-		assert.Equal(t, true, req.Context().Value(authSigned))
+		assert.Equal(t, true, req.Context().Value(ParamAuthSigned))
 	})
 
 	t.Run("xpub - valid signature - not required", func(t *testing.T) {
@@ -115,7 +110,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, req)
-		assert.Equal(t, true, req.Context().Value(authSigned))
+		assert.Equal(t, true, req.Context().Value(ParamAuthSigned))
 	})
 
 	t.Run("error - admin required", func(t *testing.T) {
@@ -265,6 +260,103 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		x, ok = GetXpubHashFromRequest(req)
 		assert.Equal(t, "", x)
 		assert.Equal(t, false, ok)
+	})
+
+	t.Run("access key - not signed", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		req.Header.Set(AuthAccessKey, "020202")
+
+		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		_, err = client.AuthenticateRequest(
+			context.Background(), req, []string{""}, false, false, false,
+		)
+		require.ErrorIs(t, err, ErrAuthAccessKeyNotFound)
+	})
+
+	t.Run("access key - key not found", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		var authData *AuthPayload
+		//AuthAccessKey
+		authData, err = createSignatureAccessKey(testAccessKeyPKH, `{}`)
+		require.NoError(t, err)
+		require.NotNil(t, authData)
+
+		err = SetSignatureFromAccessKey(&req.Header, testAccessKeyPKH, `{}`)
+		require.NoError(t, err)
+
+		_, err = client.AuthenticateRequest(
+			context.Background(), req, []string{authData.xPub}, false, true, false,
+		)
+		require.ErrorIs(t, err, ErrAuthAccessKeyNotFound)
+	})
+
+	t.Run("access key - valid signature", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		accessKey := newAccessKey(testXPubID, append(client.DefaultModelOptions(), New())...)
+		err = accessKey.Save(ctx)
+		require.NoError(t, err)
+
+		var authData *AuthPayload
+		//AuthAccessKey
+		authData, err = createSignatureAccessKey(accessKey.Key, `{}`)
+		require.NoError(t, err)
+		require.NotNil(t, authData)
+
+		err = SetSignatureFromAccessKey(&req.Header, accessKey.Key, `{}`)
+		require.NoError(t, err)
+
+		req, err = client.AuthenticateRequest(
+			context.Background(), req, []string{authData.xPub}, false, true, false,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+		assert.Equal(t, true, req.Context().Value(ParamAuthSigned))
+	})
+
+	t.Run("access key - valid signature - not required", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		accessKey := newAccessKey(testXPubID, append(client.DefaultModelOptions(), New())...)
+		err = accessKey.Save(ctx)
+		require.NoError(t, err)
+
+		var authData *AuthPayload
+		//AuthAccessKey
+		authData, err = createSignatureAccessKey(accessKey.Key, `{}`)
+		require.NoError(t, err)
+		require.NotNil(t, authData)
+
+		err = SetSignatureFromAccessKey(&req.Header, accessKey.Key, `{}`)
+		require.NoError(t, err)
+
+		req, err = client.AuthenticateRequest(
+			context.Background(), req, []string{authData.xPub}, false, false, false,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+		assert.Equal(t, true, req.Context().Value(ParamAuthSigned))
 	})
 }
 
@@ -508,7 +600,7 @@ func TestGetXpubFromRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req = setOnRequest(req, xPubKey, testXpub)
+		req = setOnRequest(req, ParamXPubKey, testXpub)
 
 		xPub, success := GetXpubFromRequest(req)
 		assert.Equal(t, testXpub, xPub)
@@ -545,7 +637,7 @@ func TestIsAdminRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req = setOnRequest(req, adminRequest, false)
+		req = setOnRequest(req, ParamAdminRequest, false)
 
 		isAdmin, ok := IsAdminRequest(req)
 		assert.Equal(t, true, ok)
@@ -557,7 +649,7 @@ func TestIsAdminRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req = setOnRequest(req, adminRequest, true)
+		req = setOnRequest(req, ParamAdminRequest, true)
 
 		isAdmin, ok := IsAdminRequest(req)
 		assert.Equal(t, true, ok)
@@ -574,7 +666,7 @@ func TestGetXpubHashFromRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req = setOnRequest(req, xPubHashKey, testXpubHash)
+		req = setOnRequest(req, ParamXPubHashKey, testXpubHash)
 
 		xPubHash, success := GetXpubHashFromRequest(req)
 		assert.Equal(t, testXpubHash, xPubHash)

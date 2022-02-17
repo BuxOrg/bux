@@ -230,3 +230,10 @@ func (m *Xpub) AfterUpdated(ctx context.Context) error {
 func (m *Xpub) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableXPubs), metadataField)
 }
+
+// RemovePrivateData unset all fields that are sensitive
+func (m *Xpub) RemovePrivateData() {
+	m.NextExternalNum = 0
+	m.NextInternalNum = 0
+	m.Metadata = nil
+}

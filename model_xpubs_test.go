@@ -248,6 +248,31 @@ func TestXpub_AfterUpdated(t *testing.T) {
 	})
 }
 
+// TestXpub_RemovePrivateData will test the method RemovePrivateData()
+func TestXpub_RemovePrivateData(t *testing.T) {
+
+	t.Run("remove private data", func(t *testing.T) {
+		xPub := newXpub(testXPub, New())
+		require.NotNil(t, xPub)
+
+		xPub.Metadata = Metadata{
+			"test-key": "test-value",
+		}
+		xPub.NextInternalNum = uint32(123)
+		xPub.NextExternalNum = uint32(321)
+
+		assert.NotNil(t, xPub.Metadata)
+		assert.Equal(t, "test-value", xPub.Metadata["test-key"])
+		assert.Equal(t, uint32(123), xPub.NextInternalNum)
+		assert.Equal(t, uint32(321), xPub.NextExternalNum)
+
+		xPub.RemovePrivateData()
+		assert.Nil(t, xPub.Metadata)
+		assert.Equal(t, uint32(0), xPub.NextInternalNum)
+		assert.Equal(t, uint32(0), xPub.NextExternalNum)
+	})
+}
+
 // TestXpub_Save will test the method Save()
 func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 

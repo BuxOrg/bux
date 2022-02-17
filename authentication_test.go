@@ -35,7 +35,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid xpub", func(t *testing.T) {
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", nil)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
@@ -58,6 +58,64 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		x, ok = GetXpubHashFromRequest(req)
 		assert.Equal(t, testXpubHash, x)
 		assert.Equal(t, true, ok)
+	})
+
+	t.Run("xpub - valid signature", func(t *testing.T) {
+		key, err := bitcoin.GenerateHDKey(bitcoin.SecureSeedLength)
+		require.NoError(t, err)
+		require.NotNil(t, key)
+
+		var req *http.Request
+		req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		var authData *AuthPayload
+		authData, err = createSignature(key, `{}`)
+		require.NoError(t, err)
+		require.NotNil(t, authData)
+
+		err = SetSignature(&req.Header, key, `{}`)
+		require.NoError(t, err)
+
+		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		req, err = client.AuthenticateRequest(
+			context.Background(), req, []string{authData.xPub}, false, true, false,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+		assert.Equal(t, true, req.Context().Value(authSigned))
+	})
+
+	t.Run("xpub - valid signature - not required", func(t *testing.T) {
+		key, err := bitcoin.GenerateHDKey(bitcoin.SecureSeedLength)
+		require.NoError(t, err)
+		require.NotNil(t, key)
+
+		var req *http.Request
+		req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, "", bytes.NewReader([]byte(`{}`)))
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		var authData *AuthPayload
+		authData, err = createSignature(key, `{}`)
+		require.NoError(t, err)
+		require.NotNil(t, authData)
+
+		err = SetSignature(&req.Header, key, `{}`)
+		require.NoError(t, err)
+
+		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		req, err = client.AuthenticateRequest(
+			context.Background(), req, []string{authData.xPub}, false, false, false,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+		assert.Equal(t, true, req.Context().Value(authSigned))
 	})
 
 	t.Run("error - admin required", func(t *testing.T) {
@@ -465,6 +523,45 @@ func TestGetXpubFromRequest(t *testing.T) {
 		xPub, success := GetXpubFromRequest(req)
 		assert.Equal(t, "", xPub)
 		assert.Equal(t, false, success)
+	})
+}
+
+// TestIsAdminRequest will test the method IsAdminRequest()
+func TestIsAdminRequest(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no value", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", nil)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		isAdmin, ok := IsAdminRequest(req)
+		assert.Equal(t, false, ok)
+		assert.Equal(t, false, isAdmin)
+	})
+
+	t.Run("false value", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", nil)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		req = setOnRequest(req, adminRequest, false)
+
+		isAdmin, ok := IsAdminRequest(req)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, false, isAdmin)
+	})
+
+	t.Run("valid value", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "", nil)
+		require.NoError(t, err)
+		require.NotNil(t, req)
+
+		req = setOnRequest(req, adminRequest, true)
+
+		isAdmin, ok := IsAdminRequest(req)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, true, isAdmin)
 	})
 }
 

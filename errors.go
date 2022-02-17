@@ -112,6 +112,9 @@ var ErrMissingSignature = errors.New("signature missing")
 // ErrAuhHashMismatch is when the auth hash does not match the body hash
 var ErrAuhHashMismatch = errors.New("auth hash and body hash do not match")
 
+// ErrAuthAccessKeyNotFound is when the auth access key could not be found in the database
+var ErrAuthAccessKeyNotFound = errors.New("auth access key could not be found")
+
 // ErrSignatureExpired is when the signature TTL expired
 var ErrSignatureExpired = errors.New("signature has expired")
 
@@ -120,6 +123,9 @@ var ErrNotAdminKey = errors.New("xpub provided is not an admin key")
 
 // ErrMissingXPriv is when the xPriv is missing
 var ErrMissingXPriv = errors.New("missing xPriv key")
+
+// ErrMissingAccessKey is when the access key is missing
+var ErrMissingAccessKey = errors.New("missing access key")
 
 // ErrMissingBody is when the body is missing
 var ErrMissingBody = errors.New("missing body")

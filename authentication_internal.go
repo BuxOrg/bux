@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -17,6 +16,9 @@ import (
 const (
 	// AuthHeader is the header to use for authentication (raw xPub)
 	AuthHeader = "auth_xpub"
+
+	// AuthAccessKey is the header to use for access key authentication (access public key)
+	AuthAccessKey = "auth_key"
 
 	// AuthSignature is the given signature (body + timestamp)
 	AuthSignature = "auth_signature"
@@ -42,16 +44,21 @@ type AuthPayload struct {
 	BodyContents string `json:"body_contents"`
 	Signature    string `json:"signature"`
 	xPub         string
+	accessKey    string
 }
 
-// paramRequestKey for context key
-type paramRequestKey string
+// ParamRequestKey for context key
+type ParamRequestKey string
 
 const (
-	xPubKey      paramRequestKey = "xpub"
-	xPubHashKey  paramRequestKey = "xpub_hash"
-	adminRequest paramRequestKey = "auth_admin"
-	authSigned   paramRequestKey = "auth_signed"
+	// ParamXPubKey the request parameter for the xpub string
+	ParamXPubKey ParamRequestKey = "xpub"
+	// ParamXPubHashKey the request parameter for the xpub ID
+	ParamXPubHashKey ParamRequestKey = "xpub_hash"
+	// ParamAdminRequest the request parameter whether this is an admin request
+	ParamAdminRequest ParamRequestKey = "auth_admin"
+	// ParamAuthSigned the request parameter that says whether the request was signed
+	ParamAuthSigned ParamRequestKey = "auth_signed"
 )
 
 // createBodyHash will create the hash of the body, removing any carriage returns
@@ -60,8 +67,7 @@ func createBodyHash(bodyContents string) string {
 }
 
 // createSignature will create a signature for the given key & body contents
-func createSignature(xPriv *bip32.ExtendedKey,
-	bodyString string) (payload *AuthPayload, err error) {
+func createSignature(xPriv *bip32.ExtendedKey, bodyString string) (payload *AuthPayload, err error) {
 
 	// No key?
 	if xPriv == nil {
@@ -76,13 +82,11 @@ func createSignature(xPriv *bip32.ExtendedKey,
 		return
 	}
 
-	// Create the auth header hash
-	payload.AuthHash = utils.Hash(bodyString)
-
 	// auth_nonce is a random unique string to seed the signing message
 	// this can be checked server side to make sure the request is not being replayed
-	if payload.AuthNonce, err = utils.RandomHex(32); err != nil {
-		return // Should never error
+	payload.AuthNonce, err = utils.RandomHex(32)
+	if err != nil { // Should never error if key is correct
+		return
 	}
 
 	// Derive the address for signing
@@ -97,30 +101,79 @@ func createSignature(xPriv *bip32.ExtendedKey,
 		return // Should never error if key is correct
 	}
 
+	return createSignatureCommon(payload, bodyString, privateKey)
+}
+
+// createSignatureAccessKey will create a signature for the given access key & body contents
+func createSignatureAccessKey(privateKeyHex, bodyString string) (payload *AuthPayload, err error) {
+
+	// No key?
+	if privateKeyHex == "" {
+		err = ErrMissingAccessKey
+		return
+	}
+
+	var privateKey *bec.PrivateKey
+	privateKey, err = bitcoin.PrivateKeyFromString(privateKeyHex)
+	if err != nil {
+		return
+	}
+	publicKey := privateKey.PubKey()
+
+	// Get the xPub
+	payload = new(AuthPayload)
+	payload.accessKey = hex.EncodeToString(publicKey.SerialiseCompressed())
+
+	// auth_nonce is a random unique string to seed the signing message
+	// this can be checked server side to make sure the request is not being replayed
+	payload.AuthNonce, err = utils.RandomHex(32)
+	if err != nil {
+		return nil, err
+	}
+
+	return createSignatureCommon(payload, bodyString, privateKey)
+}
+
+func createSignatureCommon(payload *AuthPayload, bodyString string, privateKey *bec.PrivateKey) (*AuthPayload, error) {
+
+	// Create the auth header hash
+	payload.AuthHash = utils.Hash(bodyString)
+
 	// auth_time is the current time and makes sure a request can not be sent after 30 secs
 	payload.AuthTime = time.Now().UnixMilli()
 
+	key := payload.xPub
+	if key == "" && payload.accessKey != "" {
+		key = payload.accessKey
+	}
+
 	// Signature, using bitcoin signMessage
 	hexKey := hex.EncodeToString(privateKey.Serialise())
+	message := getSigningMessage(key, payload)
+	var err error
 	payload.Signature, err = bitcoin.SignMessage(
-		hexKey, fmt.Sprintf("%s%s%s%d", payload.xPub, payload.AuthHash, payload.AuthNonce, payload.AuthTime), true,
+		hexKey, message, true,
 	)
-	return
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }
 
 // setOnRequest will set the value on the request with the given key
-func setOnRequest(req *http.Request, keyName paramRequestKey, value interface{}) *http.Request {
+func setOnRequest(req *http.Request, keyName ParamRequestKey, value interface{}) *http.Request {
 	return req.WithContext(context.WithValue(req.Context(), keyName, value))
 }
 
 // getFromRequest gets the stored value from the request if found
-func getFromRequest(req *http.Request, key paramRequestKey) (v string, ok bool) {
+func getFromRequest(req *http.Request, key ParamRequestKey) (v string, ok bool) {
 	v, ok = req.Context().Value(key).(string)
 	return
 }
 
 // getBoolFromRequest gets the stored bool value from the request if found
-func getBoolFromRequest(req *http.Request, key paramRequestKey) (v bool, ok bool) {
+func getBoolFromRequest(req *http.Request, key ParamRequestKey) (v bool, ok bool) {
 	v, ok = req.Context().Value(key).(bool)
 	return
 }

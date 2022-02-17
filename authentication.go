@@ -3,6 +3,7 @@ package bux
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,16 +25,38 @@ func (c *Client) AuthenticateRequest(ctx context.Context, req *http.Request, adm
 	adminRequired, requireSigning, signingDisabled bool) (*http.Request, error) {
 
 	// Get the xPub/Access Key from the header
-	xPubOrAccessKey := strings.TrimSpace(req.Header.Get(AuthHeader))
-	if len(xPubOrAccessKey) == 0 { // No value found
+	xPub := strings.TrimSpace(req.Header.Get(AuthHeader))
+	authAccessKey := strings.TrimSpace(req.Header.Get(AuthAccessKey))
+	if len(xPub) == 0 && len(authAccessKey) == 0 { // No value found
 		return req, ErrMissingAuthHeader
 	}
 
 	// Check for admin key
 	if adminRequired {
-		if !utils.StringInSlice(xPubOrAccessKey, adminXPubs) {
+		if !utils.StringInSlice(xPub, adminXPubs) {
 			return req, ErrNotAdminKey
 		}
+	}
+
+	xPubID := utils.Hash(xPub)
+	xPubOrAccessKey := xPub
+	if xPub != "" {
+		// Validate that the xPub is an HD key (length, validation)
+		if _, err := utils.ValidateXPub(xPubOrAccessKey); err != nil {
+			return req, err
+		}
+	} else if authAccessKey != "" {
+		xPubOrAccessKey = authAccessKey
+
+		accessKey, err := GetAccessKey(ctx, utils.Hash(authAccessKey), c.DefaultModelOptions()...)
+		if err != nil {
+			return req, err
+		}
+		if accessKey == nil || accessKey.RevokedAt.Valid {
+			return nil, ErrAuthAccessKeyNotFound
+		}
+
+		xPubID = accessKey.XpubID
 	}
 
 	if req.Body == nil {
@@ -63,23 +86,22 @@ func (c *Client) AuthenticateRequest(ctx context.Context, req *http.Request, adm
 		if err = c.checkSignature(ctx, xPubOrAccessKey, authData); err != nil {
 			return req, err
 		}
-		req = setOnRequest(req, authSigned, true)
+		req = setOnRequest(req, ParamAuthSigned, true)
 	} else {
 		// check the signature and add to request, but do not fail if incorrect
 		err = c.checkSignature(ctx, xPubOrAccessKey, authData)
-		req = setOnRequest(req, authSigned, err == nil)
+		req = setOnRequest(req, ParamAuthSigned, err == nil)
 
-		// Validate that the xPub is an HD key (length, validation)
-		// NOTE: you can not use an access key if signing is turned off
-		if _, err = utils.ValidateXPub(xPubOrAccessKey); err != nil {
+		// NOTE: you can not use an access key if signing is invalid - ever
+		if xPubOrAccessKey == authAccessKey && err != nil {
 			return req, err
 		}
 	}
 
-	req = setOnRequest(req, adminRequest, adminRequired)
+	req = setOnRequest(req, ParamAdminRequest, adminRequired)
 
 	// Set the data back onto the request
-	return setOnRequest(setOnRequest(req, xPubKey, xPubOrAccessKey), xPubHashKey, utils.Hash(xPubOrAccessKey)), nil
+	return setOnRequest(setOnRequest(req, ParamXPubKey, xPub), ParamXPubHashKey, xPubID), nil
 }
 
 // checkSignature check the signature for the provided auth payload
@@ -146,11 +168,17 @@ func verifyKeyXPub(xPub string, auth *AuthPayload) error {
 		return err // Should never error
 	}
 
+	pubKey, _ := key.ECPubKey()
+	fmt.Printf("XPUB KEY V: %s\n", key)
+	fmt.Printf("PUBLIC KEY V: %s\n", hex.EncodeToString(pubKey.SerialiseCompressed()))
+	fmt.Printf("ADDRESS V: %s\n\n", address.AddressString)
+
 	// Return the error if verification fails
+	message := getSigningMessage(xPub, auth)
 	if err = bitcoin.VerifyMessage(
 		address.AddressString,
 		auth.Signature,
-		getSigningMessage(xPub, auth),
+		message,
 	); err != nil {
 		return ErrSignatureInvalid
 	}
@@ -171,7 +199,6 @@ func verifyAccessKey(ctx context.Context, key string, auth *AuthPayload, opts ..
 		return ErrAccessKeyRevoked
 	}
 
-	// todo: should this be the access key or the xpub id?
 	var address *bscript.Address
 	if address, err = bitcoin.GetAddressFromPubKeyString(
 		key, true,
@@ -201,6 +228,26 @@ func SetSignature(header *http.Header, xPriv *bip32.ExtendedKey, bodyString stri
 
 	// Set the auth header
 	header.Set(AuthHeader, authData.xPub)
+
+	return setSignatureHeaders(header, authData)
+}
+
+// SetSignatureFromAccessKey will set the signature on the header for the request from an access key
+func SetSignatureFromAccessKey(header *http.Header, privateKeyHex, bodyString string) error {
+
+	// Create the signature
+	authData, err := createSignatureAccessKey(privateKeyHex, bodyString)
+	if err != nil {
+		return err
+	}
+
+	// Set the auth header
+	header.Set(AuthAccessKey, authData.accessKey)
+
+	return setSignatureHeaders(header, authData)
+}
+
+func setSignatureHeaders(header *http.Header, authData *AuthPayload) error {
 
 	// Create the auth header hash
 	header.Set(AuthHeaderHash, authData.AuthHash)
@@ -233,15 +280,15 @@ func getSigningMessage(xPub string, auth *AuthPayload) string {
 
 // GetXpubFromRequest gets the stored xPub from the request if found
 func GetXpubFromRequest(req *http.Request) (string, bool) {
-	return getFromRequest(req, xPubKey)
+	return getFromRequest(req, ParamXPubKey)
 }
 
 // IsAdminRequest gets the stored xPub from the request if found
 func IsAdminRequest(req *http.Request) (bool, bool) {
-	return getBoolFromRequest(req, adminRequest)
+	return getBoolFromRequest(req, ParamAdminRequest)
 }
 
 // GetXpubHashFromRequest gets the stored xPub hash from the request if found
 func GetXpubHashFromRequest(req *http.Request) (string, bool) {
-	return getFromRequest(req, xPubHashKey)
+	return getFromRequest(req, ParamXPubHashKey)
 }

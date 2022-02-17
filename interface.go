@@ -15,6 +15,14 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// AccessKeyService is the Access key related requests
+type AccessKeyService interface {
+	GetAccessKey(ctx context.Context, rawXpubKey, pubAccessKey string) (*AccessKey, error)
+	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error)
+	NewAccessKey(ctx context.Context, rawXpubKey string, opts ...ModelOps) (*AccessKey, error)
+	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
+}
+
 // TransactionService is the transaction related requests
 type TransactionService interface {
 	GetTransaction(ctx context.Context, rawXpubKey, txID string) (*Transaction, error)
@@ -52,6 +60,7 @@ type XPubService interface {
 
 // ClientInterface is the client (bux engine) interface
 type ClientInterface interface {
+	AccessKeyService
 	DestinationService
 	TransactionService
 	UTXOService

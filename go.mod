@@ -36,10 +36,10 @@ require (
 	github.com/tryvium-travels/memongo v0.4.0
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.8.3
-	gorm.io/driver/mysql v1.2.3
-	gorm.io/driver/postgres v1.2.3
-	gorm.io/driver/sqlite v1.2.6
-	gorm.io/gorm v1.22.5
+	gorm.io/driver/mysql v1.3.0
+	gorm.io/driver/postgres v1.3.0
+	gorm.io/driver/sqlite v1.3.0
+	gorm.io/gorm v1.23.0
 	gorm.io/plugin/dbresolver v1.1.0
 )
 
@@ -120,7 +120,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/genproto v0.0.0-20220217155828-d576998c0009 // indirect
+	google.golang.org/genproto v0.0.0-20220218161850-94dd64e39d7c // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

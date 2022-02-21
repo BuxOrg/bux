@@ -375,6 +375,11 @@ func TestWithSQL(t *testing.T) {
 	// finish test
 }
 
+// TestWithSQLConfigs will test the method WithSQLConfigs()
+func TestWithSQLConfigs(t *testing.T) {
+	// finish test
+}
+
 // TestWithSQLConnection will test the method WithSQLConnection()
 func TestWithSQLConnection(t *testing.T) {
 	// finish test

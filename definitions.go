@@ -18,7 +18,7 @@ const (
 	dustLimit                  = uint64(512)       // Dust limit
 	mongoTestVersion           = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion          = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                    = "v0.1.1"          // bux version
+	version                    = "v0.1.2"          // bux version
 )
 
 // All the base models

@@ -19,6 +19,14 @@ type TaskService interface {
 	Tasks() map[string]*taskq.Task
 }
 
+// CronService is the cron service provider
+type CronService interface {
+	AddFunc(spec string, cmd func()) (int, error)
+	New()
+	Start()
+	Stop()
+}
+
 // ClientInterface is the taskmanager client interface
 type ClientInterface interface {
 	TaskService

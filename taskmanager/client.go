@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/robfig/cron/v3"
 	"github.com/vmihailenco/taskq/v3"
 )
 
@@ -18,7 +17,7 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cron            *cron.Cron    // Internal cron job client
+		cronService     CronService   // Internal cron job client
 		debug           bool          // For extra logs and additional debug information
 		engine          Engine        // Taskmanager engine (taskq or machinery)
 		logger          Logger        // Internal logging
@@ -67,8 +66,10 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 		}
 	}
 
-	// Create and start the cron scheduler
-	client.ResetCron()
+	// Detect if a cron service provider was set
+	if client.options.cronService == nil { // Use a local cron
+		client.localCron()
+	}
 
 	// Set logger if not set
 	if client.options.logger == nil {
@@ -87,9 +88,9 @@ func (c *Client) Close(ctx context.Context) error {
 	if c != nil && c.options != nil {
 
 		// Stop the cron scheduler
-		if c.options.cron != nil {
-			c.options.cron.Stop()
-			c.options.cron = nil
+		if c.options.cronService != nil {
+			c.options.cronService.Stop()
+			c.options.cronService = nil
 		}
 
 		if c.options.engine == TaskQ {
@@ -117,13 +118,8 @@ func (c *Client) Close(ctx context.Context) error {
 
 // ResetCron will reset the cron scheduler and all loaded tasks
 func (c *Client) ResetCron() {
-	if c.options.cron != nil {
-		c.options.cron.Stop()
-	}
-
-	// Reset and start!
-	c.options.cron = cron.New()
-	c.options.cron.Start()
+	c.options.cronService.New()
+	c.options.cronService.Start()
 }
 
 // Debug will set the debug flag

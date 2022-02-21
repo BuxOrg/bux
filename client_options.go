@@ -483,6 +483,15 @@ func WithTaskQUsingRedis(config *taskq.QueueOptions, redisOptions *redis.Options
 	}
 }
 
+// WithCronService will set the custom cron service provider
+func WithCronService(cronService taskmanager.CronService) ClientOps {
+	return func(c *clientOptions) {
+		if cronService != nil && c.taskManager != nil {
+			c.taskManager.options = append(c.taskManager.options, taskmanager.WithCronService(cronService))
+		}
+	}
+}
+
 // -----------------------------------------------------------------
 // CHAIN-STATE
 // -----------------------------------------------------------------

@@ -97,3 +97,28 @@ func TestWithLogger(t *testing.T) {
 		assert.Equal(t, customClient, options.logger)
 	})
 }
+
+// TestWithCronService will test the method WithCronService()
+func TestWithCronService(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithCronService(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		options := &clientOptions{}
+		opt := WithCronService(nil)
+		opt(options)
+		assert.Nil(t, options.cronService)
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		options := &clientOptions{}
+		customCron := &cronLocal{}
+		opt := WithCronService(customCron)
+		opt(options)
+		assert.Equal(t, customCron, options.cronService)
+	})
+}

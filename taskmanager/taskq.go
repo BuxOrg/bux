@@ -19,22 +19,22 @@ var (
 // DefaultTaskQConfig will return a default configuration that can be modified
 func DefaultTaskQConfig(name string) *taskq.QueueOptions {
 	return &taskq.QueueOptions{
-		Name:                 name,                    // Queue name.
-		MinNumWorker:         1,                       // Minimum number of goroutines processing messages.
-		MaxNumWorker:         10,                      // Maximum number of goroutines processing messages.
-		WorkerLimit:          0,                       // Global limit of concurrently running workers across all servers. Overrides MaxNumWorker.
-		MaxNumFetcher:        0,                       // Maximum number of goroutines fetching messages.
-		ReservationSize:      10,                      // Number of messages reserved by a fetcher in the queue in one request.
-		ReservationTimeout:   60 * time.Second,        // Time after which the reserved message is returned to the queue.
-		WaitTimeout:          3 * time.Second,         // Time that a long polling receive call waits for a message to become available before returning an empty response.
 		BufferSize:           10,                      // Size of the buffer where reserved messages are stored.
+		ConsumerIdleTimeout:  6 * time.Hour,           // ConsumerIdleTimeout Time after which the consumer need to be deleted.
+		Handler:              nil,                     // Optional message handler. The default is the global Tasks registry.
+		MaxNumFetcher:        0,                       // Maximum number of goroutines fetching messages.
+		MaxNumWorker:         10,                      // Maximum number of goroutines processing messages.
+		MinNumWorker:         1,                       // Minimum number of goroutines processing messages.
+		Name:                 name,                    // Queue name.
 		PauseErrorsThreshold: 100,                     // Number of consecutive failures after which queue processing is paused.
 		RateLimit:            redis_rate.Limit{},      // Processing rate limit.
 		RateLimiter:          nil,                     // Optional rate limiter. The default is to use Redis.
 		Redis:                nil,                     // Redis client that is used for storing metadata.
+		ReservationSize:      10,                      // Number of messages reserved by a fetcher in the queue in one request.
+		ReservationTimeout:   60 * time.Second,        // Time after which the reserved message is returned to the queue.
 		Storage:              taskq.NewLocalStorage(), // Optional storage interface. The default is to use Redis.
-		Handler:              nil,                     // Optional message handler. The default is the global Tasks registry.
-		ConsumerIdleTimeout:  6 * time.Hour,           // ConsumerIdleTimeout Time after which the consumer need to be deleted.
+		WaitTimeout:          3 * time.Second,         // Time that a long polling receive call waits for a message to become available before returning an empty response.
+		WorkerLimit:          0,                       // Global limit of concurrently running workers across all servers. Overrides MaxNumWorker.
 	}
 }
 
@@ -149,7 +149,7 @@ func (c *Client) runTaskUsingTaskQ(ctx context.Context, options *TaskOptions) er
 
 	// This is the "cron" aspect of the task
 	if options.RunEveryPeriod > 0 {
-		_, err := c.options.cron.AddFunc(
+		_, err := c.options.cronService.AddFunc(
 			fmt.Sprintf("@every %ds", int(options.RunEveryPeriod.Seconds())),
 			func() {
 				// todo: log the error if it occurs? Cannot pass the error back up

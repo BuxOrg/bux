@@ -364,7 +364,7 @@ func WithSQLite(config *datastore.SQLiteConfig) ClientOps {
 	}
 }
 
-// WithSQL will load a Datastore using either an SQL database config or existing connection
+// WithSQL will set the datastore to use the SQL config
 func WithSQL(engine datastore.Engine, config *datastore.SQLConfig) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil && !engine.IsEmpty() {

@@ -18,7 +18,7 @@ type Model struct {
 
 	CreatedAt time.Time `json:"created_at" toml:"created_at" yaml:"created_at" gorm:"comment:The time that the record was originally created" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" toml:"updated_at" yaml:"updated_at" gorm:"comment:The time that the record was last updated" bson:"updated_at,omitempty"`
-	Metadata  Metadata  `gorm:"type:json" json:"metadata,omitempty" bson:"metadata,omitempty"`
+	Metadata  Metadata  `gorm:"type:json;comment:The JSON metadata for the record" json:"metadata,omitempty" bson:"metadata,omitempty"`
 
 	// https://gorm.io/docs/indexes.html
 	// DeletedAt gorm.DeletedAt `json:"deleted_at" toml:"deleted_at" yaml:"deleted_at" (@mrz: this was the original type)

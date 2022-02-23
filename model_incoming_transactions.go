@@ -190,7 +190,7 @@ func (m *IncomingTransaction) RegisterTasks() error {
 	if err := tm.RegisterTask(&taskmanager.Task{
 		Name:       processTask,
 		RetryLimit: 1,
-		Handler: func(client *Client) error {
+		Handler: func(client ClientInterface) error {
 			if taskErr := TaskProcessIncomingTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+processTask+" task: "+taskErr.Error())
 			}

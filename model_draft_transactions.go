@@ -614,7 +614,7 @@ func (m *DraftTransaction) RegisterTasks() error {
 	if err := tm.RegisterTask(&taskmanager.Task{
 		Name:       cleanUpTask,
 		RetryLimit: 1,
-		Handler: func(client *Client) error {
+		Handler: func(client ClientInterface) error {
 			if taskErr := TaskCleanupDraftTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+cleanUpTask+" task: "+taskErr.Error())
 			}

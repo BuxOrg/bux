@@ -173,7 +173,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 	if err := tm.RegisterTask(&taskmanager.Task{
 		Name:       syncTask,
 		RetryLimit: 1,
-		Handler: func(client *Client) error {
+		Handler: func(client ClientInterface) error {
 			if taskErr := TaskSyncTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+syncTask+" task: "+taskErr.Error())
 			}
@@ -200,7 +200,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 	if err = tm.RegisterTask(&taskmanager.Task{
 		Name:       broadcastTask,
 		RetryLimit: 1,
-		Handler: func(client *Client) error {
+		Handler: func(client ClientInterface) error {
 			if taskErr := TaskBroadcastTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+broadcastTask+" task: "+taskErr.Error())
 			}

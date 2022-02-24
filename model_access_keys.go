@@ -69,7 +69,7 @@ func GetAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 	return key, nil
 }
 
-// GetAccessKeys will get all the access kets that match the metadata search
+// GetAccessKeys will get all the access keys that match the metadata search
 func GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error) {
 
 	// Construct an empty model

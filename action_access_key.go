@@ -48,14 +48,14 @@ func (c *Client) NewAccessKey(ctx context.Context, rawXpubKey string, opts ...Mo
 }
 
 // GetAccessKey will get an existing access key from the Datastore
-func (c *Client) GetAccessKey(ctx context.Context, rawXpubKey, pubAccessKey string) (*AccessKey, error) {
+func (c *Client) GetAccessKey(ctx context.Context, rawXpubKey, id string) (*AccessKey, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_access_key")
 
 	// Get the access key
 	accessKey, err := GetAccessKey(
-		ctx, utils.Hash(pubAccessKey),
+		ctx, id,
 		c.DefaultModelOptions()...,
 	)
 	if err != nil {
@@ -74,7 +74,7 @@ func (c *Client) GetAccessKey(ctx context.Context, rawXpubKey, pubAccessKey stri
 }
 
 // GetAccessKeys will get all existing access keys from the Datastore
-func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error) {
+func (c *Client) GetAccessKeys(ctx context.Context, rawXpubKey string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_access_keys")
@@ -82,7 +82,7 @@ func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadata *Met
 	// Get the access key
 	accessKeys, err := GetAccessKeys(
 		ctx,
-		xPubID,
+		utils.Hash(rawXpubKey),
 		metadata,
 		c.DefaultModelOptions(opts...)...,
 	)

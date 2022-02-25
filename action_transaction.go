@@ -92,7 +92,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 // metadata is added to the model
 // opts are additional model options to be applied
 func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
-	metadata map[string]interface{}, opts ...ModelOps) (*DraftTransaction, error) {
+	opts ...ModelOps) (*DraftTransaction, error) {
 
 	// Check for existing NewRelic draftTransaction
 	ctx = c.GetOrStartTxn(ctx, "new_transaction")
@@ -104,11 +104,6 @@ func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *
 	defer unlock()
 	if err != nil {
 		return nil, err
-	}
-
-	// Set the metadata if found
-	if len(metadata) > 0 {
-		opts = append(opts, WithMetadatas(metadata))
 	}
 
 	// todo: this needs adjusting via Chainstate or mAPI
@@ -155,8 +150,9 @@ func (c *Client) GetTransaction(ctx context.Context, rawXpubKey, txID string) (*
 //
 // ctx is the context
 // rawXpubKey is the raw xPub key
-// metadata is added to the request for searching
-func (c *Client) GetTransactions(ctx context.Context, rawXpubKey string, metadata *Metadata,
+// metadataConditions is added to the request for searching
+// conditions is added the request for searching
+func (c *Client) GetTransactions(ctx context.Context, rawXpubKey string, metadataConditions *Metadata,
 	conditions *map[string]interface{}) ([]*Transaction, error) {
 
 	// Check for existing NewRelic transaction
@@ -165,7 +161,7 @@ func (c *Client) GetTransactions(ctx context.Context, rawXpubKey string, metadat
 	// Get the transaction by ID
 	// todo: add params for: page size and page (right now it is unlimited)
 	transactions, err := getTransactionsByXpubID(
-		ctx, rawXpubKey, metadata, conditions, 0, 0,
+		ctx, rawXpubKey, metadataConditions, conditions, 0, 0,
 		c.DefaultModelOptions(WithXPub(rawXpubKey))...,
 	)
 	if err != nil {

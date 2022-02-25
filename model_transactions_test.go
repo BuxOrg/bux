@@ -670,22 +670,32 @@ func TestEndToEndTransaction(t *testing.T) {
 		masterKey, xPub, rawXPub := CreateNewXPub(ctx, t, client)
 		require.NotNil(t, xPub)
 
+		opts := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
+				testMetadataKey: testMetadataValue,
+			}),
+		)
+
 		// Create two destinations (to receive the fake funding transaction)
 		var err error
 		destinations := make([]*Destination, 2)
 		destinations[0], err = client.NewDestination(
 			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-			&map[string]interface{}{
-				testMetadataKey: testMetadataValue,
-			},
+			opts...,
 		)
 		require.NoError(t, err)
 
+		opts2 := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
+				testMetadataKey + "_2": testMetadataValue + "_2",
+			}),
+		)
+
 		destinations[1], err = client.NewDestination(
 			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-			&map[string]interface{}{
-				testMetadataKey + "_2": testMetadataValue + "_2",
-			},
+			opts2...,
 		)
 		require.NoError(t, err)
 
@@ -714,6 +724,8 @@ func TestEndToEndTransaction(t *testing.T) {
 		assert.Equal(t, uint64(0), transaction.Fee) // fee is zero, we do not have the inputs
 		assert.Equal(t, uint32(1), transaction.NumberOfInputs)
 
+		opts3 := client.DefaultModelOptions()
+
 		// Create new draft transaction to an external address
 		var draftTransaction *DraftTransaction
 		draftTransaction, err = client.NewTransaction(ctx, rawXPub, &TransactionConfig{
@@ -725,7 +737,7 @@ func TestEndToEndTransaction(t *testing.T) {
 					To:       "1LVvLTwaHc7WzKsS5naRov7j3bqQctPPND",
 				},
 			},
-		}, nil)
+		}, opts3...)
 		require.NoError(t, err)
 		require.NotNil(t, draftTransaction)
 

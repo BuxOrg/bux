@@ -222,13 +222,17 @@ func TestClient_NewDestination(t *testing.T) {
 		_, xPub, rawXPub := CreateNewXPub(ctx, t, client)
 		require.NotNil(t, xPub)
 
-		// Create a new destination
-		destination, err := client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-			&map[string]interface{}{
+		opts := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
 				ReferenceIDField: "some-reference-id",
 				testMetadataKey:  testMetadataValue,
-			},
+			}),
+		)
+
+		// Create a new destination
+		destination, err := client.NewDestination(
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, destination)
@@ -247,12 +251,17 @@ func TestClient_NewDestination(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 
+		opts := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
+				testMetadataKey: testMetadataValue,
+			}),
+		)
+
 		// Create a new destination
 		destination, err := client.NewDestination(
 			ctx, "bad-value", utils.ChainExternal, utils.ScriptTypePubKeyHash,
-			&map[string]interface{}{
-				testMetadataKey: testMetadataValue,
-			},
+			opts...,
 		)
 		require.Error(t, err)
 		require.Nil(t, destination)
@@ -262,12 +271,17 @@ func TestClient_NewDestination(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 
+		opts := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
+				testMetadataKey: testMetadataValue,
+			}),
+		)
+
 		// Create a new destination
 		destination, err := client.NewDestination(
 			ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-			&map[string]interface{}{
-				testMetadataKey: testMetadataValue,
-			},
+			opts...,
 		)
 		require.Error(t, err)
 		require.Nil(t, destination)
@@ -282,12 +296,17 @@ func TestClient_NewDestination(t *testing.T) {
 		_, xPub, rawXPub := CreateNewXPub(ctx, t, client)
 		require.NotNil(t, xPub)
 
+		opts := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
+				testMetadataKey: testMetadataValue,
+			}),
+		)
+
 		// Create a new destination
 		destination, err := client.NewDestination(
 			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypeMultiSig,
-			&map[string]interface{}{
-				testMetadataKey: testMetadataValue,
-			},
+			opts...,
 		)
 		require.Error(t, err)
 		require.Nil(t, destination)

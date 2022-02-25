@@ -23,13 +23,14 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestination() {
 			_, err := tc.client.NewXpub(ctx, testXPub, tc.client.DefaultModelOptions()...)
 			assert.NoError(t, err)
 
-			metadata := &map[string]interface{}{
+			metadata := map[string]interface{}{
 				"test-key": "test-value",
 			}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
 
 			var destination *Destination
 			destination, err = tc.client.NewDestination(
-				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, metadata,
+				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
 			)
 			assert.NoError(t, err)
 			assert.Equal(t, "fc1e635d98151c6008f29908ee2928c60c745266f9853e945c917b1baa05973e", destination.ID)
@@ -41,7 +42,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestination() {
 			assert.Equal(t, "test-value", destination.Metadata["test-key"])
 
 			destination2, err2 := tc.client.NewDestination(
-				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, metadata,
+				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
 			)
 			assert.NoError(t, err2)
 			assert.Equal(t, testXPubID, destination2.XpubID)
@@ -57,12 +58,14 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestination() {
 			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 
+			metadata := map[string]interface{}{
+				"test-key": "test-value",
+			}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			destination, err := tc.client.NewDestination(
 				context.Background(), testXPub, utils.ChainExternal,
-				utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{
-					"test-key": "test-value",
-				},
+				utils.ScriptTypePubKeyHash, opts...,
 			)
 			require.Error(t, err)
 			require.Nil(t, destination)
@@ -90,9 +93,13 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 				"bf66a71ae74a1e83b0ad046d6574612102b8e6b4441609460d1605ce328d7a39e7216050e105738725b05b7b542dcf1f51205f" +
 				"a8b5671a8b577a44ea2d1e70ca9c291145d3da3a7c649fc4e9ea389a8053646c886d76a9146e12c6d84b06757bd4316c33cac4" +
 				"4e1e5965589088ac6a0b706172656e74206e6f6465"
+
+			metadata := map[string]interface{}{"test_key": "test_value"}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			var destination *Destination
 			destination, err = tc.client.NewDestinationForLockingScript(
-				tc.ctx, testXPub, lockingScript, utils.ScriptTypeNonStandard, map[string]interface{}{"test_key": "test_value"},
+				tc.ctx, testXPub, lockingScript, utils.ScriptTypeNonStandard, opts...,
 			)
 			assert.NoError(t, err)
 			assert.Equal(t, "a64c7aca7110c7cde92245252a58bb18a4317381fc31fc293f6aafa3fcc7019f", destination.ID)
@@ -107,10 +114,13 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 
+			metadata := map[string]interface{}{"test_key": "test_value"}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			destination, err := tc.client.NewDestinationForLockingScript(
 				tc.ctx, testXPub, "",
 				utils.ScriptTypeNonStandard,
-				map[string]interface{}{"test_key": "test_value"},
+				opts...,
 			)
 			require.Error(t, err)
 			require.Nil(t, destination)
@@ -129,13 +139,16 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
+			metadata := map[string]interface{}{
+				ReferenceIDField: testReferenceID,
+				testMetadataKey:  testMetadataValue,
+			}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
 				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{
-					ReferenceIDField: testReferenceID,
-					testMetadataKey:  testMetadataValue,
-				},
+				opts...,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
@@ -158,10 +171,13 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
+			metadata := map[string]interface{}{testMetadataKey: testMetadataValue}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
 				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{testMetadataKey: testMetadataValue},
+				opts...,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
@@ -187,13 +203,16 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
+			metadata := map[string]interface{}{
+				ReferenceIDField: testReferenceID,
+				testMetadataKey:  testMetadataValue,
+			}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
 				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{
-					ReferenceIDField: testReferenceID,
-					testMetadataKey:  testMetadataValue,
-				},
+				opts...,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
@@ -215,10 +234,13 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
+			metadata := map[string]interface{}{testMetadataKey: testMetadataValue}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
 				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{testMetadataKey: testMetadataValue},
+				opts...,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
@@ -244,13 +266,16 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
+			metadata := map[string]interface{}{
+				ReferenceIDField: testReferenceID,
+				testMetadataKey:  testMetadataValue,
+			}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
 				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{
-					ReferenceIDField: testReferenceID,
-					testMetadataKey:  testMetadataValue,
-				},
+				opts...,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
@@ -273,10 +298,13 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
+			metadata := map[string]interface{}{testMetadataKey: testMetadataValue}
+			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
+
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
 				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
-				&map[string]interface{}{testMetadataKey: testMetadataValue},
+				opts...,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, destination)

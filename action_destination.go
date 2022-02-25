@@ -10,7 +10,7 @@ import (
 //
 // xPubKey is the raw public xPub
 func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint32,
-	destinationType string, metadata *map[string]interface{}) (*Destination, error) {
+	destinationType string, opts ...ModelOps) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination")
@@ -35,7 +35,7 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 	// Get/create a new destination
 	var destination *Destination
 	if destination, err = xPub.getNewDestination(
-		ctx, chain, destinationType, metadata,
+		ctx, chain, destinationType, opts...,
 	); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 
 // NewDestinationForLockingScript will create a new destination based on a locking script
 func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubKey, lockingScript, destinationType string,
-	metadata map[string]interface{}) (*Destination, error) {
+	opts ...ModelOps) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination_for_locking_script")
@@ -72,7 +72,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubKey, lo
 	// Start the new destination
 	destination := newDestination(
 		utils.Hash(xPubKey), lockingScript,
-		append(c.DefaultModelOptions(), WithMetadatas(metadata))...,
+		opts...,
 	)
 
 	// Modify destination type
@@ -89,7 +89,9 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubKey, lo
 }
 
 // GetDestinations will get destinations based on an xPub
-func (c *Client) GetDestinations(ctx context.Context, xPubKey string, usingMetadata *Metadata) ([]*Destination, error) {
+//
+// metadataConditions are the search criteria used to find destinations
+func (c *Client) GetDestinations(ctx context.Context, xPubKey string, metadataConditions *Metadata) ([]*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
@@ -97,7 +99,7 @@ func (c *Client) GetDestinations(ctx context.Context, xPubKey string, usingMetad
 	// Get the destinations
 	// todo: add params for: page size and page (right now it is unlimited)
 	destinations, err := getDestinationsByXpubID(
-		ctx, utils.Hash(xPubKey), usingMetadata, 0, 0, c.DefaultModelOptions()...,
+		ctx, utils.Hash(xPubKey), metadataConditions, 0, 0, c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err

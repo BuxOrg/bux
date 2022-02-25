@@ -101,7 +101,7 @@ func (m *Xpub) GetID() string {
 
 // getNewDestination will get a new destination, adding to the xpub and incrementing num / address
 func (m *Xpub) getNewDestination(ctx context.Context, chain uint32, destinationType string,
-	metadata *map[string]interface{}) (*Destination, error) {
+	opts ...ModelOps) (*Destination, error) {
 
 	// Check the type
 	// todo: support more types of destinations
@@ -118,14 +118,9 @@ func (m *Xpub) getNewDestination(ctx context.Context, chain uint32, destinationT
 	// Create the new address
 	var destination *Destination
 	if destination, err = newAddress(
-		m.rawXpubKey, chain, num, m.GetOptions(true)...,
+		m.rawXpubKey, chain, num, append(opts, New())...,
 	); err != nil {
 		return nil, err
-	}
-
-	// Check if metadata is set
-	if metadata != nil {
-		destination.Metadata = *metadata
 	}
 
 	// Add the destination to the xPub

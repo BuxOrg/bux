@@ -28,7 +28,7 @@ type TransactionService interface {
 	GetTransaction(ctx context.Context, rawXpubKey, txID string) (*Transaction, error)
 	GetTransactions(ctx context.Context, rawXpubKey string, metadata *Metadata, conditions *map[string]interface{}) ([]*Transaction, error)
 	NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
-		metadata map[string]interface{}, opts ...ModelOps) (*DraftTransaction, error)
+		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
 }
@@ -39,9 +39,9 @@ type DestinationService interface {
 	GetDestinationByLockingScript(ctx context.Context, xPubKey, lockingScript string) (*Destination, error)
 	GetDestinations(ctx context.Context, xPubKey string, usingMetadata *Metadata) ([]*Destination, error)
 	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string,
-		metadata *map[string]interface{}) (*Destination, error)
+		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript, destinationType string,
-		metadata map[string]interface{}) (*Destination, error)
+		opts ...ModelOps) (*Destination, error)
 }
 
 // UTXOService is the utxo related requests

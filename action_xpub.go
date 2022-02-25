@@ -130,7 +130,8 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 		/*transactions, addressesWithTransactions, err := getAllTransactionsFromAddresses(
 			ctx, woc, addressList,
 		)*/
-		transactions, err := getTransactionsFromAddressesViaBitbus(addressList.Addresses)
+		var transactions []*whatsonchain.HistoryRecord
+		transactions, err = getTransactionsFromAddressesViaBitbus(addressList.Addresses)
 		if err != nil {
 			return nil, err
 		}

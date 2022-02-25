@@ -87,10 +87,10 @@ func TestXpub_getNewDestination(t *testing.T) {
 		err := xPub.Save(ctx)
 		assert.NoError(t, err)
 
-		metaData := &map[string]interface{}{
+		metaData := map[string]interface{}{
 			"test-key": "test-value",
 		}
-		_, err = xPub.getNewDestination(ctx, utils.ChainInternal, utils.ScriptTypePubKeyHash, metaData)
+		_, err = xPub.getNewDestination(ctx, utils.ChainInternal, utils.ScriptTypePubKeyHash, append(client.DefaultModelOptions(), WithMetadatas(metaData))...)
 		assert.ErrorIs(t, utils.ErrXpubInvalidLength, err)
 	})
 
@@ -101,11 +101,11 @@ func TestXpub_getNewDestination(t *testing.T) {
 		err := xPub.Save(ctx)
 		assert.NoError(t, err)
 
-		metaData := &map[string]interface{}{
+		metaData := map[string]interface{}{
 			"test-key": "test-value",
 		}
 		var destination *Destination
-		destination, err = xPub.getNewDestination(ctx, utils.ChainInternal, utils.ScriptTypePubKeyHash, metaData)
+		destination, err = xPub.getNewDestination(ctx, utils.ChainInternal, utils.ScriptTypePubKeyHash, append(client.DefaultModelOptions(), WithMetadatas(metaData))...)
 		assert.NoError(t, err)
 		assert.Equal(t, "ac18a89055c9269622d9a00ce89047b10aab03cae39feb32cde1be1f1b9bc222", destination.ID)
 		assert.Equal(t, xPub.ID, destination.XpubID)
@@ -124,11 +124,11 @@ func TestXpub_getNewDestination(t *testing.T) {
 		err := xPub.Save(ctx)
 		assert.NoError(t, err)
 
-		metaData := &map[string]interface{}{
+		metaData := map[string]interface{}{
 			"test-key": "test-value",
 		}
 		var destination *Destination
-		destination, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, metaData)
+		destination, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, append(client.DefaultModelOptions(), WithMetadatas(metaData))...)
 		assert.NoError(t, err)
 		assert.Equal(t, "fc1e635d98151c6008f29908ee2928c60c745266f9853e945c917b1baa05973e", destination.ID)
 		assert.Equal(t, xPub.ID, destination.XpubID)
@@ -150,7 +150,7 @@ func TestXpub_childModels(t *testing.T) {
 		err := xPub.Save(ctx)
 		assert.NoError(t, err)
 
-		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, nil)
+		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, client.DefaultModelOptions()...)
 		assert.NoError(t, err)
 
 		childModels := xPub.ChildModels()
@@ -165,9 +165,9 @@ func TestXpub_childModels(t *testing.T) {
 		err := xPub.Save(ctx)
 		assert.NoError(t, err)
 
-		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, nil)
+		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, client.DefaultModelOptions()...)
 		assert.NoError(t, err)
-		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, nil)
+		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, client.DefaultModelOptions()...)
 		assert.NoError(t, err)
 
 		childModels := xPub.ChildModels()

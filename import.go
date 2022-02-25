@@ -62,7 +62,7 @@ func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.Cl
 func (c *Client) deriveAddresses(ctx context.Context, xpub string, chain uint32, amount int) ([]string, error) {
 	addressList := []string{}
 	for i := 0; i < amount; i++ {
-		destination, err := c.NewDestination(ctx, xpub, chain, utils.ScriptTypePubKeyHash, nil)
+		destination, err := c.NewDestination(ctx, xpub, chain, utils.ScriptTypePubKeyHash, c.DefaultModelOptions()...)
 		if err != nil {
 			return []string{}, err
 		}

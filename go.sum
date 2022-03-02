@@ -199,8 +199,8 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fatih/color v1.12.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
-github.com/fergusstrange/embedded-postgres v1.14.0 h1:EsIH3XIVLZijdT4uh1iIgbr6C9gtzNzAK15lzfUc8go=
-github.com/fergusstrange/embedded-postgres v1.14.0/go.mod h1:VqymgzpNsdJspJeISq4+jpqWL1FOrqIzt9o78W5ekkw=
+github.com/fergusstrange/embedded-postgres v1.15.0 h1:9H5c8Xzp+8nXuEpXKkUPpSyhj7PNZ2QmO/FIus8VYp0=
+github.com/fergusstrange/embedded-postgres v1.15.0/go.mod h1:VqymgzpNsdJspJeISq4+jpqWL1FOrqIzt9o78W5ekkw=
 github.com/fogleman/gg v1.2.1-0.20190220221249-0403632d5b90/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
 github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db/go.mod h1:7dvUGVsVBjqR7JHJk0brhHOZYGmfBYOrK0ZhYMEtBr4=
 github.com/franela/goblin v0.0.0-20210519012713-85d372ac71e2/go.mod h1:VzmDKDJVZI3aJmnRI9VjAn9nJ8qPPsN1fqzr9dqInIo=

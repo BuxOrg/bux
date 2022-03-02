@@ -3,7 +3,7 @@ module github.com/BuxOrg/bux
 go 1.17
 
 require (
-	github.com/99designs/gqlgen v0.16.0
+	github.com/99designs/gqlgen v0.17.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/OrlovEvgeny/go-mcache v0.0.0-20200121124330-1a8195b34f3a
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.2
@@ -104,7 +104,7 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	github.com/vektah/gqlparser/v2 v2.3.1 // indirect
+	github.com/vektah/gqlparser/v2 v2.4.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

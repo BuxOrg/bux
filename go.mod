@@ -10,7 +10,7 @@ require (
 	github.com/bitcoinschema/go-map v0.0.14
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf
-	github.com/fergusstrange/embedded-postgres v1.14.0
+	github.com/fergusstrange/embedded-postgres v1.15.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v1.8.8

@@ -35,7 +35,7 @@ require (
 	github.com/tonicpow/go-paymail v0.7.2
 	github.com/tryvium-travels/memongo v0.4.0
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
-	go.mongodb.org/mongo-driver v1.8.3
+	go.mongodb.org/mongo-driver v1.8.4
 	gorm.io/driver/mysql v1.3.2
 	gorm.io/driver/postgres v1.3.1
 	gorm.io/driver/sqlite v1.3.1

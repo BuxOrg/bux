@@ -5,8 +5,3 @@
 //
 // By BuxOrg (https://github.com/BuxOrg)
 package bux
-
-// Greet will say hi!
-func Greet() string {
-	return "Hi!"
-}

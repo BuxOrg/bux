@@ -129,12 +129,12 @@ func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Tra
 }
 
 // getTransactionByID will get the model from a given transaction ID
-func getTransactionByID(ctx context.Context, rawXpubKey, txID string, opts ...ModelOps) (*Transaction, error) {
+func getTransactionByID(ctx context.Context, xPubID, txID string, opts ...ModelOps) (*Transaction, error) {
 
 	// Construct an empty tx
 	tx := newTransaction("", opts...)
-	tx.rawXpubKey = rawXpubKey
 	tx.ID = txID
+	tx.xPubID = xPubID
 
 	// Get the record
 	if err := Get(ctx, tx, nil, false, 30*time.Second); err != nil {
@@ -155,11 +155,10 @@ func (m *Transaction) setXPubID() {
 }
 
 // getTransactionsByXpubID will get all the models for a given xpub ID
-func getTransactionsByXpubID(ctx context.Context, rawXpubKey string,
+func getTransactionsByXpubID(ctx context.Context, xPubID string,
 	metadata *Metadata, conditions *map[string]interface{},
 	pageSize, page int, opts ...ModelOps) ([]*Transaction, error) {
 
-	xPubID := utils.Hash(rawXpubKey)
 	dbConditions := map[string]interface{}{
 		"$or": []map[string]interface{}{{
 			"xpub_in_ids": xPubID,
@@ -620,6 +619,10 @@ func (m *Transaction) IsXpubAssociated(rawXpubKey string) bool {
 
 	// Hash the raw key
 	xPubID := utils.Hash(rawXpubKey)
+	return m.IsXpubIDAssociated(xPubID)
+}
+
+func (m *Transaction) IsXpubIDAssociated(xPubID string) bool {
 	if len(xPubID) == 0 {
 		return false
 	}

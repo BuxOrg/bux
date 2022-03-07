@@ -24,7 +24,7 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 	// Get the xPub (by key - converts to id)
 	var xPub *Xpub
 	if xPub, err = getXpub(
-		ctx, xPubKey, // Pass the context and key everytime (for now)
+		ctx, xPubKey, // Get the xPub by xPubID
 		c.DefaultModelOptions()..., // Passing down the Datastore and client information into the model
 	); err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubKey, lo
 // GetDestinations will get destinations based on an xPub
 //
 // metadataConditions are the search criteria used to find destinations
-func (c *Client) GetDestinations(ctx context.Context, xPubKey string, metadataConditions *Metadata) ([]*Destination, error) {
+func (c *Client) GetDestinations(ctx context.Context, xPubID string, metadataConditions *Metadata) ([]*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
@@ -99,7 +99,7 @@ func (c *Client) GetDestinations(ctx context.Context, xPubKey string, metadataCo
 	// Get the destinations
 	// todo: add params for: page size and page (right now it is unlimited)
 	destinations, err := getDestinationsByXpubID(
-		ctx, utils.Hash(xPubKey), metadataConditions, 0, 0, c.DefaultModelOptions()...,
+		ctx, xPubID, metadataConditions, 0, 0, c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (c *Client) GetDestinations(ctx context.Context, xPubKey string, metadataCo
 }
 
 // GetDestinationByID will get a destination by id
-func (c *Client) GetDestinationByID(ctx context.Context, xPubKey, id string) (*Destination, error) {
+func (c *Client) GetDestinationByID(ctx context.Context, xPubID, id string) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_id")
@@ -126,7 +126,7 @@ func (c *Client) GetDestinationByID(ctx context.Context, xPubKey, id string) (*D
 	}
 
 	// Check that the id matches
-	if destination.XpubID != utils.Hash(xPubKey) {
+	if destination.XpubID != xPubID {
 		return nil, ErrXpubIDMisMatch
 	}
 
@@ -134,7 +134,7 @@ func (c *Client) GetDestinationByID(ctx context.Context, xPubKey, id string) (*D
 }
 
 // GetDestinationByLockingScript will get a destination for a locking script
-func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubKey, lockingScript string) (*Destination, error) {
+func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_locking_script")
@@ -151,7 +151,7 @@ func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubKey, loc
 	}
 
 	// Check that the id matches
-	if destination.XpubID != utils.Hash(xPubKey) {
+	if destination.XpubID != xPubID {
 		return nil, ErrXpubIDMisMatch
 	}
 
@@ -159,7 +159,7 @@ func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubKey, loc
 }
 
 // GetDestinationByAddress will get a destination for an address
-func (c *Client) GetDestinationByAddress(ctx context.Context, xPubKey, address string) (*Destination, error) {
+func (c *Client) GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_address")
@@ -176,7 +176,7 @@ func (c *Client) GetDestinationByAddress(ctx context.Context, xPubKey, address s
 	}
 
 	// Check that the id matches
-	if destination.XpubID != utils.Hash(xPubKey) {
+	if destination.XpubID != xPubID {
 		return nil, ErrXpubIDMisMatch
 	}
 

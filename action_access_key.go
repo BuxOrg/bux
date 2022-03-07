@@ -48,7 +48,7 @@ func (c *Client) NewAccessKey(ctx context.Context, rawXpubKey string, opts ...Mo
 }
 
 // GetAccessKey will get an existing access key from the Datastore
-func (c *Client) GetAccessKey(ctx context.Context, rawXpubKey, id string) (*AccessKey, error) {
+func (c *Client) GetAccessKey(ctx context.Context, xPubID, id string) (*AccessKey, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_access_key")
@@ -65,7 +65,7 @@ func (c *Client) GetAccessKey(ctx context.Context, rawXpubKey, id string) (*Acce
 	}
 
 	// make sure this is the correct accessKey
-	if accessKey.XpubID != utils.Hash(rawXpubKey) {
+	if accessKey.XpubID != xPubID {
 		return nil, utils.ErrXpubNoMatch
 	}
 

@@ -278,6 +278,11 @@ func GetXpubFromRequest(req *http.Request) (string, bool) {
 	return getFromRequest(req, ParamXPubKey)
 }
 
+// GetXpubIDFromRequest gets the stored xPubID from the request if found
+func GetXpubIDFromRequest(req *http.Request) (string, bool) {
+	return getFromRequest(req, ParamXPubHashKey)
+}
+
 // IsAdminRequest gets the stored xPub from the request if found
 func IsAdminRequest(req *http.Request) (bool, bool) {
 	return getBoolFromRequest(req, ParamAdminRequest)

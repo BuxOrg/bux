@@ -765,7 +765,8 @@ func TestEndToEndTransaction(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, utxo)
 
-			destination, err = client.GetDestinationByLockingScript(ctx, rawXPub, utxo.ScriptPubKey)
+			xPubID := utils.Hash(rawXPub)
+			destination, err = client.GetDestinationByLockingScript(ctx, xPubID, utxo.ScriptPubKey)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
 

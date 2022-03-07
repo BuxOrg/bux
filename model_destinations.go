@@ -83,11 +83,33 @@ func newAddress(rawXpubKey string, chain, num uint32, opts ...ModelOps) (*Destin
 	return destination, nil
 }
 
+// getDestinationByID will get the destination by the given id
+func getDestinationByID(ctx context.Context, id string, opts ...ModelOps) (*Destination, error) {
+
+	// Construct an empty model
+	destination := &Destination{
+		ID:    id,
+		Model: *NewBaseModel(ModelDestination, opts...),
+	}
+
+	// Get the record
+	if err := Get(ctx, destination, nil, true, defaultDatabaseReadTimeout); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return destination, nil
+}
+
 // getDestinationByAddress will get the destination by the given address
 func getDestinationByAddress(ctx context.Context, address string, opts ...ModelOps) (*Destination, error) {
 
 	// Construct an empty model
-	destination := newDestination("", "", opts...)
+	destination := &Destination{
+		Model: *NewBaseModel(ModelDestination, opts...),
+	}
 	conditions := map[string]interface{}{
 		"address": address,
 	}

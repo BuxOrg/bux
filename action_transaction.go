@@ -142,6 +142,9 @@ func (c *Client) GetTransaction(ctx context.Context, rawXpubKey, txID string) (*
 	if err != nil {
 		return nil, err
 	}
+	if transaction == nil {
+		return nil, ErrMissingTransaction
+	}
 
 	return transaction, nil
 }

@@ -3,7 +3,6 @@ package bux
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -128,7 +127,8 @@ func checkSignatureRequirements(auth *AuthPayload) error {
 	}
 
 	// Check the auth hash vs the body hash
-	if auth.AuthHash != createBodyHash(auth.BodyContents) {
+	bodyHash := createBodyHash(auth.BodyContents)
+	if auth.AuthHash != bodyHash {
 		return ErrAuhHashMismatch
 	}
 
@@ -167,11 +167,6 @@ func verifyKeyXPub(xPub string, auth *AuthPayload) error {
 	if address, err = bitcoin.GetAddressFromHDKey(key); err != nil {
 		return err // Should never error
 	}
-
-	pubKey, _ := key.ECPubKey()
-	fmt.Printf("XPUB KEY V: %s\n", key)
-	fmt.Printf("PUBLIC KEY V: %s\n", hex.EncodeToString(pubKey.SerialiseCompressed()))
-	fmt.Printf("ADDRESS V: %s\n\n", address.AddressString)
 
 	// Return the error if verification fails
 	message := getSigningMessage(xPub, auth)

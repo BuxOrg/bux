@@ -21,10 +21,10 @@ const (
 	testXpriv           = "xprv9s21ZrQH143K3N6qVJQAu4EP51qMcyrKYJLkLgmYXgz58xmVxVLSsbx2DfJUtjcnXK8NdvkHMKfmmg5AJT2nqqRWUrjSHX29qEJwBgBPkJQ"
 	testXpub            = "xpub661MyMwAqRbcFrBJbKwBGCB7d3fr2SaAuXGM95BA62X41m6eW2ehRQGW4xLi9wkEXUGnQZYxVVj4PxXnyrLk7jdqvBAs1Qq9gf6ykMvjR7J"
 	testXpubHash        = "1a0b10d4eda0636aae1709e7e7080485a4d99af3ca2962c6e677cf5b53d8ab8c"
-	derivedXpriv        = "xprvA8Co3wybCTikskAe6p9WtrtFqJCnatYEN3YtJPVuzZt9zs5a35iuLWm4UJ7AsRKb1mzzcf9crzeV1QfejWsa5tMwrPE6G9anPs7fYTgwNwR"
-	derivedXpub         = "xpub6MC9TTWV2qH46EF7CqgXFzpzPL3GzMG5jGUV6muXYuR8sfQiad39tK5YKaUVi8jD8NHeWJ8osdh87vLAitCgFDwGoTQTKJ3G7CFLwe64MWt"
+	derivedXpriv        = "xprvA8mj2ZL1w6Nqpi6D2amJLo4Gxy24tW9uv82nQKmamT2rkg5DgjzJZRFnW33e7QJwn65uUWSuN6YQyWrujNjZdVShPRnpNUSRVTru4cxaqfd"
+	derivedXpub         = "xpub6Mm5S4rumTw93CAg8cJJhw11WzrZHxsmHLxPCiBCKnZqdUQNEHJZ7DaGMKucRzXPHtoS2ZqsVSRjxVbibEvwmR2wXkZDd8RrTftmm42cRsf"
 	privateKey0         = "5e319f45f94450c97aab649b263cfbad81485d265206548dab4c3046e26fcd03"
-	privateKeyHash      = "b2b049d182b10de8af108624a7c83f99f146e69fff8d2d1b460bed0a0a18f167"
+	privateKeyHash      = "644fdfc7e2815555e68d0317535b08d28a5e21d55d5c2d57e605cb63a346d9f2"
 )
 
 // TestHash will test the method Hash()
@@ -32,7 +32,7 @@ func TestHash(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty xpub", func(t *testing.T) {
-		assert.Equal(t, "", Hash(""))
+		assert.Equal(t, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", Hash(""))
 	})
 	t.Run("example hash", func(t *testing.T) {
 		assert.Equal(t, testHash, Hash(testValue))

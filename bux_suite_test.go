@@ -312,7 +312,7 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 	prefix := tester.RandomTablePrefix(t)
 
 	if opts == nil {
-		opts := []ClientOps{}
+		opts = []ClientOps{}
 	}
 	opts = append(opts,
 		WithDebugging(),

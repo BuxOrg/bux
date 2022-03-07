@@ -33,6 +33,7 @@ const (
 	ModelTransaction         ModelName = "transaction"
 	ModelUtxo                ModelName = "utxo"
 	ModelXPub                ModelName = "xpub"
+	ModelPaymail             ModelName = "paymail"
 )
 
 var (
@@ -46,6 +47,7 @@ var (
 		ModelTransaction,
 		ModelUtxo,
 		ModelXPub,
+		ModelPaymail,
 	}
 )
 
@@ -59,6 +61,7 @@ const (
 	tableTransactions         = "transactions"
 	tableUTXOs                = "utxos"
 	tableXPubs                = "xpubs"
+	tablePaymails             = "paymail_addresses"
 )
 
 const (

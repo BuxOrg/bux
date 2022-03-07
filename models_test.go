@@ -25,7 +25,8 @@ func TestModelName_String(t *testing.T) {
 		assert.Equal(t, "transaction", ModelTransaction.String())
 		assert.Equal(t, "utxo", ModelUtxo.String())
 		assert.Equal(t, "xpub", ModelXPub.String())
-		assert.Len(t, AllModelNames, 8)
+		assert.Equal(t, "paymail", ModelPaymail.String())
+		assert.Len(t, AllModelNames, 9)
 	})
 }
 

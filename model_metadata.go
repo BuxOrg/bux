@@ -14,6 +14,11 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+const (
+	// MetadataField is the field name used for metadata (params)
+	MetadataField = "metadata"
+)
+
 // Metadata is an object representing the metadata about the related record
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html

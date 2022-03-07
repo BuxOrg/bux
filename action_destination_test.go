@@ -138,6 +138,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 			defer tc.Close(tc.ctx)
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
+			xPubID := utils.Hash(rawKey)
 
 			metadata := map[string]interface{}{
 				ReferenceIDField: testReferenceID,
@@ -155,7 +156,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			var getDestinations []*Destination
 			getDestinations, err = tc.client.GetDestinations(
-				tc.ctx, rawKey, nil,
+				tc.ctx, xPubID, nil,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, getDestinations)
@@ -185,7 +186,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 			// use the wrong xpub
 			var getDestinations []*Destination
 			getDestinations, err = tc.client.GetDestinations(
-				tc.ctx, testXPub, nil,
+				tc.ctx, testXPubID, nil,
 			)
 			require.NoError(t, err)
 			assert.Equal(t, 0, len(getDestinations))
@@ -202,6 +203,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 			defer tc.Close(tc.ctx)
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
+			xPubID := utils.Hash(rawKey)
 
 			metadata := map[string]interface{}{
 				ReferenceIDField: testReferenceID,
@@ -219,7 +221,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 
 			var getDestination *Destination
 			getDestination, err = tc.client.GetDestinationByAddress(
-				tc.ctx, rawKey, destination.Address,
+				tc.ctx, xPubID, destination.Address,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, getDestination)
@@ -248,7 +250,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 			// use the wrong xpub
 			var getDestination *Destination
 			getDestination, err = tc.client.GetDestinationByAddress(
-				tc.ctx, testXPub, destination.Address,
+				tc.ctx, testXPubID, destination.Address,
 			)
 			require.Error(t, err)
 			require.Nil(t, getDestination)
@@ -265,6 +267,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 			defer tc.Close(tc.ctx)
 
 			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
+			xPubID := utils.Hash(rawKey)
 
 			metadata := map[string]interface{}{
 				ReferenceIDField: testReferenceID,
@@ -282,7 +285,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 
 			var getDestination *Destination
 			getDestination, err = tc.client.GetDestinationByLockingScript(
-				tc.ctx, rawKey, destination.LockingScript,
+				tc.ctx, xPubID, destination.LockingScript,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, getDestination)
@@ -312,7 +315,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 			// use the wrong xpub
 			var getDestination *Destination
 			getDestination, err = tc.client.GetDestinationByLockingScript(
-				tc.ctx, testXPub, destination.LockingScript,
+				tc.ctx, testXPubID, destination.LockingScript,
 			)
 			require.Error(t, err)
 			require.Nil(t, getDestination)

@@ -28,9 +28,6 @@ const (
 
 // Hash will generate a hash of the given string (used for xPub:hash)
 func Hash(data string) string {
-	if len(data) == 0 {
-		return ""
-	}
 	hash := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(hash[:])
 }

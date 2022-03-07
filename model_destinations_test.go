@@ -29,7 +29,7 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, "", destination.LockingScript)
-		assert.Equal(t, "", destination.GetID())
+		assert.Equal(t, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", destination.GetID())
 	})
 
 	t.Run("New destination model", func(t *testing.T) {
@@ -138,6 +138,38 @@ func TestDestination_setLockingScriptForAddress(t *testing.T) {
 // TestDestination_setAddress will test the method setAddress()
 func TestDestination_setAddress(t *testing.T) {
 	// finish test
+}
+
+// TestDestination_getDestinationByID will test the method getDestinationByID()
+func TestDestination_getDestinationByID(t *testing.T) {
+
+	t.Run("does not exist", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+
+		xPub, err := getDestinationByID(ctx, testDestinationID, client.DefaultModelOptions()...)
+		assert.NoError(t, err)
+		assert.Nil(t, xPub)
+	})
+
+	t.Run("get", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+
+		destination := newDestination(testXPubID, testLockingScript, client.DefaultModelOptions()...)
+		err := destination.Save(ctx)
+		assert.NoError(t, err)
+
+		gDestination, gErr := getDestinationByID(ctx, destination.ID, client.DefaultModelOptions()...)
+		assert.NoError(t, gErr)
+		assert.IsType(t, Destination{}, *gDestination)
+		assert.Equal(t, testXPubID, gDestination.XpubID)
+		assert.Equal(t, testLockingScript, gDestination.LockingScript)
+		assert.Equal(t, testExternalAddress, gDestination.Address)
+		assert.Equal(t, utils.ScriptTypePubKeyHash, gDestination.Type)
+		assert.Equal(t, uint32(0), gDestination.Chain)
+		assert.Equal(t, uint32(0), gDestination.Num)
+	})
 }
 
 // TestDestination_getDestinationByAddress will test the method getDestinationByAddress()

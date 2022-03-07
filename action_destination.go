@@ -108,6 +108,31 @@ func (c *Client) GetDestinations(ctx context.Context, xPubKey string, metadataCo
 	return destinations, nil
 }
 
+// GetDestinationByID will get a destination by id
+func (c *Client) GetDestinationByID(ctx context.Context, xPubKey, id string) (*Destination, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_destination_by_id")
+
+	// Get the destinations
+	destination, err := getDestinationByID(
+		ctx, id, c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if destination == nil {
+		return nil, ErrMissingDestination
+	}
+
+	// Check that the id matches
+	if destination.XpubID != utils.Hash(xPubKey) {
+		return nil, ErrXpubIDMisMatch
+	}
+
+	return destination, nil
+}
+
 // GetDestinationByLockingScript will get a destination for a locking script
 func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubKey, lockingScript string) (*Destination, error) {
 
@@ -120,6 +145,9 @@ func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubKey, loc
 	)
 	if err != nil {
 		return nil, err
+	}
+	if destination == nil {
+		return nil, ErrMissingDestination
 	}
 
 	// Check that the id matches
@@ -142,6 +170,9 @@ func (c *Client) GetDestinationByAddress(ctx context.Context, xPubKey, address s
 	)
 	if err != nil {
 		return nil, err
+	}
+	if destination == nil {
+		return nil, ErrMissingDestination
 	}
 
 	// Check that the id matches

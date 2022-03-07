@@ -16,8 +16,8 @@ func DeriveChildKeyFromHex(hdKey *bip32.ExtendedKey, hexHash string) (*bip32.Ext
 		return nil, err
 	}
 
-	for num := range childNums {
-		childKey, err = childKey.Child(uint32(num))
+	for _, num := range childNums {
+		childKey, err = childKey.Child(num)
 		if err != nil {
 			return nil, err
 		}

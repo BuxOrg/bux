@@ -29,7 +29,7 @@ type AccessKey struct {
 	RevokedAt utils.NullTime `json:"revoked_at" toml:"revoked_at" yaml:"revoked_at" gorm:"<-;comment:When the key was revoked" bson:"revoked_at,omitempty"`
 
 	// Private fields
-	Key string `gorm:"-" bson:"-"` // Used on "CREATE", shown to the user "once" only
+	Key string `json:"key" gorm:"-" bson:"-"` // Used on "CREATE", shown to the user "once" only
 }
 
 // newAccessKey will start a new model

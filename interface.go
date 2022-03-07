@@ -35,6 +35,7 @@ type TransactionService interface {
 
 // DestinationService is the destination related requests
 type DestinationService interface {
+	GetDestinationByID(ctx context.Context, xPubKey, id string) (*Destination, error)
 	GetDestinationByAddress(ctx context.Context, xPubKey, address string) (*Destination, error)
 	GetDestinationByLockingScript(ctx context.Context, xPubKey, lockingScript string) (*Destination, error)
 	GetDestinations(ctx context.Context, xPubKey string, usingMetadata *Metadata) ([]*Destination, error)

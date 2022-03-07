@@ -129,9 +129,13 @@ func (c *Client) RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opt
 	); err != nil {
 		return nil, err
 	}
+	if accessKey == nil {
+		return nil, ErrMissingAccessKey
+	}
 
 	// make sure this is the correct accessKey
-	if accessKey.XpubID != utils.Hash(rawXpubKey) {
+	xPubID := utils.Hash(rawXpubKey)
+	if accessKey.XpubID != xPubID {
 		return nil, utils.ErrXpubNoMatch
 	}
 

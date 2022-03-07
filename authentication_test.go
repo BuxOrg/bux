@@ -520,7 +520,7 @@ func Test_createSignature(t *testing.T) {
 		require.NotNil(t, authData)
 
 		assert.Equal(t, 111, len(authData.xPub))
-		assert.Equal(t, 0, len(authData.AuthHash))
+		assert.Equal(t, 64, len(authData.AuthHash))
 		assert.Equal(t, 64, len(authData.AuthNonce))
 		assert.Greater(t, authData.AuthTime, time.Now().Add(-1*time.Second).UnixMilli())
 

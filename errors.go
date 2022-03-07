@@ -7,6 +7,15 @@ import (
 // ErrCannotConvertToIDs is the error when the conversion fails from interface into type IDs
 var ErrCannotConvertToIDs = errors.New("cannot convert value to type IDs")
 
+// ErrMissingDestination is an error when a destination could not be found
+var ErrMissingDestination = errors.New("destination could not be found")
+
+// ErrMissingTransaction is an error when a transaction could not be found
+var ErrMissingTransaction = errors.New("transaction could not be found")
+
+// ErrMissingUtxo is an error when a utxo could not be found
+var ErrMissingUtxo = errors.New("utxo could not be found")
+
 // ErrMissingFieldID is an error when missing the id field
 var ErrMissingFieldID = errors.New("missing required field: id")
 

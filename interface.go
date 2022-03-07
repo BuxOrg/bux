@@ -59,6 +59,12 @@ type XPubService interface {
 	NewXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*Xpub, error)
 }
 
+// PaymailService is the paymail related requests
+type PaymailService interface {
+	NewPaymailAddress(ctx context.Context, key, address string, opts ...ModelOps) (*PaymailAddress, error)
+	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
+}
+
 // ClientInterface is the client (bux engine) interface
 type ClientInterface interface {
 	AccessKeyService
@@ -66,6 +72,7 @@ type ClientInterface interface {
 	TransactionService
 	UTXOService
 	XPubService
+	PaymailService
 	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
 	AuthenticateRequest(ctx context.Context, req *http.Request, adminXPubs []string, adminRequired, requireSigning, signingDisabled bool) (*http.Request, error)
 	Cachestore() cachestore.ClientInterface

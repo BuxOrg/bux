@@ -15,7 +15,7 @@ import (
 func TestNewPaymail(t *testing.T) {
 
 	t.Run("paymail basic test", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, true, true)
+		ctx, client, deferMe := CreateTestSQLiteClient(t, true, false, WithAutoMigrate(&PaymailAddress{}))
 		defer deferMe()
 
 		paymail := "paymail@tester.com"

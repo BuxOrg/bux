@@ -160,10 +160,5 @@ var (
 		&Utxo{
 			Model: *NewBaseModel(ModelUtxo),
 		},
-
-		// Paymails managed by bux
-		&PaymailAddress{
-			Model: *NewBaseModel(ModelPaymail),
-		},
 	}
 )

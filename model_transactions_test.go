@@ -142,7 +142,7 @@ func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 		txErr := tx.Save(ctx)
 		require.NoError(t, txErr)
 
-		transactions, err := getTransactionsByXpubID(ctx, testXPub, nil, nil, 0, 0, opts...)
+		transactions, err := getTransactionsByXpubID(ctx, testXPubID, nil, nil, 0, 0, opts...)
 		require.NoError(t, err)
 		require.NotNil(t, transactions)
 		require.Len(t, transactions, 1)
@@ -765,7 +765,8 @@ func TestEndToEndTransaction(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, utxo)
 
-			destination, err = client.GetDestinationByLockingScript(ctx, rawXPub, utxo.ScriptPubKey)
+			xPubID := utils.Hash(rawXPub)
+			destination, err = client.GetDestinationByLockingScript(ctx, xPubID, utxo.ScriptPubKey)
 			require.NoError(t, err)
 			require.NotNil(t, destination)
 

@@ -35,19 +35,14 @@ func (c *Client) NewXpub(ctx context.Context, xPubKey string, opts ...ModelOps) 
 // GetXpub will get an existing xPub from the Datastore
 //
 // xPubKey is the raw public xPub
-func (c *Client) GetXpub(ctx context.Context, xPubKey string) (*Xpub, error) {
+func (c *Client) GetXpub(ctx context.Context, xPubID string) (*Xpub, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_xpub")
 
-	// Validate the xPub
-	if _, err := utils.ValidateXPub(xPubKey); err != nil {
-		return nil, err
-	}
-
 	// Get the xPub (by key - converts to id)
-	xPub, err := getXpub(
-		ctx, xPubKey, // Pass the context and key everytime (for now)
+	xPub, err := getXpubByID(
+		ctx, xPubID, // Pass the context and key everytime (for now)
 		c.DefaultModelOptions()..., // Passing down the Datastore and client information into the model
 	)
 	if err != nil {

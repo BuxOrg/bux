@@ -17,7 +17,7 @@ import (
 
 // AccessKeyService is the Access key related requests
 type AccessKeyService interface {
-	GetAccessKey(ctx context.Context, rawXpubKey, pubAccessKey string) (*AccessKey, error)
+	GetAccessKey(ctx context.Context, xPubID, pubAccessKey string) (*AccessKey, error)
 	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error)
 	NewAccessKey(ctx context.Context, rawXpubKey string, opts ...ModelOps) (*AccessKey, error)
 	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
@@ -25,8 +25,8 @@ type AccessKeyService interface {
 
 // TransactionService is the transaction related requests
 type TransactionService interface {
-	GetTransaction(ctx context.Context, rawXpubKey, txID string) (*Transaction, error)
-	GetTransactions(ctx context.Context, rawXpubKey string, metadata *Metadata, conditions *map[string]interface{}) ([]*Transaction, error)
+	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
+	GetTransactions(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}) ([]*Transaction, error)
 	NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
@@ -35,10 +35,10 @@ type TransactionService interface {
 
 // DestinationService is the destination related requests
 type DestinationService interface {
-	GetDestinationByID(ctx context.Context, xPubKey, id string) (*Destination, error)
-	GetDestinationByAddress(ctx context.Context, xPubKey, address string) (*Destination, error)
-	GetDestinationByLockingScript(ctx context.Context, xPubKey, lockingScript string) (*Destination, error)
-	GetDestinations(ctx context.Context, xPubKey string, usingMetadata *Metadata) ([]*Destination, error)
+	GetDestinationByID(ctx context.Context, xPubID, id string) (*Destination, error)
+	GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error)
+	GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error)
+	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata) ([]*Destination, error)
 	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string,
 		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript, destinationType string,

@@ -288,7 +288,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 			require.NoError(t, err)
 
 			var xPub2 *Xpub
-			xPub2, err = tc.client.GetXpub(tc.ctx, testXPub)
+			xPub2, err = tc.client.GetXpub(tc.ctx, testXPubID)
 			require.NoError(t, err)
 			require.NotNil(t, xPub2)
 
@@ -302,7 +302,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 
 			_, xPub, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
 
-			xPub2, err := tc.client.GetXpub(tc.ctx, rawKey)
+			xPub2, err := tc.client.GetXpub(tc.ctx, utils.Hash(rawKey))
 			require.NoError(t, err)
 			require.NotNil(t, xPub2)
 			assert.Equal(t, xPub2.ID, xPub.ID)

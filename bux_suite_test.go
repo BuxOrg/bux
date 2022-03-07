@@ -308,10 +308,12 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 // genericDBClient is a helpful wrapper for getting the same type of client
 //
 // NOTE: you need to close the client: ts.Close()
-func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.Engine, taskManagerEnabled bool) *TestingClient {
+func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.Engine, taskManagerEnabled bool, opts ...ClientOps) *TestingClient {
 	prefix := tester.RandomTablePrefix(t)
 
-	var opts []ClientOps
+	if opts == nil {
+		opts := []ClientOps{}
+	}
 	opts = append(opts,
 		WithDebugging(),
 		WithAutoMigrate(BaseModels...),

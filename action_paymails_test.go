@@ -14,7 +14,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 
 	for _, testCase := range dbTestCases {
 		ts.T().Run(testCase.name+" - empty", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false)
+			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			paymail := ""
@@ -23,7 +23,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 		})
 
 		ts.T().Run(testCase.name+" - new paymail address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false)
+			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, tc.client.DefaultModelOptions()...)
@@ -49,7 +49,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress(t *testing.T) {
 	for _, testCase := range dbTestCases {
 		ts.T().Run(testCase.name+" - empty", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false)
+			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			paymail := ""
@@ -58,7 +58,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress(t *testing.T) {
 		})
 
 		ts.T().Run(testCase.name+" - delete unknown paymail address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false)
+			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			err := tc.client.DeletePaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
@@ -66,7 +66,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress(t *testing.T) {
 		})
 
 		ts.T().Run(testCase.name+" - new paymail address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false)
+			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, tc.client.DefaultModelOptions()...)

@@ -22,10 +22,6 @@ type PaymailAddress struct {
 	XPubID          string           `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`                                                       // PublicKey hex encoded
 }
 
-// ModelPaymail model paymail
-const ModelPaymail = "paymail"
-const tablePaymails = "paymail_addresses"
-
 const (
 	defaultGetTimeout       = 10 * time.Second
 	paymailRequestField     = "paymail_request"
@@ -95,7 +91,7 @@ func GetPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailA
 
 // GetModelName returns the model name
 func (p *PaymailAddress) GetModelName() string {
-	return ModelPaymail
+	return ModelPaymail.String()
 }
 
 // GetModelTableName returns the model db table name

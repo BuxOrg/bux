@@ -11,14 +11,14 @@ const (
 	databaseLongReadTimeout    = 30 * time.Second  // For all "GET" or "SELECT" methods
 	defaultCacheLockTTL        = 20                // in Seconds
 	defaultCacheLockTTW        = 10                // in Seconds
-	defaultDatabaseReadTimeout = 10 * time.Second  // For all "GET" or "SELECT" methods
+	defaultDatabaseReadTimeout = 20 * time.Second  // For all "GET" or "SELECT" methods
 	defaultDraftTxExpiresIn    = 30 * time.Second  // Default TTL for draft transactions
 	defaultOverheadSize        = uint64(10)        // 10 bytes is the default overhead in a transaction
 	defaultUserAgent           = "bux: " + version // Default user agent
 	dustLimit                  = uint64(546)       // Dust limit
 	mongoTestVersion           = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion          = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                    = "v0.1.5"          // bux version
+	version                    = "v0.1.6"          // bux version
 )
 
 // All the base models

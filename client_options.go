@@ -379,7 +379,7 @@ func WithSQL(engine datastore.Engine, config *datastore.SQLConfig) ClientOps {
 // WithSQLConfigs will load multiple connections (replica & master)
 func WithSQLConfigs(engine datastore.Engine, configs []*datastore.SQLConfig) ClientOps {
 	return func(c *clientOptions) {
-		if configs != nil && len(configs) > 0 && !engine.IsEmpty() {
+		if len(configs) > 0 && !engine.IsEmpty() {
 			c.dataStore.options = append(
 				c.dataStore.options,
 				datastore.WithSQL(engine, configs),

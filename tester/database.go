@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/BuxOrg/bux/datastore"
@@ -91,13 +90,13 @@ func CreateMySQLTestDatabase(databaseName string) *memory.Database {
 }
 
 // SQLiteTestConfig will return a test-version of SQLite
-func SQLiteTestConfig(t *testing.T, debug, shared bool) *datastore.SQLiteConfig {
+func SQLiteTestConfig(debug, shared bool) *datastore.SQLiteConfig {
 	return &datastore.SQLiteConfig{
 		CommonConfig: datastore.CommonConfig{
 			Debug:              debug,
 			MaxIdleConnections: 1,
 			MaxOpenConnections: 1,
-			TablePrefix:        RandomTablePrefix(t),
+			TablePrefix:        RandomTablePrefix(),
 		},
 		DatabasePath: "",
 		Shared:       shared,

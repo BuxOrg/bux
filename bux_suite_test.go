@@ -312,7 +312,7 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 //
 // NOTE: you need to close the client: ts.Close()
 func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.Engine, taskManagerEnabled bool, opts ...ClientOps) *TestingClient {
-	prefix := tester.RandomTablePrefix(t)
+	prefix := tester.RandomTablePrefix()
 
 	if opts == nil {
 		opts = []ClientOps{}
@@ -344,7 +344,7 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 //
 // NOTE: you need to close the client: ts.Close()
 func (ts *EmbeddedDBTestSuite) genericMockedDBClient(t *testing.T, database datastore.Engine) *TestingClient {
-	prefix := tester.RandomTablePrefix(t)
+	prefix := tester.RandomTablePrefix()
 	tc, err := ts.createTestClient(
 		tester.GetNewRelicCtx(
 			t, defaultNewRelicApp, defaultNewRelicTx,

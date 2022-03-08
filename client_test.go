@@ -22,7 +22,7 @@ func TestClient_Debug(t *testing.T) {
 	t.Run("load basic Datastore and Cachestore with debug", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -46,7 +46,7 @@ func TestClient_IsDebug(t *testing.T) {
 	t.Run("basic debug checks", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -67,7 +67,7 @@ func TestClient_Version(t *testing.T) {
 	t.Run("check version", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -101,7 +101,7 @@ func TestClient_Cachestore(t *testing.T) {
 	t.Run("valid cachestore", func(t *testing.T) {
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		defer CloseClient(context.Background(), t, tc)
@@ -125,7 +125,7 @@ func TestClient_Datastore(t *testing.T) {
 	t.Run("valid datastore", func(t *testing.T) {
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		defer CloseClient(context.Background(), t, tc)
@@ -164,7 +164,7 @@ func TestClient_PaymailClient(t *testing.T) {
 	t.Run("valid paymail client", func(t *testing.T) {
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		defer CloseClient(context.Background(), t, tc)
@@ -186,7 +186,7 @@ func TestClient_ModifyPaymailConfig(t *testing.T) {
 	})
 
 	t.Run("update from sender and note", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailServer(&server.Configuration{
 			APIVersion:      "v1",
 			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
@@ -207,7 +207,7 @@ func TestClient_ModifyPaymailConfig(t *testing.T) {
 	})
 
 	t.Run("update server config", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailServer(&server.Configuration{
 			APIVersion:      "v1",
 			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
@@ -251,7 +251,7 @@ func TestClient_PaymailServerConfig(t *testing.T) {
 	})
 
 	t.Run("valid paymail server config", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailServer(&server.Configuration{
 			APIVersion:      "v1",
 			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
@@ -280,7 +280,7 @@ func TestPaymailOptions_Client(t *testing.T) {
 	t.Run("valid paymail client", func(t *testing.T) {
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		assert.NotNil(t, tc.PaymailClient())
@@ -344,7 +344,7 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 	})
 
 	t.Run("valid server config", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailServer(&server.Configuration{
 			APIVersion:      "v1",
 			BSVAliasVersion: paymail.DefaultBsvAliasVersion,

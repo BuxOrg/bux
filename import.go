@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -25,7 +26,7 @@ type ImportResults struct {
 }
 
 /*
-// getUnspentTransactionsFromAddresses will get all unspent transactions related to addresses
+// getUnspentTransactionsFromAddresses will get all unspent transactions related to address
 func getUnspentTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, error) {
 	histories, err := client.BulkUnspentTransactionsProcessor(
 		ctx, &addressList,
@@ -41,9 +42,11 @@ func getUnspentTransactionsFromAddresses(ctx context.Context, client whatsonchai
 }
 */
 
+/*
 // getAllTransactionsFromAddresses will get all transactions related to addresses
-func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface, addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, []string, error) {
-	addressesWithTransactions := []string{}
+func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.ClientInterface,
+	addressList whatsonchain.AddressList) ([]*whatsonchain.HistoryRecord, []string, error) {
+	var addressesWithTransactions []string
 	var txs []*whatsonchain.HistoryRecord
 	for _, address := range addressList.Addresses {
 		history, err := client.AddressHistory(ctx, address)
@@ -57,10 +60,11 @@ func getAllTransactionsFromAddresses(ctx context.Context, client whatsonchain.Cl
 	}
 	return txs, addressesWithTransactions, nil
 }
+*/
 
-// deriveAddresses will derive a new set of addresses for an xpub
+// deriveAddresses will derive a new set of addresses for a xpub
 func (c *Client) deriveAddresses(ctx context.Context, xpub string, chain uint32, amount int) ([]string, error) {
-	addressList := []string{}
+	var addressList []string
 	for i := 0; i < amount; i++ {
 		destination, err := c.NewDestination(ctx, xpub, chain, utils.ScriptTypePubKeyHash, c.DefaultModelOptions()...)
 		if err != nil {
@@ -86,7 +90,7 @@ func removeDuplicates(transactions []*whatsonchain.HistoryRecord) []*whatsonchai
 }
 
 func getTransactionsFromAddressesViaBitbus(addresses []string) ([]*whatsonchain.HistoryRecord, error) {
-	transactions := []*whatsonchain.HistoryRecord{}
+	var transactions []*whatsonchain.HistoryRecord
 	parentQuery := []byte(`
   {
     "q": {
@@ -123,31 +127,37 @@ func getTransactionsFromAddressesViaBitbus(addresses []string) ([]*whatsonchain.
 func bitbusRequest(query []byte) ([]*whatsonchain.HistoryRecord, error) {
 	planariaToken := os.Getenv("PLANARIA_TOKEN")
 	client := http.Client{}
-	transactions := []*whatsonchain.HistoryRecord{}
-	req, err := http.NewRequest("POST", "https://txo.bitbus.network/block", bytes.NewBuffer(query))
+	var transactions []*whatsonchain.HistoryRecord
+	req, err := http.NewRequestWithContext(
+		context.Background(), http.MethodPost, "https://txo.bitbus.network/block", bytes.NewBuffer(query),
+	)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("token", planariaToken)
-	resp, err := client.Do(req)
-	if err != nil {
+
+	var resp *http.Response
+	if resp, err = client.Do(req); err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	reader := bufio.NewReader(resp.Body)
 	for {
-		line, err := reader.ReadBytes('\n')
-		if err == io.EOF {
+		var line []byte
+		line, err = reader.ReadBytes('\n')
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		json := gjson.ParseBytes(line)
-		tx_id := gjson.Get(json.String(), "tx.h")
-		if tx_id.Str == "" {
+		txID := gjson.Get(json.String(), "tx.h")
+		if txID.Str == "" {
 			break
 		}
 		record := &whatsonchain.HistoryRecord{
-			TxHash: tx_id.Str,
+			TxHash: txID.Str,
 		}
 		transactions = append(transactions, record)
 	}

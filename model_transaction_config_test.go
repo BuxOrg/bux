@@ -120,12 +120,12 @@ func TestTransactionConfig_Value(t *testing.T) {
 func TestTransactionConfig_processAddressOutput(t *testing.T) {
 	// t.Parallel() mocking does not allow parallel tests
 
-	sats := uint64(1000)
+	satoshis := uint64(1000)
 	address := "1CfaQw9udYNPccssFJFZ94DN8MqNZm9nGt"
 
 	t.Run("valid address output", func(t *testing.T) {
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       address,
 		}
 		require.NotNil(t, out)
@@ -135,13 +135,13 @@ func TestTransactionConfig_processAddressOutput(t *testing.T) {
 
 		assert.Equal(t, 1, len(out.Scripts))
 		assert.Equal(t, address, out.Scripts[0].Address)
-		assert.Equal(t, sats, out.Scripts[0].Satoshis)
+		assert.Equal(t, satoshis, out.Scripts[0].Satoshis)
 		assert.Equal(t, "76a9147ff514e6ae3deb46e6644caac5cdd0bf2388906588ac", out.Scripts[0].Script)
 	})
 
 	t.Run("invalid address", func(t *testing.T) {
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       "123456",
 		}
 		require.NotNil(t, out)
@@ -155,14 +155,14 @@ func TestTransactionConfig_processAddressOutput(t *testing.T) {
 func TestTransactionConfig_processOutput(t *testing.T) {
 	// t.Parallel() mocking does not allow parallel tests
 
-	sats := uint64(1000)
+	satoshis := uint64(1000)
 	paymailAddress := "TeSTeR@" + testDomain
 
 	t.Run("error - no address or paymail given", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       "",
 		}
 
@@ -179,7 +179,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       testAlias + "@",
 		}
 
@@ -197,14 +197,14 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
 
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       paymailAddress,
 		}
 		require.NotNil(t, out)
@@ -217,7 +217,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 			true,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, sats, out.Satoshis)
+		assert.Equal(t, satoshis, out.Satoshis)
 		assert.Equal(t, testAlias+"@"+testDomain, out.To)
 		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
 		assert.Equal(t, testAlias, out.PaymailP4.Alias)
@@ -236,14 +236,14 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
 
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       handle,
 		}
 		require.NotNil(t, out)
@@ -256,7 +256,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 			true,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, sats, out.Satoshis)
+		assert.Equal(t, satoshis, out.Satoshis)
 		assert.Equal(t, testAlias+"@"+handleDomain, out.To)
 		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
 		assert.Equal(t, testAlias, out.PaymailP4.Alias)
@@ -275,14 +275,14 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
 
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       handle,
 		}
 		require.NotNil(t, out)
@@ -295,7 +295,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 			true,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, sats, out.Satoshis)
+		assert.Equal(t, satoshis, out.Satoshis)
 		assert.Equal(t, testAlias+"@"+handleDomain, out.To)
 		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
 		assert.Equal(t, testAlias, out.PaymailP4.Alias)
@@ -311,14 +311,14 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
 
 		out := &TransactionOutput{
-			Satoshis: sats,
+			Satoshis: satoshis,
 			To:       paymailAddress,
 		}
 		require.NotNil(t, out)
@@ -331,7 +331,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 			true,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, sats, out.Satoshis)
+		assert.Equal(t, satoshis, out.Satoshis)
 		assert.Equal(t, testAlias+"@"+testDomain, out.To)
 		assert.Equal(t, "", out.PaymailP4.FromPaymail)
 		assert.Equal(t, testAlias, out.PaymailP4.Alias)

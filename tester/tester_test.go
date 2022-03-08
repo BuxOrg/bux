@@ -23,7 +23,7 @@ func TestRandomTablePrefix(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid prefix", func(t *testing.T) {
-		prefix := RandomTablePrefix(t)
+		prefix := RandomTablePrefix()
 		assert.Equal(t, 17, len(prefix))
 	})
 }

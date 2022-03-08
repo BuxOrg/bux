@@ -249,7 +249,7 @@ func Test_getCapabilities(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -271,7 +271,7 @@ func Test_getCapabilities(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -360,7 +360,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -395,7 +395,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)

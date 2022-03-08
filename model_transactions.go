@@ -621,6 +621,7 @@ func (m *Transaction) IsXpubAssociated(rawXpubKey string) bool {
 	return m.IsXpubIDAssociated(xPubID)
 }
 
+// IsXpubIDAssociated will check if an xPub ID is associated
 func (m *Transaction) IsXpubIDAssociated(xPubID string) bool {
 	if len(xPubID) == 0 {
 		return false

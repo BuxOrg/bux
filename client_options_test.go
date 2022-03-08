@@ -28,7 +28,7 @@ func Test_newRelicOptions_enable(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, app)
 
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithNewRelic(app))
 
 		var tc ClientInterface
@@ -45,7 +45,7 @@ func Test_newRelicOptions_enable(t *testing.T) {
 	})
 
 	t.Run("enable with invalid app", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithNewRelic(nil))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
@@ -67,7 +67,7 @@ func Test_newRelicOptions_getOrStartTxn(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, app)
 
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithNewRelic(app))
 
 		var tc ClientInterface
@@ -87,7 +87,7 @@ func Test_newRelicOptions_getOrStartTxn(t *testing.T) {
 	})
 
 	t.Run("invalid ctx and txn", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithNewRelic(nil))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
@@ -140,7 +140,7 @@ func TestWithUserAgent(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty user agent", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithUserAgent(""))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
@@ -155,7 +155,7 @@ func TestWithUserAgent(t *testing.T) {
 	t.Run("custom user agent", func(t *testing.T) {
 		customAgent := "custom-user-agent"
 
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithUserAgent(customAgent))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
@@ -180,7 +180,7 @@ func TestWithDebugging(t *testing.T) {
 	t.Run("set debug (with cache and Datastore)", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(t, true, true)...,
+			DefaultClientOpts(true, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -262,7 +262,7 @@ func TestWithRistretto(t *testing.T) {
 	t.Run("using valid config", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(t, false, true)...)
+			DefaultClientOpts(false, true)...)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
@@ -317,11 +317,11 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(t)), taskmanager.FactoryMemory),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
-			WithSQLite(tester.SQLiteTestConfig(t, false, true)),
+			WithSQLite(tester.SQLiteTestConfig(false, true)),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -339,11 +339,11 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(t)), taskmanager.FactoryMemory),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
 			WithRedis(&cachestore.RedisConfig{
 				URL: "localhost:6379",
 			}),
-			WithSQLite(tester.SQLiteTestConfig(t, false, true)),
+			WithSQLite(tester.SQLiteTestConfig(false, true)),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -400,7 +400,7 @@ func TestWithPaymailClient(t *testing.T) {
 	t.Parallel()
 
 	t.Run("using a nil driver, automatically makes paymail client", func(t *testing.T) {
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailClient(nil))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
@@ -416,7 +416,7 @@ func TestWithPaymailClient(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		opts := DefaultClientOpts(t, false, true)
+		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailClient(p))
 
 		var tc ClientInterface
@@ -439,7 +439,7 @@ func TestWithTaskQ(t *testing.T) {
 	t.Run("using taskq using memory", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(t, false, true)...,
+			DefaultClientOpts(false, true)...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -459,7 +459,7 @@ func TestWithTaskQ(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithTaskQUsingRedis(
-				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(t)),
+				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()),
 				&redis.Options{
 					Addr: "localhost:6379",
 				},
@@ -467,7 +467,7 @@ func TestWithTaskQ(t *testing.T) {
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
-			WithSQLite(tester.SQLiteTestConfig(t, false, true)),
+			WithSQLite(tester.SQLiteTestConfig(false, true)),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)

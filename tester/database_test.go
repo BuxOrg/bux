@@ -81,7 +81,7 @@ func TestSQLiteTestConfig(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid config", func(t *testing.T) {
-		config := SQLiteTestConfig(t, true, true)
+		config := SQLiteTestConfig(true, true)
 		require.NotNil(t, config)
 
 		assert.Equal(t, true, config.Debug)
@@ -93,7 +93,7 @@ func TestSQLiteTestConfig(t *testing.T) {
 	})
 
 	t.Run("no debug or sharing", func(t *testing.T) {
-		config := SQLiteTestConfig(t, false, false)
+		config := SQLiteTestConfig(false, false)
 		require.NotNil(t, config)
 
 		assert.Equal(t, false, config.Debug)

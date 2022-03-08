@@ -57,8 +57,8 @@ func (tc *TestingClient) Close(ctx context.Context) {
 }
 
 // DefaultClientOpts will return a default set of client options required to load the new client
-func DefaultClientOpts(t *testing.T, debug, shared bool) []ClientOps {
-	tqc := taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(t))
+func DefaultClientOpts(debug, shared bool) []ClientOps {
+	tqc := taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())
 	tqc.MaxNumWorker = 2
 	tqc.MaxNumFetcher = 2
 
@@ -67,7 +67,7 @@ func DefaultClientOpts(t *testing.T, debug, shared bool) []ClientOps {
 		opts,
 		WithTaskQ(tqc, taskmanager.FactoryMemory),
 		WithRistretto(cachestore.DefaultRistrettoConfig()),
-		WithSQLite(tester.SQLiteTestConfig(t, debug, shared)),
+		WithSQLite(tester.SQLiteTestConfig(debug, shared)),
 	)
 	if debug {
 		opts = append(opts, WithDebugging())
@@ -83,7 +83,7 @@ func CreateTestSQLiteClient(t *testing.T, debug, shared bool, clientOpts ...Clie
 	ctx := tester.GetNewRelicCtx(t, "app-test", "test-transaction")
 
 	// Set the default options, add migrate models
-	opts := DefaultClientOpts(t, debug, shared)
+	opts := DefaultClientOpts(debug, shared)
 	opts = append(opts, WithAutoMigrate(BaseModels...))
 	opts = append(opts, clientOpts...)
 

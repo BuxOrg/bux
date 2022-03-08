@@ -28,7 +28,7 @@ func TestNewPaymail(t *testing.T) {
 		require.NoError(t, err)
 		paymailXPub := paymailKey.String()
 
-		p := NewPaymail(
+		p := newPaymail(
 			paymail,
 			WithClient(client),
 		)

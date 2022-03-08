@@ -5,49 +5,42 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/bitcoinschema/go-bitcoin/v2"
-	"github.com/libsv/go-bk/bip32"
 )
 
-func (c *Client) NewPaymailAddress(ctx context.Context, key, address string, opts ...ModelOps) (*PaymailAddress, error) {
+// NewPaymailAddress will create a new paymail address
+func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address string, opts ...ModelOps) (*PaymailAddress, error) {
 
-	paymailAddress := NewPaymail(address, append(opts, New())...)
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "new_paymail_address")
 
-	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(key)
-	if err != nil {
-		return nil, err
-	}
+	// Start the new paymail address model
+	paymailAddress := newPaymail(address, append(opts, New(), WithXPub(xPubKey))...)
 
-	var paymailKey *bip32.ExtendedKey
-	paymailKey, err = bitcoin.GetHDKeyChild(xPub, utils.ChainExternal)
-	if err != nil {
-		return nil, err
-	}
-
-	paymailAddress.XPubID = utils.Hash(key)
-	paymailAddress.ExternalXPubKey = paymailKey.String()
-
-	err = paymailAddress.Save(ctx)
-	if err != nil {
+	// Save the model
+	if err := paymailAddress.Save(ctx); err != nil {
 		return nil, err
 	}
 
 	return paymailAddress, nil
 }
 
+// DeletePaymailAddress will delete a paymail address
 func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error {
 
-	paymailAddress, err := GetPaymail(ctx, address, opts...)
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "delete_paymail_address")
+
+	// Get the paymail address
+	paymailAddress, err := getPaymail(ctx, address, opts...)
 	if err != nil {
 		return err
-	}
-	if paymailAddress == nil {
+	} else if paymailAddress == nil {
 		return ErrMissingPaymail
 	}
 
+	// todo: make a better approach for deleting paymail addresses?
 	var randomString string
-	randomString, err = utils.RandomHex(16)
-	if err != nil {
+	if randomString, err = utils.RandomHex(16); err != nil {
 		return err
 	}
 

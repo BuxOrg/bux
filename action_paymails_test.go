@@ -11,15 +11,15 @@ var externalXPubID = "xpub69PUyEkuD8cqyA9ekUkp3FwaeW1uyLxbwybEy3bmyD7mM6zShsJqfR
 var testPaymail = "paymail@tester.com"
 
 func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
-
 	for _, testCase := range dbTestCases {
 		ts.T().Run(testCase.name+" - empty", func(t *testing.T) {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			paymail := ""
-			_, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, paymail, tc.client.DefaultModelOptions()...)
+			address, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, paymail, tc.client.DefaultModelOptions()...)
 			require.ErrorIs(t, err, ErrMissingPaymailAddress)
+			require.Nil(t, address)
 		})
 
 		ts.T().Run(testCase.name+" - new paymail address", func(t *testing.T) {
@@ -28,6 +28,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 
 			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
+			require.NotNil(t, paymailAddress)
 
 			assert.Equal(t, "paymail", paymailAddress.Alias)
 			assert.Equal(t, "tester.com", paymailAddress.Domain)
@@ -35,8 +36,9 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			assert.Equal(t, externalXPubID, paymailAddress.ExternalXPubKey)
 
 			var p2 *PaymailAddress
-			p2, err = GetPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
+			require.NotNil(t, p2)
 
 			assert.Equal(t, "paymail", p2.Alias)
 			assert.Equal(t, "tester.com", p2.Domain)
@@ -46,8 +48,9 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 	}
 }
 
-func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress(t *testing.T) {
+func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 	for _, testCase := range dbTestCases {
+
 		ts.T().Run(testCase.name+" - empty", func(t *testing.T) {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
@@ -65,24 +68,26 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress(t *testing.T) {
 			require.ErrorIs(t, err, ErrMissingPaymail)
 		})
 
-		ts.T().Run(testCase.name+" - new paymail address", func(t *testing.T) {
+		ts.T().Run(testCase.name+" - delete paymail address", func(t *testing.T) {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
 			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
+			require.NotNil(t, paymailAddress)
 
 			err = tc.client.DeletePaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 
 			var p2 *PaymailAddress
-			p2, err = GetPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.Nil(t, p2)
 
 			var p3 *PaymailAddress
-			p3, err = GetPaymailByID(tc.ctx, paymailAddress.ID, tc.client.DefaultModelOptions()...)
+			p3, err = getPaymailByID(tc.ctx, paymailAddress.ID, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
+			require.NotNil(t, p3)
 			require.Equal(t, testPaymail, p3.Alias)
 			require.True(t, p3.DeletedAt.Valid)
 		})

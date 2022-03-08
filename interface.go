@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// AccessKeyService is the Access key related requests
+// AccessKeyService is the access key actions
 type AccessKeyService interface {
 	GetAccessKey(ctx context.Context, xPubID, pubAccessKey string) (*AccessKey, error)
 	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error)
@@ -23,7 +23,7 @@ type AccessKeyService interface {
 	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
 }
 
-// TransactionService is the transaction related requests
+// TransactionService is the transaction actions
 type TransactionService interface {
 	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
 	GetTransactions(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}) ([]*Transaction, error)
@@ -33,7 +33,7 @@ type TransactionService interface {
 		opts ...ModelOps) (*Transaction, error)
 }
 
-// DestinationService is the destination related requests
+// DestinationService is the destination actions
 type DestinationService interface {
 	GetDestinationByID(ctx context.Context, xPubID, id string) (*Destination, error)
 	GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error)
@@ -45,13 +45,13 @@ type DestinationService interface {
 		opts ...ModelOps) (*Destination, error)
 }
 
-// UTXOService is the utxo related requests
+// UTXOService is the utxo actions
 type UTXOService interface {
 	GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex uint32) (*Utxo, error)
 	GetUtxos(ctx context.Context, xPubKey string) ([]*Utxo, error)
 }
 
-// XPubService is the xPub related requests
+// XPubService is the xPub actions
 type XPubService interface {
 	GetXpub(ctx context.Context, xPubKey string) (*Xpub, error)
 	GetXpubByID(ctx context.Context, xPubID string) (*Xpub, error)
@@ -59,20 +59,20 @@ type XPubService interface {
 	NewXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*Xpub, error)
 }
 
-// PaymailService is the paymail related requests
+// PaymailService is the paymail actions
 type PaymailService interface {
 	NewPaymailAddress(ctx context.Context, key, address string, opts ...ModelOps) (*PaymailAddress, error)
 	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
 }
 
-// ClientInterface is the client (bux engine) interface
+// ClientInterface is the client (bux engine) interface comprised of all services
 type ClientInterface interface {
 	AccessKeyService
 	DestinationService
+	PaymailService
 	TransactionService
 	UTXOService
 	XPubService
-	PaymailService
 	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
 	AuthenticateRequest(ctx context.Context, req *http.Request, adminXPubs []string, adminRequired, requireSigning, signingDisabled bool) (*http.Request, error)
 	Cachestore() cachestore.ClientInterface

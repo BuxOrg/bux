@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"time"
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
@@ -137,7 +136,7 @@ func getTransactionByID(ctx context.Context, xPubID, txID string, opts ...ModelO
 	tx.xPubID = xPubID
 
 	// Get the record
-	if err := Get(ctx, tx, nil, false, 30*time.Second); err != nil {
+	if err := Get(ctx, tx, nil, false, defaultDatabaseReadTimeout); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

@@ -161,8 +161,10 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 
 	// Start the suite
 	tc := &TestingClient{
-		tablePrefix: tablePrefix,
 		ctx:         ctx,
+		database:    database,
+		mocking:     mockDB,
+		tablePrefix: tablePrefix,
 	}
 
 	// Are we mocking SQL?
@@ -206,7 +208,8 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 					MaxOpenConnections: 1,
 					TablePrefix:        tablePrefix,
 				},
-				Shared: true,
+				Shared: true, // mrz: TestTransaction_Save requires this to be true for some reason
+				// I get the error: no such table: _17a1f3e22f2eec56_utxos
 			}))
 		} else if database == datastore.MongoDB {
 

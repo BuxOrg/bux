@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/BuxOrg/bux/cachestore"
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -25,6 +26,8 @@ import (
 type TestingClient struct {
 	client      ClientInterface  // Local bux client for testing
 	ctx         context.Context  // Current CTX
+	database    datastore.Engine // Current database
+	mocking     bool             // If mocking is enabled
 	MockSQLDB   sqlmock.Sqlmock  // Mock Database client for SQL
 	redisClient *cache.Client    // Current redis client (used for Mocking)
 	redisConn   *redigomock.Conn // Current redis connection (used for Mocking)
@@ -35,6 +38,11 @@ type TestingClient struct {
 // Close will close all test services and client
 func (tc *TestingClient) Close(ctx context.Context) {
 	if tc.client != nil {
+		/*if !tc.mocking {
+			if err := dropAllTables(tc.client.Datastore(), tc.database); err != nil {
+				panic(err)
+			}
+		}*/
 		_ = tc.client.Close(ctx)
 	}
 	if tc.SQLConn != nil {
@@ -186,3 +194,54 @@ func GetUnlockingScript(t *testing.T, tx *bt.Tx, inputIndex uint32, privateKey *
 
 	return s
 }
+
+/*
+
+// dbSchemaResult is the results
+type dbSchemaResult struct {
+	TableName string `json:"table_name"`
+}
+
+// dropAllTables will drop all tables in the current database
+func dropAllTables(ds datastore.ClientInterface, database datastore.Engine) error {
+
+	// Clearing DB is not implemented at this time
+	// todo: finish this clearing of db?
+	if database == datastore.MongoDB {
+		return nil
+	}
+
+	// Set the select string
+	var selectQuery string
+	if database == datastore.MySQL || database == datastore.PostgreSQL {
+		selectQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = '" + ds.GetDatabaseName() + "';"
+	} else {
+		selectQuery = "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+	}
+
+	// Get all tables
+	rows, err := ds.Raw(selectQuery).Rows()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	// Parse the records and build a list of table names
+	var result dbSchemaResult
+	for rows.Next() {
+		if err = rows.Scan(&result.TableName); err != nil {
+			return err
+		}
+		if len(result.TableName) > 0 {
+			db := ds.Execute("DROP TABLE IF EXISTS " + result.TableName + ";")
+			if db.Error != nil {
+				return db.Error
+			}
+		}
+	}
+
+	return nil
+}
+*/

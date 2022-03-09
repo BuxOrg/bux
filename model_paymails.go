@@ -26,8 +26,9 @@ type PaymailAddress struct {
 	Username        string `json:"username" toml:"username" yaml:"username" gorm:"<-;type:varchar(255);uniqueIndex;comment:This is username" bson:"username"`                                                             // Full username
 	Avatar          string `json:"avatar" toml:"avatar" yaml:"avatar" gorm:"<-;type:text;comment:This is avatar url" bson:"avatar"`                                                                                       // This is the url of the user (public profile)
 	ExternalXPubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for external use" bson:"external_xpub_key"`      // PublicKey hex encoded
-	InternalXPubKey string `json:"internal_xpub_key" toml:"internal_xpub_key" yaml:"internal_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for managing PKI keys" bson:"internal_xpub_key"` // PublicKey hex encoded
-	XPubID          string `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`                                                            // Related xPub ID
+	IdentityXPubKey string `json:"identity_xpub_key" toml:"identity_xpub_key" yaml:"identity_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for managing PKI keys" bson:"identity_xpub_key"` // PublicKey hex encoded
+	NextIdentityNum uint32 `json:"next_identity_num" toml:"next_identity_num" yaml:"next_identity_num" gorm:"<-;type:int;comment:The next index number for the identity xPub derivation" bson:"next_identity_num"`
+	XPubID          string `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"` // Related xPub ID
 }
 
 // newPaymail create new paymail model
@@ -94,7 +95,7 @@ func getPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailA
 	return paymailAddress, nil
 }
 
-// setXPub will set the "ExternalXPubKey" and "InternalXPubKey" given the raw xPub
+// setXPub will set the "ExternalXPubKey" and "IdentityXPubKey" given the raw xPub
 func (m *PaymailAddress) setXPubs(rawXpubKey string) error {
 	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(rawXpubKey)
 	if err != nil {
@@ -108,15 +109,15 @@ func (m *PaymailAddress) setXPubs(rawXpubKey string) error {
 		return err
 	}
 
-	paymailInternalKey, err := bitcoin.GetHDKeyChild(
-		xPub, utils.ChainInternal,
+	paymailIdentityKey, err := bitcoin.GetHDKeyChild(
+		paymailExternalKey, uint32(utils.MaxInt32),
 	)
 	if err != nil {
 		return err
 	}
 
 	m.ExternalXPubKey = paymailExternalKey.String()
-	m.InternalXPubKey = paymailInternalKey.String()
+	m.IdentityXPubKey = paymailIdentityKey.String()
 	return nil
 }
 
@@ -164,8 +165,8 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 		return ErrMissingPaymailExternalXPub
 	}
 
-	if len(m.InternalXPubKey) == 0 {
-		return ErrMissingPaymailInternalXPub
+	if len(m.IdentityXPubKey) == 0 {
+		return ErrMissingPaymailIdentityXPub
 	}
 
 	if len(m.XPubID) == 0 {

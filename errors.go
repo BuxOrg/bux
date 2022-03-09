@@ -163,5 +163,8 @@ var ErrMissingPaymailDomain = errors.New("missing domain in paymail")
 // ErrMissingPaymailExternalXPub missing external xPub in paymail
 var ErrMissingPaymailExternalXPub = errors.New("missing external xPub in paymail")
 
+// ErrMissingPaymailInternalXPub missing internal xPub in paymail
+var ErrMissingPaymailInternalXPub = errors.New("missing internal xPub in paymail")
+
 // ErrMissingPaymailXPubID missing xpub_id in paymail
 var ErrMissingPaymailXPubID = errors.New("missing xpub_id in paymail")

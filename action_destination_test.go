@@ -99,7 +99,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 
 			var destination *Destination
 			destination, err = tc.client.NewDestinationForLockingScript(
-				tc.ctx, testXPub, lockingScript, false, opts...,
+				tc.ctx, testXPubID, lockingScript, false, opts...,
 			)
 			assert.NoError(t, err)
 			assert.Equal(t, "a64c7aca7110c7cde92245252a58bb18a4317381fc31fc293f6aafa3fcc7019f", destination.ID)
@@ -118,7 +118,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
 
 			destination, err := tc.client.NewDestinationForLockingScript(
-				tc.ctx, testXPub, "", false,
+				tc.ctx, testXPubID, "", false,
 				opts...,
 			)
 			require.Error(t, err)

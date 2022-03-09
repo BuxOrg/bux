@@ -25,20 +25,18 @@ type Destination struct {
 	Num           uint32 `json:"num" toml:"num" yaml:"num" gorm:"<-:create;type:int;comment:This is the chain/(num) location of the address related to the xPub" bson:"num"`
 	Address       string `json:"address" toml:"address" yaml:"address" gorm:"<-:create;type:varchar(35);index;comment:This is the BitCoin address" bson:"address"`
 	DraftID       string `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-:create;type:varchar(64);index;comment:This is the related draft id (if internal tx)" bson:"draft_id,omitempty"`
+	Monitor       bool   `json:"monitor" toml:"monitor" yaml:"monitor" gorm:"type:bool;default=false;comment:Whether this address should be monitored by an importer" bson:"monitor,omitempty"`
 }
 
 // newDestination will start a new Destination model for a locking script
 func newDestination(xPubID, lockingScript string, opts ...ModelOps) *Destination {
 
 	// Determine the type if the locking script is provided
-	destinationType := ""
+	destinationType := utils.ScriptTypeNonStandard
 	address := ""
 	if len(lockingScript) > 0 {
 		destinationType = utils.GetDestinationType(lockingScript)
-		if destinationType == utils.ScriptTypePubKeyHash {
-			// try to extract the address from the locking script
-			address, _ = bitcoin.GetAddressFromScript(lockingScript)
-		}
+		address = utils.GetAddressFromScript(lockingScript)
 	}
 
 	// Return the model
@@ -49,6 +47,7 @@ func newDestination(xPubID, lockingScript string, opts ...ModelOps) *Destination
 		Type:          destinationType,
 		XpubID:        xPubID,
 		Address:       address,
+		Monitor:       false,
 	}
 }
 

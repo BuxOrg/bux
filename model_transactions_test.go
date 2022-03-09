@@ -681,7 +681,7 @@ func TestEndToEndTransaction(t *testing.T) {
 		var err error
 		destinations := make([]*Destination, 2)
 		destinations[0], err = client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 			opts...,
 		)
 		require.NoError(t, err)
@@ -694,7 +694,7 @@ func TestEndToEndTransaction(t *testing.T) {
 		)
 
 		destinations[1], err = client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 			opts2...,
 		)
 		require.NoError(t, err)

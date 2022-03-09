@@ -17,6 +17,7 @@ import (
 var testLockingScript = "76a9147ff514e6ae3deb46e6644caac5cdd0bf2388906588ac"
 var testAddressID = "fc1e635d98151c6008f29908ee2928c60c745266f9853e945c917b1baa05973e"
 var testDestinationID = "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646"
+var stasHex = "76a9146d3562a8ec96bcb3b2253fd34f38a556fb66733d88ac6976aa607f5f7f7c5e7f7c5d7f7c5c7f7c5b7f7c5a7f7c597f7c587f7c577f7c567f7c557f7c547f7c537f7c527f7c517f7c7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7c5f7f7c5e7f7c5d7f7c5c7f7c5b7f7c5a7f7c597f7c587f7c577f7c567f7c557f7c547f7c537f7c527f7c517f7c7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e01007e818b21414136d08c5ed2bf3ba048afe6dcaebafeffffffffffffffffffffffffffffff007d976e7c5296a06394677768827601249301307c7e23022079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798027e7c7e7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c8276638c687f7c7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e01417e21038ff83d8cf12121491609c4939dc11c4aa35503508fe432dc5a5c1905608b9218ad547f7701207f01207f7701247f517f7801007e8102fd00a063546752687f7801007e817f727e7b01177f777b557a766471567a577a786354807e7e676d68aa880067765158a569765187645294567a5379587a7e7e78637c8c7c53797e577a7e6878637c8c7c53797e577a7e6878637c8c7c53797e577a7e6878637c8c7c53797e577a7e6878637c8c7c53797e577a7e6867567a6876aa587a7d54807e577a597a5a7a786354807e6f7e7eaa727c7e676d6e7eaa7c687b7eaa587a7d877663516752687c72879b69537a647500687c7b547f77517f7853a0916901247f77517f7c01007e817602fc00a06302fd00a063546752687f7c01007e816854937f77788c6301247f77517f7c01007e817602fc00a06302fd00a063546752687f7c01007e816854937f777852946301247f77517f7c01007e817602fc00a06302fd00a063546752687f7c01007e816854937f77686877517f7c52797d8b9f7c53a09b91697c76638c7c587f77517f7c01007e817602fc00a06302fd00a063546752687f7c01007e81687f777c6876638c7c587f77517f7c01007e817602fc00a06302fd00a063546752687f7c01007e81687f777c6863587f77517f7c01007e817602fc00a06302fd00a063546752687f7c01007e81687f7768587f517f7801007e817602fc00a06302fd00a063546752687f7801007e81727e7b7b687f75537f7c0376a9148801147f775379645579887567726881766968789263556753687a76026c057f7701147f8263517f7c766301007e817f7c6775006877686b537992635379528763547a6b547a6b677c6b567a6b537a7c717c71716868547a587f7c81547a557964936755795187637c686b687c547f7701207f75748c7a7669765880748c7a76567a876457790376a9147e7c7e557967041976a9147c7e0288ac687e7e5579636c766976748c7a9d58807e6c0376a9147e748c7a7e6c7e7e676c766b8263828c007c80517e846864745aa0637c748c7a76697d937b7b58807e56790376a9147e748c7a7e55797e7e6868686c567a5187637500678263828c007c80517e846868647459a0637c748c7a76697d937b7b58807e55790376a9147e748c7a7e55797e7e687459a0637c748c7a76697d937b7b58807e55790376a9147e748c7a7e55797e7e68687c537a9d547963557958807e041976a91455797e0288ac7e7e68aa87726d77776a14f566909f378788e61108d619e40df2757455d14c010005546f6b656e"
 
 // TestDestination_newDestination will test the method newDestination()
 func TestDestination_newDestination(t *testing.T) {
@@ -29,6 +30,7 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, "", destination.LockingScript)
+		assert.Equal(t, false, destination.Monitor)
 		assert.Equal(t, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", destination.GetID())
 	})
 
@@ -41,6 +43,7 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, testScript, destination.LockingScript)
+		assert.Equal(t, false, destination.Monitor)
 		assert.Equal(t, xPubID, destination.XpubID)
 		assert.Equal(t, bscript2.ScriptTypeNonStandard, destination.Type)
 		assert.Equal(t, testDestinationID, destination.GetID())
@@ -264,7 +267,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false, opts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, destination)
@@ -292,7 +295,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, "bad-value", utils.ChainExternal, utils.ScriptTypePubKeyHash,
+			ctx, "bad-value", utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 			opts...,
 		)
 		require.Error(t, err)
@@ -312,7 +315,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+			ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 			opts...,
 		)
 		require.Error(t, err)
@@ -337,11 +340,39 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypeMultiSig,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypeMultiSig, false,
 			opts...,
 		)
 		require.Error(t, err)
 		require.Nil(t, destination)
+	})
+
+	t.Run("stas token", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+
+		// Get new random key
+		_, xPub, rawXPub := CreateNewXPub(ctx, t, client)
+		require.NotNil(t, xPub)
+
+		opts := append(
+			client.DefaultModelOptions(),
+			WithMetadatas(map[string]interface{}{
+				testMetadataKey: testMetadataValue,
+			}),
+		)
+
+		// Create a new destination
+		destination, err := client.NewDestinationForLockingScript(
+			ctx, utils.Hash(rawXPub), stasHex, false,
+			opts...,
+		)
+		require.NoError(t, err)
+		require.Equal(t, utils.Hash(stasHex), destination.ID)
+		require.Equal(t, utils.Hash(rawXPub), destination.XpubID)
+		require.Equal(t, stasHex, destination.LockingScript)
+		require.Equal(t, "1AxScC72W9tyk1Enej6dBsVZNkkgAonk4H", destination.Address)
+		require.Equal(t, utils.ScriptTypeTokenStas, destination.Type)
 	})
 }
 
@@ -364,7 +395,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Create model
 		tc.MockSQLDB.ExpectExec("INSERT INTO `"+tc.tablePrefix+"_destinations` ("+
 			"`created_at`,`updated_at`,`metadata`,`deleted_at`,`id`,`xpub_id`,`locking_script`,"+
-			"`type`,`chain`,`num`,`address`,`draft_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
+			"`type`,`chain`,`num`,`address`,`draft_id`,`monitor`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -377,6 +408,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
+			false,               // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -406,7 +438,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Create model
 		tc.MockSQLDB.ExpectExec("INSERT INTO `"+tc.tablePrefix+"_destinations` ("+
 			"`created_at`,`updated_at`,`metadata`,`deleted_at`,`id`,`xpub_id`,`locking_script`,"+
-			"`type`,`chain`,`num`,`address`,`draft_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
+			"`type`,`chain`,`num`,`address`,`draft_id`,`monitor`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -419,6 +451,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
+			false,               // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -446,7 +479,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		tc.MockSQLDB.ExpectBegin()
 
 		// Create model
-		tc.MockSQLDB.ExpectExec(`INSERT INTO "`+tc.tablePrefix+`_destinations" ("created_at","updated_at","metadata","deleted_at","id","xpub_id","locking_script","type","chain","num","address","draft_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).WithArgs(
+		tc.MockSQLDB.ExpectExec(`INSERT INTO "`+tc.tablePrefix+`_destinations" ("created_at","updated_at","metadata","deleted_at","id","xpub_id","locking_script","type","chain","num","address","draft_id","monitor") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`).WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -459,6 +492,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
+			false,               // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX

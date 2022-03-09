@@ -5,7 +5,6 @@ import (
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
-	"github.com/libsv/go-bk/bip32"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,10 +22,12 @@ func TestNewPaymail(t *testing.T) {
 
 		hdKey, err := utils.ValidateXPub(testXPub)
 		require.NoError(t, err)
-		var paymailKey *bip32.ExtendedKey
-		paymailKey, err = bitcoin.GetHDKeyChild(hdKey, utils.ChainExternal)
+		paymailExternalKey, err := bitcoin.GetHDKeyChild(hdKey, utils.ChainExternal)
 		require.NoError(t, err)
-		paymailXPub := paymailKey.String()
+		paymailInternalKey, err := bitcoin.GetHDKeyChild(hdKey, utils.ChainInternal)
+		require.NoError(t, err)
+		paymailExternalXPub := paymailExternalKey.String()
+		paymailInternalXPub := paymailInternalKey.String()
 
 		p := newPaymail(
 			paymail,
@@ -35,7 +36,8 @@ func TestNewPaymail(t *testing.T) {
 		p.Username = "Tester"
 		p.Avatar = "img url"
 		p.XPubID = xPubID
-		p.ExternalXPubKey = paymailXPub
+		p.ExternalXPubKey = paymailExternalXPub
+		p.InternalXPubKey = paymailInternalXPub
 		err = p.Save(ctx)
 		require.NoError(t, err)
 
@@ -52,7 +54,8 @@ func TestNewPaymail(t *testing.T) {
 		assert.Equal(t, "Tester", p2.Username)
 		assert.Equal(t, "img url", p2.Avatar)
 		assert.Equal(t, xPubID, p2.XPubID)
-		assert.Equal(t, paymailXPub, p2.ExternalXPubKey)
+		assert.Equal(t, paymailExternalXPub, p2.ExternalXPubKey)
+		assert.Equal(t, paymailInternalXPub, p2.InternalXPubKey)
 	})
 
 	t.Run("test derive child keys", func(t *testing.T) {

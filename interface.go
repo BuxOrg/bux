@@ -39,9 +39,9 @@ type DestinationService interface {
 	GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error)
 	GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error)
 	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata) ([]*Destination, error)
-	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string,
+	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
-	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript, destinationType string,
+	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
 }
 

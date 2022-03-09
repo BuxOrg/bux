@@ -10,12 +10,12 @@ import (
 //
 // xPubKey is the raw public xPub
 func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint32,
-	destinationType string, opts ...ModelOps) (*Destination, error) {
+	destinationType string, monitor bool, opts ...ModelOps) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination")
 
-	// Validate that the value is an xPub
+	// Validate that the xPubKey is a valid xPub
 	_, err := utils.ValidateXPub(xPubKey)
 	if err != nil {
 		return nil, err
@@ -40,6 +40,8 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 		return nil, err
 	}
 
+	destination.Monitor = monitor
+
 	// Save the destination
 	if err = destination.Save(ctx); err != nil {
 		return nil, err
@@ -50,8 +52,8 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 }
 
 // NewDestinationForLockingScript will create a new destination based on a locking script
-func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubKey, lockingScript, destinationType string,
-	opts ...ModelOps) (*Destination, error) {
+func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string,
+	monitor bool, opts ...ModelOps) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination_for_locking_script")
@@ -61,23 +63,19 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubKey, lo
 		return nil, ErrMissingLockingScript
 	}
 
-	/*
-		// Validate that the value is an xPub
-		_, err := utils.ValidateXPub(xPubKey)
-		if err != nil {
-			return nil, err
-		}
-	*/
-
-	// Start the new destination
+	// Start the new destination - will detect type
 	destination := newDestination(
-		utils.Hash(xPubKey), lockingScript,
+		xPubID, lockingScript,
 		opts...,
 	)
 
-	// Modify destination type
-	// todo: this should be built into newDestination()
-	destination.Type = destinationType
+	if destination.Type == "" {
+		return nil, ErrUnknownLockingScript
+	}
+
+	// set the monitoring, passed down from the initiating function
+	// this will be set when calling NewDestination from http / graphql, but not for instance paymail
+	destination.Monitor = monitor
 
 	// Save the destination
 	if err := destination.Save(ctx); err != nil {

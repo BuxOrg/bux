@@ -30,7 +30,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestination() {
 
 			var destination *Destination
 			destination, err = tc.client.NewDestination(
-				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
+				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false, opts...,
 			)
 			assert.NoError(t, err)
 			assert.Equal(t, "fc1e635d98151c6008f29908ee2928c60c745266f9853e945c917b1baa05973e", destination.ID)
@@ -42,7 +42,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestination() {
 			assert.Equal(t, "test-value", destination.Metadata["test-key"])
 
 			destination2, err2 := tc.client.NewDestination(
-				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
+				ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false, opts...,
 			)
 			assert.NoError(t, err2)
 			assert.Equal(t, testXPubID, destination2.XpubID)
@@ -65,7 +65,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestination() {
 
 			destination, err := tc.client.NewDestination(
 				context.Background(), testXPub, utils.ChainExternal,
-				utils.ScriptTypePubKeyHash, opts...,
+				utils.ScriptTypePubKeyHash, false, opts...,
 			)
 			require.Error(t, err)
 			require.Nil(t, destination)
@@ -99,7 +99,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 
 			var destination *Destination
 			destination, err = tc.client.NewDestinationForLockingScript(
-				tc.ctx, testXPub, lockingScript, utils.ScriptTypeNonStandard, opts...,
+				tc.ctx, testXPub, lockingScript, false, opts...,
 			)
 			assert.NoError(t, err)
 			assert.Equal(t, "a64c7aca7110c7cde92245252a58bb18a4317381fc31fc293f6aafa3fcc7019f", destination.ID)
@@ -118,8 +118,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 			opts := append(tc.client.DefaultModelOptions(), WithMetadatas(metadata))
 
 			destination, err := tc.client.NewDestinationForLockingScript(
-				tc.ctx, testXPub, "",
-				utils.ScriptTypeNonStandard,
+				tc.ctx, testXPub, "", false,
 				opts...,
 			)
 			require.Error(t, err)
@@ -148,7 +147,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
-				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 				opts...,
 			)
 			require.NoError(t, err)
@@ -177,7 +176,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
-				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 				opts...,
 			)
 			require.NoError(t, err)
@@ -213,7 +212,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
-				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 				opts...,
 			)
 			require.NoError(t, err)
@@ -241,7 +240,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByAddress() {
 
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
-				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 				opts...,
 			)
 			require.NoError(t, err)
@@ -277,7 +276,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
-				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 				opts...,
 			)
 			require.NoError(t, err)
@@ -306,7 +305,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 
 			// Create a new destination
 			destination, err := tc.client.NewDestination(
-				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash,
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
 				opts...,
 			)
 			require.NoError(t, err)

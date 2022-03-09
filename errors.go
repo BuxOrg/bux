@@ -43,6 +43,9 @@ var ErrMissingXpub = errors.New("could not find xpub")
 // ErrMissingLockingScript is when the field is required but missing
 var ErrMissingLockingScript = errors.New("could not find locking script")
 
+// ErrUnknownLockingScript is when the field is unknown
+var ErrUnknownLockingScript = errors.New("could not recognize locking script")
+
 // ErrMissingRequiredXpub is when the xpub should exist but was not found
 var ErrMissingRequiredXpub = errors.New("xpub was not found but was expected")
 

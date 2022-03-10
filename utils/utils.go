@@ -23,7 +23,7 @@ const (
 	ChainExternal = uint32(0)
 
 	// Max integer for int32
-	maxInt32 = int64(1<<(32-1) - 1)
+	MaxInt32 = int64(1<<(32-1) - 1)
 )
 
 // Hash will generate a hash of the given string (used for xPub:hash)
@@ -57,8 +57,8 @@ func GetChildNumsFromHex(hexHash string) ([]uint32, error) {
 		if err != nil {
 			return nil, err
 		}
-		if num > maxInt32 {
-			num = num - maxInt32
+		if num > MaxInt32 {
+			num = num - MaxInt32
 		}
 		childNums = append(childNums, uint32(num)) // todo: re-work to remove casting (possible cutoff)
 	}

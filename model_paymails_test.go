@@ -24,10 +24,10 @@ func TestNewPaymail(t *testing.T) {
 		require.NoError(t, err)
 		paymailExternalKey, err := bitcoin.GetHDKeyChild(hdKey, utils.ChainExternal)
 		require.NoError(t, err)
-		paymailInternalKey, err := bitcoin.GetHDKeyChild(hdKey, utils.ChainInternal)
+		paymailIdentityKey, err := bitcoin.GetHDKeyChild(paymailExternalKey, uint32(utils.MaxInt32))
 		require.NoError(t, err)
 		paymailExternalXPub := paymailExternalKey.String()
-		paymailInternalXPub := paymailInternalKey.String()
+		paymailIdentityXPub := paymailIdentityKey.String()
 
 		p := newPaymail(
 			paymail,
@@ -37,7 +37,6 @@ func TestNewPaymail(t *testing.T) {
 		p.Avatar = "img url"
 		p.XPubID = xPubID
 		p.ExternalXPubKey = paymailExternalXPub
-		p.InternalXPubKey = paymailInternalXPub
 		err = p.Save(ctx)
 		require.NoError(t, err)
 
@@ -50,12 +49,15 @@ func TestNewPaymail(t *testing.T) {
 		}
 		err = Get(ctx, p2, conditions, false, 0)
 		require.NoError(t, err)
+		identityKey, err := p2.GetIdentityXpub()
+		require.NoError(t, err)
 		assert.Equal(t, paymail, p2.Alias+"@"+p2.Domain)
 		assert.Equal(t, "Tester", p2.Username)
 		assert.Equal(t, "img url", p2.Avatar)
 		assert.Equal(t, xPubID, p2.XPubID)
 		assert.Equal(t, paymailExternalXPub, p2.ExternalXPubKey)
-		assert.Equal(t, paymailInternalXPub, p2.InternalXPubKey)
+		assert.Equal(t, paymailIdentityXPub, identityKey.String())
+		assert.Equal(t, uint32(0), p2.NextIdentityNum)
 	})
 
 	t.Run("test derive child keys", func(t *testing.T) {

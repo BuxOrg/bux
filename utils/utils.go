@@ -22,7 +22,7 @@ const (
 	// ChainExternal external chain num
 	ChainExternal = uint32(0)
 
-	// Max integer for int32
+	// MaxInt32 max integer for int32
 	MaxInt32 = int64(1<<(32-1) - 1)
 )
 

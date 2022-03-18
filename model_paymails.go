@@ -113,6 +113,7 @@ func (m *PaymailAddress) setXPub(rawXpubKey string) error {
 	return nil
 }
 
+// GetIdentityXpub will get the identity related to the xPub
 func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
 	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(m.ExternalXPubKey)
 	if err != nil {

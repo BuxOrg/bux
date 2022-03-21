@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.1
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/OrlovEvgeny/go-mcache v0.0.0-20200121124330-1a8195b34f3a
-	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.2
+	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf

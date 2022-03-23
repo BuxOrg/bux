@@ -93,7 +93,7 @@ type ClientInterface interface {
 	ModifyPaymailConfig(config *server.Configuration, defaultFromPaymail, defaultNote string)
 	ModifyTaskPeriod(name string, period time.Duration) error
 	PaymailClient() paymail.ClientInterface
-	PaymailServerConfig() *paymailServerOptions
+	PaymailServerConfig() *PaymailServerOptions
 	Taskmanager() taskmanager.ClientInterface
 	UserAgent() string
 	Version() string

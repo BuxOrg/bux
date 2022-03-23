@@ -71,7 +71,7 @@ func defaultClientOptions() *clientOptions {
 		// Blank Paymail config
 		paymail: &paymailOptions{
 			client: nil,
-			serverConfig: &paymailServerOptions{
+			serverConfig: &PaymailServerOptions{
 				Configuration: nil,
 			},
 		},

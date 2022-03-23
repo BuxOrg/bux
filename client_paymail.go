@@ -30,7 +30,7 @@ func (c *Client) PaymailClient() paymail.ClientInterface {
 }
 
 // PaymailServerConfig will return the Paymail server config if it exists
-func (c *Client) PaymailServerConfig() *paymailServerOptions {
+func (c *Client) PaymailServerConfig() *PaymailServerOptions {
 	if c.options.paymail != nil && c.options.paymail.serverConfig != nil {
 		return c.options.paymail.serverConfig
 	}
@@ -59,6 +59,6 @@ func (p *paymailOptions) Note() string {
 }
 
 // ServerConfig will return the Paymail Server configuration from the options struct
-func (p *paymailOptions) ServerConfig() *paymailServerOptions {
+func (p *paymailOptions) ServerConfig() *PaymailServerOptions {
 	return p.serverConfig
 }

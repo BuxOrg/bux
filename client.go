@@ -74,11 +74,11 @@ type (
 	// paymailOptions holds the configuration for Paymail
 	paymailOptions struct {
 		client       paymail.ClientInterface // Paymail client for communicating with Paymail providers
-		serverConfig *paymailServerOptions   // Server configuration if Paymail is enabled
+		serverConfig *PaymailServerOptions   // Server configuration if Paymail is enabled
 	}
 
-	// paymailServerOptions is the options for the Paymail server
-	paymailServerOptions struct {
+	// PaymailServerOptions is the options for the Paymail server
+	PaymailServerOptions struct {
 		*server.Configuration        // Server configuration if Paymail is enabled
 		DefaultFromPaymail    string // IE: from@domain.com
 		DefaultNote           string // IE: some note for address resolution

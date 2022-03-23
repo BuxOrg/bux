@@ -264,7 +264,7 @@ func TestClient_PaymailServerConfig(t *testing.T) {
 		defer CloseClient(context.Background(), t, tc)
 
 		assert.NotNil(t, tc.PaymailServerConfig())
-		assert.IsType(t, &paymailServerOptions{}, tc.PaymailServerConfig())
+		assert.IsType(t, &PaymailServerOptions{}, tc.PaymailServerConfig())
 	})
 }
 
@@ -298,14 +298,14 @@ func TestPaymailOptions_FromSender(t *testing.T) {
 
 	t.Run("no sender, use default", func(t *testing.T) {
 		p := &paymailOptions{
-			serverConfig: &paymailServerOptions{},
+			serverConfig: &PaymailServerOptions{},
 		}
 		assert.Equal(t, defaultSenderPaymail, p.FromSender())
 	})
 
 	t.Run("custom sender set", func(t *testing.T) {
 		p := &paymailOptions{
-			serverConfig: &paymailServerOptions{
+			serverConfig: &PaymailServerOptions{
 				DefaultFromPaymail: "from@domain.com",
 			},
 		}
@@ -319,14 +319,14 @@ func TestPaymailOptions_Note(t *testing.T) {
 
 	t.Run("no note, use default", func(t *testing.T) {
 		p := &paymailOptions{
-			serverConfig: &paymailServerOptions{},
+			serverConfig: &PaymailServerOptions{},
 		}
 		assert.Equal(t, defaultAddressResolutionPurpose, p.Note())
 	})
 
 	t.Run("custom note set", func(t *testing.T) {
 		p := &paymailOptions{
-			serverConfig: &paymailServerOptions{
+			serverConfig: &PaymailServerOptions{
 				DefaultNote: "from this person",
 			},
 		}
@@ -357,6 +357,6 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 		defer CloseClient(context.Background(), t, tc)
 
 		assert.NotNil(t, tc.PaymailServerConfig())
-		assert.IsType(t, &paymailServerOptions{}, tc.PaymailServerConfig())
+		assert.IsType(t, &PaymailServerOptions{}, tc.PaymailServerConfig())
 	})
 }

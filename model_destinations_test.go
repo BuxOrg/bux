@@ -30,7 +30,7 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, "", destination.LockingScript)
-		assert.Equal(t, false, destination.Monitor)
+		assert.Equal(t, false, destination.Monitor.Valid)
 		assert.Equal(t, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", destination.GetID())
 	})
 
@@ -43,7 +43,7 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, testScript, destination.LockingScript)
-		assert.Equal(t, false, destination.Monitor)
+		assert.Equal(t, false, destination.Monitor.Valid)
 		assert.Equal(t, xPubID, destination.XpubID)
 		assert.Equal(t, bscript2.ScriptTypeNonStandard, destination.Type)
 		assert.Equal(t, testDestinationID, destination.GetID())
@@ -408,7 +408,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			false,               // monitor
+			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -451,7 +451,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			false,               // monitor
+			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -492,7 +492,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			false,               // monitor
+			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX

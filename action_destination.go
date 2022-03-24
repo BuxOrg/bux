@@ -2,6 +2,8 @@ package bux
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/BuxOrg/bux/utils"
 )
@@ -40,7 +42,12 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 		return nil, err
 	}
 
-	destination.Monitor = monitor
+	if monitor {
+		destination.Monitor = utils.NullTime{NullTime: sql.NullTime{
+			Valid: true,
+			Time:  time.Now(),
+		}}
+	}
 
 	// Save the destination
 	if err = destination.Save(ctx); err != nil {
@@ -75,7 +82,12 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 
 	// set the monitoring, passed down from the initiating function
 	// this will be set when calling NewDestination from http / graphql, but not for instance paymail
-	destination.Monitor = monitor
+	if monitor {
+		destination.Monitor = utils.NullTime{NullTime: sql.NullTime{
+			Valid: true,
+			Time:  time.Now(),
+		}}
+	}
 
 	// Save the destination
 	if err := destination.Save(ctx); err != nil {

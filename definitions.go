@@ -31,6 +31,7 @@ const (
 	ModelNameEmpty           ModelName = "empty"
 	ModelSyncTransaction     ModelName = "sync_transaction"
 	ModelTransaction         ModelName = "transaction"
+	ModelBlockHeader         ModelName = "block_header"
 	ModelUtxo                ModelName = "utxo"
 	ModelXPub                ModelName = "xpub"
 	ModelPaymail             ModelName = "paymail"
@@ -45,6 +46,7 @@ var (
 		ModelMetadata,
 		ModelSyncTransaction,
 		ModelTransaction,
+		ModelBlockHeader,
 		ModelUtxo,
 		ModelXPub,
 		ModelPaymail,
@@ -59,6 +61,7 @@ const (
 	tableIncomingTransactions = "incoming_transactions"
 	tableSyncTransactions     = "sync_transactions"
 	tableTransactions         = "transactions"
+	tableBlockHeaders         = "block_headers"
 	tableUTXOs                = "utxos"
 	tableXPubs                = "xpubs"
 	tablePaymails             = "paymail_addresses"
@@ -144,6 +147,11 @@ var (
 		// Finalized transactions (related to Draft)
 		&Transaction{
 			Model: *NewBaseModel(ModelTransaction),
+		},
+
+		// Block Headers as received by the network
+		&BlockHeader{
+			Model: *NewBaseModel(ModelBlockHeader),
 		},
 
 		// Sync configuration for transactions (on-chain) (related to Transaction)

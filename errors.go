@@ -22,6 +22,9 @@ var ErrMissingFieldID = errors.New("missing required field: id")
 // ErrMissingFieldHex is an error when missing the hex field of a transaction
 var ErrMissingFieldHex = errors.New("missing required field: hex")
 
+// ErrMissingFieldHash is an error when missing the hex field of a transaction
+var ErrMissingFieldHash = errors.New("missing required field: hash")
+
 // ErrMissingFieldScriptPubKey is when the field is required but missing
 var ErrMissingFieldScriptPubKey = errors.New("missing required field: script_pub_key")
 

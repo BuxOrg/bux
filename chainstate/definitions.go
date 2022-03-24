@@ -7,7 +7,7 @@ const (
 	defaultBroadcastTimeOut      = 15 * time.Second
 	defaultQueryTimeOut          = 15 * time.Second
 	defaultUserAgent             = "go-chainstate: " + version
-	version                      = "v0.1.8"
+	version                      = "v0.1.9"
 	whatsOnChainRateLimitWithKey = 20
 )
 

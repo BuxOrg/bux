@@ -6,7 +6,7 @@ import (
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
-	"github.com/bitcoinschema/go-bitcoin"
+	"github.com/bitcoinschema/go-bitcoin/v2"
 )
 
 // Destination is an object representing the BitCoin destination table

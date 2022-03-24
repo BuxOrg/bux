@@ -222,12 +222,12 @@ func getTransactionsByXpubID(ctx context.Context, xPubID string,
 		dbConditions["$and"] = and
 	}
 
-	return _getTransactions(ctx, dbConditions, page, pageSize, opts...)
+	return _getTransactions(ctx, dbConditions, xPubID, page, pageSize, opts...)
 }
 
 // _getTransactions get all transactions for the given conditions
 // NOTE: this function should only be used internally, it allows to query the whole transaction table
-func _getTransactions(ctx context.Context, conditions map[string]interface{}, page, pageSize int, opts ...ModelOps) ([]*Transaction, error) {
+func _getTransactions(ctx context.Context, conditions map[string]interface{}, xPubID string, page, pageSize int, opts ...ModelOps) ([]*Transaction, error) {
 	var models []Transaction
 	if err := getModels(
 		ctx, NewBaseModel(
@@ -246,7 +246,7 @@ func _getTransactions(ctx context.Context, conditions map[string]interface{}, pa
 	transactions := make([]*Transaction, 0)
 	for index := range models {
 		models[index].enrich(ModelTransaction, opts...)
-		models[index].setXPubID()
+		models[index].xPubID = xPubID
 		tx := &models[index]
 		transactions = append(transactions, tx)
 	}

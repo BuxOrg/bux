@@ -52,7 +52,7 @@ func (c *Client) AuthenticateRequest(ctx context.Context, req *http.Request, adm
 			return req, err
 		}
 		if accessKey == nil || accessKey.RevokedAt.Valid {
-			return nil, ErrAuthAccessKeyNotFound
+			return req, ErrAuthAccessKeyNotFound
 		}
 
 		xPubID = accessKey.XpubID

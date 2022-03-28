@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-whatsonchain"
 )
@@ -152,6 +153,10 @@ func (w *whatsOnChainBase) GetScriptUnspentTransactions(context.Context, string)
 
 func (w *whatsOnChainBase) GetTxByHash(context.Context, string) (txInfo *whatsonchain.TxInfo, err error) {
 	return
+}
+
+func (w *whatsOnChainBase) NewMempoolWebsocket(whatsonchain.SocketHandler) *centrifuge.Client {
+	return nil
 }
 
 func (w *whatsOnChainBase) HTTPClient() whatsonchain.HTTPInterface {

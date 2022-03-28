@@ -320,6 +320,7 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 	opts = append(opts,
 		WithDebugging(),
 		WithAutoMigrate(BaseModels...),
+		WithAutoMigrate(&PaymailAddress{}),
 		WithRistretto(cachestore.DefaultRistrettoConfig()))
 	if taskManagerEnabled {
 		opts = append(opts, WithTaskQ(taskmanager.DefaultTaskQConfig(prefix+"_queue"), taskmanager.FactoryMemory))

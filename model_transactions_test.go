@@ -153,6 +153,48 @@ func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 	})
 }
 
+// TestTransaction_UpdateTransactionMetadata will test the method UpdateTransactionMetadata()
+func TestTransaction_UpdateTransactionMetadata(t *testing.T) {
+	t.Run("tx without meta data", func(t *testing.T) {
+		_, client, _ := CreateTestSQLiteClient(t, true, true)
+		opts := client.DefaultModelOptions()
+		tx := newTransaction(testTxHex, append(opts, New())...)
+		assert.Nil(t, tx.XpubMetadata)
+
+		metadata := Metadata{
+			"test-key": "test-value",
+		}
+		err := tx.UpdateTransactionMetadata(testXPubID, metadata)
+		require.NoError(t, err)
+		assert.Equal(t, XpubMetadata{testXPubID: metadata}, tx.XpubMetadata)
+
+		addMmetadata := Metadata{
+			"test-key-2": "test-value-2",
+			"test-key-3": "test-value-3",
+		}
+		err = tx.UpdateTransactionMetadata(testXPubID, addMmetadata)
+		require.NoError(t, err)
+		assert.Equal(t, XpubMetadata{testXPubID: Metadata{
+			"test-key":   "test-value",
+			"test-key-2": "test-value-2",
+			"test-key-3": "test-value-3",
+		}}, tx.XpubMetadata)
+
+		editMmetadata := Metadata{
+			"test-key-2": nil,
+			"test-key-3": "test-value-3333",
+			"test-key-4": "test-value-4",
+		}
+		err = tx.UpdateTransactionMetadata(testXPubID, editMmetadata)
+		require.NoError(t, err)
+		assert.Equal(t, XpubMetadata{testXPubID: Metadata{
+			"test-key":   "test-value",
+			"test-key-3": "test-value-3333",
+			"test-key-4": "test-value-4",
+		}}, tx.XpubMetadata)
+	})
+}
+
 // TestTransaction_BeforeCreating will test the method BeforeCreating()
 func TestTransaction_BeforeCreating(t *testing.T) {
 	// t.Parallel()

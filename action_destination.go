@@ -143,6 +143,27 @@ func (c *Client) GetDestinationByID(ctx context.Context, xPubID, id string) (*De
 	return destination, nil
 }
 
+// UpdateDestinationMetadata will update the metadata in an existing destination
+func (c *Client) UpdateDestinationMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "update_destination_by_id")
+
+	// Get the destinations
+	destination, err := c.GetDestinationByID(ctx, xPubID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	destination.UpdateMetadata(metadata)
+	err = destination.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return destination, nil
+}
+
 // GetDestinationByLockingScript will get a destination for a locking script
 func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error) {
 

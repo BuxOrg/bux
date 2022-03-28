@@ -81,6 +81,28 @@ func (c *Client) GetXpubByID(ctx context.Context, xPubID string) (*Xpub, error) 
 	return xPub, nil
 }
 
+// UpdateXpubMetadata will update the metadata in an existing xPub
+func (c *Client) UpdateXpubMetadata(ctx context.Context, xPubID string, metadata Metadata) (*Xpub, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "update_xpub_by_id")
+
+	xPub, err := c.GetXpubByID(ctx, xPubID)
+	if err != nil {
+		return nil, err
+	}
+
+	xPub.UpdateMetadata(metadata)
+
+	err = xPub.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the model
+	return xPub, nil
+}
+
 // ImportXpub will import a given xPub and all related destinations and transactions
 func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*ImportResults, error) {
 

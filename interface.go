@@ -68,6 +68,8 @@ type XPubService interface {
 type PaymailService interface {
 	NewPaymailAddress(ctx context.Context, key, address string, opts ...ModelOps) (*PaymailAddress, error)
 	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
+	UpdatePaymailAddressMetadata(ctx context.Context, address string,
+		metadata Metadata, opts ...ModelOps) (*PaymailAddress, error)
 }
 
 // ClientInterface is the client (bux engine) interface comprised of all services

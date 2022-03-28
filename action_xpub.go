@@ -87,15 +87,17 @@ func (c *Client) UpdateXpubMetadata(ctx context.Context, xPubID string, metadata
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_xpub_by_id")
 
+	// Get the xPub
 	xPub, err := c.GetXpubByID(ctx, xPubID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Update the metadata
 	xPub.UpdateMetadata(metadata)
 
-	err = xPub.Save(ctx)
-	if err != nil {
+	// Save the model
+	if err = xPub.Save(ctx); err != nil {
 		return nil, err
 	}
 
@@ -160,7 +162,7 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 		if len(transactions) == 0 {
 			gapHit = true
 		}
-		//results.AddressesWithTransactions = append(results.AddressesWithTransactions, addressesWithTransactions...)
+		// results.AddressesWithTransactions = append(results.AddressesWithTransactions, addressesWithTransactions...)
 		allTransactions = append(allTransactions, transactions...)
 	}
 	// Remove any duplicate transactions from all historical txs

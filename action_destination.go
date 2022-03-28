@@ -194,20 +194,21 @@ func (c *Client) GetDestinationByAddress(ctx context.Context, xPubID, address st
 }
 
 // UpdateDestinationMetadataByID will update the metadata in an existing destination by id
-func (c *Client) UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error) {
+func (c *Client) UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string,
+	metadata Metadata) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_destination_by_id")
 
-	// Get the destinations
+	// Get the destination
 	destination, err := c.GetDestinationByID(ctx, xPubID, id)
 	if err != nil {
 		return nil, err
 	}
 
+	// Update and save the model
 	destination.UpdateMetadata(metadata)
-	err = destination.Save(ctx)
-	if err != nil {
+	if err = destination.Save(ctx); err != nil {
 		return nil, err
 	}
 
@@ -215,20 +216,21 @@ func (c *Client) UpdateDestinationMetadataByID(ctx context.Context, xPubID, id s
 }
 
 // UpdateDestinationMetadataByLockingScript will update the metadata in an existing destination by locking script
-func (c *Client) UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID, lockingScript string, metadata Metadata) (*Destination, error) {
+func (c *Client) UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID,
+	lockingScript string, metadata Metadata) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "update_destination_by_id")
+	ctx = c.GetOrStartTxn(ctx, "update_destination_by_locking_script")
 
-	// Get the destinations
+	// Get the destination
 	destination, err := c.GetDestinationByLockingScript(ctx, xPubID, lockingScript)
 	if err != nil {
 		return nil, err
 	}
 
+	// Update and save the metadata
 	destination.UpdateMetadata(metadata)
-	err = destination.Save(ctx)
-	if err != nil {
+	if err = destination.Save(ctx); err != nil {
 		return nil, err
 	}
 
@@ -236,20 +238,21 @@ func (c *Client) UpdateDestinationMetadataByLockingScript(ctx context.Context, x
 }
 
 // UpdateDestinationMetadataByAddress will update the metadata in an existing destination by address
-func (c *Client) UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string, metadata Metadata) (*Destination, error) {
+func (c *Client) UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string,
+	metadata Metadata) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "update_destination_by_id")
+	ctx = c.GetOrStartTxn(ctx, "update_destination_by_address")
 
-	// Get the destinations
+	// Get the destination
 	destination, err := c.GetDestinationByAddress(ctx, xPubID, address)
 	if err != nil {
 		return nil, err
 	}
 
+	// Update and save the metadata
 	destination.UpdateMetadata(metadata)
-	err = destination.Save(ctx)
-	if err != nil {
+	if err = destination.Save(ctx); err != nil {
 		return nil, err
 	}
 

@@ -180,19 +180,21 @@ func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id strin
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_transaction_by_id")
 
-	// Get the destinations
+	// Get the transaction
 	transaction, err := c.GetTransaction(ctx, xPubID, id)
 	if err != nil {
 		return nil, err
 	}
 
-	err = transaction.UpdateTransactionMetadata(xPubID, metadata)
-	if err != nil {
+	// Update the metadata
+	if err = transaction.UpdateTransactionMetadata(
+		xPubID, metadata,
+	); err != nil {
 		return nil, err
 	}
 
-	err = transaction.Save(ctx)
-	if err != nil {
+	// Save the model
+	if err = transaction.Save(ctx); err != nil {
 		return nil, err
 	}
 

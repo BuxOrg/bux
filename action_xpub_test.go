@@ -191,16 +191,18 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdateXpubMetadata() {
 			assert.Equal(t, testXPubID, xPub.ID)
 			assert.Equal(t, metadata, xPub.Metadata)
 
-			xPub.UpdateMetadata(Metadata{"test-key-new": "new-value"})
+			xPub, err = tc.client.UpdateXpubMetadata(tc.ctx, xPub.ID, Metadata{"test-key-new": "new-value"})
+			require.NoError(t, err)
 			assert.Len(t, xPub.Metadata, 4)
 			assert.Equal(t, "new-value", xPub.Metadata["test-key-new"])
 
-			xPub.UpdateMetadata(Metadata{
+			xPub, err = tc.client.UpdateXpubMetadata(tc.ctx, xPub.ID, Metadata{
 				"test-key-new-2": "new-value-2",
 				"test-key-1":     nil,
 				"test-key-2":     nil,
 				"test-key-3":     nil,
 			})
+			require.NoError(t, err)
 			assert.Len(t, xPub.Metadata, 2)
 			assert.Equal(t, "new-value", xPub.Metadata["test-key-new"])
 			assert.Equal(t, "new-value-2", xPub.Metadata["test-key-new-2"])

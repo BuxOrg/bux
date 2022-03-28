@@ -347,19 +347,34 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdateDestinationMetadata() {
 			require.NotNil(t, destination)
 			assert.Equal(t, metadata, destination.Metadata)
 
-			destination.UpdateMetadata(Metadata{"test-key-new": "new-value"})
+			destination, err = tc.client.UpdateDestinationMetadataByID(tc.ctx, destination.XpubID, destination.ID, Metadata{"test-key-new": "new-value"})
+			require.NoError(t, err)
 			assert.Len(t, destination.Metadata, 4)
 			assert.Equal(t, "new-value", destination.Metadata["test-key-new"])
 
-			destination.UpdateMetadata(Metadata{
-				"test-key-new-2": "new-value-2",
-				"test-key-1":     nil,
-				"test-key-2":     nil,
-				"test-key-3":     nil,
-			})
+			destination, err = tc.client.UpdateDestinationMetadataByAddress(tc.ctx,
+				destination.XpubID, destination.Address, Metadata{
+					"test-key-new-2": "new-value-2",
+					"test-key-1":     nil,
+					"test-key-2":     nil,
+					"test-key-3":     nil,
+				},
+			)
+			require.NoError(t, err)
 			assert.Len(t, destination.Metadata, 2)
 			assert.Equal(t, "new-value", destination.Metadata["test-key-new"])
 			assert.Equal(t, "new-value-2", destination.Metadata["test-key-new-2"])
+
+			destination, err = tc.client.UpdateDestinationMetadataByLockingScript(tc.ctx,
+				destination.XpubID, destination.LockingScript, Metadata{
+					"test-key-new-5": "new-value-5",
+				},
+			)
+			require.NoError(t, err)
+			assert.Len(t, destination.Metadata, 3)
+			assert.Equal(t, "new-value", destination.Metadata["test-key-new"])
+			assert.Equal(t, "new-value-2", destination.Metadata["test-key-new-2"])
+			assert.Equal(t, "new-value-5", destination.Metadata["test-key-new-5"])
 
 			err = destination.Save(tc.ctx)
 			require.NoError(t, err)
@@ -367,9 +382,10 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdateDestinationMetadata() {
 			// make sure it was saved
 			destination2, err2 := tc.client.GetDestinationByID(tc.ctx, destination.XpubID, destination.ID)
 			require.NoError(t, err2)
-			assert.Len(t, destination2.Metadata, 2)
+			assert.Len(t, destination2.Metadata, 3)
 			assert.Equal(t, "new-value", destination2.Metadata["test-key-new"])
 			assert.Equal(t, "new-value-2", destination2.Metadata["test-key-new-2"])
+			assert.Equal(t, "new-value-5", destination2.Metadata["test-key-new-5"])
 		})
 	}
 }

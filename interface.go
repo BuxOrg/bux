@@ -44,7 +44,9 @@ type DestinationService interface {
 		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
-	UpdateDestinationMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID, lockingScript string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string, metadata Metadata) (*Destination, error)
 }
 
 // UTXOService is the utxo actions

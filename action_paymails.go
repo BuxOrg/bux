@@ -53,3 +53,29 @@ func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts 
 
 	return paymailAddress.Save(ctx)
 }
+
+// UpdatePaymailAddressMetadata will update the metadata in an existing paymail address
+func (c *Client) UpdatePaymailAddressMetadata(ctx context.Context, address string,
+	metadata Metadata, opts ...ModelOps) (*PaymailAddress, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "update_paymail_address_metadata")
+
+	// Get the paymail address
+	paymailAddress, err := getPaymail(ctx, address, opts...)
+	if err != nil {
+		return nil, err
+	} else if paymailAddress == nil {
+		return nil, ErrMissingPaymail
+	}
+
+	// Update the metadata
+	paymailAddress.UpdateMetadata(metadata)
+
+	// Save the model
+	if err = paymailAddress.Save(ctx); err != nil {
+		return nil, err
+	}
+
+	return paymailAddress, nil
+}

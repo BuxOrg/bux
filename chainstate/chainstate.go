@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+// MonitorMempool will start up a mempool monitor
+func (c *Client) MonitorMempool(ctx context.Context, filter string) error {
+	if len(filter) == 0 {
+		return errors.New("filter cannot be empty")
+	}
+	return c.startMempoolMonitor(filter)
+}
+
 // Broadcast will attempt to broadcast a transaction
 func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) error {
 

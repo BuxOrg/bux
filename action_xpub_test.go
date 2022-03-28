@@ -169,3 +169,53 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetXpubByID() {
 		})
 	}
 }
+
+// TestClient_UpdateXpubMetadata will test the method UpdateXpubMetadata()
+func (ts *EmbeddedDBTestSuite) TestClient_UpdateXpubMetadata() {
+
+	for _, testCase := range dbTestCases {
+		ts.T().Run(testCase.name+" - valid", func(t *testing.T) {
+			tc := ts.genericDBClient(t, testCase.database, false)
+			defer tc.Close(tc.ctx)
+
+			metadata := Metadata{
+				"test-key-1": "test-value-1",
+				"test-key-2": "test-value-2",
+				"test-key-3": "test-value-3",
+			}
+			opts := tc.client.DefaultModelOptions()
+			opts = append(opts, WithMetadatas(metadata))
+
+			xPub, err := tc.client.NewXpub(tc.ctx, testXPub, opts...)
+			require.NoError(t, err)
+			assert.Equal(t, testXPubID, xPub.ID)
+			assert.Equal(t, metadata, xPub.Metadata)
+
+			xPub, err = tc.client.UpdateXpubMetadata(tc.ctx, xPub.ID, Metadata{"test-key-new": "new-value"})
+			require.NoError(t, err)
+			assert.Len(t, xPub.Metadata, 4)
+			assert.Equal(t, "new-value", xPub.Metadata["test-key-new"])
+
+			xPub, err = tc.client.UpdateXpubMetadata(tc.ctx, xPub.ID, Metadata{
+				"test-key-new-2": "new-value-2",
+				"test-key-1":     nil,
+				"test-key-2":     nil,
+				"test-key-3":     nil,
+			})
+			require.NoError(t, err)
+			assert.Len(t, xPub.Metadata, 2)
+			assert.Equal(t, "new-value", xPub.Metadata["test-key-new"])
+			assert.Equal(t, "new-value-2", xPub.Metadata["test-key-new-2"])
+
+			err = xPub.Save(tc.ctx)
+			require.NoError(t, err)
+
+			// make sure it was saved
+			xPub2, err2 := tc.client.GetXpubByID(tc.ctx, xPub.ID)
+			require.NoError(t, err2)
+			assert.Len(t, xPub2.Metadata, 2)
+			assert.Equal(t, "new-value", xPub2.Metadata["test-key-new"])
+			assert.Equal(t, "new-value-2", xPub2.Metadata["test-key-new-2"])
+		})
+	}
+}

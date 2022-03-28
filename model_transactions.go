@@ -254,6 +254,31 @@ func _getTransactions(ctx context.Context, conditions map[string]interface{}, xP
 	return transactions, nil
 }
 
+// UpdateTransactionMetadata will update the transaction metadata by xPubID
+func (m *Transaction) UpdateTransactionMetadata(xPubID string, metadata Metadata) error {
+	if xPubID == "" {
+		return ErrXpubIDMisMatch
+	}
+
+	// transaction metadata is saved per xPubID
+	if m.XpubMetadata == nil {
+		m.XpubMetadata = make(XpubMetadata)
+	}
+	if m.XpubMetadata[xPubID] == nil {
+		m.XpubMetadata[xPubID] = make(Metadata)
+	}
+
+	for key, value := range metadata {
+		if value == nil {
+			delete(m.XpubMetadata[xPubID], key)
+		} else {
+			m.XpubMetadata[xPubID][key] = value
+		}
+	}
+
+	return nil
+}
+
 // GetModelName will get the name of the current model
 func (m *Transaction) GetModelName() string {
 	return ModelTransaction.String()

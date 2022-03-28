@@ -31,6 +31,7 @@ type TransactionService interface {
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
+	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
 }
 
 // DestinationService is the destination actions
@@ -43,6 +44,9 @@ type DestinationService interface {
 		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
+	UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID, lockingScript string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string, metadata Metadata) (*Destination, error)
 }
 
 // UTXOService is the utxo actions
@@ -57,6 +61,7 @@ type XPubService interface {
 	GetXpubByID(ctx context.Context, xPubID string) (*Xpub, error)
 	ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*ImportResults, error)
 	NewXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*Xpub, error)
+	UpdateXpubMetadata(ctx context.Context, xPubID string, metadata Metadata) (*Xpub, error)
 }
 
 // PaymailService is the paymail actions

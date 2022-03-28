@@ -56,6 +56,7 @@ type ModelInterface interface {
 	Save(ctx context.Context) (err error)
 	SetOptions(opts ...ModelOps)
 	SetRecordTime(bool)
+	UpdateMetadata(metadata Metadata)
 }
 
 // ModelName is the model name type

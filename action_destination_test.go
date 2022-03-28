@@ -321,3 +321,71 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinationByLockingScript() {
 		})
 	}
 }
+
+// TestClient_UpdateDestinationMetadata will test the method UpdateDestinationMetadata()
+func (ts *EmbeddedDBTestSuite) TestClient_UpdateDestinationMetadata() {
+
+	for _, testCase := range dbTestCases {
+		ts.T().Run(testCase.name+" - valid", func(t *testing.T) {
+			tc := ts.genericDBClient(t, testCase.database, false)
+			defer tc.Close(tc.ctx)
+
+			_, _, rawKey := CreateNewXPub(tc.ctx, t, tc.client)
+
+			metadata := Metadata{
+				"test-key-1": "test-value-1",
+				"test-key-2": "test-value-2",
+				"test-key-3": "test-value-3",
+			}
+			opts := tc.client.DefaultModelOptions()
+			opts = append(opts, WithMetadatas(metadata))
+			destination, err := tc.client.NewDestination(
+				tc.ctx, rawKey, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
+				opts...,
+			)
+			require.NoError(t, err)
+			require.NotNil(t, destination)
+			assert.Equal(t, metadata, destination.Metadata)
+
+			destination, err = tc.client.UpdateDestinationMetadataByID(tc.ctx, destination.XpubID, destination.ID, Metadata{"test-key-new": "new-value"})
+			require.NoError(t, err)
+			assert.Len(t, destination.Metadata, 4)
+			assert.Equal(t, "new-value", destination.Metadata["test-key-new"])
+
+			destination, err = tc.client.UpdateDestinationMetadataByAddress(tc.ctx,
+				destination.XpubID, destination.Address, Metadata{
+					"test-key-new-2": "new-value-2",
+					"test-key-1":     nil,
+					"test-key-2":     nil,
+					"test-key-3":     nil,
+				},
+			)
+			require.NoError(t, err)
+			assert.Len(t, destination.Metadata, 2)
+			assert.Equal(t, "new-value", destination.Metadata["test-key-new"])
+			assert.Equal(t, "new-value-2", destination.Metadata["test-key-new-2"])
+
+			destination, err = tc.client.UpdateDestinationMetadataByLockingScript(tc.ctx,
+				destination.XpubID, destination.LockingScript, Metadata{
+					"test-key-new-5": "new-value-5",
+				},
+			)
+			require.NoError(t, err)
+			assert.Len(t, destination.Metadata, 3)
+			assert.Equal(t, "new-value", destination.Metadata["test-key-new"])
+			assert.Equal(t, "new-value-2", destination.Metadata["test-key-new-2"])
+			assert.Equal(t, "new-value-5", destination.Metadata["test-key-new-5"])
+
+			err = destination.Save(tc.ctx)
+			require.NoError(t, err)
+
+			// make sure it was saved
+			destination2, err2 := tc.client.GetDestinationByID(tc.ctx, destination.XpubID, destination.ID)
+			require.NoError(t, err2)
+			assert.Len(t, destination2.Metadata, 3)
+			assert.Equal(t, "new-value", destination2.Metadata["test-key-new"])
+			assert.Equal(t, "new-value-2", destination2.Metadata["test-key-new-2"])
+			assert.Equal(t, "new-value-5", destination2.Metadata["test-key-new-5"])
+		})
+	}
+}

@@ -168,11 +168,11 @@ func TestTransaction_UpdateTransactionMetadata(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, XpubMetadata{testXPubID: metadata}, tx.XpubMetadata)
 
-		addMmetadata := Metadata{
+		addMetadata := Metadata{
 			"test-key-2": "test-value-2",
 			"test-key-3": "test-value-3",
 		}
-		err = tx.UpdateTransactionMetadata(testXPubID, addMmetadata)
+		err = tx.UpdateTransactionMetadata(testXPubID, addMetadata)
 		require.NoError(t, err)
 		assert.Equal(t, XpubMetadata{testXPubID: Metadata{
 			"test-key":   "test-value",
@@ -180,12 +180,12 @@ func TestTransaction_UpdateTransactionMetadata(t *testing.T) {
 			"test-key-3": "test-value-3",
 		}}, tx.XpubMetadata)
 
-		editMmetadata := Metadata{
+		editMetadata := Metadata{
 			"test-key-2": nil,
 			"test-key-3": "test-value-3333",
 			"test-key-4": "test-value-4",
 		}
-		err = tx.UpdateTransactionMetadata(testXPubID, editMmetadata)
+		err = tx.UpdateTransactionMetadata(testXPubID, editMetadata)
 		require.NoError(t, err)
 		assert.Equal(t, XpubMetadata{testXPubID: Metadata{
 			"test-key":   "test-value",
@@ -327,10 +327,12 @@ func TestTransaction_processInputs(t *testing.T) {
 			utxos: map[string]map[uint32]*Utxo{
 				testTxID2: {
 					uint32(0): {
-						Model:         Model{name: ModelUtxo},
-						TransactionID: testTxID2,
-						OutputIndex:   0,
-						XpubID:        "test-xpub-id",
+						Model: Model{name: ModelUtxo},
+						UtxoPointer: UtxoPointer{
+							OutputIndex:   0,
+							TransactionID: testTxID2,
+						},
+						XpubID: "test-xpub-id",
 						DraftID: utils.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testDraftID,
@@ -365,10 +367,12 @@ func TestTransaction_processInputs(t *testing.T) {
 			utxos: map[string]map[uint32]*Utxo{
 				testTxID2: {
 					uint32(0): {
-						Model:         Model{name: ModelUtxo},
-						TransactionID: testTxID2,
-						OutputIndex:   0,
-						XpubID:        "test-xpub-id",
+						Model: Model{name: ModelUtxo},
+						UtxoPointer: UtxoPointer{
+							OutputIndex:   0,
+							TransactionID: testTxID2,
+						},
+						XpubID: "test-xpub-id",
 						SpendingTxID: utils.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testTxID,
@@ -398,10 +402,12 @@ func TestTransaction_processInputs(t *testing.T) {
 			utxos: map[string]map[uint32]*Utxo{
 				testTxID2: {
 					uint32(0): {
-						Model:         Model{name: ModelUtxo},
-						TransactionID: testTxID2,
-						OutputIndex:   0,
-						XpubID:        "test-xpub-id",
+						Model: Model{name: ModelUtxo},
+						UtxoPointer: UtxoPointer{
+							OutputIndex:   0,
+							TransactionID: testTxID2,
+						},
+						XpubID: "test-xpub-id",
 					},
 				},
 			},
@@ -423,10 +429,12 @@ func TestTransaction_processInputs(t *testing.T) {
 			utxos: map[string]map[uint32]*Utxo{
 				testTxID2: {
 					uint32(0): {
-						Model:         Model{name: ModelUtxo},
-						TransactionID: testTxID2,
-						OutputIndex:   0,
-						XpubID:        "test-xpub-id",
+						Model: Model{name: ModelUtxo},
+						UtxoPointer: UtxoPointer{
+							OutputIndex:   0,
+							TransactionID: testTxID2,
+						},
+						XpubID: "test-xpub-id",
 						DraftID: utils.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testDraftID2,
@@ -455,10 +463,12 @@ func TestTransaction_processInputs(t *testing.T) {
 			utxos: map[string]map[uint32]*Utxo{
 				testTxID2: {
 					uint32(0): {
-						Model:         Model{name: ModelUtxo},
-						TransactionID: testTxID2,
-						OutputIndex:   0,
-						XpubID:        "test-xpub-id",
+						Model: Model{name: ModelUtxo},
+						UtxoPointer: UtxoPointer{
+							OutputIndex:   0,
+							TransactionID: testTxID2,
+						},
+						XpubID: "test-xpub-id",
 					},
 				},
 			},

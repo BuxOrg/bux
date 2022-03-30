@@ -72,6 +72,21 @@ func TestDraftTransaction_getOutputSatoshis(t *testing.T) {
 		assert.Equal(t, uint64(1000000), changSatoshis[testLockingScript])
 	})
 
+	t.Run("1 change destination using default", func(t *testing.T) {
+		draftTx := newDraftTransaction(
+			testXPub, &TransactionConfig{
+				ChangeDestinationsStrategy: ChangeStrategyDefault,
+				ChangeDestinations: []*Destination{{
+					LockingScript: testLockingScript,
+				}},
+			},
+		)
+		changSatoshis, err := draftTx.getChangeSatoshis(1000000)
+		require.NoError(t, err)
+		assert.Len(t, changSatoshis, 1)
+		assert.Equal(t, uint64(1000000), changSatoshis[testLockingScript])
+	})
+
 	t.Run("2 change destinations", func(t *testing.T) {
 		draftTx := newDraftTransaction(
 			testXPub, &TransactionConfig{
@@ -467,10 +482,12 @@ func TestDraftTransaction_getInputsFromUtxos(t *testing.T) {
 		draftTransaction := &DraftTransaction{}
 
 		reservedUtxos := []*Utxo{{
-			TransactionID: testTxID,
-			OutputIndex:   123,
-			Satoshis:      124235,
-			ScriptPubKey:  "testLockingScript",
+			UtxoPointer: UtxoPointer{
+				OutputIndex:   123,
+				TransactionID: testTxID,
+			},
+			Satoshis:     124235,
+			ScriptPubKey: "testLockingScript",
 		}}
 		inputUtxos, satoshisReserved, err := draftTransaction.getInputsFromUtxos(reservedUtxos)
 		require.ErrorIs(t, err, ErrInvalidLockingScript)
@@ -482,10 +499,12 @@ func TestDraftTransaction_getInputsFromUtxos(t *testing.T) {
 		draftTransaction := &DraftTransaction{}
 
 		reservedUtxos := []*Utxo{{
-			TransactionID: "testTxID",
-			OutputIndex:   123,
-			Satoshis:      124235,
-			ScriptPubKey:  testLockingScript,
+			UtxoPointer: UtxoPointer{
+				OutputIndex:   123,
+				TransactionID: "testTxID",
+			},
+			Satoshis:     124235,
+			ScriptPubKey: testLockingScript,
 		}}
 		inputUtxos, satoshisReserved, err := draftTransaction.getInputsFromUtxos(reservedUtxos)
 		require.ErrorIs(t, err, ErrInvalidTransactionID)
@@ -497,10 +516,12 @@ func TestDraftTransaction_getInputsFromUtxos(t *testing.T) {
 		draftTransaction := &DraftTransaction{}
 
 		reservedUtxos := []*Utxo{{
-			TransactionID: testTxID,
-			OutputIndex:   123,
-			Satoshis:      124235,
-			ScriptPubKey:  testLockingScript,
+			UtxoPointer: UtxoPointer{
+				OutputIndex:   123,
+				TransactionID: testTxID,
+			},
+			Satoshis:     124235,
+			ScriptPubKey: testLockingScript,
 		}}
 		inputUtxos, satoshisReserved, err := draftTransaction.getInputsFromUtxos(reservedUtxos)
 		require.NoError(t, err)
@@ -516,15 +537,19 @@ func TestDraftTransaction_getInputsFromUtxos(t *testing.T) {
 		draftTransaction := &DraftTransaction{}
 
 		reservedUtxos := []*Utxo{{
-			TransactionID: testTxID,
-			OutputIndex:   124,
-			Satoshis:      52313,
-			ScriptPubKey:  testLockingScript,
+			UtxoPointer: UtxoPointer{
+				OutputIndex:   124,
+				TransactionID: testTxID,
+			},
+			Satoshis:     52313,
+			ScriptPubKey: testLockingScript,
 		}, {
-			TransactionID: testTxID,
-			OutputIndex:   123,
-			Satoshis:      124235,
-			ScriptPubKey:  testLockingScript,
+			UtxoPointer: UtxoPointer{
+				OutputIndex:   123,
+				TransactionID: testTxID,
+			},
+			Satoshis:     124235,
+			ScriptPubKey: testLockingScript,
 		}}
 		inputUtxos, satoshisReserved, err := draftTransaction.getInputsFromUtxos(reservedUtxos)
 		require.NoError(t, err)
@@ -691,12 +716,14 @@ func createDraftTransactionFromHex(hex string, inInfo []interface{}) (*DraftTran
 		lockingScript := in["locking_script"].(string)
 		input := TransactionInput{
 			Utxo: Utxo{
-				TransactionID: tx.TxID(),
-				XpubID:        testXPubID,
-				OutputIndex:   uint32(txIndex),
-				Satoshis:      satoshis,
-				ScriptPubKey:  lockingScript,
-				Type:          utils.ScriptTypePubKeyHash,
+				UtxoPointer: UtxoPointer{
+					OutputIndex:   uint32(txIndex),
+					TransactionID: tx.TxID(),
+				},
+				XpubID:       testXPubID,
+				Satoshis:     satoshis,
+				ScriptPubKey: lockingScript,
+				Type:         utils.ScriptTypePubKeyHash,
 			},
 			Destination: Destination{
 				XpubID:        testXPubID,

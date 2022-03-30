@@ -93,13 +93,13 @@ type ChangeStrategy string
 
 // Types of change destination strategies
 const (
-	// ChangeStrategyDefault Change strategy just dividing the satoshis among the change destinations
+	// ChangeStrategyDefault is a strategy that divides the satoshis among the change destinations
 	ChangeStrategyDefault ChangeStrategy = "default"
 
-	// ChangeStrategyRandom Change strategy randomizing the output of satoshis among the change destinations
+	// ChangeStrategyRandom is a strategy randomizing the output of satoshis among the change destinations
 	ChangeStrategyRandom ChangeStrategy = "random"
 
-	// ChangeStrategyNominations Change strategy using coin nominations for the outputs (10, 25, 50, 100, 250 etc.)
+	// ChangeStrategyNominations is a strategy using coin nominations for the outputs (10, 25, 50, 100, 250 etc.)
 	ChangeStrategyNominations ChangeStrategy = "nominations"
 )
 

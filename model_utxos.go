@@ -10,6 +10,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// UtxoPointer is the actual pointer (index) for the UTXO
+type UtxoPointer struct {
+	TransactionID string `json:"transaction_id" toml:"transaction_id" yaml:"transaction_id" gorm:"<-:create;type:char(64);index;comment:This is the id of the related transaction" bson:"transaction_id"`
+	OutputIndex   uint32 `json:"output_index" toml:"output_index" yaml:"output_index" gorm:"<-:create;type:uint;comment:This is the index of the output in the transaction" bson:"output_index"`
+}
+
 // Utxo is an object representing the BitCoin UTXO table
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
@@ -17,34 +23,31 @@ type Utxo struct {
 	// Base model
 	Model `bson:",inline"`
 
-	// Model specific fields
-	ID            string           `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the sha256 hash of the (<txid>|vout)" bson:"_id"`
-	TransactionID string           `json:"transaction_id" toml:"transaction_id" yaml:"transaction_id" gorm:"<-:create;type:char(64);index;comment:This is the id of the related transaction" bson:"transaction_id"`
-	XpubID        string           `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
-	OutputIndex   uint32           `json:"output_index" toml:"output_index" yaml:"output_index" gorm:"<-:create;type:uint;comment:This is the index of the output in the transaction" bson:"output_index"`
-	Satoshis      uint64           `json:"satoshis" toml:"satoshis" yaml:"satoshis" gorm:"<-:create;type:uint;comment:This is the amount of satoshis in the output" bson:"satoshis"`
-	ScriptPubKey  string           `json:"script_pub_key" toml:"script_pub_key" yaml:"script_pub_key" gorm:"<-:create;type:text;comment:This is the script pub key" bson:"script_pub_key"`
-	Type          string           `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:text;comment:Type of output" bson:"type"`
-	DraftID       utils.NullString `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-;type:varchar(64);index;comment:Related draft id for reservations" bson:"draft_id,omitempty"`
-	ReservedAt    utils.NullTime   `json:"reserved_at" toml:"reserved_at" yaml:"reserved_at" gorm:"<-;comment:When it was reserved" bson:"reserved_at,omitempty"`
-	SpendingTxID  utils.NullString `json:"spending_tx_id,omitempty" toml:"spending_tx_id" yaml:"spending_tx_id" gorm:"<-;type:char(64);index;comment:This is tx ID of the spend" bson:"spending_tx_id,omitempty"`
-}
+	// Standard utxo model base fields
+	UtxoPointer `bson:",inline"`
 
-// UtxoPointer is a pointer to a utxo
-type UtxoPointer struct {
-	TransactionID string `json:"transaction_id" toml:"transaction_id" yaml:"transaction_id" gorm:"<-:create;type:char(64);index;comment:This is the id of the related transaction" bson:"transaction_id"`
-	OutputIndex   uint32 `json:"output_index" toml:"output_index" yaml:"output_index" gorm:"<-:create;type:uint;comment:This is the index of the output in the transaction" bson:"output_index"`
+	// Model specific fields
+	ID           string           `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the sha256 hash of the (<txid>|vout)" bson:"_id"`
+	XpubID       string           `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
+	Satoshis     uint64           `json:"satoshis" toml:"satoshis" yaml:"satoshis" gorm:"<-:create;type:uint;comment:This is the amount of satoshis in the output" bson:"satoshis"`
+	ScriptPubKey string           `json:"script_pub_key" toml:"script_pub_key" yaml:"script_pub_key" gorm:"<-:create;type:text;comment:This is the script pub key" bson:"script_pub_key"`
+	Type         string           `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:text;comment:Type of output" bson:"type"`
+	DraftID      utils.NullString `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-;type:varchar(64);index;comment:Related draft id for reservations" bson:"draft_id,omitempty"`
+	ReservedAt   utils.NullTime   `json:"reserved_at" toml:"reserved_at" yaml:"reserved_at" gorm:"<-;comment:When it was reserved" bson:"reserved_at,omitempty"`
+	SpendingTxID utils.NullString `json:"spending_tx_id,omitempty" toml:"spending_tx_id" yaml:"spending_tx_id" gorm:"<-;type:char(64);index;comment:This is tx ID of the spend" bson:"spending_tx_id,omitempty"`
 }
 
 // newUtxo will start a new utxo model
 func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, opts ...ModelOps) *Utxo {
 	return &Utxo{
-		Model:         *NewBaseModel(ModelUtxo, opts...),
-		OutputIndex:   index,
-		Satoshis:      satoshis,
-		ScriptPubKey:  scriptPubKey,
-		TransactionID: txID,
-		XpubID:        xPubID,
+		UtxoPointer: UtxoPointer{
+			OutputIndex:   index,
+			TransactionID: txID,
+		},
+		Model:        *NewBaseModel(ModelUtxo, opts...),
+		Satoshis:     satoshis,
+		ScriptPubKey: scriptPubKey,
+		XpubID:       xPubID,
 	}
 }
 
@@ -203,9 +206,11 @@ func ReserveUtxos(ctx context.Context, xPubID, draftID string,
 // newUtxoFromTxID will start a new utxo model
 func newUtxoFromTxID(txID string, index uint32, opts ...ModelOps) *Utxo {
 	return &Utxo{
-		Model:         *NewBaseModel(ModelUtxo, opts...),
-		TransactionID: txID,
-		OutputIndex:   index,
+		Model: *NewBaseModel(ModelUtxo, opts...),
+		UtxoPointer: UtxoPointer{
+			OutputIndex:   index,
+			TransactionID: txID,
+		},
 	}
 }
 

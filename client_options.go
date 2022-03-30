@@ -21,8 +21,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// ClientOps allow functional options to be supplied
-// that overwrite default client options.
+// ClientOps allow functional options to be supplied that overwrite default client options.
 type ClientOps func(c *clientOptions)
 
 // defaultClientOptions will return an clientOptions struct with the default settings

@@ -11,6 +11,9 @@ import (
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/libsv/go-bk/bec"
+	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2"
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/pkg/errors"
@@ -635,4 +638,82 @@ func (m *DraftTransaction) RegisterTasks() error {
 // Migrate model specific migration on startup
 func (m *DraftTransaction) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableDraftTransactions), metadataField)
+}
+
+// SignInputsWithKey will sign all the inputs using a key (string) (helper method)
+func (m *DraftTransaction) SignInputsWithKey(xPrivKey string) (signedHex string, err error) {
+
+	// Decode the xPriv using the key
+	var xPriv *bip32.ExtendedKey
+	if xPriv, err = bip32.NewKeyFromString(xPrivKey); err != nil {
+		return
+	}
+
+	return m.SignInputs(xPriv)
+}
+
+// SignInputs will sign all the inputs using the given xPriv key
+func (m *DraftTransaction) SignInputs(xPriv *bip32.ExtendedKey) (signedHex string, err error) {
+
+	// Start a bt draft transaction
+	var txDraft *bt.Tx
+	if txDraft, err = bt.NewTxFromString(m.Hex); err != nil {
+		return
+	}
+
+	// Sign the inputs
+	for index, input := range m.Configuration.Inputs {
+
+		// Get the locking script
+		var ls *bscript.Script
+		if ls, err = bscript.NewFromHexString(
+			input.Destination.LockingScript,
+		); err != nil {
+			return
+		}
+		txDraft.Inputs[index].PreviousTxScript = ls
+
+		// Derive the child key (chain)
+		var chainKey *bip32.ExtendedKey
+		if chainKey, err = xPriv.Child(
+			input.Destination.Chain,
+		); err != nil {
+			return
+		}
+
+		// Derive the child key (num)
+		var numKey *bip32.ExtendedKey
+		if numKey, err = chainKey.Child(
+			input.Destination.Num,
+		); err != nil {
+			return
+		}
+
+		// Get the private key
+		var privateKey *bec.PrivateKey
+		if privateKey, err = bitcoin.GetPrivateKeyFromHDKey(
+			numKey,
+		); err != nil {
+			return
+		}
+
+		// Get the unlocking script
+		var s *bscript.Script
+		if s, err = utils.GetUnlockingScript(
+			txDraft, uint32(index), privateKey,
+		); err != nil {
+			return
+		}
+
+		// Insert the locking script
+		if err = txDraft.InsertInputUnlockingScript(
+			uint32(index), s,
+		); err != nil {
+			return
+		}
+	}
+
+	// Return the signed hex
+	signedHex = txDraft.String()
+	return
 }

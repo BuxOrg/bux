@@ -28,7 +28,7 @@ type PaymailAddress struct {
 	Avatar          string `json:"avatar" toml:"avatar" yaml:"avatar" gorm:"<-;type:text;comment:This is avatar url" bson:"avatar"`                                                                                  // This is the url of the user (public profile)
 	ExternalXPubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for external use" bson:"external_xpub_key"` // PublicKey hex encoded
 	NextIdentityNum uint32 `json:"next_identity_num" toml:"next_identity_num" yaml:"next_identity_num" gorm:"<-;type:int;comment:The next index number for the identity xPub derivation" bson:"next_identity_num"`
-	XPubID          string `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"` // Related xPub ID
+	XpubID          string `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"` // Related xPub ID
 }
 
 // newPaymail create new paymail model
@@ -47,7 +47,7 @@ func newPaymail(paymailAddress string, opts ...ModelOps) *PaymailAddress {
 	// Set the xPub if detected
 	if len(p.rawXpubKey) > 0 {
 		_ = p.setXPub(p.rawXpubKey)
-		p.XPubID = utils.Hash(p.rawXpubKey)
+		p.XpubID = utils.Hash(p.rawXpubKey)
 	}
 	return p
 }
@@ -168,7 +168,7 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 		return ErrMissingPaymailExternalXPub
 	}
 
-	if len(m.XPubID) == 0 {
+	if len(m.XpubID) == 0 {
 		return ErrMissingPaymailXPubID
 	}
 

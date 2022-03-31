@@ -32,7 +32,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 
 			assert.Equal(t, "paymail", paymailAddress.Alias)
 			assert.Equal(t, "tester.com", paymailAddress.Domain)
-			assert.Equal(t, testXPubID, paymailAddress.XPubID)
+			assert.Equal(t, testXPubID, paymailAddress.XpubID)
 			assert.Equal(t, externalXPubID, paymailAddress.ExternalXPubKey)
 
 			var p2 *PaymailAddress
@@ -42,7 +42,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 
 			assert.Equal(t, "paymail", p2.Alias)
 			assert.Equal(t, "tester.com", p2.Domain)
-			assert.Equal(t, testXPubID, p2.XPubID)
+			assert.Equal(t, testXPubID, p2.XpubID)
 			assert.Equal(t, externalXPubID, p2.ExternalXPubKey)
 		})
 	}

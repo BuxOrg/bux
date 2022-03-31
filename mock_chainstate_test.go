@@ -124,6 +124,14 @@ type chainStateEverythingOnChain struct {
 	chainStateEverythingInMempool
 }
 
+func (c *chainStateEverythingOnChain) MonitorBlockHeaders(_ context.Context) error {
+	return nil
+}
+
+func (c *chainStateEverythingOnChain) MonitorMempool(_ context.Context, _ string) error {
+	return nil
+}
+
 func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id string,
 	_ chainstate.RequiredIn, _ time.Duration) (*chainstate.TransactionInfo, error) {
 

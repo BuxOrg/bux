@@ -40,9 +40,7 @@ func newBlockHeaderBase(hash string, opts ...ModelOps) *BlockHeader {
 		BlockHeaderBase: BlockHeaderBase{
 			Hash: hash,
 		},
-		Model:              *NewBaseModel(ModelBlockHeader, opts...),
-		Status:             statusComplete,
-		blockHeaderService: blockHeadersService{},
+		Model: *NewBaseModel(ModelBlockHeader, opts...),
 	}
 }
 
@@ -58,9 +56,8 @@ func newBlockHeader(hash string, bh bc.BlockHeader, opts ...ModelOps) (nbh *Bloc
 
 // getBlockHeaderByID will get the model from a given transaction ID
 func getBlockHeaderByID(ctx context.Context, hash string, opts ...ModelOps) (*BlockHeader, error) {
-
 	// Construct an empty tx
-	bh := newBlockHeader("", opts...)
+	bh := newBlockHeader(hash, bc.BlockHeader{}, opts...)
 	bh.Hash = hash
 
 	// Get the record
@@ -99,11 +96,15 @@ func (m *BlockHeader) setHeaderInfo(bh bc.BlockHeader) (err error) {
 	m.Time = bh.Time
 	m.Nonce = bh.Nonce
 	m.Version = bh.Version
-	m.HashPrevBlock = hex.EncodeToString(bh.HashPrevBlock)
+	m.HashPreviousBlock = hex.EncodeToString(bh.HashPrevBlock)
 	m.HashMerkleRoot = hex.EncodeToString(bh.HashMerkleRoot)
 	m.Bits = hex.EncodeToString(bh.Bits)
 
 	return
+}
+
+func (m *BlockHeader) GetID() string {
+	return m.Hash
 }
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
@@ -125,7 +126,7 @@ func (m *BlockHeader) AfterCreated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
 	// Pre-build the options
-	opts := m.GetOptions(false)
+	//opts := m.GetOptions(false)
 
 	// todo: run these in go routines?
 

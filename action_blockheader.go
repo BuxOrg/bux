@@ -1,12 +1,5 @@
 package bux
 
-import (
-	"context"
-
-	"github.com/BuxOrg/bux/utils"
-	"github.com/libsv/go-bc"
-)
-
 // RecordTransaction will parse the transaction and Save it into the Datastore
 //
 // Internal (known) transactions: there is a corresponding `draft_transaction` via `draft_id`
@@ -18,7 +11,7 @@ import (
 // txHex is the raw transaction hex
 // draftID is the unique draft id from a previously started New() transaction (draft_transaction.ID)
 // opts are model options and can include "metadata"
-func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.BlockHeader,
+/*func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.BlockHeader,
 	opts ...ModelOps) (*Transaction, error) {
 
 	// Check for existing NewRelic transaction
@@ -174,3 +167,4 @@ func (c *Client) GetTransactions(ctx context.Context, xPubID string, metadataCon
 
 	return transactions, nil
 }
+*/

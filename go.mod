@@ -18,6 +18,7 @@ require (
 	github.com/gomodule/redigo v1.8.8
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jarcoal/httpmock v1.1.0
+	github.com/libsv/go-bc v0.1.9
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.4
 	github.com/libsv/go-bt/v2 v2.1.0-beta.2.0.20211221142324-0d686850c5e0

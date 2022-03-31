@@ -5,6 +5,7 @@ package chainstate
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -14,6 +15,11 @@ func (c *Client) MonitorMempool(ctx context.Context, filter string) error {
 		return errors.New("filter cannot be empty")
 	}
 	return c.startMempoolMonitor(filter)
+}
+
+// MonitorBlockHeaders will start up a block headers monitor
+func (c *Client) MonitorBlockHeaders(ctx context.Context) error {
+	return nil
 }
 
 // Broadcast will attempt to broadcast a transaction

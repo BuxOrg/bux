@@ -50,6 +50,7 @@ var (
 		ModelUtxo,
 		ModelXPub,
 		ModelPaymail,
+		ModelBlockHeader,
 	}
 )
 

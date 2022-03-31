@@ -7,5 +7,5 @@ func (c *Client) startMempoolMonitor(filter string) error {
 	if c.WhatsOnChain() == nil {
 		return errors.New("whatsonchain client not configured")
 	}
-
+	return nil
 }

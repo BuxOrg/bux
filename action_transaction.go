@@ -175,7 +175,8 @@ func (c *Client) GetTransactions(ctx context.Context, xPubID string, metadataCon
 }
 
 // UpdateTransactionMetadata will update the metadata in an existing transaction
-func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error) {
+func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id string,
+	metadata Metadata) (*Transaction, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_transaction_by_id")

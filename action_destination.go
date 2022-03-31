@@ -37,7 +37,8 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 	// Get/create a new destination
 	var destination *Destination
 	if destination, err = xPub.getNewDestination(
-		ctx, chain, destinationType, opts...,
+		ctx, chain, destinationType,
+		append(opts, c.DefaultModelOptions()...)..., // Passing down the Datastore and client information into the model
 	); err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 	// Start the new destination - will detect type
 	destination := newDestination(
 		xPubID, lockingScript,
-		opts...,
+		append(opts, c.DefaultModelOptions()...)..., // Passing down the Datastore and client information into the model
 	)
 
 	if destination.Type == "" {

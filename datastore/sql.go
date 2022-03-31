@@ -251,10 +251,17 @@ func postgreSQLDialector(config *SQLConfig) gorm.Dialector {
 //
 // todo: this will grab ANY source (create a better way to seed the source database)
 func getSourceDatabase(configs []*SQLConfig) (*SQLConfig, []*SQLConfig) {
+
 	for index, config := range configs {
 		if !config.Replica {
 			if len(configs) > 1 {
-				return configs[index], append(configs[:index], configs[index+1:]...)
+				var processed []*SQLConfig
+				for i, c := range configs {
+					if i != index {
+						processed = append(processed, c)
+					}
+				}
+				return configs[index], processed
 			}
 			return configs[index], nil
 		}

@@ -14,7 +14,7 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address string,
 	ctx = c.GetOrStartTxn(ctx, "new_paymail_address")
 
 	// Start the new paymail address model
-	paymailAddress := newPaymail(address, append(opts, New(), WithXPub(xPubKey))...)
+	paymailAddress := newPaymail(address, append(opts, c.DefaultModelOptions(New(), WithXPub(xPubKey))...)...)
 
 	// Save the model
 	if err := paymailAddress.Save(ctx); err != nil {
@@ -31,7 +31,7 @@ func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts 
 	ctx = c.GetOrStartTxn(ctx, "delete_paymail_address")
 
 	// Get the paymail address
-	paymailAddress, err := getPaymail(ctx, address, opts...)
+	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
 	if err != nil {
 		return err
 	} else if paymailAddress == nil {
@@ -62,7 +62,7 @@ func (c *Client) UpdatePaymailAddressMetadata(ctx context.Context, address strin
 	ctx = c.GetOrStartTxn(ctx, "update_paymail_address_metadata")
 
 	// Get the paymail address
-	paymailAddress, err := getPaymail(ctx, address, opts...)
+	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {

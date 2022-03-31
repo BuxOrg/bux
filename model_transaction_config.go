@@ -143,7 +143,7 @@ func (t TransactionConfig) Value() (driver.Value, error) {
 
 // processOutput will inspect the output to determine how to process
 func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, defaultFromSender, defaultNote string, checkSats bool) error {
+	paymailClient paymail.ClientInterface, defaultFromSender, defaultNote string, checkSatoshis bool) error {
 
 	// Convert known handle formats ($handcash or 1relayx)
 	if strings.Contains(t.To, handleHandcashPrefix) ||
@@ -157,17 +157,17 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 
 	// Check for Paymail, Bitcoin Address or OP Return
 	if len(t.To) > 0 && strings.Contains(t.To, "@") { // Paymail output
-		if checkSats && t.Satoshis <= 0 {
+		if checkSatoshis && t.Satoshis <= 0 {
 			return ErrOutputValueTooLow
 		}
 		return t.processPaymailOutput(ctx, cacheStore, paymailClient, defaultFromSender, defaultNote)
 	} else if len(t.To) > 0 { // Standard Bitcoin Address
-		if checkSats && t.Satoshis <= 0 {
+		if checkSatoshis && t.Satoshis <= 0 {
 			return ErrOutputValueTooLow
 		}
 		return t.processAddressOutput()
 	} else if t.OpReturn != nil { // OP_RETURN output
-		if checkSats && t.Satoshis > 0 {
+		if checkSatoshis && t.Satoshis > 0 {
 			return ErrOutputValueUnSpendable
 		}
 		return t.processOpReturnOutput()

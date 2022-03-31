@@ -188,7 +188,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 	var inputUtxos *[]*bt.UTXO
 	var satoshisReserved uint64
-	if m.Configuration.SendAllTo != "" {
+	if m.Configuration.SendAllTo != "" { // Send TO ALL
 		var spendableUtxos []*Utxo
 		if spendableUtxos, err = GetSpendableUtxos(
 			ctx, m.XpubID, utils.ScriptTypePubKeyHash, m.Configuration.FromUtxos, opts...,
@@ -241,6 +241,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 			return
 		}
 
+		// Reserve the utxos
 		if err = m.processUtxos(
 			ctx, reservedUtxos,
 		); err != nil {

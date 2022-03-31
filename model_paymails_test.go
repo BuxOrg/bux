@@ -36,7 +36,7 @@ func TestNewPaymail(t *testing.T) {
 		p.Username = "Tester"
 		p.Avatar = "img url"
 		p.XpubID = xPubID
-		p.ExternalXPubKey = paymailExternalXPub
+		p.ExternalXpubKey = paymailExternalXPub
 		err = p.Save(ctx)
 		require.NoError(t, err)
 
@@ -55,7 +55,7 @@ func TestNewPaymail(t *testing.T) {
 		assert.Equal(t, "Tester", p2.Username)
 		assert.Equal(t, "img url", p2.Avatar)
 		assert.Equal(t, xPubID, p2.XpubID)
-		assert.Equal(t, paymailExternalXPub, p2.ExternalXPubKey)
+		assert.Equal(t, paymailExternalXPub, p2.ExternalXpubKey)
 		assert.Equal(t, paymailIdentityXPub, identityKey.String())
 		assert.Equal(t, uint32(0), p2.NextIdentityNum)
 	})

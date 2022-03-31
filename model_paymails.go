@@ -26,7 +26,7 @@ type PaymailAddress struct {
 	Domain          string `json:"domain" toml:"domain" yaml:"domain" gorm:"<-;type:varchar(255);comment:This is @domain.com" bson:"domain"`                                                                         // Domain of the paymail
 	Username        string `json:"username" toml:"username" yaml:"username" gorm:"<-;type:varchar(255);uniqueIndex;comment:This is username" bson:"username"`                                                        // Full username
 	Avatar          string `json:"avatar" toml:"avatar" yaml:"avatar" gorm:"<-;type:text;comment:This is avatar url" bson:"avatar"`                                                                                  // This is the url of the user (public profile)
-	ExternalXPubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for external use" bson:"external_xpub_key"` // PublicKey hex encoded
+	ExternalXpubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for external use" bson:"external_xpub_key"` // PublicKey hex encoded
 	NextIdentityNum uint32 `json:"next_identity_num" toml:"next_identity_num" yaml:"next_identity_num" gorm:"<-;type:int;comment:The next index number for the identity xPub derivation" bson:"next_identity_num"`
 	XpubID          string `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"` // Related xPub ID
 }
@@ -109,13 +109,13 @@ func (m *PaymailAddress) setXPub(rawXpubKey string) error {
 		return err
 	}
 
-	m.ExternalXPubKey = paymailExternalKey.String()
+	m.ExternalXpubKey = paymailExternalKey.String()
 	return nil
 }
 
 // GetIdentityXpub will get the identity related to the xPub
 func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
-	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(m.ExternalXPubKey)
+	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(m.ExternalXpubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (m *PaymailAddress) GetID() string {
 func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
 
-	if _, err = utils.ValidateXPub(m.ExternalXPubKey); err != nil {
+	if _, err = utils.ValidateXPub(m.ExternalXpubKey); err != nil {
 		return
 	}
 
@@ -164,7 +164,7 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 		return ErrMissingPaymailDomain
 	}
 
-	if len(m.ExternalXPubKey) == 0 {
+	if len(m.ExternalXpubKey) == 0 {
 		return ErrMissingPaymailExternalXPub
 	}
 

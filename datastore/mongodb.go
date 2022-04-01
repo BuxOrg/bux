@@ -142,16 +142,16 @@ func (c *Client) getWithMongo(
 	if utils.IsModelSlice(model) {
 		c.DebugLog(fmt.Sprintf(logLine, "findMany", *collectionName, queryConditions))
 
-		var opts *options.FindOptions
+		var opts []*options.FindOptions
 		if fields != nil {
 			projection := bson.D{}
 			for _, field := range fields {
 				projection = append(projection, bson.E{Key: field, Value: 1})
 			}
-			opts = options.Find().SetProjection(projection)
+			opts = append(opts, options.Find().SetProjection(projection))
 		}
 
-		cursor, err := collection.Find(ctx, queryConditions, opts)
+		cursor, err := collection.Find(ctx, queryConditions, opts...)
 		if err != nil {
 			return err
 		}
@@ -173,18 +173,16 @@ func (c *Client) getWithMongo(
 	} else {
 		c.DebugLog(fmt.Sprintf(logLine, "find", *collectionName, queryConditions))
 
-		var result *mongo.SingleResult
+		var opts []*options.FindOneOptions
 		if fields != nil {
 			projection := bson.D{}
 			for _, field := range fields {
 				projection = append(projection, bson.E{Key: field, Value: 1})
 			}
-			opts := options.FindOne().SetProjection(projection)
-			result = collection.FindOne(ctx, queryConditions, opts)
-		} else {
-			result = collection.FindOne(ctx, queryConditions)
+			opts = append(opts, options.FindOne().SetProjection(projection))
 		}
 
+		result := collection.FindOne(ctx, queryConditions, opts...)
 		if err := result.Err(); errors.Is(err, mongo.ErrNoDocuments) {
 			c.DebugLog(fmt.Sprintf(logLine, "result", *collectionName, "no result"))
 			return ErrNoResults

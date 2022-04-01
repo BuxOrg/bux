@@ -79,6 +79,15 @@ func WithNewRelic() ClientOps {
 	}
 }
 
+// WithMempoolMonitoring will enable mempool monitoring for a given filter
+/*func WithMempoolMonitoring(handler whatsonchain.SocketHandler, filter string) ClientOps {
+	return func(c *clientOptions) {
+		c.mempoolMonitoringEnabled = true
+		c.mempoolMonitoringFilter = filter
+		c.mempoolHandler = handler
+	}
+}*/
+
 // WithDebugging will enable debugging mode
 func WithDebugging() ClientOps {
 	return func(c *clientOptions) {
@@ -217,6 +226,24 @@ func WithLogger(customLogger Logger) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger
+		}
+	}
+}
+
+// WithMonitoring will create a new monitorConfig interface with the given options
+func WithMonitoring(ctx context.Context, monitorOptions *MonitorOptions) ClientOps {
+	return func(c *clientOptions) {
+		if monitorOptions != nil {
+			c.monitor = NewMonitor(ctx, monitorOptions)
+		}
+	}
+}
+
+// WithMonitoringInterface will set the interface to use for monitoring the blockchain
+func WithMonitoringInterface(monitor MonitorService) ClientOps {
+	return func(c *clientOptions) {
+		if monitor != nil {
+			c.monitor = monitor
 		}
 	}
 }

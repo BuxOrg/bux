@@ -11,7 +11,7 @@ import (
 	"github.com/bitcoinschema/go-bitcoin/v2"
 )
 
-// AccessKey is an object representing the access key
+// AccessKey is an object representing an access key model
 //
 // An AccessKey is a private key with a corresponding public key
 // The public key is hashed and saved in this model for retrieval.

@@ -32,6 +32,7 @@ const (
 	ModelPaymailAddress      ModelName = "paymail_address"
 	ModelSyncTransaction     ModelName = "sync_transaction"
 	ModelTransaction         ModelName = "transaction"
+	ModelBlockHeader         ModelName = "block_header"
 	ModelUtxo                ModelName = "utxo"
 	ModelXPub                ModelName = "xpub"
 )
@@ -40,20 +41,25 @@ var (
 	// AllModelNames is a list of all models
 	AllModelNames = []ModelName{
 		ModelAccessKey,
+		ModelBlockHeader,
+		ModelBlockHeader,
 		ModelDestination,
 		ModelIncomingTransaction,
 		ModelMetadata,
+		ModelPaymailAddress,
 		ModelSyncTransaction,
 		ModelTransaction,
 		ModelUtxo,
 		ModelXPub,
 		ModelPaymailAddress,
+		ModelBlockHeader,
 	}
 )
 
 // Internal table names
 const (
 	tableAccessKeys           = "access_keys"
+	tableBlockHeaders         = "block_headers"
 	tableDestinations         = "destinations"
 	tableDraftTransactions    = "draft_transactions"
 	tableIncomingTransactions = "incoming_transactions"
@@ -148,6 +154,11 @@ var (
 		// Finalized transactions (related to Draft)
 		&Transaction{
 			Model: *NewBaseModel(ModelTransaction),
+		},
+
+		// Block Headers as received by the BitCoin network
+		&BlockHeader{
+			Model: *NewBaseModel(ModelBlockHeader),
 		},
 
 		// Sync configuration for transactions (on-chain) (related to Transaction)

@@ -164,7 +164,14 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Set the logger (if no custom logger was detected)
+	// Load the blockchain monitor
+	if client.options.chainstate.Monitor() != nil {
+		if err := client.loadMonitor(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	// Set logger (if not set by user)
 	if client.options.logger == nil {
 		client.options.logger = logger.NewLogger(client.IsDebug())
 	}
@@ -356,6 +363,11 @@ func (c *Client) IsDebug() bool {
 // IsNewRelicEnabled will return the flag (bool)
 func (c *Client) IsNewRelicEnabled() bool {
 	return c.options.newRelic.enabled
+}
+
+// IsMempoolMonitoringEnabled will return whether mempool monitoring is on
+func (c *Client) IsMempoolMonitoringEnabled() bool {
+	return c.options.chainstate.IsNewRelicEnabled()
 }
 
 // IsITCEnabled will return the flag (bool)

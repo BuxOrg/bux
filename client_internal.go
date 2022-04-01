@@ -30,6 +30,7 @@ func (c *Client) loadChainstate(ctx context.Context) (err error) {
 		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithUserAgent(c.UserAgent()))
 		c.options.chainstate.ClientInterface, err = chainstate.NewClient(ctx, c.options.chainstate.options...)
 	}
+
 	return
 }
 
@@ -81,6 +82,21 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 		c.options.taskManager.ClientInterface, err = taskmanager.NewClient(
 			ctx, c.options.taskManager.options...,
 		)
+	}
+	return
+}
+
+// loadMonitor will load the Monitor
+func (c *Client) loadMonitor(ctx context.Context) (err error) {
+	// Load monitor if set by the user
+	monitor := c.options.chainstate.Monitor()
+	if monitor != nil {
+		handler := NewMonitorHandler(ctx, "", c, monitor)
+		err = c.loadMonitoredDestinations(ctx, monitor)
+		if err != nil {
+			return
+		}
+		err = monitor.Monitor(&handler)
 	}
 	return
 }

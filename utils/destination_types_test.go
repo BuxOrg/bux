@@ -32,6 +32,10 @@ func TestIsP2PKH(t *testing.T) {
 	t.Run("no match - extra data", func(t *testing.T) {
 		assert.Equal(t, false, IsP2PKH(p2pkhHex+"06"))
 	})
+
+	t.Run("match substring", func(t *testing.T) {
+		assert.Equal(t, true, P2PKHSubstringRegexp.MatchString("somethesetstring"+p2pkhHex+"06rtdhrth"))
+	})
 }
 
 // TestIsP2SH will test the method IsP2SH()
@@ -44,6 +48,10 @@ func TestIsP2SH(t *testing.T) {
 
 	t.Run("match", func(t *testing.T) {
 		assert.Equal(t, true, IsP2SH(p2shHex))
+	})
+
+	t.Run("match substring", func(t *testing.T) {
+		assert.Equal(t, true, P2SHSubstringRegexp.MatchString("test"+p2shHex+"test"))
 	})
 }
 
@@ -58,6 +66,10 @@ func TestIsMetanet(t *testing.T) {
 	t.Run("match", func(t *testing.T) {
 		assert.Equal(t, true, IsMetanet(metanetHex))
 	})
+
+	t.Run("match substring", func(t *testing.T) {
+		assert.Equal(t, true, MetanetSubstringRegexp.MatchString("test"+metanetHex+"test"))
+	})
 }
 
 // TestIsOpReturn will test the method IsOpReturn()
@@ -70,6 +82,10 @@ func TestIsOpReturn(t *testing.T) {
 
 	t.Run("match", func(t *testing.T) {
 		assert.Equal(t, true, IsOpReturn(opReturnHex))
+	})
+
+	t.Run("match substring", func(t *testing.T) {
+		assert.Equal(t, true, OpReturnSubstringRegexp.MatchString("test"+opReturnHex+"test"))
 	})
 }
 
@@ -91,6 +107,10 @@ func TestIsStas(t *testing.T) {
 
 	t.Run("match 2", func(t *testing.T) {
 		assert.Equal(t, true, IsStas(stas2Hex))
+	})
+
+	t.Run("match substring", func(t *testing.T) {
+		assert.Equal(t, true, StasSubstringRegexp.MatchString("test"+stas2Hex+"test"))
 	})
 }
 

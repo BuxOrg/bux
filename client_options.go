@@ -1,6 +1,7 @@
 package bux
 
 import (
+	"context"
 	"database/sql"
 	"strings"
 	"time"
@@ -225,6 +226,15 @@ func WithEncryption(key string) ClientOps {
 		}
 	}
 }
+
+// WithMempoolMonitoring will enable mempool monitoring for a given filter
+/*func WithMempoolMonitoring(filter string) ClientOps {
+	return func(c *clientOptions) {
+		if c.chainstate != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMempoolMonitoring(filter))
+		}
+	}
+}*/
 
 // WithModels will add additional models (will NOT migrate using datastore)
 //
@@ -605,9 +615,27 @@ func WithNotifications(webhookEndpoint string) ClientOps {
 	}
 }
 
+// WithMonitoring will create a new monitorConfig interface with the given options
+func WithMonitoring(ctx context.Context, monitorOptions *chainstate.MonitorOptions) ClientOps {
+	return func(c *clientOptions) {
+		if monitorOptions != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoring(ctx, monitorOptions))
+		}
+	}
+}
+
 // WithNotificationsInterface will set a notifications interface
 func WithNotificationsInterface(notify notifications.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
 		c.notifications.client = notify
+	}
+}
+
+// WithMonitoringInterface will set the interface to use for monitoring the blockchain
+func WithMonitoringInterface(monitor chainstate.MonitorService) ClientOps {
+	return func(c *clientOptions) {
+		if monitor != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoringInterface(monitor))
+		}
 	}
 }

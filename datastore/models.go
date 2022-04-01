@@ -165,7 +165,7 @@ func (c *Client) GetModel(
 
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
-		return c.getWithMongo(ctx, model, conditions)
+		return c.getWithMongo(ctx, model, conditions, nil)
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
@@ -194,22 +194,23 @@ func (c *Client) GetModels(
 	conditions map[string]interface{},
 	pageSize, page int,
 	orderByField, sortDirection string,
+	fieldResults interface{},
 	timeout time.Duration,
 ) error {
 
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
 		// todo: add page/size for mongo
-		return c.getWithMongo(ctx, models, conditions)
+		return c.getWithMongo(ctx, models, conditions, fieldResults)
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
-	return c.find(ctx, models, conditions, pageSize, page, orderByField, sortDirection, timeout)
+	return c.find(ctx, models, conditions, pageSize, page, orderByField, sortDirection, fieldResults, timeout)
 }
 
 // find will get records and return
 func (c *Client) find(ctx context.Context, result interface{}, conditions map[string]interface{},
-	pageSize, page int, orderByField, sortDirection string, timeout time.Duration) error {
+	pageSize, page int, orderByField, sortDirection string, fieldResults interface{}, timeout time.Duration) error {
 
 	// Set default page size
 	if page > 0 && pageSize < 1 {
@@ -228,17 +229,19 @@ func (c *Client) find(ctx context.Context, result interface{}, conditions map[st
 	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.logger)
 	defer cancel()
 
+	tx := ctxDB.Model(result)
+
 	// Create the offset
 	offset := (page - 1) * pageSize
 
 	// Use the limit and offset
 	if page > 0 && pageSize > 0 {
-		ctxDB = ctxDB.Limit(pageSize).Offset(offset)
+		tx = tx.Limit(pageSize).Offset(offset)
 	}
 
 	// Use an order field/sort
 	if len(orderByField) > 0 {
-		ctxDB = ctxDB.Order(clause.OrderByColumn{
+		tx = tx.Order(clause.OrderByColumn{
 			Column: clause.Column{
 				Name: orderByField,
 			},
@@ -247,14 +250,16 @@ func (c *Client) find(ctx context.Context, result interface{}, conditions map[st
 	}
 
 	// Check for errors or no records found
-	tx := ctxDB.Select("*")
 	if len(conditions) > 0 {
 		gtx := gormWhere{tx: tx}
 		return checkResult(BuxWhere(&gtx, conditions, c.Engine()).(*gorm.DB).Find(result))
 	}
 
 	// Skip the conditions
-	return checkResult(ctxDB.Find(result))
+	if fieldResults != nil {
+		return checkResult(tx.Find(fieldResults))
+	}
+	return checkResult(tx.Find(result))
 }
 
 // Execute a SQL query
@@ -292,8 +297,9 @@ func checkResult(result *gorm.DB) error {
 }
 
 // createCtx will make a new DB context
-func createCtx(ctx context.Context, db *gorm.DB,
-	timeout time.Duration, debug bool, optionalLogger logger.Interface) (*gorm.DB, context.CancelFunc) {
+func createCtx(ctx context.Context, db *gorm.DB, timeout time.Duration, debug bool,
+	optionalLogger logger.Interface) (*gorm.DB, context.CancelFunc) {
+
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	return db.Session(getGormSessionConfig(db.PrepareStmt, debug, optionalLogger)).WithContext(ctx), cancel

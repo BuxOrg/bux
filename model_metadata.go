@@ -19,7 +19,7 @@ const (
 	MetadataField = "metadata"
 )
 
-// Metadata is an object representing the metadata about the related record
+// Metadata is an object representing the metadata about the related record (standard across all tables)
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type Metadata map[string]interface{}

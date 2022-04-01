@@ -85,9 +85,6 @@ func (c *Client) startWhatsOnChain(ctx context.Context) {
 			c.HTTPClient(),
 		)
 	}
-	if c.options.mempoolMonitoringEnabled {
-		c.WhatsOnChain().NewMempoolWebsocket()
-	}
 }
 
 // startMatterCloud will start MatterCloud (if no custom client is found)

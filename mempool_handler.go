@@ -16,7 +16,7 @@ type MempoolHandler struct {
 
 func PubKeyHashMempoolHandler(client *Client) *MempoolHandler {
 	processor := chainstate.PubKeyHashProcessor()
-	return &BuxMempoolHandler{
+	return &MempoolHandler{
 		Processor: processor,
 		BuxClient: client,
 	}

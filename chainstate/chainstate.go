@@ -5,17 +5,8 @@ package chainstate
 
 import (
 	"context"
-	"errors"
 	"time"
 )
-
-// MonitorMempool will start up a mempool monitor
-func (c *Client) MonitorMempool(ctx context.Context) error {
-	if !c.options.mempoolMonitoringEnabled {
-		return errors.New("mempool monitoring not enabled")
-	}
-	return c.startMempoolMonitor()
-}
 
 // MonitorBlockHeaders will start up a block headers monitor
 func (c *Client) MonitorBlockHeaders(ctx context.Context) error {

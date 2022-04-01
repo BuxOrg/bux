@@ -387,10 +387,6 @@ func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
 	return c.registerAllTasks()
 }
 
-func (c *Client) StartMempoolMonitor() error {
-
-}
-
 // Taskmanager will return the Taskmanager if it exists
 func (c *Client) Taskmanager() taskmanager.ClientInterface {
 	if c.options.taskManager != nil && c.options.taskManager.ClientInterface != nil {

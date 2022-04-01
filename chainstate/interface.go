@@ -30,8 +30,6 @@ type ChainService interface {
 	QueryTransactionFastest(
 		ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 	) (*TransactionInfo, error)
-	MonitorMempool(ctx context.Context, handler chainstate.MempolEventHandler, filter string) error
-	MonitorBlockHeaders(ctx context.Context) error
 }
 
 // ProviderServices is the chainstate providers interface

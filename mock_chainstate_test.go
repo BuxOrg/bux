@@ -124,11 +124,7 @@ type chainStateEverythingOnChain struct {
 	chainStateEverythingInMempool
 }
 
-func (c *chainStateEverythingOnChain) MonitorBlockHeaders(_ context.Context) error {
-	return nil
-}
-
-func (c *chainStateEverythingOnChain) MonitorMempool(_ context.Context, _ string) error {
+func (c *chainStateEverythingOnChain) Monitor() chainstate.MonitorService {
 	return nil
 }
 

@@ -341,6 +341,11 @@ func (c *Client) IsNewRelicEnabled() bool {
 	return c.options.newRelic.enabled
 }
 
+// IsMempoolMonitoringEnabled will return whether mempool monitoring is on
+func (c *Client) IsMempoolMonitoringEnabled() bool {
+	return c.options.chainstate.IsNewRelicEnabled()
+}
+
 // IsITCEnabled will return the flag (bool)
 func (c *Client) IsITCEnabled() bool {
 	return c.options.itc
@@ -380,6 +385,10 @@ func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
 
 	// register all tasks again (safely override)
 	return c.registerAllTasks()
+}
+
+func (c *Client) StartMempoolMonitor() error {
+
 }
 
 // Taskmanager will return the Taskmanager if it exists

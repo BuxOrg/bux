@@ -28,6 +28,8 @@ func (c *Client) loadChainstate(ctx context.Context) (err error) {
 		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithUserAgent(c.UserAgent()))
 		c.options.chainstate.ClientInterface, err = chainstate.NewClient(ctx, c.options.chainstate.options...)
 	}
+
+	if c.options
 	return
 }
 

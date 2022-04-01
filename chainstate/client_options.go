@@ -39,8 +39,9 @@ func defaultClientOptions() *clientOptions {
 			queryTimeout:      defaultQueryTimeOut,
 			whatsOnChain:      nil,
 		},
-		debug:           false,
-		newRelicEnabled: false,
+		debug:                    false,
+		newRelicEnabled:          false,
+		mempoolMonitoringEnabled: false,
 	}
 }
 
@@ -76,6 +77,15 @@ func (c *clientOptions) getTxnCtx(ctx context.Context) context.Context {
 func WithNewRelic() ClientOps {
 	return func(c *clientOptions) {
 		c.newRelicEnabled = true
+	}
+}
+
+// WithMempoolMonitoring will enable mempool monitoring for a given filter
+func WithMempoolMonitoring(handler whatsonchain.SocketHandler, filter string) ClientOps {
+	return func(c *clientOptions) {
+		c.mempoolMonitoringEnabled = true
+		c.mempoolMonitoringFilter = filter
+		c.mempoolHandler = handler
 	}
 }
 

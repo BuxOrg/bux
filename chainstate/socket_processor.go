@@ -13,6 +13,10 @@ type Processor struct {
 	FilterType TransactionType
 }
 
+func PubKeyHashProcessor() *Processor {
+	return NewProcessor(PubKeyHash)
+}
+
 func NewProcessor(txType TransactionType) *Processor {
 	return &Processor{FilterType: txType}
 }

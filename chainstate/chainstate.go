@@ -10,11 +10,11 @@ import (
 )
 
 // MonitorMempool will start up a mempool monitor
-func (c *Client) MonitorMempool(ctx context.Context, filter string) error {
-	if len(filter) == 0 {
-		return errors.New("filter cannot be empty")
+func (c *Client) MonitorMempool(ctx context.Context) error {
+	if !c.options.mempoolMonitoringEnabled {
+		return errors.New("mempool monitoring not enabled")
 	}
-	return c.startMempoolMonitor(filter)
+	return c.startMempoolMonitor()
 }
 
 // MonitorBlockHeaders will start up a block headers monitor

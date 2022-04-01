@@ -59,24 +59,24 @@ func processConditions(tx buxWhereInterface, conditions map[string]interface{}, 
 			processWhereOr(tx, conditions["$or"], engine, varNum)
 		} else if key == "$gt" {
 			varName := "var" + strconv.Itoa(*varNum)
-			tx.Where(*parentKey+" > @"+varName, map[string]interface{}{varName: condition})
+			tx.Where(*parentKey+" > @"+varName, map[string]interface{}{varName: formatCondition(condition, engine)})
 			*varNum++
 		} else if key == "$lt" {
 			varName := "var" + strconv.Itoa(*varNum)
-			tx.Where(*parentKey+" < @"+varName, map[string]interface{}{varName: condition})
+			tx.Where(*parentKey+" < @"+varName, map[string]interface{}{varName: formatCondition(condition, engine)})
 			*varNum++
 		} else if key == "$gte" {
 			varName := "var" + strconv.Itoa(*varNum)
-			tx.Where(*parentKey+" >= @"+varName, map[string]interface{}{varName: condition})
+			tx.Where(*parentKey+" >= @"+varName, map[string]interface{}{varName: formatCondition(condition, engine)})
 			*varNum++
 		} else if key == "$lte" {
 			varName := "var" + strconv.Itoa(*varNum)
-			tx.Where(*parentKey+" <= @"+varName, map[string]interface{}{varName: condition})
+			tx.Where(*parentKey+" <= @"+varName, map[string]interface{}{varName: formatCondition(condition, engine)})
 			*varNum++
 		} else if utils.StringInSlice(key, arrayFields) {
-			tx.Where(whereSlice(engine, key, condition))
+			tx.Where(whereSlice(engine, key, formatCondition(condition, engine)))
 		} else if utils.StringInSlice(key, objectFields) {
-			tx.Where(whereObject(engine, key, condition))
+			tx.Where(whereObject(engine, key, formatCondition(condition, engine)))
 		} else {
 			if condition == nil {
 				tx.Where(key + " IS NULL")
@@ -94,7 +94,7 @@ func processConditions(tx buxWhereInterface, conditions map[string]interface{}, 
 					}
 				default:
 					varName := "var" + strconv.Itoa(*varNum)
-					tx.Where(key+" = @"+varName, map[string]interface{}{varName: condition})
+					tx.Where(key+" = @"+varName, map[string]interface{}{varName: formatCondition(condition, engine)})
 					*varNum++
 				}
 			}
@@ -102,6 +102,24 @@ func processConditions(tx buxWhereInterface, conditions map[string]interface{}, 
 	}
 
 	return conditions
+}
+
+func formatCondition(condition interface{}, engine Engine) interface{} {
+	switch v := condition.(type) {
+	case utils.NullTime:
+		if v.Valid {
+			if engine == MySQL {
+				return v.Time.Format("2006-01-02 15:04:05")
+			} else if engine == PostgreSQL {
+				return v.Time.Format("2006-01-02T15:04:05Z07:00")
+			}
+			// default & SQLite
+			return v.Time.Format("2006-01-02T15:04:05.000Z")
+		}
+		return nil
+	}
+
+	return condition
 }
 
 func processWhereAnd(tx buxWhereInterface, condition interface{}, engine Engine, varNum *int) {

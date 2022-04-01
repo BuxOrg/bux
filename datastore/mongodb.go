@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/integrations/nrmongo"
@@ -120,6 +121,7 @@ func (c *Client) getWithMongo(
 	ctx context.Context,
 	models interface{},
 	conditions map[string]interface{},
+	fieldResult interface{},
 ) error {
 	queryConditions := getMongoQueryConditions(models, conditions)
 	collectionName := utils.GetModelTableName(models)
@@ -132,10 +134,24 @@ func (c *Client) getWithMongo(
 		setPrefix(c.options.mongoDBConfig.TablePrefix, *collectionName),
 	)
 
+	var fields []string
+	if fieldResult != nil {
+		fields = getFieldNames(fieldResult)
+	}
+
 	if utils.IsModelSlice(models) {
 		c.DebugLog(fmt.Sprintf(logLine, "findMany", *collectionName, queryConditions))
 
-		cursor, err := collection.Find(ctx, queryConditions)
+		var opts []*options.FindOptions
+		if fields != nil {
+			projection := bson.D{}
+			for _, field := range fields {
+				projection = append(projection, bson.E{Key: field, Value: 1})
+			}
+			opts = append(opts, options.Find().SetProjection(projection))
+		}
+
+		cursor, err := collection.Find(ctx, queryConditions, opts...)
 		if err != nil {
 			return err
 		}
@@ -145,13 +161,28 @@ func (c *Client) getWithMongo(
 			return cursor.Err()
 		}
 
-		if err = cursor.All(ctx, models); err != nil {
-			return err
+		if fieldResult != nil {
+			if err = cursor.All(ctx, fieldResult); err != nil {
+				return err
+			}
+		} else {
+			if err = cursor.All(ctx, models); err != nil {
+				return err
+			}
 		}
 	} else {
 		c.DebugLog(fmt.Sprintf(logLine, "find", *collectionName, queryConditions))
 
-		result := collection.FindOne(ctx, queryConditions)
+		var opts []*options.FindOneOptions
+		if fields != nil {
+			projection := bson.D{}
+			for _, field := range fields {
+				projection = append(projection, bson.E{Key: field, Value: 1})
+			}
+			opts = append(opts, options.FindOne().SetProjection(projection))
+		}
+
+		result := collection.FindOne(ctx, queryConditions, opts...)
 		if err := result.Err(); errors.Is(err, mongo.ErrNoDocuments) {
 			c.DebugLog(fmt.Sprintf(logLine, "result", *collectionName, "no result"))
 			return ErrNoResults
@@ -160,13 +191,52 @@ func (c *Client) getWithMongo(
 			return result.Err()
 		}
 
-		if err := result.Decode(models); err != nil {
-			c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
-			return err
+		if fieldResult != nil {
+			if err := result.Decode(fieldResult); err != nil {
+				c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
+				return err
+			}
+		} else {
+			if err := result.Decode(models); err != nil {
+				c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func getFieldNames(fieldResult interface{}) []string {
+	if fieldResult == nil {
+		return []string{}
+	}
+
+	fields := make([]string, 0)
+
+	model := reflect.ValueOf(fieldResult)
+	if model.Kind() == reflect.Ptr {
+		model = model.Elem()
+	}
+	if model.Kind() == reflect.Slice {
+		elemType := model.Type().Elem()
+		fmt.Println(elemType.Kind())
+		if elemType.Kind() == reflect.Ptr {
+			model = reflect.New(elemType.Elem())
+		} else {
+			model = reflect.New(elemType)
+		}
+	}
+	if model.Kind() == reflect.Ptr {
+		model = model.Elem()
+	}
+
+	for i := 0; i < model.Type().NumField(); i++ {
+		field := model.Type().Field(i)
+		fields = append(fields, field.Tag.Get("bson"))
+	}
+
+	return fields
 }
 
 // setPrefix will automatically append the table prefix if found

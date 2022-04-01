@@ -9,7 +9,7 @@ import (
 	"github.com/BuxOrg/bux/utils"
 )
 
-// Xpub is an object representing the BitCoin xPub table
+// Xpub is an object representing an HD-Key or extended public key (xPub for short)
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type Xpub struct {

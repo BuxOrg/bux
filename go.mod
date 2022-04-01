@@ -92,7 +92,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matryer/respond v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
-	github.com/miekg/dns v1.1.47 // indirect
+	github.com/miekg/dns v1.1.48 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/mrz1836/go-api-router v0.4.11 // indirect
 	github.com/mrz1836/go-parameters v0.2.8 // indirect
@@ -121,7 +121,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064 // indirect
+	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220325170049-de3da57026de // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect

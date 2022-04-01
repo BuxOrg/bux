@@ -34,6 +34,57 @@ type mockModel struct {
 	ID string `json:"id"`
 }
 
+type testStruct struct {
+	ID              string `json:"id" toml:"id" yaml:"hash" bson:"_id"`
+	CurrentBalance  uint64 `json:"current_balance" toml:"current_balance" yaml:"current_balance" bson:"current_balance"`
+	NextInternalNum uint32 `json:"next_internal_num" toml:"next_internal_num" yaml:"next_internal_num" bson:"next_internal_num"`
+	NextExternalNum uint32 `json:"next_external_num" toml:"next_external_num" yaml:"next_external_num" bson:"next_external_num"`
+}
+
+// TestClient_getFieldNames will test the method getFieldNames()
+func TestClient_getFieldNames(t *testing.T) {
+	t.Run("nil value", func(t *testing.T) {
+		fields := getFieldNames(nil)
+		assert.Len(t, fields, 0)
+		assert.Equal(t, []string{}, fields)
+	})
+
+	t.Run("normal struct", func(t *testing.T) {
+		s := testStruct{}
+		fields := getFieldNames(s)
+		assert.Len(t, fields, 4)
+		assert.Equal(t, []string{"_id", "current_balance", "next_internal_num", "next_external_num"}, fields)
+	})
+
+	t.Run("pointer struct", func(t *testing.T) {
+		s := &testStruct{}
+		fields := getFieldNames(s)
+		assert.Len(t, fields, 4)
+		assert.Equal(t, []string{"_id", "current_balance", "next_internal_num", "next_external_num"}, fields)
+	})
+
+	t.Run("slice of structs", func(t *testing.T) {
+		s := []testStruct{}
+		fields := getFieldNames(s)
+		assert.Len(t, fields, 4)
+		assert.Equal(t, []string{"_id", "current_balance", "next_internal_num", "next_external_num"}, fields)
+	})
+
+	t.Run("pointer of slice of structs", func(t *testing.T) {
+		s := &[]testStruct{}
+		fields := getFieldNames(s)
+		assert.Len(t, fields, 4)
+		assert.Equal(t, []string{"_id", "current_balance", "next_internal_num", "next_external_num"}, fields)
+	})
+
+	t.Run("pointer of slice of pointers of structs", func(t *testing.T) {
+		s := &[]*testStruct{}
+		fields := getFieldNames(s)
+		assert.Len(t, fields, 4)
+		assert.Equal(t, []string{"_id", "current_balance", "next_internal_num", "next_external_num"}, fields)
+	})
+}
+
 // TestClient_getMongoQueryConditions will test the method getMongoQueryConditions()
 func TestClient_getMongoQueryConditions(t *testing.T) {
 	t.Run("nil value", func(t *testing.T) {

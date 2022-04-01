@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/integrations/nrmongo"
@@ -120,7 +121,7 @@ func (c *Client) getWithMongo(
 	ctx context.Context,
 	model interface{},
 	conditions map[string]interface{},
-	fields *[]string,
+	fieldResult interface{},
 ) error {
 	queryConditions := getMongoQueryConditions(model, conditions)
 	collectionName := utils.GetModelTableName(model)
@@ -133,13 +134,18 @@ func (c *Client) getWithMongo(
 		setPrefix(c.options.mongoDBConfig.TablePrefix, *collectionName),
 	)
 
+	var fields []string
+	if fieldResult != nil {
+		fields = getFieldNames(fieldResult)
+	}
+
 	if utils.IsModelSlice(model) {
 		c.DebugLog(fmt.Sprintf(logLine, "findMany", *collectionName, queryConditions))
 
 		var opts *options.FindOptions
 		if fields != nil {
 			projection := bson.D{}
-			for _, field := range *fields {
+			for _, field := range fields {
 				projection = append(projection, bson.E{Key: field, Value: 1})
 			}
 			opts = options.Find().SetProjection(projection)
@@ -155,8 +161,14 @@ func (c *Client) getWithMongo(
 			return cursor.Err()
 		}
 
-		if err = cursor.All(ctx, model); err != nil {
-			return err
+		if fieldResult != nil {
+			if err = cursor.All(ctx, fieldResult); err != nil {
+				return err
+			}
+		} else {
+			if err = cursor.All(ctx, model); err != nil {
+				return err
+			}
 		}
 	} else {
 		c.DebugLog(fmt.Sprintf(logLine, "find", *collectionName, queryConditions))
@@ -164,7 +176,7 @@ func (c *Client) getWithMongo(
 		var opts *options.FindOneOptions
 		if fields != nil {
 			projection := bson.D{}
-			for _, field := range *fields {
+			for _, field := range fields {
 				projection = append(projection, bson.E{Key: field, Value: 1})
 			}
 			opts = options.FindOne().SetProjection(projection)
@@ -179,13 +191,52 @@ func (c *Client) getWithMongo(
 			return result.Err()
 		}
 
-		if err := result.Decode(model); err != nil {
-			c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
-			return err
+		if fieldResult != nil {
+			if err := result.Decode(fieldResult); err != nil {
+				c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
+				return err
+			}
+		} else {
+			if err := result.Decode(model); err != nil {
+				c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func getFieldNames(fieldResult interface{}) []string {
+	if fieldResult == nil {
+		return []string{}
+	}
+
+	fields := make([]string, 0)
+
+	model := reflect.ValueOf(fieldResult)
+	if model.Kind() == reflect.Ptr {
+		model = model.Elem()
+	}
+	if model.Kind() == reflect.Slice {
+		elemType := model.Type().Elem()
+		fmt.Println(elemType.Kind())
+		if elemType.Kind() == reflect.Ptr {
+			model = reflect.New(elemType.Elem())
+		} else {
+			model = reflect.New(elemType)
+		}
+	}
+	if model.Kind() == reflect.Ptr {
+		model = model.Elem()
+	}
+
+	for i := 0; i < model.Type().NumField(); i++ {
+		field := model.Type().Field(i)
+		fields = append(fields, field.Tag.Get("bson"))
+	}
+
+	return fields
 }
 
 // setPrefix will automatically append the table prefix if found

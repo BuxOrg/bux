@@ -1,14 +1,6 @@
 package bux
 
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/centrifugal/centrifuge-go"
-)
-
+/*
 type MempoolHandler struct {
 	Processor *chainstate.Processor
 	BuxClient *Client
@@ -63,3 +55,4 @@ func (h *MempoolHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.Serv
 		return
 	}
 }
+*/

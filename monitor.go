@@ -25,7 +25,7 @@ func (c *Client) loadMonitoredDestinations(ctx context.Context, monitor chainsta
 
 	for _, model := range models {
 		fmt.Printf("Monitor: %s", model.LockingScript)
-		monitor.Add(model.LockingScript)
+		monitor.Processor().Add(model.LockingScript)
 	}
 
 	return nil

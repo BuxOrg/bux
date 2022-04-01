@@ -63,9 +63,7 @@ type MonitorService interface {
 	GetMonitorDays() int
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int
-	Add(item string)
-	Test(item string) bool
-	Reload(items []string) error
+	Processor() MonitorProcessor
 	Monitor() error
 	PauseMonitor() error
 }

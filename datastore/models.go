@@ -165,7 +165,7 @@ func (c *Client) GetModel(
 
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
-		return c.getWithMongo(ctx, model, conditions)
+		return c.getWithMongo(ctx, model, conditions, nil)
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
@@ -194,22 +194,23 @@ func (c *Client) GetModels(
 	conditions map[string]interface{},
 	pageSize, page int,
 	orderByField, sortDirection string,
+	fields *[]string,
 	timeout time.Duration,
 ) error {
 
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
 		// todo: add page/size for mongo
-		return c.getWithMongo(ctx, models, conditions)
+		return c.getWithMongo(ctx, models, conditions, fields)
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
-	return c.find(ctx, models, conditions, pageSize, page, orderByField, sortDirection, timeout)
+	return c.find(ctx, models, conditions, pageSize, page, orderByField, sortDirection, fields, timeout)
 }
 
 // find will get records and return
 func (c *Client) find(ctx context.Context, result interface{}, conditions map[string]interface{},
-	pageSize, page int, orderByField, sortDirection string, timeout time.Duration) error {
+	pageSize, page int, orderByField, sortDirection string, fields *[]string, timeout time.Duration) error {
 
 	// Set default page size
 	if page > 0 && pageSize < 1 {

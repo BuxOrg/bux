@@ -72,6 +72,21 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 	return
 }
 
+// loadMonitor will load the Monitor
+func (c *Client) loadMonitor(ctx context.Context) (err error) {
+
+	// Load monitor if set by the user
+	monitor := c.options.chainstate.Monitor()
+	if monitor != nil {
+		err = c.loadMonitoredDestinations(ctx, monitor)
+		if err != nil {
+			return
+		}
+		err = monitor.Monitor()
+	}
+	return
+}
+
 // runModelMigrations will run the model Migrate() method for all models
 func (c *Client) runModelMigrations(models ...interface{}) (err error) {
 	d := c.Datastore()

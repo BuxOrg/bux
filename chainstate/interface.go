@@ -52,7 +52,20 @@ type ClientInterface interface {
 	IsDebug() bool
 	IsNewRelicEnabled() bool
 	Miners() []*minercraft.Miner
+	Monitor() MonitorService
 	Network() Network
 	QueryMiners() []*minercraft.Miner
 	QueryTimeout() time.Duration
+}
+
+// MonitorService for the monitoring
+type MonitorService interface {
+	GetMonitorDays() int
+	GetFalsePositiveRate() float64
+	GetMaxNumberOfDestinations() int
+	Add(item string)
+	Test(item string) bool
+	Reload(items []string) error
+	Monitor() error
+	PauseMonitor() error
 }

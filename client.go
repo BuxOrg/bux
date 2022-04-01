@@ -147,6 +147,13 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
+	// Load the blockchain monitor
+	if client.options.chainstate.Monitor() != nil {
+		if err := client.loadMonitor(ctx); err != nil {
+			return nil, err
+		}
+	}
+
 	// Set logger (if not set by user)
 	if client.options.logger == nil {
 		client.options.logger = logger.NewLogger(client.IsDebug())

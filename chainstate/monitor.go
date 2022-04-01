@@ -1,0 +1,132 @@
+package chainstate
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/centrifugal/centrifuge-go"
+	boom "github.com/tylertreat/BoomFilters"
+)
+
+// Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
+type Monitor struct {
+	logger                  Logger
+	filter                  *boom.StableBloomFilter
+	client                  *centrifuge.Client
+	centrifugeServer        string
+	monitorDays             int
+	falsePositiveRate       float64
+	maxNumberOfDestinations int
+}
+
+// MonitorOptions options for starting this monitorConfig
+type MonitorOptions struct {
+	CentrifugeServer        string
+	MonitorDays             int
+	FalsePositiveRate       float64
+	MaxNumberOfDestinations int
+}
+
+func (o *MonitorOptions) checkDefaults() {
+	if o.MonitorDays == 0 {
+		o.MonitorDays = 7
+	}
+	if o.FalsePositiveRate == 0 {
+		o.FalsePositiveRate = 0.01
+	}
+	if o.MaxNumberOfDestinations == 0 {
+		o.MaxNumberOfDestinations = 100000
+	}
+}
+
+func newClient(wsURL string, handler *eventHandler) *centrifuge.Client {
+	c := centrifuge.NewJsonClient(wsURL, centrifuge.DefaultConfig())
+
+	c.OnConnect(handler)
+	c.OnDisconnect(handler)
+	c.OnMessage(handler)
+	c.OnError(handler)
+
+	c.OnServerPublish(handler)
+	c.OnServerSubscribe(handler)
+	c.OnServerUnsubscribe(handler)
+	c.OnServerJoin(handler)
+	c.OnServerLeave(handler)
+
+	return c
+}
+
+// NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
+func NewMonitor(ctx context.Context, options *MonitorOptions) *Monitor {
+	options.checkDefaults()
+	monitor := &Monitor{
+		centrifugeServer:        options.CentrifugeServer,
+		maxNumberOfDestinations: options.MaxNumberOfDestinations,
+		falsePositiveRate:       options.FalsePositiveRate,
+		monitorDays:             options.MonitorDays,
+	}
+
+	monitor.filter = boom.NewDefaultStableBloomFilter(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+
+	// Set logger if not set
+	if monitor.logger == nil {
+		monitor.logger = newLogger()
+	}
+
+	return monitor
+}
+
+// GetMonitorDays gets the monitorDays option
+func (m *Monitor) GetMonitorDays() int {
+	return m.monitorDays
+}
+
+// GetFalsePositiveRate gets the falsePositiveRate option
+func (m *Monitor) GetFalsePositiveRate() float64 {
+	return m.falsePositiveRate
+}
+
+// GetMaxNumberOfDestinations gets the monitorDays option
+func (m *Monitor) GetMaxNumberOfDestinations() int {
+	return m.maxNumberOfDestinations
+}
+
+// Add a new item to the bloom filter
+func (m *Monitor) Add(item string) {
+	m.filter.Add([]byte(item))
+}
+
+// Test checks whether the item is in the bloom filter
+func (m *Monitor) Test(item string) bool {
+	return m.filter.Test([]byte(item))
+}
+
+// Reload the bloom filter from the DB
+func (m *Monitor) Reload(items []string) error {
+
+	for _, item := range items {
+		fmt.Printf("Monitor: %s", item)
+		m.Add(item)
+	}
+
+	return nil
+}
+
+// Monitor open a socket to the service provider and monitorConfig transactions
+func (m *Monitor) Monitor() error {
+
+	if m.client == nil {
+		handler := &eventHandler{
+			monitor: m,
+		}
+		m.client = newClient(m.centrifugeServer, handler)
+	}
+
+	return m.client.Connect()
+}
+
+// PauseMonitor closes the monitoring socket and pauses monitoring
+func (m *Monitor) PauseMonitor() error {
+
+	return m.client.Disconnect()
+}

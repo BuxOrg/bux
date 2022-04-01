@@ -8,6 +8,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
+	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/centrifugal/centrifuge-go v0.8.2
 	github.com/coocood/freecache v1.2.1
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf
@@ -35,6 +36,7 @@ require (
 	github.com/tonicpow/go-minercraft v0.7.1
 	github.com/tonicpow/go-paymail v0.7.3
 	github.com/tryvium-travels/memongo v0.5.0
+	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.8.4
 	gorm.io/driver/mysql v1.3.3
@@ -50,11 +52,13 @@ require (
 	github.com/bitcoinschema/go-bob v0.1.9 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
+	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/bsm/redislock v0.7.2 // indirect
 	github.com/capnm/sysinfo v0.0.0-20130621111458-5909a53897f3 // indirect
 	github.com/centrifugal/protocol v0.8.4 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect

@@ -98,7 +98,6 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bitcoinschema/go-bitcoin v0.3.20 h1:jWKT7ePYm4dPaIR2aIAVL8BwdsYtuG/4B87l1+KZyWs=
 github.com/bitcoinschema/go-bitcoin v0.3.20/go.mod h1:HyyMGUTtGE1qOgFJzCmvgsf3y55IfxJ+qLbwRm4Ski4=
-github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.2/go.mod h1:/zu6Dx5teW868pcxnzESbUIwwUDSxCa/Nd6sar72whE=
 github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3 h1:sIg1FAKz7RSWDM5bu4L5OPIPKu11mPtiFFunVyjiGjk=
 github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3/go.mod h1:VN6ACz7ptkAvJ6PcPEb2pt5lAlKlJtGE1smtjKn3i8I=
 github.com/bitcoinschema/go-bob v0.1.9 h1:CqmtSFeO6vIth9jIK2S1KTOIZA1/V4KT5+FRl4Aq02k=
@@ -602,7 +601,6 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
 github.com/miekg/dns v1.1.43/go.mod h1:+evo5L0630/F6ca/Z9+GAqzhjGyn8/c+TBaOyfEl0V4=
-github.com/miekg/dns v1.1.46/go.mod h1:e3IlAVfNqAllflbibAZEWOXOQ+Ynzk/dDozDxY7XnME=
 github.com/miekg/dns v1.1.47 h1:J9bWiXbqMbnZPcY8Qi2E3EWIBsIm6MZzzJB9VRg5gL8=
 github.com/miekg/dns v1.1.47/go.mod h1:e3IlAVfNqAllflbibAZEWOXOQ+Ynzk/dDozDxY7XnME=
 github.com/minio/highwayhash v1.0.1/go.mod h1:BQskDq+xkJ12lmlUUi7U0M5Swg3EWR+dLTk+kldvVxY=
@@ -844,8 +842,8 @@ github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhso
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tonicpow/go-minercraft v0.7.1 h1:9ZOmu7tarFzcurCWvMsdnKhvINnL6fL0SROqGR6SQCY=
 github.com/tonicpow/go-minercraft v0.7.1/go.mod h1:62d6GDzX84IeRN+86wxUaNYLfn+fvTXZP8VwB7nO634=
-github.com/tonicpow/go-paymail v0.7.2 h1:WUlC0K1SgPZxMOdexpu4sIiaPkN5fRomvrSBwghlEIE=
-github.com/tonicpow/go-paymail v0.7.2/go.mod h1:tRDJ1sTixonGoxJc19KpBoaLX6KYAAjZyfgb13YR+RE=
+github.com/tonicpow/go-paymail v0.7.3 h1:HaPEqj4BoNsJ7dzttk4gJTC2SQG2aAxN9uP4wsfvkPA=
+github.com/tonicpow/go-paymail v0.7.3/go.mod h1:vQYHOSSWo/D1bVPoTRw3TF3q8xri9rN8prGEhMUF4E0=
 github.com/tryvium-travels/memongo v0.4.0 h1:eJtDxLbjzsAdXA6XWaCUZClWRAXZ72j6jb3mKY+ZTSk=
 github.com/tryvium-travels/memongo v0.4.0/go.mod h1:TKLvXhrZIqe1meEsWofcM6EmWawRdhFRGazUhiYsaUM=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
@@ -958,7 +956,6 @@ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5y
 golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
 golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
-golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.0.0-20220214200702-86341886e292/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064 h1:S25/rfnfsMVgORT4/J61MJ7rdyseOZOyvLIrZEZ7s6s=

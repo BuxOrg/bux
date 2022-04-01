@@ -33,7 +33,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/tidwall/gjson v1.14.0
 	github.com/tonicpow/go-minercraft v0.7.1
-	github.com/tonicpow/go-paymail v0.7.2
+	github.com/tonicpow/go-paymail v0.7.3
 	github.com/tryvium-travels/memongo v0.4.0
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.8.4

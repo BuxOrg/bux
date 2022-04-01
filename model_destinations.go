@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 )
@@ -245,4 +246,18 @@ func (m *Destination) setAddress(rawXpubKey string) error {
 // Migrate model specific migration on startup
 func (m *Destination) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableDestinations), metadataField)
+}
+
+// AfterCreated will fire after the model is created in the Datastore
+func (m *Destination) AfterCreated(ctx context.Context) error {
+
+	n := m.client.Notifications()
+	if n != nil {
+		err := n.Notify(ctx, notifications.EventTypeDestinationCreate, m, m.ID)
+		if err != nil {
+			m.Client().Logger().Error(context.Background(), "failed notifying about new destination: "+err.Error())
+		}
+	}
+
+	return nil
 }

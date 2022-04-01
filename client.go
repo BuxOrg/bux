@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/logger"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -72,6 +73,12 @@ type (
 		enabled bool                  // If NewRelic is enabled for deep Transaction tracing
 	}
 
+	// notificationsOptions holds the configuration for notifications
+	notificationsOptions struct {
+		client          notifications.ClientInterface
+		webhookEndpoint string
+	}
+
 	// paymailOptions holds the configuration for Paymail
 	paymailOptions struct {
 		client       paymail.ClientInterface // Paymail client for communicating with Paymail providers
@@ -134,9 +141,13 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Load the Paymail client (outgoing requests)
-	// (if a custom client does not exist)
-	if err = client.loadPaymailClient(); err != nil {
+	// Load the Paymail client (if client does not exist)
+	if err := client.loadPaymailClient(); err != nil {
+		return nil, err
+	}
+
+	// Load the Paymail client (if client does not exist)
+	if err := client.loadNotificationClient(); err != nil {
 		return nil, err
 	}
 
@@ -383,6 +394,14 @@ func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
 
 	// register all tasks again (safely override)
 	return c.registerAllTasks()
+}
+
+// Notifications will return the Notifications if it exists
+func (c *Client) Notifications() notifications.ClientInterface {
+	if c.options.notifications != nil && c.options.notifications.client != nil {
+		return c.options.notifications.client
+	}
+	return nil
 }
 
 // Taskmanager will return the Taskmanager if it exists

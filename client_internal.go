@@ -6,6 +6,7 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
@@ -49,6 +50,17 @@ func (c *Client) loadDatastore(ctx context.Context) (err error) {
 	c.options.dataStore.ClientInterface, err = datastore.NewClient(
 		ctx, c.options.dataStore.options...,
 	)
+	return
+}
+
+// loadNotificationClient will load the notifications client
+func (c *Client) loadNotificationClient() (err error) {
+	// Only load if it's not set (the client can be overloaded)
+	if c.options.notifications.client == nil {
+		c.options.notifications.client, err = notifications.NewClient(
+			notifications.WithNotifications(c.options.notifications.webhookEndpoint),
+		)
+	}
 	return
 }
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt/v2"
 )
@@ -477,6 +478,14 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		err := m.draftTransaction.Save(ctx)
 		if err != nil {
 			m.DebugLog("error updating draft transaction: " + err.Error())
+		}
+	}
+
+	n := m.client.Notifications()
+	if n != nil {
+		err := n.Notify(ctx, notifications.EventTypeTransactionCreate, m, m.ID)
+		if err != nil {
+			m.Client().Logger().Error(context.Background(), "failed notifying about new transaction: "+err.Error())
 		}
 	}
 

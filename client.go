@@ -405,6 +405,11 @@ func (c *Client) Notifications() notifications.ClientInterface {
 	return nil
 }
 
+// ModifyNotificationsClient will overwrite the Notifications client with the given client
+func (c *Client) ModifyNotificationsClient(client notifications.ClientInterface) {
+	c.options.notifications.client = client
+}
+
 // Taskmanager will return the Taskmanager if it exists
 func (c *Client) Taskmanager() taskmanager.ClientInterface {
 	if c.options.taskManager != nil && c.options.taskManager.ClientInterface != nil {

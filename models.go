@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/utils"
 )
 
@@ -52,6 +53,7 @@ type ModelInterface interface {
 	Name() string
 	New()
 	NotNew()
+	Notify(ctx context.Context, event notifications.EventType, model interface{}, id string)
 	RawXpub() string
 	RegisterTasks() error
 	Save(ctx context.Context) (err error)

@@ -3,6 +3,8 @@ package bux
 import (
 	"context"
 	"time"
+
+	"github.com/BuxOrg/bux/notifications"
 )
 
 // AfterDeleted will fire after a successful delete in the Datastore
@@ -141,4 +143,21 @@ func (m *Model) AfterCreated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
+}
+
+// Notify about an event on the model
+// it's a bit weird to call this on the model, with the model and id as parameters, but this seems to be the
+// easiest way to refactor away from the models themselves, with all the needed variables available.
+// We cannot access client.Notifications() on the model, so need the m *Model
+// We cannot access ID on the model and need id, mainly for error handling and reporting what went wrong :-/
+func (m *Model) Notify(ctx context.Context, event notifications.EventType, model interface{}, id string) {
+	// run the notifications in a separate goroutine since there could be significant network delay
+	// communicating with a notification provider
+	go func() {
+		if n := m.client.Notifications(); n != nil {
+			if err := n.Notify(ctx, event, model, id); err != nil {
+				m.Client().Logger().Error(context.Background(), "failed notifying about "+string(event)+" on "+id+": "+err.Error())
+			}
+		}
+	}()
 }

@@ -53,7 +53,7 @@ type ModelInterface interface {
 	Name() string
 	New()
 	NotNew()
-	Notify(ctx context.Context, event notifications.EventType, model interface{}, id string)
+	Notify(event notifications.EventType, model interface{}, id string)
 	RawXpub() string
 	RegisterTasks() error
 	Save(ctx context.Context) (err error)

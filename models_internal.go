@@ -150,11 +150,12 @@ func (m *Model) AfterCreated(_ context.Context) error {
 // easiest way to refactor away from the models themselves, with all the needed variables available.
 // We cannot access client.Notifications() on the model, so need the m *Model
 // We cannot access ID on the model and need id, mainly for error handling and reporting what went wrong :-/
-func (m *Model) Notify(ctx context.Context, event notifications.EventType, model interface{}, id string) {
+func (m *Model) Notify(event notifications.EventType, model interface{}, id string) {
 	// run the notifications in a separate goroutine since there could be significant network delay
 	// communicating with a notification provider
 	go func() {
 		if n := m.client.Notifications(); n != nil {
+			ctx := context.Background()
 			if err := n.Notify(ctx, event, model, id); err != nil {
 				m.Client().Logger().Error(context.Background(), "failed notifying about "+string(event)+" on "+id+": "+err.Error())
 			}

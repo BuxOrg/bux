@@ -251,7 +251,7 @@ func (m *Destination) Migrate(client datastore.ClientInterface) error {
 // AfterCreated will fire after the model is created in the Datastore
 func (m *Destination) AfterCreated(ctx context.Context) error {
 
-	m.Notify(ctx, notifications.EventTypeDestinationCreate, m, m.ID)
+	m.Notify(notifications.EventTypeDestinationCreate, m, m.ID)
 
 	return nil
 }

@@ -44,7 +44,7 @@ func DerivePublicKey(hdKey *bip32.ExtendedKey, chain uint32, num uint32) (*bec.P
 func ValidateXPub(rawKey string) (*bip32.ExtendedKey, error) {
 
 	// Validate the xpub (length)
-	if len(rawKey) != xPubKeyLength {
+	if len(rawKey) != XpubKeyLength {
 		return nil, ErrXpubInvalidLength
 	}
 

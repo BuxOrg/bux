@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	xPubKeyLength = 111
+	// XpubKeyLength is the length of an xPub string key
+	XpubKeyLength = 111
 
 	// ChainInternal internal chain num
 	ChainInternal = uint32(1)

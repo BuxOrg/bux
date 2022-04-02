@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,12 +19,13 @@ const (
 	// testAccessKey         = "9b2a4421edd88782a193ea8195cce1fe9b632df575c88d70f20a1fdf6835b764"
 	// testAccessKeyAddress  = "1HuoHijPa7BqQNiV953pd3taqnmyhgDXFt"
 	// testAccessKeyID       = "b7b91e8aca22b4ee33f3f0e48c00cd4631dc2dbba1f773829883eaae42fa2234"
-	testAccessKeyPKH = "b97e4834a13d188ab0588dc2aaff11a6658771cd"
 	// testAccessKeyPublic   = "02719a5e3623bee13f8116f1db4ee54603c993e020087960f31d2e0b4cbd97d175"
 	// testSignatureAuthNonce = `dec0535f13b7ed61c2b188b7fe8fd5f578d6931aa90b6063c653ce0f8eefacf1`
 	// testSignatureAuthTime  = "1643828414038"
 	// testSignatureXpub     = `xpub661MyMwAqRbcFnj7dmEoX4ULYMJ2vxFBkH3oGrpuQMHTMpxUEGND1UXwskzgtUj6R7i9dRNGYj6NYuXWKVM5yAJYjSGuvBJfDTpqjsh8a3T`
+	testAccessKeyPKH      = "b97e4834a13d188ab0588dc2aaff11a6658771cd"
 	testBodyContents      = `{"test_field":"test_value"}`
+	testEncryption        = "35dbe09a941a90a5f59e57020face68860d7b284b7b2973a58de8b4242ec5a925a40ac2933b7e45e78a0b3a13123520e46f9566815589ba2d345577dadee0d5e"
 	testSignature         = `HxNguR72c6BV7tKNn5BQ3/mS2+RX3BGyQHFfVfQ3v4mVdAuh+w32QsFYxsB13KiXuRJ7ZnN7C8RhkAtLi/qvH88=`
 	testSignatureAuthHash = `5858adf09a0cc01f6d3a4d377f010408313031bb96b40d98e6edccf18c26464e`
 	testXpub              = "xpub661MyMwAqRbcH3WGvLjupmr43L1GVH3MP2WQWvdreDraBeFJy64Xxv4LLX9ZVWWz3ZjZkMuZtSsc9qH9JZR74bR4PWkmtEvP423r6DJR8kA"
@@ -287,7 +289,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		defer deferMe()
 
 		var authData *AuthPayload
-		//AuthAccessKey
+		// AuthAccessKey
 		authData, err = createSignatureAccessKey(testAccessKeyPKH, `{}`)
 		require.NoError(t, err)
 		require.NotNil(t, authData)
@@ -314,7 +316,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		var authData *AuthPayload
-		//AuthAccessKey
+		// AuthAccessKey
 		authData, err = createSignatureAccessKey(accessKey.Key, `{}`)
 		require.NoError(t, err)
 		require.NotNil(t, authData)
@@ -343,7 +345,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		var authData *AuthPayload
-		//AuthAccessKey
+		// AuthAccessKey
 		authData, err = createSignatureAccessKey(accessKey.Key, `{}`)
 		require.NoError(t, err)
 		require.NotNil(t, authData)
@@ -488,7 +490,7 @@ func Test_createSignature(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, authData)
 
-		assert.Equal(t, 111, len(authData.xPub))
+		assert.Equal(t, utils.XpubKeyLength, len(authData.xPub))
 		assert.Equal(t, 64, len(authData.AuthHash))
 		assert.Equal(t, 64, len(authData.AuthNonce))
 		assert.Greater(t, authData.AuthTime, time.Now().Add(-1*time.Second).UnixMilli())
@@ -519,7 +521,7 @@ func Test_createSignature(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, authData)
 
-		assert.Equal(t, 111, len(authData.xPub))
+		assert.Equal(t, utils.XpubKeyLength, len(authData.xPub))
 		assert.Equal(t, 64, len(authData.AuthHash))
 		assert.Equal(t, 64, len(authData.AuthNonce))
 		assert.Greater(t, authData.AuthTime, time.Now().Add(-1*time.Second).UnixMilli())

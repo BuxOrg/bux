@@ -14,7 +14,13 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address string,
 	ctx = c.GetOrStartTxn(ctx, "new_paymail_address")
 
 	// Start the new paymail address model
-	paymailAddress := newPaymail(address, append(opts, c.DefaultModelOptions(New(), WithXPub(xPubKey))...)...)
+	paymailAddress := newPaymail(
+		address,
+		append(opts, c.DefaultModelOptions(
+			New(),
+			WithXPub(xPubKey),
+		)...)...,
+	)
 
 	// Save the model
 	if err := paymailAddress.Save(ctx); err != nil {

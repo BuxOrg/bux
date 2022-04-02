@@ -25,10 +25,11 @@ type Model struct {
 	DeletedAt utils.NullTime `json:"deleted_at" toml:"deleted_at" yaml:"deleted_at" gorm:"index;comment:The time the record was marked as deleted" bson:"deleted_at,omitempty"`
 
 	// Private fields
-	client     ClientInterface // Interface of the parent Client that loaded this bux model
-	name       ModelName       // Name of model (table name)
-	newRecord  bool            // Determine if the record is new (create vs update)
-	rawXpubKey string          // Used on "CREATE" on some instances
+	client        ClientInterface // Interface of the parent Client that loaded this bux model
+	encryptionKey string          // Use for sensitive values that required encryption
+	name          ModelName       // Name of model (table name)
+	newRecord     bool            // Determine if the record is new (create vs update)
+	rawXpubKey    string          // Used on "CREATE" on some instances
 }
 
 // ModelInterface is the interface that all models share

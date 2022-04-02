@@ -29,6 +29,15 @@ func WithXPub(rawXpubKey string) ModelOps {
 	}
 }
 
+// WithEncryptionKey will set the encryption key on the model (if needed)
+func WithEncryptionKey(encryptionKey string) ModelOps {
+	return func(m *Model) {
+		if len(encryptionKey) > 0 {
+			m.encryptionKey = encryptionKey
+		}
+	}
+}
+
 // WithMetadata will add the metadata record to the model
 func WithMetadata(key string, value interface{}) ModelOps {
 	return func(m *Model) {

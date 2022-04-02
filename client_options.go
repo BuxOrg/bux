@@ -140,6 +140,9 @@ func (c *Client) DefaultModelOptions(opts ...ModelOps) []ModelOps {
 	// Set the Client from the bux.Client onto the model
 	opts = append(opts, WithClient(c))
 
+	// Set the encryption key (if found)
+	opts = append(opts, WithEncryptionKey(c.options.encryptionKey))
+
 	// Return the new options
 	return opts
 }
@@ -204,6 +207,15 @@ func WithDebugging() ClientOps {
 		}
 		if c.taskManager != nil {
 			c.taskManager.options = append(c.taskManager.options, taskmanager.WithDebugging())
+		}
+	}
+}
+
+// WithEncryption will set the encryption key and encrypt values using this key
+func WithEncryption(key string) ClientOps {
+	return func(c *clientOptions) {
+		if len(key) > 0 {
+			c.encryptionKey = key
 		}
 	}
 }

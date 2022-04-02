@@ -21,12 +21,12 @@ type PaymailAddress struct {
 	Model `bson:",inline"`
 
 	// Model specific fields
-	ID              string `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the unique paymail record id" bson:"_id"`                                                         // Unique identifier
-	Alias           string `json:"alias" toml:"alias" yaml:"alias" gorm:"<-;type:varchar(64);comment:This is alias@" bson:"alias"`                                                                                   // Alias part of the paymail
-	Domain          string `json:"domain" toml:"domain" yaml:"domain" gorm:"<-;type:varchar(255);comment:This is @domain.com" bson:"domain"`                                                                         // Domain of the paymail
-	Username        string `json:"username" toml:"username" yaml:"username" gorm:"<-;type:varchar(255);uniqueIndex;comment:This is username" bson:"username"`                                                        // Full username
-	Avatar          string `json:"avatar" toml:"avatar" yaml:"avatar" gorm:"<-;type:text;comment:This is avatar url" bson:"avatar"`                                                                                  // This is the url of the user (public profile)
-	ExternalXpubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(111);index;comment:This is full xPub for external use" bson:"external_xpub_key"` // PublicKey hex encoded
+	ID              string `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the unique paymail record id" bson:"_id"`                                                                              // Unique identifier
+	Alias           string `json:"alias" toml:"alias" yaml:"alias" gorm:"<-;type:varchar(64);comment:This is alias@" bson:"alias"`                                                                                                        // Alias part of the paymail
+	Domain          string `json:"domain" toml:"domain" yaml:"domain" gorm:"<-;type:varchar(255);comment:This is @domain.com" bson:"domain"`                                                                                              // Domain of the paymail
+	Username        string `json:"username" toml:"username" yaml:"username" gorm:"<-;type:varchar(255);uniqueIndex;comment:This is username" bson:"username"`                                                                             // Full username
+	Avatar          string `json:"avatar" toml:"avatar" yaml:"avatar" gorm:"<-;type:text;comment:This is avatar url" bson:"avatar"`                                                                                                       // This is the url of the user (public profile)
+	ExternalXpubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(512);index;comment:This is full xPub for external use, encryption optional" bson:"external_xpub_key"` // PublicKey hex encoded
 	NextIdentityNum uint32 `json:"next_identity_num" toml:"next_identity_num" yaml:"next_identity_num" gorm:"<-;type:int;comment:The next index number for the identity xPub derivation" bson:"next_identity_num"`
 	XpubID          string `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"` // Related xPub ID
 }
@@ -44,10 +44,9 @@ func newPaymail(paymailAddress string, opts ...ModelOps) *PaymailAddress {
 		Model:  *NewBaseModel(ModelPaymail, opts...),
 	}
 
-	// Set the xPub if detected
+	// Set the xPub information if found
 	if len(p.rawXpubKey) > 0 {
-		_ = p.setXPub(p.rawXpubKey)
-		p.XpubID = utils.Hash(p.rawXpubKey)
+		_ = p.setXPub()
 	}
 	return p
 }
@@ -95,30 +94,60 @@ func getPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailA
 	return paymailAddress, nil
 }
 
-// setXPub will set the "ExternalXPubKey" given the raw xPub
-func (m *PaymailAddress) setXPub(rawXpubKey string) error {
-	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(rawXpubKey)
+// setXPub will set the "ExternalXPubKey" given the raw xPub and xPubID
+// encrypted with the given encryption key (if a key is set)
+func (m *PaymailAddress) setXPub() error {
+
+	// Set the ID
+	m.XpubID = utils.Hash(m.rawXpubKey)
+
+	// Derive the public key from string
+	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(m.rawXpubKey)
 	if err != nil {
 		return err
 	}
 
-	paymailExternalKey, err := bitcoin.GetHDKeyChild(
+	// Get the external public key
+	var paymailExternalKey *bip32.ExtendedKey
+	if paymailExternalKey, err = bitcoin.GetHDKeyChild(
 		xPub, utils.ChainExternal,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
 
-	m.ExternalXpubKey = paymailExternalKey.String()
-	return nil
+	// Encrypt the xPub
+	if len(m.encryptionKey) > 0 {
+		m.ExternalXpubKey, err = utils.Encrypt(m.encryptionKey, paymailExternalKey.String())
+	} else {
+		m.ExternalXpubKey = paymailExternalKey.String()
+	}
+
+	return err
 }
 
 // GetIdentityXpub will get the identity related to the xPub
 func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
-	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(m.ExternalXpubKey)
+
+	// Check if the xPub was encrypted
+	var externalKey string
+	if len(m.ExternalXpubKey) != utils.XpubKeyLength {
+		var err error
+		if externalKey, err = utils.Decrypt(
+			m.encryptionKey, m.ExternalXpubKey,
+		); err != nil {
+			return nil, err
+		}
+	} else {
+		externalKey = m.ExternalXpubKey
+	}
+
+	// Get the xPub
+	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(externalKey)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get the child key
 	return bitcoin.GetHDKeyChild(
 		xPub, uint32(utils.MaxInt32),
 	)

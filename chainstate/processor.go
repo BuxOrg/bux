@@ -1,7 +1,11 @@
 package chainstate
 
 import (
-	"fmt"
+	"encoding/json"
+	"github.com/BuxOrg/bux/chainstate/filters"
+	"github.com/centrifugal/centrifuge-go"
+	"github.com/libsv/go-bt/v2"
+	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
 )
 
@@ -19,6 +23,8 @@ type MonitorProcessor interface {
 	Add(item string)
 	Test(item string) bool
 	Reload(items []string) error
+	AddFilter(filterType TransactionType)
+	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (*bt.Tx, error)
 }
 
 // Add a new item to the bloom filter
@@ -34,32 +40,33 @@ func (m *BloomProcessor) Test(item string) bool {
 // Reload the bloom filter from the DB
 func (m *BloomProcessor) Reload(items []string) error {
 	for _, item := range items {
-		fmt.Printf("Monitor: %s", item)
 		m.Add(item)
 	}
 
 	return nil
 }
 
-/*func (p *Processor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
+func (m *BloomProcessor) AddFilter(filterType TransactionType) {
+	switch filterType {
+	case Metanet:
+		m.Add(filters.MetanetScriptTemplate)
+	case PlanariaB:
+		m.Add(filters.PlanariaDTemplate)
+		m.Add(filters.PlanariaBTemplateAlternate)
+	case RareCandyFrogCartel:
+		m.Add(filters.RareCandyFrogCartelScriptTemplate)
+	}
+}
+
+func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
 	transaction := whatsonchain.TxInfo{}
 	err := json.Unmarshal(e.Data, &transaction)
 	if err != nil {
 		return nil, err
 	}
-
-	switch p.FilterType {
-	case Metanet:
-		return filters.Metanet(&transaction)
-	case PubKeyHash:
-		return filters.PubKeyHash(&transaction)
-	case PlanariaB:
-		return filters.PlanariaB(&transaction)
-	case PlanariaD:
-		return filters.PlanariaD(&transaction)
-	case RareCandyFrogCartel:
-		return filters.RareCandyFrogCartel(&transaction)
+	passes := p.Test(transaction.Hex)
+	if !passes {
+		return nil, nil
 	}
-	return nil, nil
+	return bt.NewTxFromString(transaction.Hex)
 }
-*/

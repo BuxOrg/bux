@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+
 	"github.com/centrifugal/centrifuge-go"
 )
 
@@ -36,7 +37,7 @@ func (o *MonitorOptions) checkDefaults() {
 	}
 }
 
-func newClient(wsURL string, handler *eventHandler) *centrifuge.Client {
+func newClient(wsURL string, handler whatsonchain.SocketHandler) *centrifuge.Client {
 	c := centrifuge.NewJsonClient(wsURL, centrifuge.DefaultConfig())
 
 	c.OnConnect(handler)
@@ -92,12 +93,10 @@ func (m *Monitor) GetMaxNumberOfDestinations() int {
 }
 
 // Monitor open a socket to the service provider and monitorConfig transactions
-func (m *Monitor) Monitor() error {
+func (m *Monitor) Monitor(handler MonitorHandler) error {
 
 	if m.client == nil {
-		handler := &eventHandler{
-			monitor: m,
-		}
+		handler.SetMonitor(m)
 		m.client = newClient(m.centrifugeServer, handler)
 	}
 

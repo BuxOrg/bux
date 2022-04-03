@@ -75,15 +75,15 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 
 // loadMonitor will load the Monitor
 func (c *Client) loadMonitor(ctx context.Context) (err error) {
-
 	// Load monitor if set by the user
 	monitor := c.options.chainstate.Monitor()
+	handler := NewMonitorHandler(ctx, "", c, monitor)
 	if monitor != nil {
 		err = c.loadMonitoredDestinations(ctx, monitor)
 		if err != nil {
 			return
 		}
-		err = monitor.Monitor()
+		err = monitor.Monitor(&handler)
 	}
 	return
 }

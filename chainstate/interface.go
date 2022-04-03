@@ -64,6 +64,6 @@ type MonitorService interface {
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int
 	Processor() MonitorProcessor
-	Monitor() error
+	Monitor(handler MonitorHandler) error
 	PauseMonitor() error
 }

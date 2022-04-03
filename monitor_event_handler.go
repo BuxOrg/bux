@@ -1,13 +1,27 @@
-package chainstate
+package bux
 
 import (
+	"context"
 	"fmt"
+	"github.com/BuxOrg/bux/chainstate"
 
 	"github.com/centrifugal/centrifuge-go"
 )
 
 type eventHandler struct {
-	monitor *Monitor
+	monitor   chainstate.MonitorService
+	buxClient *Client
+	xpub      string
+	ctx       context.Context
+}
+
+func NewMonitorHandler(ctx context.Context, xpubKey string, buxClient *Client, monitor chainstate.MonitorService) eventHandler {
+	return eventHandler{
+		monitor:   monitor,
+		buxClient: buxClient,
+		xpub:      xpubKey,
+		ctx:       ctx,
+	}
 }
 
 func (h *eventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.ConnectEvent) {
@@ -45,7 +59,21 @@ func (h *eventHandler) OnServerLeave(_ *centrifuge.Client, e centrifuge.ServerLe
 }
 
 func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
-	fmt.Printf("Publication from server-side channel %s: %s", e.Channel, e.Data)
+	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
+	if err != nil {
+		fmt.Printf("failed to process server event: %v", err)
+		return
+	}
+
+	if tx == nil {
+		return
+	}
+	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx.String(), "")
+	if err != nil {
+		fmt.Printf("error recording tx: %v", err)
+		return
+	}
+	return
 }
 
 func (h *eventHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.PublishEvent) {
@@ -75,4 +103,8 @@ func (h *eventHandler) OnSubscribeError(sub *centrifuge.Subscription, e centrifu
 
 func (h *eventHandler) OnUnsubscribe(sub *centrifuge.Subscription, _ centrifuge.UnsubscribeEvent) {
 	fmt.Printf("Unsubscribed from channel %s", sub.Channel())
+}
+
+func (h *eventHandler) SetMonitor(monitor *chainstate.Monitor) {
+	h.monitor = monitor
 }

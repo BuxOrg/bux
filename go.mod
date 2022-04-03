@@ -8,7 +8,6 @@ require (
 	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
-	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/centrifugal/centrifuge-go v0.8.2
 	github.com/coocood/freecache v1.2.1
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf
@@ -53,7 +52,6 @@ require (
 	github.com/bitcoinschema/go-bob v0.1.9 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
-	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/bsm/redislock v0.7.2 // indirect
 	github.com/capnm/sysinfo v0.0.0-20130621111458-5909a53897f3 // indirect
 	github.com/centrifugal/protocol v0.8.4 // indirect
@@ -111,6 +109,7 @@ require (
 	github.com/segmentio/encoding v0.3.4 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/src-d/go-oniguruma v1.1.0 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect

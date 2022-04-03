@@ -112,10 +112,6 @@ github.com/bitcoinsv/bsvlog v0.0.0-20181216181007-cb81b076bf2e h1:6f+gRvaPE/4h0g
 github.com/bitcoinsv/bsvlog v0.0.0-20181216181007-cb81b076bf2e/go.mod h1:WPrWor6cSeuGQZ15qPe+jqFmblJEFrJHYfr5cD7cmyk=
 github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 h1:hFI8rT84FCA0FFy3cFrkW5Nz4FyNKlIdCvEvvTNySKg=
 github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9/go.mod h1:p44KuNKUH5BC8uX4ONEODaHUR4+ibC8todEAOGQEJAM=
-github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=
-github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
-github.com/bits-and-blooms/bloom/v3 v3.2.0 h1:N+g3GTQ0TVbghahYyzwkQbMZR+IwIwFFC8dpIChtN0U=
-github.com/bits-and-blooms/bloom/v3 v3.2.0/go.mod h1:MC8muvBzzPOFsrcdND/A7kU7kMhkqb9KI70JlZCP+C8=
 github.com/bsm/ginkgo v1.16.4/go.mod h1:RabIZLzOCPghgHJKUqHZpqrQETA5AnF4aCSIYy5C1bk=
 github.com/bsm/gomega v1.13.0/go.mod h1:JifAceMQ4crZIWYUKrlGcmbN3bqHogVTADMD2ATsbwk=
 github.com/bsm/redislock v0.7.1/go.mod h1:TSF3xUotaocycoHjVAp535/bET+ZmvrtcyNrXc0Whm8=

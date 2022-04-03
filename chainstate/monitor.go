@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/centrifugal/centrifuge-go"
+	"github.com/mrz1836/go-whatsonchain"
 )
 
 // Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source

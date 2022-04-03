@@ -99,6 +99,13 @@ func WithMcache() ClientOps {
 	}
 }
 
+// WithFreeCache will set the cache to local memory using FreeCache
+func WithFreeCache() ClientOps {
+	return func(c *clientOptions) {
+		c.engine = FreeCache
+	}
+}
+
 // WithRistretto will set the cache to local in-memory using Ristretto
 func WithRistretto(config *ristretto.Config) ClientOps {
 	return func(c *clientOptions) {

@@ -1,6 +1,3 @@
-//go:build !race
-// +build !race
-
 package cachestore
 
 import (
@@ -61,21 +58,6 @@ func TestClient_WriteLock(t *testing.T) {
 			assert.Equal(t, "", secret)
 			assert.ErrorAs(t, err, &ErrLockExists)
 		})
-
-		/*t.Run(testCase.name+" - engine not supported", func(t *testing.T) {
-			var secret string
-			c, err := NewClient(context.Background(), testCase.opts)
-			require.NotNil(t, c)
-			require.NoError(t, err)
-
-			c.options.mCache = nil
-			c.options.engine = Empty
-
-			secret, err = c.WriteLock(context.Background(), testKey, 30)
-			assert.Equal(t, "", secret)
-			assert.Error(t, err)
-			assert.ErrorAs(t, err, &ErrEngineNotSupported)
-		})*/
 	}
 
 	// todo: add redis lock tests

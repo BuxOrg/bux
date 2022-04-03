@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/OrlovEvgeny/go-mcache"
+	"github.com/coocood/freecache"
 	"github.com/gomodule/redigo/redis"
 	"github.com/mrz1836/go-cache"
 )
@@ -31,6 +32,8 @@ func (c *Client) Set(ctx context.Context, key string, value interface{}, depende
 	// Redis
 	if c.Engine() == Redis {
 		return cache.Set(ctx, c.options.redis, key, value, dependencies...)
+	} else if c.Engine() == FreeCache {
+		return c.options.freecache.Set([]byte(key), []byte(value.(string)), 0)
 	} else if c.Engine() == Ristretto {
 		if !c.options.ristretto.Set(key, value, baseCostPerKey) {
 			return ErrFailedToSet
@@ -61,7 +64,7 @@ func (c *Client) Get(ctx context.Context, key string) (interface{}, error) {
 	if c.Engine() == Redis {
 		str, err := cache.Get(ctx, c.options.redis, key)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		return str, nil
 	} else if c.Engine() == Ristretto {
@@ -75,6 +78,14 @@ func (c *Client) Get(ctx context.Context, key string) (interface{}, error) {
 			return data, nil
 		}
 		return nil, nil
+	} else if c.Engine() == FreeCache {
+		data, err := c.options.freecache.Get([]byte(key))
+		if err != nil && errors.Is(err, freecache.ErrNotFound) { // Ignore this error
+			return nil, nil
+		} else if err != nil { // Real error getting the cache value
+			return nil, err
+		}
+		return string(data), nil
 	}
 
 	// Not found
@@ -112,6 +123,8 @@ func (c *Client) SetModel(ctx context.Context, key string, model interface{}, tt
 			ttl = mcache.TTL_FOREVER
 		}
 		return c.options.mCache.Set(key, responseBytes, ttl)
+	} else if c.Engine() == FreeCache {
+		return c.options.freecache.Set([]byte(key), responseBytes, int(ttl.Seconds()))
 	}
 
 	// Ristretto (store the bytes)
@@ -175,6 +188,16 @@ func (c *Client) GetModel(ctx context.Context, key string, model interface{}) er
 			}
 
 			return json.Unmarshal(by, &model)
+		}
+	} else if c.Engine() == FreeCache {
+		if b, err := c.options.freecache.Get([]byte(key)); err == nil {
+
+			// Sanity check to make sure there is a value to unmarshal
+			if len(b) == 0 {
+				return ErrKeyNotFound
+			}
+
+			return json.Unmarshal(b, &model)
 		}
 	}
 

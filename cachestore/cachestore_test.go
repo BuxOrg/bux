@@ -56,12 +56,13 @@ type cacheTestCase struct {
 
 // Test cases for all in-memory cachestore engines
 var cacheTestCases = []cacheTestCase{
-	{name: "[mcache] [in-memory]", engine: MCache, opts: WithMcache()},
-	{name: "[ristretto] [in-memory]", engine: Ristretto, opts: WithRistretto(DefaultRistrettoConfig())},
+	// {name: "[mcache] [in-memory]", engine: MCache, opts: WithMcache()},
+	// {name: "[ristretto] [in-memory]", engine: Ristretto, opts: WithRistretto(DefaultRistrettoConfig())},
+	{name: "[freecache] [in-memory]", engine: FreeCache, opts: WithFreeCache()},
 }
 
 func TestCachestore_Interface(t *testing.T) {
-	t.Run("mocked - valid datastore config", func(t *testing.T) {
+	t.Run("mocked - valid get/set using redis", func(t *testing.T) {
 		ctx := context.Background()
 		client, conn := newMockRedisClient(t)
 
@@ -85,7 +86,7 @@ func TestCachestore_Interface(t *testing.T) {
 		assert.Equal(t, fees, getFees)
 	})
 
-	t.Run("valid datastore config", func(t *testing.T) {
+	t.Run("valid get/set using redis", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test: redis is required")
 		}
@@ -116,7 +117,7 @@ func TestCachestore_Interface(t *testing.T) {
 }
 
 func TestCachestore_Models(t *testing.T) {
-	t.Run("valid datastore config", func(t *testing.T) {
+	t.Run("valid set/get model struct", func(t *testing.T) {
 		ctx := context.Background()
 		if testing.Short() {
 			t.Skip("skipping test: redis is required")

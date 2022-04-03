@@ -9,6 +9,7 @@ require (
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
 	github.com/centrifugal/centrifuge-go v0.8.2
+	github.com/coocood/freecache v1.2.1
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf
 	github.com/fergusstrange/embedded-postgres v1.15.0

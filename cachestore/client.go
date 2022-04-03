@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/OrlovEvgeny/go-mcache"
+	"github.com/coocood/freecache"
 	"github.com/dgraph-io/ristretto"
 	"github.com/mrz1836/go-cache"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -20,6 +21,7 @@ type (
 	clientOptions struct {
 		debug           bool                // For extra logs and additional debug information
 		engine          Engine              // Cachestore engine (redis or mcache)
+		freecache       *freecache.Cache    // Driver (client) for local in-memory storage
 		mCache          *mcache.CacheDriver // Driver (client) for local in-memory storage
 		newRelicEnabled bool                // If NewRelic is enabled (parent application)
 		redis           *cache.Client       // Current redis client (read & write)
@@ -74,6 +76,12 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 				return nil, err
 			}
 		}
+	} else if client.Engine() == FreeCache {
+
+		// Only if we don't already have an existing client
+		if client.options.freecache == nil {
+			client.options.freecache = loadFreeCache()
+		}
 	}
 
 	// Return the client
@@ -101,6 +109,11 @@ func (c *Client) Close(ctx context.Context) {
 				c.options.ristretto.Close()
 			}
 			c.options.ristretto = nil
+		} else if c.Engine() == FreeCache {
+			if c.options.freecache != nil {
+				c.options.freecache.Clear()
+			}
+			c.options.freecache = nil
 		}
 		c.options.engine = Empty
 	}
@@ -149,4 +162,9 @@ func (c *Client) Redis() *cache.Client {
 // RedisConfig will return the Redis config client if found
 func (c *Client) RedisConfig() *RedisConfig {
 	return c.options.redisConfig
+}
+
+// FreeCache will return the FreeCache client if found
+func (c *Client) FreeCache() *freecache.Cache {
+	return c.options.freecache
 }

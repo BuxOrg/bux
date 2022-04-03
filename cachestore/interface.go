@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/OrlovEvgeny/go-mcache"
+	"github.com/coocood/freecache"
 	"github.com/dgraph-io/ristretto"
 	"github.com/mrz1836/go-cache"
 )
@@ -31,6 +32,7 @@ type ClientInterface interface {
 	Close(ctx context.Context)
 	Debug(on bool)
 	Engine() Engine
+	FreeCache() *freecache.Cache
 	IsDebug() bool
 	IsNewRelicEnabled() bool
 	MCache() *mcache.CacheDriver

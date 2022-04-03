@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/tester"
-	"github.com/OrlovEvgeny/go-mcache"
-	"github.com/dgraph-io/ristretto"
+	"github.com/coocood/freecache"
 	"github.com/mrz1836/go-cache"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
@@ -193,113 +192,21 @@ func TestWithRedisConnection(t *testing.T) {
 	})
 }
 
-// TestWithMcache will test the method WithMcache()
-func TestWithMcache(t *testing.T) {
+// TestWithFreeCache will test the method WithFreeCache()
+func TestWithFreeCache(t *testing.T) {
 	t.Run("get opts", func(t *testing.T) {
-		opt := WithMcache()
+		opt := WithFreeCache()
 		assert.IsType(t, *new(ClientOps), opt)
 	})
 
 	t.Run("apply basic config", func(t *testing.T) {
 
-		opts := []ClientOps{WithDebugging(), WithMcache()}
+		opts := []ClientOps{WithDebugging(), WithFreeCache()}
 		c, err := NewClient(context.Background(), opts...)
 		require.NotNil(t, c)
 		require.NoError(t, err)
 
-		assert.Equal(t, MCache, c.Engine())
-		assert.IsType(t, &mcache.CacheDriver{}, c.MCache())
-	})
-}
-
-// TestWithRistretto will test the method WithRistretto()
-func TestWithRistretto(t *testing.T) {
-	t.Run("get opts", func(t *testing.T) {
-		opt := WithRistretto(&ristretto.Config{
-			NumCounters: 100,
-			MaxCost:     100,
-			BufferItems: 1,
-		})
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("apply basic config", func(t *testing.T) {
-
-		opts := []ClientOps{WithDebugging(), WithRistretto(&ristretto.Config{
-			NumCounters: 100,
-			MaxCost:     100,
-			BufferItems: 1,
-		})}
-		c, err := NewClient(context.Background(), opts...)
-		require.NotNil(t, c)
-		require.NoError(t, err)
-
-		assert.Equal(t, Ristretto, c.Engine())
-		assert.IsType(t, &ristretto.Cache{}, c.Ristretto())
-	})
-}
-
-// TestWithMcacheConnection will test the method WithMcacheConnection()
-func TestWithMcacheConnection(t *testing.T) {
-	t.Run("get opts", func(t *testing.T) {
-		opt := WithMcacheConnection(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("apply empty connection", func(t *testing.T) {
-		opts := []ClientOps{WithDebugging(), WithMcacheConnection(nil)}
-		c, err := NewClient(context.Background(), opts...)
-		assert.Nil(t, c)
-		assert.Error(t, err)
-	})
-
-	t.Run("apply existing external connection", func(t *testing.T) {
-		newClient := mcache.New()
-		require.NotNil(t, newClient)
-
-		opts := []ClientOps{WithDebugging(), WithMcacheConnection(newClient)}
-
-		c, err := NewClient(context.Background(), opts...)
-		require.NotNil(t, c)
-		require.NoError(t, err)
-
-		assert.Equal(t, MCache, c.Engine())
-		assert.IsType(t, &mcache.CacheDriver{}, c.MCache())
-	})
-}
-
-// TestWithRistrettoConnection will test the method WithRistrettoConnection()
-func TestWithRistrettoConnection(t *testing.T) {
-	t.Run("get opts", func(t *testing.T) {
-		opt := WithRistretto(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("apply empty connection", func(t *testing.T) {
-		opts := []ClientOps{WithDebugging(), WithRistretto(nil)}
-		c, err := NewClient(context.Background(), opts...)
-		assert.Nil(t, c)
-		assert.Error(t, err)
-	})
-
-	t.Run("apply existing external connection", func(t *testing.T) {
-		newClient, err := ristretto.NewCache(&ristretto.Config{
-			NumCounters: 100,
-			MaxCost:     1,
-			BufferItems: 10,
-		})
-		require.NotNil(t, newClient)
-		require.NoError(t, err)
-
-		opts := []ClientOps{WithDebugging(), WithRistrettoConnection(newClient)}
-
-		var c ClientInterface
-		c, err = NewClient(context.Background(), opts...)
-		require.NotNil(t, c)
-		require.NoError(t, err)
-
-		assert.Equal(t, Ristretto, c.Engine())
-		assert.IsType(t, &ristretto.Cache{}, c.Ristretto())
-		assert.Nil(t, c.RistrettoConfig())
+		assert.Equal(t, FreeCache, c.Engine())
+		assert.IsType(t, &freecache.Cache{}, c.FreeCache())
 	})
 }

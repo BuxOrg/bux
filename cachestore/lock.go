@@ -33,8 +33,6 @@ func (c *Client) WriteLock(ctx context.Context, lockKey string, ttl int64) (stri
 			ctx, c.options.redis, lockKey, secret, ttl,
 		); err != nil {
 			return "", errors.Wrap(ErrLockCreateFailed, err.Error())
-		} else if !locked {
-			return "", ErrLockExists
 		}
 	} else if c.Engine() == MCache { // Lock using MCache
 		if locked, err = writeLockMcache(
@@ -45,15 +43,17 @@ func (c *Client) WriteLock(ctx context.Context, lockKey string, ttl int64) (stri
 			return "", ErrLockExists
 		}
 	} else if c.Engine() == Ristretto { // Lock using Ristretto
-		if locked, err = writeLockRistretto(
+		if _, err = writeLockRistretto(
 			c.options.ristretto, lockKey, secret, baseCostPerKey, ttl,
 		); err != nil {
 			return "", errors.Wrap(ErrLockCreateFailed, err.Error())
-		} else if !locked {
-			return "", ErrLockExists
 		}
-	} else { // Engine is not supported
-		return "", ErrEngineNotSupported
+	} else if c.Engine() == FreeCache { // Lock using FreeCache
+		if _, err = writeLockFreeCache(
+			c.options.freecache, lockKey, secret, ttl,
+		); err != nil {
+			return "", errors.Wrap(ErrLockCreateFailed, err.Error())
+		}
 	}
 
 	return secret, nil
@@ -101,10 +101,10 @@ func (c *Client) ReleaseLock(ctx context.Context, lockKey, secret string) (bool,
 		return cache.ReleaseLock(ctx, c.options.redis, lockKey, secret)
 	} else if c.Engine() == MCache {
 		return releaseLockMcache(c.options.mCache, lockKey, secret)
-	} else if c.Engine() == Ristretto {
-		return releaseLockRistretto(c.options.ristretto, lockKey, secret)
+	} else if c.Engine() == FreeCache {
+		return releaseLockFreeCache(c.options.freecache, lockKey, secret)
 	}
 
-	// Engine is not supported
-	return false, ErrEngineNotSupported
+	// Default is Ristretto
+	return releaseLockRistretto(c.options.ristretto, lockKey, secret)
 }

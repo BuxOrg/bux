@@ -14,6 +14,7 @@ func TestEngine_String(t *testing.T) {
 		assert.Equal(t, "mcache", MCache.String())
 		assert.Equal(t, "redis", Redis.String())
 		assert.Equal(t, "ristretto", Ristretto.String())
+		assert.Equal(t, "freecache", FreeCache.String())
 	})
 }
 

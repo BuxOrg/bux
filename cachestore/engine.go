@@ -6,6 +6,7 @@ type Engine string
 // Supported engines
 const (
 	Empty     Engine = "empty"
+	FreeCache Engine = "freecache"
 	MCache    Engine = "mcache"
 	Redis     Engine = "redis"
 	Ristretto Engine = "ristretto"

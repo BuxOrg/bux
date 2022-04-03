@@ -312,51 +312,8 @@ func (c *Client) GetOrStartTxn(ctx context.Context, name string) context.Context
 // GetFeeUnit get the fee from a miner
 // todo: move into it's own Service / package
 func (c *Client) GetFeeUnit(_ context.Context, _ string) *utils.FeeUnit {
+	// todo: use a custom fee
 	return defaultFee
-	/*
-		func (c *Client) GetFeeUnit(ctx context.Context, useMiner string) *utils.FeeUnit {
-			if useMiner == "" {
-				useMiner = minercraft.MinerTaal
-			}
-			cacheKey := "draft-transaction-fee-" + useMiner
-
-			var fee *utils.FeeUnit
-			err := c.Cachestore().GetModel(ctx, cacheKey, fee)
-			if err == nil && fee != nil {
-				return fee
-			}
-
-			var client *minercraft.Client
-			if client, err = minercraft.NewClient(nil, nil, nil); err != nil {
-				log.Printf("error occurred creating minercraft client: %s", err.Error())
-				return defaultFee
-			}
-
-			miner := client.MinerByName(useMiner)
-			var response *minercraft.FeeQuoteResponse
-			if response, err = client.FeeQuote(context.Background(), miner); err != nil {
-				log.Printf("error occurred getting fee quote: %s", err.Error())
-				return defaultFee
-			}
-
-			for _, quote := range response.Quote.Fee {
-				if quote.FeeType == "standard" && quote.MiningFee.Satoshis > 0 {
-					fee = &utils.FeeUnit{
-						Satoshis: quote.MiningFee.Satoshis,
-						Bytes:    quote.MiningFee.Bytes,
-					}
-					break
-				}
-			}
-
-			err = c.Cachestore().SetModel(ctx, cacheKey, fee)
-			if err != nil {
-				log.Printf("error occurred caching fee quote: %s", err.Error())
-			}
-
-			return fee
-		}
-	*/
 }
 
 // GetTaskPeriod will return the period for a given task name

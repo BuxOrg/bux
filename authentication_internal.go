@@ -53,10 +53,13 @@ type ParamRequestKey string
 const (
 	// ParamXPubKey the request parameter for the xpub string
 	ParamXPubKey ParamRequestKey = "xpub"
+
 	// ParamXPubHashKey the request parameter for the xpub ID
 	ParamXPubHashKey ParamRequestKey = "xpub_hash"
+
 	// ParamAdminRequest the request parameter whether this is an admin request
 	ParamAdminRequest ParamRequestKey = "auth_admin"
+
 	// ParamAuthSigned the request parameter that says whether the request was signed
 	ParamAuthSigned ParamRequestKey = "auth_signed"
 )
@@ -77,22 +80,23 @@ func createSignature(xPriv *bip32.ExtendedKey, bodyString string) (payload *Auth
 
 	// Get the xPub
 	payload = new(AuthPayload)
-	payload.xPub, err = bitcoin.GetExtendedPublicKey(xPriv)
-	if err != nil { // Should never error if key is correct
+	if payload.xPub, err = bitcoin.GetExtendedPublicKey(
+		xPriv,
+	); err != nil { // Should never error if key is correct
 		return
 	}
 
 	// auth_nonce is a random unique string to seed the signing message
 	// this can be checked server side to make sure the request is not being replayed
-	payload.AuthNonce, err = utils.RandomHex(32)
-	if err != nil { // Should never error if key is correct
+	if payload.AuthNonce, err = utils.RandomHex(32); err != nil { // Should never error if key is correct
 		return
 	}
 
 	// Derive the address for signing
 	var key *bip32.ExtendedKey
-	key, err = utils.DeriveChildKeyFromHex(xPriv, payload.AuthNonce)
-	if err != nil {
+	if key, err = utils.DeriveChildKeyFromHex(
+		xPriv, payload.AuthNonce,
+	); err != nil {
 		return
 	}
 
@@ -114,8 +118,9 @@ func createSignatureAccessKey(privateKeyHex, bodyString string) (payload *AuthPa
 	}
 
 	var privateKey *bec.PrivateKey
-	privateKey, err = bitcoin.PrivateKeyFromString(privateKeyHex)
-	if err != nil {
+	if privateKey, err = bitcoin.PrivateKeyFromString(
+		privateKeyHex,
+	); err != nil {
 		return
 	}
 	publicKey := privateKey.PubKey()
@@ -134,6 +139,7 @@ func createSignatureAccessKey(privateKeyHex, bodyString string) (payload *AuthPa
 	return createSignatureCommon(payload, bodyString, privateKey)
 }
 
+// createSignatureCommon will create a signature
 func createSignatureCommon(payload *AuthPayload, bodyString string, privateKey *bec.PrivateKey) (*AuthPayload, error) {
 
 	// Create the auth header hash
@@ -148,13 +154,12 @@ func createSignatureCommon(payload *AuthPayload, bodyString string, privateKey *
 	}
 
 	// Signature, using bitcoin signMessage
-	hexKey := hex.EncodeToString(privateKey.Serialise())
-	message := getSigningMessage(key, payload)
 	var err error
-	payload.Signature, err = bitcoin.SignMessage(
-		hexKey, message, true,
-	)
-	if err != nil {
+	if payload.Signature, err = bitcoin.SignMessage(
+		hex.EncodeToString(privateKey.Serialise()),
+		getSigningMessage(key, payload),
+		true,
+	); err != nil {
 		return nil, err
 	}
 

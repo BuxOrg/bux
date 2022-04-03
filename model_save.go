@@ -106,7 +106,7 @@ func saveToCache(ctx context.Context, key string, model ModelInterface, ttl time
 	// NOTE: this check is in place in-case a model does not load it's Parent Client
 	if model.Client() != nil {
 		c := model.Client().Cachestore()
-		if c != nil {
+		if c != nil && !c.Engine().IsEmpty() {
 			return c.SetModel(ctx, key, model, ttl)
 		}
 	}

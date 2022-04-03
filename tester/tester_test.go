@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	// testDatabasePort1    = 23902
+	testDatabasePort1    = 23902
 	testDatabaseHost     = "localhost"
 	testDatabaseName     = "test"
 	testDatabasePassword = "tester-pw"

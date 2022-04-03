@@ -56,7 +56,11 @@ func CreatePostgresServer(port uint32) (*embeddedPostgres.EmbeddedPostgres, erro
 // CreateMongoServer will create a new mongo server
 func CreateMongoServer(version string) (*memongo.Server, error) {
 	mongoServer, err := memongo.StartWithOptions(
-		&memongo.Options{MongoVersion: version, ShouldUseReplica: true, DownloadURL: os.Getenv("BUX_MONGODB_DOWNLOAD_URL")},
+		&memongo.Options{
+			MongoVersion:     version,
+			ShouldUseReplica: false,
+			DownloadURL:      os.Getenv("BUX_MONGODB_DOWNLOAD_URL"),
+		},
 	)
 	if err != nil {
 		return nil, err

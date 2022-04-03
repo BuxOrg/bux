@@ -3,9 +3,7 @@ package cachestore
 import (
 	"context"
 
-	"github.com/OrlovEvgeny/go-mcache"
 	"github.com/coocood/freecache"
-	"github.com/dgraph-io/ristretto"
 	"github.com/mrz1836/go-cache"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
@@ -19,15 +17,12 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		debug           bool                // For extra logs and additional debug information
-		engine          Engine              // Cachestore engine (redis or mcache)
-		freecache       *freecache.Cache    // Driver (client) for local in-memory storage
-		mCache          *mcache.CacheDriver // Driver (client) for local in-memory storage
-		newRelicEnabled bool                // If NewRelic is enabled (parent application)
-		redis           *cache.Client       // Current redis client (read & write)
-		redisConfig     *RedisConfig        // Configuration for a new redis client
-		ristretto       *ristretto.Cache    // Driver (client) for local in-memory storage
-		ristrettoConfig *ristretto.Config   // Configuration for a new ristretto client
+		debug           bool             // For extra logs and additional debug information
+		engine          Engine           // Cachestore engine (redis or mcache)
+		freecache       *freecache.Cache // Driver (client) for local in-memory storage
+		newRelicEnabled bool             // If NewRelic is enabled (parent application)
+		redis           *cache.Client    // Current redis client (read & write)
+		redisConfig     *RedisConfig     // Configuration for a new redis client
 	}
 )
 
@@ -65,22 +60,11 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 				return nil, err
 			}
 		}
-	} else if client.Engine() == Ristretto {
-
-		// Only if we don't already have an existing client
-		if client.options.ristretto == nil {
-			var err error
-			if client.options.ristretto, err = loadRistrettoClient(
-				ctx, client.options.ristrettoConfig, client.options.newRelicEnabled,
-			); err != nil {
-				return nil, err
-			}
-		}
 	} else if client.Engine() == FreeCache {
 
 		// Only if we don't already have an existing client
 		if client.options.freecache == nil {
-			client.options.freecache = loadFreeCache()
+			client.options.freecache = loadFreeCache(DefaultCacheSize, DefaultGCPercent)
 		}
 	}
 
@@ -99,16 +83,6 @@ func (c *Client) Close(ctx context.Context) {
 				c.options.redis.Close()
 			}
 			c.options.redis = nil
-		} else if c.Engine() == MCache {
-			if c.options.mCache != nil {
-				c.options.mCache.Close()
-			}
-			c.options.mCache = nil
-		} else if c.Engine() == Ristretto {
-			if c.options.ristretto != nil {
-				c.options.ristretto.Close()
-			}
-			c.options.ristretto = nil
 		} else if c.Engine() == FreeCache {
 			if c.options.freecache != nil {
 				c.options.freecache.Clear()
@@ -139,21 +113,6 @@ func (c *Client) Engine() Engine {
 	return c.options.engine
 }
 
-// Ristretto will return the Ristretto client if found
-func (c *Client) Ristretto() *ristretto.Cache {
-	return c.options.ristretto
-}
-
-// RistrettoConfig will return the Ristretto config
-func (c *Client) RistrettoConfig() *ristretto.Config {
-	return c.options.ristrettoConfig
-}
-
-// MCache will return the mCache client if found
-func (c *Client) MCache() *mcache.CacheDriver {
-	return c.options.mCache
-}
-
 // Redis will return the Redis client if found
 func (c *Client) Redis() *cache.Client {
 	return c.options.redis
@@ -167,4 +126,16 @@ func (c *Client) RedisConfig() *RedisConfig {
 // FreeCache will return the FreeCache client if found
 func (c *Client) FreeCache() *freecache.Cache {
 	return c.options.freecache
+}
+
+// EmptyCache will empty the cache entirely
+//
+// CAUTION: this will dump all the stored cache
+func (c *Client) EmptyCache(ctx context.Context) error {
+	if c.Engine() == Redis && c.options.redis != nil {
+		return cache.DestroyCache(ctx, c.options.redis)
+	} else if c.options.freecache != nil {
+		c.options.freecache.Clear()
+	}
+	return nil
 }

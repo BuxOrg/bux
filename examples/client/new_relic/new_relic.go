@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -23,7 +22,7 @@ func main() {
 	var client bux.ClientInterface
 	client, err = bux.NewClient(
 		newrelic.NewContext(context.Background(), app.StartTransaction("test-txn")),            // Set context
-		bux.WithRistretto(cachestore.DefaultRistrettoConfig()),                                 // Cache
+		bux.WithFreeCache(),                                                                    // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithNewRelic(app),                                                                  // New relic application (from your own application or server)
 	)

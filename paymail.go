@@ -10,13 +10,13 @@ import (
 )
 
 // getCapabilities is a utility function to retrieve capabilities for a Paymail provider
-func getCapabilities(ctx context.Context, cache cachestore.ClientInterface, client paymail.ClientInterface,
+func getCapabilities(ctx context.Context, cs cachestore.ClientInterface, client paymail.ClientInterface,
 	domain string) (*paymail.CapabilitiesPayload, error) {
 
 	// Attempt to get from cachestore
 	// todo: allow user to configure the time that they want to cache the capabilities (if they want to cache or not)
 	capabilities := new(paymail.CapabilitiesPayload)
-	if err := cache.GetModel(
+	if err := cs.GetModel(
 		ctx, cacheKeyCapabilities+domain, capabilities,
 	); err != nil && !errors.Is(err, cachestore.ErrKeyNotFound) {
 		return nil, err
@@ -41,10 +41,13 @@ func getCapabilities(ctx context.Context, cache cachestore.ClientInterface, clie
 	}
 
 	// Save to cachestore
-	if cache != nil {
-		go func(cache cachestore.ClientInterface, key string, model *paymail.CapabilitiesPayload) {
-			_ = cache.SetModel(ctx, key, model, cacheTTLCapabilities)
-		}(cache, cacheKeyCapabilities+domain, &response.CapabilitiesPayload)
+	if cs != nil {
+		go func() {
+			_ = cs.SetModel(
+				context.Background(), cacheKeyCapabilities+domain,
+				&response.CapabilitiesPayload, cacheTTLCapabilities,
+			)
+		}()
 	}
 
 	return &response.CapabilitiesPayload, nil
@@ -64,13 +67,13 @@ func hasP2P(capabilities *paymail.CapabilitiesPayload) (success bool, p2pDestina
 // resolvePaymailAddress is an old way to resolve a Paymail address (if P2P is not supported)
 //
 // Deprecated: this is already deprecated by TSC, use P2P or the new P4
-func resolvePaymailAddress(ctx context.Context, cache cachestore.ClientInterface, client paymail.ClientInterface,
+func resolvePaymailAddress(ctx context.Context, cs cachestore.ClientInterface, client paymail.ClientInterface,
 	capabilities *paymail.CapabilitiesPayload, alias, domain, purpose, senderPaymail string) (*paymail.ResolutionPayload, error) {
 
 	// Attempt to get from cachestore
 	// todo: allow user to configure the time that they want to cache the address resolution (if they want to cache or not)
 	resolution := new(paymail.ResolutionPayload)
-	if err := cache.GetModel(
+	if err := cs.GetModel(
 		ctx, cacheKeyAddressResolution+alias+"-"+domain, resolution,
 	); err != nil && !errors.Is(err, cachestore.ErrKeyNotFound) {
 		return nil, err
@@ -101,10 +104,13 @@ func resolvePaymailAddress(ctx context.Context, cache cachestore.ClientInterface
 	}
 
 	// Save to cachestore
-	if cache != nil {
-		go func(cache cachestore.ClientInterface, key string, model *paymail.ResolutionPayload) {
-			_ = cache.SetModel(ctx, key, model, cacheTTLAddressResolution)
-		}(cache, cacheKeyAddressResolution+alias+"-"+domain, &response.ResolutionPayload)
+	if cs != nil {
+		go func() {
+			_ = cs.SetModel(
+				ctx, cacheKeyAddressResolution+alias+"-"+domain,
+				&response.ResolutionPayload, cacheTTLAddressResolution,
+			)
+		}()
 	}
 
 	return &response.ResolutionPayload, nil

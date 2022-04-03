@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 )
@@ -35,7 +34,7 @@ func main() {
 			TxTimeout: defaultTimeouts,
 			User:      os.Getenv("DB_USER"),
 		}),
-		bux.WithRistretto(cachestore.DefaultRistrettoConfig()),                                 // Cache
+		bux.WithFreeCache(),                                                                    // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithAutoMigrate( // All models
 			append(bux.BaseModels, &bux.PaymailAddress{

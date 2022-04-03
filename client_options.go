@@ -9,8 +9,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/OrlovEvgeny/go-mcache"
-	"github.com/dgraph-io/ristretto"
+	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cache"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -278,41 +277,20 @@ func WithCustomCachestore(cacheStore cachestore.ClientInterface) ClientOps {
 	}
 }
 
-// WithMcache will set the cache client for both Read & Write clients
-func WithMcache() ClientOps {
+// WithFreeCache will set the cache client for both Read & Write clients
+func WithFreeCache() ClientOps {
 	return func(c *clientOptions) {
-		c.cacheStore.options = append(c.cacheStore.options, cachestore.WithMcache())
+		c.cacheStore.options = append(c.cacheStore.options, cachestore.WithFreeCache())
 	}
 }
 
-// WithMcacheConnection will set the cache client to an active mcache driver connection
-func WithMcacheConnection(driver *mcache.CacheDriver) ClientOps {
-	return func(c *clientOptions) {
-		if driver != nil {
-			c.cacheStore.options = append(
-				c.cacheStore.options,
-				cachestore.WithMcacheConnection(driver),
-			)
-		}
-	}
-}
-
-// WithRistretto will set the cache client for both Read & Write clients
-func WithRistretto(config *ristretto.Config) ClientOps {
-	return func(c *clientOptions) {
-		if config != nil {
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithRistretto(config))
-		}
-	}
-}
-
-// WithRistrettoConnection will set the cache client to an active Ristretto connection
-func WithRistrettoConnection(client *ristretto.Cache) ClientOps {
+// WithFreeCacheConnection will set the cache client to an active FreeCache connection
+func WithFreeCacheConnection(client *freecache.Cache) ClientOps {
 	return func(c *clientOptions) {
 		if client != nil {
 			c.cacheStore.options = append(
 				c.cacheStore.options,
-				cachestore.WithRistrettoConnection(client),
+				cachestore.WithFreeCacheConnection(client),
 			)
 		}
 	}

@@ -13,7 +13,8 @@ import (
 func TestNewClient(t *testing.T) {
 	t.Parallel()
 
-	for _, testCase := range cacheTestCases {
+	testCases := getInMemoryTestCases(t)
+	for _, testCase := range testCases {
 		t.Run(testCase.name+" - basic client", func(t *testing.T) {
 			c, err := NewClient(context.Background(), testCase.opts)
 			assert.NotNil(t, c)
@@ -113,9 +114,9 @@ func TestNewClient(t *testing.T) {
 // TestClient_Close will test the method Close()
 func TestClient_Close(t *testing.T) {
 
-	t.Run("[mcache] - load connection and close", func(t *testing.T) {
+	t.Run("[freecache] - load connection and close", func(t *testing.T) {
 		c, err := NewClient(context.Background(),
-			WithMcache(), WithDebugging(),
+			WithFreeCache(), WithDebugging(),
 		)
 		require.NotNil(t, c)
 		require.NoError(t, err)
@@ -123,21 +124,7 @@ func TestClient_Close(t *testing.T) {
 		c.Close(context.Background())
 
 		assert.Equal(t, Empty, c.Engine())
-		assert.Nil(t, c.MCache())
-	})
-
-	t.Run("[ristretto] - load connection and close", func(t *testing.T) {
-		c, err := NewClient(context.Background(),
-			WithRistretto(DefaultRistrettoConfig()),
-			WithDebugging(),
-		)
-		require.NotNil(t, c)
-		require.NoError(t, err)
-
-		c.Close(context.Background())
-
-		assert.Equal(t, Empty, c.Engine())
-		assert.Nil(t, c.Ristretto())
+		assert.Nil(t, c.FreeCache())
 	})
 
 	t.Run("[redis] - load mocked connection and close", func(t *testing.T) {
@@ -177,8 +164,9 @@ func TestClient_Close(t *testing.T) {
 
 // TestClient_Debug will test the method Debug()
 func TestClient_Debug(t *testing.T) {
-	t.Run("[mcache] - turn debug on", func(t *testing.T) {
-		c, err := NewClient(context.Background(), WithMcache())
+
+	t.Run("[freecache] - turn debug on", func(t *testing.T) {
+		c, err := NewClient(context.Background(), WithFreeCache())
 		require.NotNil(t, c)
 		require.NoError(t, err)
 
@@ -208,8 +196,8 @@ func TestClient_Debug(t *testing.T) {
 		assert.Equal(t, true, c.IsDebug())
 	})
 
-	t.Run("[mcache] - turn debug off", func(t *testing.T) {
-		c, err := NewClient(context.Background(), WithMcache(), WithDebugging())
+	t.Run("[freecache] - turn debug off", func(t *testing.T) {
+		c, err := NewClient(context.Background(), WithFreeCache(), WithDebugging())
 		require.NotNil(t, c)
 		require.NoError(t, err)
 
@@ -223,8 +211,9 @@ func TestClient_Debug(t *testing.T) {
 
 // TestClient_IsDebug will test the method IsDebug()
 func TestClient_IsDebug(t *testing.T) {
-	t.Run("[mcache] - check debug", func(t *testing.T) {
-		c, err := NewClient(context.Background(), WithMcache())
+
+	t.Run("[freecache] - check debug", func(t *testing.T) {
+		c, err := NewClient(context.Background(), WithFreeCache())
 		require.NotNil(t, c)
 		require.NoError(t, err)
 
@@ -257,11 +246,11 @@ func TestClient_IsDebug(t *testing.T) {
 
 // TestClient_Engine will test the method Engine()
 func TestClient_Engine(t *testing.T) {
-	t.Run("[mcache] - get engine", func(t *testing.T) {
-		c, err := NewClient(context.Background(), WithMcache())
+	t.Run("[freecache] - get engine", func(t *testing.T) {
+		c, err := NewClient(context.Background(), WithFreeCache())
 		require.NotNil(t, c)
 		require.NoError(t, err)
-		assert.Equal(t, MCache, c.Engine())
+		assert.Equal(t, FreeCache, c.Engine())
 	})
 
 	t.Run("[redis] - get engine", func(t *testing.T) {

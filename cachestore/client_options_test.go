@@ -21,7 +21,6 @@ func TestDefaultClientOptions(t *testing.T) {
 		assert.Equal(t, Empty, defaults.engine)
 		assert.Equal(t, false, defaults.newRelicEnabled)
 		assert.Nil(t, defaults.redis)
-		assert.Nil(t, defaults.mCache)
 		require.NotNil(t, defaults.redisConfig)
 	})
 }
@@ -56,7 +55,7 @@ func TestWithNewRelic(t *testing.T) {
 	})
 
 	t.Run("apply opts", func(t *testing.T) {
-		opts := []ClientOps{WithNewRelic(), WithMcache()}
+		opts := []ClientOps{WithNewRelic(), WithFreeCache()}
 		c, err := NewClient(context.Background(), opts...)
 		require.NotNil(t, c)
 		require.NoError(t, err)
@@ -74,7 +73,7 @@ func TestWithDebugging(t *testing.T) {
 	})
 
 	t.Run("apply opts", func(t *testing.T) {
-		opts := []ClientOps{WithDebugging(), WithMcache()}
+		opts := []ClientOps{WithDebugging(), WithFreeCache()}
 		c, err := NewClient(context.Background(), opts...)
 		require.NotNil(t, c)
 		require.NoError(t, err)
@@ -199,7 +198,7 @@ func TestWithFreeCache(t *testing.T) {
 		assert.IsType(t, *new(ClientOps), opt)
 	})
 
-	t.Run("apply basic config", func(t *testing.T) {
+	t.Run("use the default configuration", func(t *testing.T) {
 
 		opts := []ClientOps{WithDebugging(), WithFreeCache()}
 		c, err := NewClient(context.Background(), opts...)
@@ -208,5 +207,26 @@ func TestWithFreeCache(t *testing.T) {
 
 		assert.Equal(t, FreeCache, c.Engine())
 		assert.IsType(t, &freecache.Cache{}, c.FreeCache())
+	})
+}
+
+// TestWithFreeCacheConnection will test the method WithFreeCacheConnection()
+func TestWithFreeCacheConnection(t *testing.T) {
+	t.Run("get opts", func(t *testing.T) {
+		opt := WithFreeCacheConnection(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("use an existing connection", func(t *testing.T) {
+
+		freeClient := loadFreeCache(DefaultCacheSize, DefaultGCPercent)
+
+		opts := []ClientOps{WithDebugging(), WithFreeCacheConnection(freeClient)}
+		c, err := NewClient(context.Background(), opts...)
+		require.NotNil(t, c)
+		require.NoError(t, err)
+
+		assert.Equal(t, FreeCache, c.Engine())
+		assert.Equal(t, freeClient, c.FreeCache())
 	})
 }

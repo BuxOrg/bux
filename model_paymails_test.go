@@ -40,9 +40,6 @@ func TestNewPaymail(t *testing.T) {
 		paymailExternalXPub := paymailExternalKey.String()
 		paymailIdentityXPub := paymailIdentityKey.String()
 
-		t.Log("identity", paymailIdentityXPub) // xpub6BYQwVS9y2hWuLh5y7gWKAZRrSmMy2xPPyAeHL2J1CXeExVCNbukqWYRdwXdRhjAPw3X8gzJE4uUsMCQEFMbC4Lw1QZzBwLCSWYAwzjht8n
-		t.Log("external", paymailExternalXPub) // xpub69PUyEkuD8cqyA9ekUkp3FwaeW1uyLxbwybEy3bmyD7mM6zShsJqfRCv12B43h6KiEiZgF3BFSMnYLsVZr526n37qsqVXkPKYWQ8En2xbi1
-
 		p := newPaymail(
 			paymail,
 			WithClient(client),

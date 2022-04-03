@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/BuxOrg/bux/tester"
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,4 +66,14 @@ func Test_loadRedisClient(t *testing.T) {
 		require.NoError(t, err)
 		c.Close()
 	})
+}
+
+// loadRedisInMemoryClient will load an in-memory Redis client
+func loadRedisInMemoryClient(t *testing.T) (s *miniredis.Miniredis) {
+	s = miniredis.RunT(t)
+	require.NotNil(t, s)
+	t.Cleanup(func() {
+		s.FlushAll()
+	})
+	return
 }

@@ -46,9 +46,9 @@
 #### BUX: Out-of-the-box Features:
 - xPub & UTXO State Management (state, balance, utxos, destinations)
 - Bring your own Database ([MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), [SQLite](https://www.sqlite.org), [Mongo](https://www.mongodb.com/) or [interface](datastore/interface.go) your own)
-- Caching ([Ristretto](https://github.com/dgraph-io/ristretto), [mCache](https://github.com/OrlovEvgeny/go-mcache), [Redis](https://redis.io/) or [interface](cachestore/interface.go) your own)
-- Task Management ([TaskQ](https://github.com/vmihailenco/taskq), [Machinery](https://github.com/RichardKnop/machinery) or [interface](taskmanager/interface.go) your own)
-- Transaction Syncing (queue, broadcast, push to mempool or on-chain,or [interface](chainstate/interface.go) your own)
+- Caching ([FreeCache](https://github.com/github.com/coocood/freecache), [Redis](https://redis.io/) or [interface](cachestore/interface.go) your own)
+- Task Management ([TaskQ](https://github.com/vmihailenco/taskq) or [interface](taskmanager/interface.go) your own)
+- Transaction Syncing (queue, broadcast, push to mempool or on-chain, or [interface](chainstate/interface.go) your own)
 - Future plugins using [BRFC standards](http://bsvalias.org/01-brfc-specifications.html)
 
 #### **Project Assumptions: MVP**
@@ -114,7 +114,7 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 
 - [bitcoinschema/go-bitcoin](https://github.com/bitcoinschema/go-bitcoin)
 - [bitcoinschema/go-map](https://github.com/bitcoinschema/go-map)
-- [dgraph-io/ristretto](https://github.com/dgraph-io/ristretto)
+- [coocood/freecache](https://github.com/coocood/freecache)
 - [gorm.io/gorm](https://gorm.io/gorm)
 - [libsv/go-bk](https://github.com/libsv/go-bk)
 - [libsv/go-bt](https://github.com/libsv/go-bt)

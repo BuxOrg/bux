@@ -7,9 +7,7 @@ type Engine string
 const (
 	Empty     Engine = "empty"
 	FreeCache Engine = "freecache"
-	MCache    Engine = "mcache"
 	Redis     Engine = "redis"
-	Ristretto Engine = "ristretto"
 )
 
 // String is the string version of engine

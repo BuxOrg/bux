@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
@@ -321,7 +320,8 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 		WithDebugging(),
 		WithAutoMigrate(BaseModels...),
 		WithAutoMigrate(&PaymailAddress{}),
-		WithRistretto(cachestore.DefaultRistrettoConfig()))
+		WithFreeCache(),
+	)
 	if taskManagerEnabled {
 		opts = append(opts, WithTaskQ(taskmanager.DefaultTaskQConfig(prefix+"_queue"), taskmanager.FactoryMemory))
 	} else {
@@ -353,7 +353,7 @@ func (ts *EmbeddedDBTestSuite) genericMockedDBClient(t *testing.T, database data
 		database, prefix,
 		true, true, WithDebugging(),
 		WithCustomTaskManager(&taskManagerMockBase{}),
-		WithRistretto(cachestore.DefaultRistrettoConfig()),
+		WithFreeCache(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tc)

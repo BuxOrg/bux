@@ -14,9 +14,6 @@ const (
 	// lockRetrySleepTime is in milliseconds
 	lockRetrySleepTime = 10 * time.Millisecond
 
-	// baseCostPerKey is the cost for each record
-	baseCostPerKey = 1 // todo: this can be a variable set per request (in the future)
-
 	// RedisPrefix is the prefix for URL based connections
 	RedisPrefix = "redis://"
 )

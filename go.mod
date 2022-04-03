@@ -5,12 +5,11 @@ go 1.17
 require (
 	github.com/99designs/gqlgen v0.17.2
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/OrlovEvgeny/go-mcache v0.0.0-20200121124330-1a8195b34f3a
+	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
 	github.com/centrifugal/centrifuge-go v0.8.2
 	github.com/coocood/freecache v1.2.1
-	github.com/dgraph-io/ristretto v0.1.0
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf
 	github.com/fergusstrange/embedded-postgres v1.15.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -25,7 +24,7 @@ require (
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.5
-	github.com/mrz1836/go-whatsonchain v0.10.1
+	github.com/mrz1836/go-whatsonchain v0.10.2
 	github.com/newrelic/go-agent/v3 v3.15.2
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
@@ -35,18 +34,19 @@ require (
 	github.com/tidwall/gjson v1.14.0
 	github.com/tonicpow/go-minercraft v0.7.1
 	github.com/tonicpow/go-paymail v0.7.3
-	github.com/tryvium-travels/memongo v0.4.0
+	github.com/tryvium-travels/memongo v0.5.0
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.8.4
-	gorm.io/driver/mysql v1.3.2
-	gorm.io/driver/postgres v1.3.1
+	gorm.io/driver/mysql v1.3.3
+	gorm.io/driver/postgres v1.3.3
 	gorm.io/driver/sqlite v1.3.1
-	gorm.io/gorm v1.23.3
+	gorm.io/gorm v1.23.4
 	gorm.io/plugin/dbresolver v1.1.0
 )
 
 require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
+	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/bitcoinschema/go-bob v0.1.9 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
@@ -59,7 +59,6 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dolthub/vitess v0.0.0-20211210194914-4566b1ebcad8 // indirect
-	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -122,15 +121,16 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
+	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220325170049-de3da57026de // indirect
+	golang.org/x/net v0.0.0-20220403103023-749bd193bc2b // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f // indirect
+	golang.org/x/sys v0.0.0-20220403020550-483a9cbc67c0 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/genproto v0.0.0-20220329172620-7be39ac1afc7 // indirect
+	google.golang.org/genproto v0.0.0-20220401170504-314d38edb7de // indirect
 	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

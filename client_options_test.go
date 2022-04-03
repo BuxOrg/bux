@@ -5,11 +5,8 @@ import (
 	"testing"
 
 	"github.com/BuxOrg/bux/cachestore"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
-	"github.com/OrlovEvgeny/go-mcache"
-	"github.com/dgraph-io/ristretto"
 	"github.com/go-redis/redis/v8"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
@@ -190,121 +187,6 @@ func TestWithDebugging(t *testing.T) {
 		assert.Equal(t, true, tc.Cachestore().IsDebug())
 		assert.Equal(t, true, tc.Datastore().IsDebug())
 		assert.Equal(t, true, tc.Taskmanager().IsDebug())
-	})
-}
-
-// TestWithMcache will test the method WithMcache()
-func TestWithMcache(t *testing.T) {
-	t.Parallel()
-
-	t.Run("using memory cache", func(t *testing.T) {
-		tc, err := NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithMcache(),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		cs := tc.Cachestore()
-		require.NotNil(t, cs)
-		assert.Equal(t, cachestore.MCache, cs.Engine())
-	})
-}
-
-// TestWithMcacheConnection will test the method WithMcacheConnection()
-func TestWithMcacheConnection(t *testing.T) {
-	t.Parallel()
-
-	t.Run("using a nil driver", func(t *testing.T) {
-		tc, err := NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithMcacheConnection(nil),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.Error(t, err)
-		require.Nil(t, tc)
-	})
-
-	t.Run("using an existing connection", func(t *testing.T) {
-		mem := mcache.New()
-
-		tc, err := NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithMcacheConnection(mem),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		cs := tc.Cachestore()
-		require.NotNil(t, cs)
-		assert.Equal(t, cachestore.MCache, cs.Engine())
-	})
-}
-
-// TestWithRistretto will test the method WithRistretto()
-func TestWithRistretto(t *testing.T) {
-	t.Parallel()
-
-	t.Run("empty config", func(t *testing.T) {
-		tc, err := NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithRistrettoConnection(nil),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.Error(t, err)
-		require.Nil(t, tc)
-	})
-
-	t.Run("using valid config", func(t *testing.T) {
-		tc, err := NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(false, true)...)
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		cs := tc.Cachestore()
-		require.NotNil(t, cs)
-		assert.Equal(t, cachestore.Ristretto, cs.Engine())
-	})
-}
-
-// TestWithRistrettoConnection will test the method WithRistrettoConnection()
-func TestWithRistrettoConnection(t *testing.T) {
-	t.Parallel()
-
-	t.Run("using a nil driver", func(t *testing.T) {
-		tc, err := NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithRistrettoConnection(nil),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.Error(t, err)
-		require.Nil(t, tc)
-	})
-
-	t.Run("using an existing connection", func(t *testing.T) {
-		mem, err := ristretto.NewCache(cachestore.DefaultRistrettoConfig())
-		require.NoError(t, err)
-		require.NotNil(t, mem)
-
-		var tc ClientInterface
-		tc, err = NewClient(
-			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithRistrettoConnection(mem),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		cs := tc.Cachestore()
-		require.NotNil(t, cs)
-		assert.Equal(t, cachestore.Ristretto, cs.Engine())
 	})
 }
 

@@ -25,20 +25,8 @@ var ErrLockCreateFailed = errors.New("failed creating cache lock")
 // ErrLockExists is the error when trying to create a lock fails due to an existing lock
 var ErrLockExists = errors.New("lock already exists with a different secret")
 
-// ErrEngineNotSupported is the error when the engine is not supported for the requested method
-var ErrEngineNotSupported = errors.New("engine is not supported")
-
-// ErrFailedToSet is when the key failed to set in cache, check the cost/allocated
-var ErrFailedToSet = errors.New("failed to set value in cache")
-
 // ErrTTWCannotBeEmpty is when the TTW field is empty
 var ErrTTWCannotBeEmpty = errors.New("the TTW value cannot be empty")
 
 // ErrInvalidRedisConfig is when the redis config is missing or invalid
 var ErrInvalidRedisConfig = errors.New("invalid redis config")
-
-// ErrInvalidRistrettoConfig is when the ristretto config is missing or invalid
-var ErrInvalidRistrettoConfig = errors.New("invalid ristretto config")
-
-// ErrRistrettoSetFailed is when the ristretto failed to set a key
-var ErrRistrettoSetFailed = errors.New("failed to set key in ristretto")

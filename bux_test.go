@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
@@ -66,7 +65,7 @@ func DefaultClientOpts(debug, shared bool) []ClientOps {
 	opts = append(
 		opts,
 		WithTaskQ(tqc, taskmanager.FactoryMemory),
-		WithRistretto(cachestore.DefaultRistrettoConfig()),
+		WithFreeCache(),
 		WithSQLite(tester.SQLiteTestConfig(debug, shared)),
 	)
 	if debug {

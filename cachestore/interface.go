@@ -4,9 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/OrlovEvgeny/go-mcache"
 	"github.com/coocood/freecache"
-	"github.com/dgraph-io/ristretto"
 	"github.com/mrz1836/go-cache"
 )
 
@@ -19,7 +17,8 @@ type LockService interface {
 
 // CacheService are the cache related methods
 type CacheService interface {
-	Get(ctx context.Context, key string) (interface{}, error)
+	Delete(ctx context.Context, key string) error
+	Get(ctx context.Context, key string) (string, error)
 	GetModel(ctx context.Context, key string, model interface{}) error
 	Set(ctx context.Context, key string, value interface{}, dependencies ...string) error
 	SetModel(ctx context.Context, key string, model interface{}, ttl time.Duration, dependencies ...string) error
@@ -31,13 +30,11 @@ type ClientInterface interface {
 	LockService
 	Close(ctx context.Context)
 	Debug(on bool)
+	EmptyCache(ctx context.Context) error
 	Engine() Engine
 	FreeCache() *freecache.Cache
 	IsDebug() bool
 	IsNewRelicEnabled() bool
-	MCache() *mcache.CacheDriver
 	Redis() *cache.Client
 	RedisConfig() *RedisConfig
-	Ristretto() *ristretto.Cache
-	RistrettoConfig() *ristretto.Config
 }

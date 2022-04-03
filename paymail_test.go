@@ -194,7 +194,10 @@ func Test_getCapabilities(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		// Get command
 		getCmd := redisConn.Command(cache.GetCommand, cacheKeyCapabilities+testDomain).Expect(nil)
@@ -229,7 +232,10 @@ func Test_getCapabilities(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		// Get command
 		getCmd := redisConn.Command(cache.GetCommand, cacheKeyCapabilities+testDomain).Expect(nil)
@@ -253,7 +259,10 @@ func Test_getCapabilities(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		mockValidResponse(http.StatusOK, false, testDomain)
 		var payload *paymail.CapabilitiesPayload
@@ -275,7 +284,10 @@ func Test_getCapabilities(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		mockValidResponse(http.StatusOK, false, testDomain)
 		var payload *paymail.CapabilitiesPayload
@@ -321,7 +333,10 @@ func Test_resolvePaymailAddress(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		// Get command
 		getCmd := redisConn.Command(cache.GetCommand, cacheKeyCapabilities+testDomain).Expect(nil)
@@ -364,7 +379,10 @@ func Test_resolvePaymailAddress(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		// Mock all responses
 		mockValidResponse(http.StatusOK, false, testDomain)
@@ -399,7 +417,10 @@ func Test_resolvePaymailAddress(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
+		defer func() {
+			time.Sleep(1 * time.Second)
+			CloseClient(context.Background(), t, tc)
+		}()
 
 		// Mock all responses
 		mockValidResponse(http.StatusOK, false, testDomain)

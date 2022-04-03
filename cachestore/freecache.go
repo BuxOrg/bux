@@ -8,24 +8,38 @@ import (
 	"github.com/mrz1836/go-cache"
 )
 
+const (
+
+	// DefaultCacheSize in bytes, where 1024 * 1024 represents a single Megabyte, and 100 * 1024*1024 represents 100 Megabytes.
+	DefaultCacheSize = 100 * 1024 * 1024
+
+	// DefaultGCPercent is the percentage when full it will run GC
+	DefaultGCPercent = 20
+)
+
 // loadFreeCache will load the FreeCache client
-func loadFreeCache() *freecache.Cache {
-	// In bytes, where 1024 * 1024 represents a single Megabyte, and 100 * 1024*1024 represents 100 Megabytes.
-	cacheSize := 100 * 1024 * 1024
-	c := freecache.NewCache(cacheSize)
-	debug.SetGCPercent(20)
-	return c
+//
+// This is a default cache solution for running a local single server.
+func loadFreeCache(cacheSize, percent int) (c *freecache.Cache) {
+
+	// Set the defaults for cache size
+	if cacheSize <= 0 {
+		cacheSize = DefaultCacheSize
+	}
+	c = freecache.NewCache(cacheSize)
+
+	// Set the default GC percent
+	if percent <= 0 {
+		percent = DefaultGCPercent
+	}
+	debug.SetGCPercent(percent)
+	return
 }
 
 // writeLockFreeCache will write a lock record into memory using a secret and expiration
 //
 // ttl is in seconds
 func writeLockFreeCache(freeCacheClient *freecache.Cache, lockKey, secret string, ttl int64) (bool, error) {
-
-	// Test the key and secret
-	if err := validateLockValues(lockKey, secret); err != nil {
-		return false, err
-	}
 
 	// Try to get an existing lock (if it fails, make a new lock)
 	lockKeyBytes := []byte(lockKey)
@@ -35,8 +49,6 @@ func writeLockFreeCache(freeCacheClient *freecache.Cache, lockKey, secret string
 		return true, freeCacheClient.Set(lockKeyBytes, secretBytes, int(ttl))
 	} else if err != nil {
 		return false, err
-	} else if err == nil && len(data) == 0 { // No lock found
-		return true, freeCacheClient.Set(lockKeyBytes, secretBytes, int(ttl))
 	}
 
 	// Check secret
@@ -51,11 +63,6 @@ func writeLockFreeCache(freeCacheClient *freecache.Cache, lockKey, secret string
 // releaseLockFreeCache will attempt to release a lock if it exists and matches the given secret
 func releaseLockFreeCache(freeCacheClient *freecache.Cache, lockKey, secret string) (bool, error) {
 
-	// Test the key and secret
-	if err := validateLockValues(lockKey, secret); err != nil {
-		return false, err
-	}
-
 	// Try to get an existing lock (if it fails, lock does not exist)
 	lockKeyBytes := []byte(lockKey)
 	data, err := freeCacheClient.Get(lockKeyBytes)
@@ -63,8 +70,6 @@ func releaseLockFreeCache(freeCacheClient *freecache.Cache, lockKey, secret stri
 		return true, nil
 	} else if err != nil {
 		return false, err
-	} else if err == nil && len(data) == 0 { // No lock found
-		return true, nil
 	}
 
 	// Check secret if found

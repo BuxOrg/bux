@@ -15,7 +15,6 @@ import (
 func (c *Client) WriteLock(ctx context.Context, lockKey string, ttl int64) (string, error) {
 
 	var secret string
-	var locked bool
 	var err error
 
 	// Create a secret
@@ -24,27 +23,18 @@ func (c *Client) WriteLock(ctx context.Context, lockKey string, ttl int64) (stri
 		return "", errors.Wrap(ErrSecretGenerationFailed, err.Error())
 	}
 
+	// Test the key and secret
+	if err = validateLockValues(lockKey, secret); err != nil {
+		return "", err
+	}
+
 	// Lock using Redis
 	if c.Engine() == Redis {
 		if len(lockKey) == 0 { // This happens in mCache already
 			return "", ErrKeyRequired
 		}
-		if locked, err = cache.WriteLock(
+		if _, err = cache.WriteLock(
 			ctx, c.options.redis, lockKey, secret, ttl,
-		); err != nil {
-			return "", errors.Wrap(ErrLockCreateFailed, err.Error())
-		}
-	} else if c.Engine() == MCache { // Lock using MCache
-		if locked, err = writeLockMcache(
-			c.options.mCache, lockKey, secret, ttl,
-		); err != nil {
-			return "", errors.Wrap(ErrLockCreateFailed, err.Error())
-		} else if !locked {
-			return "", ErrLockExists
-		}
-	} else if c.Engine() == Ristretto { // Lock using Ristretto
-		if _, err = writeLockRistretto(
-			c.options.ristretto, lockKey, secret, baseCostPerKey, ttl,
 		); err != nil {
 			return "", errors.Wrap(ErrLockCreateFailed, err.Error())
 		}
@@ -96,15 +86,31 @@ func (c *Client) WaitWriteLock(ctx context.Context, lockKey string, ttl, ttw int
 // ReleaseLock will release a given lock key only if the secret matches
 func (c *Client) ReleaseLock(ctx context.Context, lockKey, secret string) (bool, error) {
 
+	// Test the key and secret
+	if err := validateLockValues(lockKey, secret); err != nil {
+		return false, err
+	}
+
 	// Release the lock
 	if c.Engine() == Redis {
 		return cache.ReleaseLock(ctx, c.options.redis, lockKey, secret)
-	} else if c.Engine() == MCache {
-		return releaseLockMcache(c.options.mCache, lockKey, secret)
-	} else if c.Engine() == FreeCache {
-		return releaseLockFreeCache(c.options.freecache, lockKey, secret)
 	}
 
-	// Default is Ristretto
-	return releaseLockRistretto(c.options.ristretto, lockKey, secret)
+	// Default is FreeCache
+	return releaseLockFreeCache(c.options.freecache, lockKey, secret)
+}
+
+// validateLockValues will validate and test the lock/secret values
+func validateLockValues(lockKey, secret string) error {
+
+	// Require a key to be present
+	if len(lockKey) == 0 {
+		return ErrKeyRequired
+	}
+
+	// Require a secret to be present
+	if len(secret) == 0 {
+		return ErrSecretRequired
+	}
+	return nil
 }

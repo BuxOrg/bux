@@ -4,8 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/OrlovEvgeny/go-mcache"
-	"github.com/dgraph-io/ristretto"
+	"github.com/coocood/freecache"
 	"github.com/mrz1836/go-cache"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
@@ -23,9 +22,9 @@ func defaultClientOptions() *clientOptions {
 	return &clientOptions{
 		debug:           false,
 		engine:          Empty,
+		freecache:       nil,
 		newRelicEnabled: false,
 		redisConfig:     &RedisConfig{},
-		ristrettoConfig: &ristretto.Config{},
 	}
 }
 
@@ -91,14 +90,6 @@ func WithRedisConnection(redisClient *cache.Client) ClientOps {
 	}
 }
 
-// WithMcache will set the cache to local memory using mCache
-func WithMcache() ClientOps {
-	return func(c *clientOptions) {
-		c.mCache = mcache.New()
-		c.engine = MCache
-	}
-}
-
 // WithFreeCache will set the cache to local memory using FreeCache
 func WithFreeCache() ClientOps {
 	return func(c *clientOptions) {
@@ -106,39 +97,12 @@ func WithFreeCache() ClientOps {
 	}
 }
 
-// WithRistretto will set the cache to local in-memory using Ristretto
-func WithRistretto(config *ristretto.Config) ClientOps {
+// WithFreeCacheConnection will set the cache to use an existing FreeCache connection
+func WithFreeCacheConnection(client *freecache.Cache) ClientOps {
 	return func(c *clientOptions) {
-
-		// Don't panic if nil is passed
-		if config == nil {
-			return
-		}
-
-		// Set the config and engine
-		c.ristrettoConfig = config
-		c.engine = Ristretto
-		c.ristretto = nil // If you load via config, remove the connection
-	}
-}
-
-// WithRistrettoConnection will set an existing ristretto connection (read & write)
-func WithRistrettoConnection(ristrettoClient *ristretto.Cache) ClientOps {
-	return func(c *clientOptions) {
-		if ristrettoClient != nil {
-			c.ristretto = ristrettoClient
-			c.engine = Ristretto
-			c.ristrettoConfig = nil // If you load an existing connection, config is not needed
-		}
-	}
-}
-
-// WithMcacheConnection will set the cache to a current mCache driver connection
-func WithMcacheConnection(driver *mcache.CacheDriver) ClientOps {
-	return func(c *clientOptions) {
-		if driver != nil {
-			c.mCache = driver
-			c.engine = MCache
+		if client != nil {
+			c.engine = FreeCache
+			c.freecache = client
 		}
 	}
 }

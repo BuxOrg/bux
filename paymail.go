@@ -105,12 +105,10 @@ func resolvePaymailAddress(ctx context.Context, cs cachestore.ClientInterface, c
 
 	// Save to cachestore
 	if cs != nil && !cs.Engine().IsEmpty() {
-		go func() {
-			_ = cs.SetModel(
-				ctx, cacheKeyAddressResolution+alias+"-"+domain,
-				&response.ResolutionPayload, cacheTTLAddressResolution,
-			)
-		}()
+		_ = cs.SetModel(
+			ctx, cacheKeyAddressResolution+alias+"-"+domain,
+			&response.ResolutionPayload, cacheTTLAddressResolution,
+		)
 	}
 
 	return &response.ResolutionPayload, nil

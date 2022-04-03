@@ -10,6 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	// testDatabasePort1    = 23902
+	testDatabaseHost     = "localhost"
+	testDatabaseName     = "test"
+	testDatabasePassword = "tester-pw"
+	testDatabasePort2    = 23903
+	testDatabaseUser     = "tester"
+	testMongoVersion     = "4.2.1"
+)
+
 // TestCreateMongoServer will test the method CreateMongoServer()
 func TestCreateMongoServer(t *testing.T) {
 	t.Parallel()

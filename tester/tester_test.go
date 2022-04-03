@@ -7,15 +7,8 @@ import (
 )
 
 const (
-	testDatabasePort1    = 23902
-	testDatabaseHost     = "localhost"
-	testDatabaseName     = "test"
-	testDatabasePassword = "tester-pw"
-	testDatabasePort2    = 23903
-	testDatabaseUser     = "tester"
-	testDomain           = "domain.com"
-	testMongoVersion     = "4.2.1"
-	testRedisConnection  = "redis://localhost:6379"
+	testDomain          = "domain.com"
+	testRedisConnection = "redis://localhost:6379"
 )
 
 // TestRandomTablePrefix will test the method RandomTablePrefix()

@@ -41,7 +41,7 @@ func getCapabilities(ctx context.Context, cs cachestore.ClientInterface, client 
 	}
 
 	// Save to cachestore
-	if cs != nil {
+	if cs != nil && !cs.Engine().IsEmpty() {
 		go func() {
 			_ = cs.SetModel(
 				context.Background(), cacheKeyCapabilities+domain,
@@ -104,7 +104,7 @@ func resolvePaymailAddress(ctx context.Context, cs cachestore.ClientInterface, c
 	}
 
 	// Save to cachestore
-	if cs != nil {
+	if cs != nil && !cs.Engine().IsEmpty() {
 		go func() {
 			_ = cs.SetModel(
 				ctx, cacheKeyAddressResolution+alias+"-"+domain,

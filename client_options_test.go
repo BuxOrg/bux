@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/BuxOrg/bux/cachestore"
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
+	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
@@ -234,6 +236,58 @@ func TestWithRedis(t *testing.T) {
 		cs := tc.Cachestore()
 		require.NotNil(t, cs)
 		assert.Equal(t, cachestore.Redis, cs.Engine())
+	})
+}
+
+// TestWithFreeCache will test the method WithFreeCache()
+func TestWithFreeCache(t *testing.T) {
+	t.Parallel()
+
+	t.Run("using FreeCache", func(t *testing.T) {
+		tc, err := NewClient(
+			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
+			WithFreeCache(),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		cs := tc.Cachestore()
+		require.NotNil(t, cs)
+		assert.Equal(t, cachestore.FreeCache, cs.Engine())
+	})
+}
+
+// TestWithFreeCacheConnection will test the method WithFreeCacheConnection()
+func TestWithMcacheConnection(t *testing.T) {
+	t.Parallel()
+
+	t.Run("using a nil client", func(t *testing.T) {
+		tc, err := NewClient(
+			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
+			WithFreeCacheConnection(nil),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
+		require.Error(t, err)
+		require.Nil(t, tc)
+	})
+
+	t.Run("using an existing connection", func(t *testing.T) {
+		fc := freecache.NewCache(cachestore.DefaultCacheSize)
+
+		tc, err := NewClient(
+			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
+			WithFreeCacheConnection(fc),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		cs := tc.Cachestore()
+		require.NotNil(t, cs)
+		assert.Equal(t, cachestore.FreeCache, cs.Engine())
 	})
 }
 

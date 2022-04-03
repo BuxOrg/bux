@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/BuxOrg/bux/chainstate"
-
 	"github.com/centrifugal/centrifuge-go"
 )
 
@@ -66,6 +65,7 @@ func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.Server
 	}
 
 	if tx == nil {
+		fmt.Printf("filtered transaction...\n")
 		return
 	}
 	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx.String(), "")
@@ -73,6 +73,7 @@ func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.Server
 		fmt.Printf("error recording tx: %v", err)
 		return
 	}
+	fmt.Printf("successfully recorded tx: %v\n", tx.String())
 	return
 }
 

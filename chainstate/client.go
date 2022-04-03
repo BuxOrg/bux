@@ -24,6 +24,7 @@ type (
 		debug           bool        // For extra logs and additional debug information
 		logger          Logger      // Internal logger interface
 		newRelicEnabled bool        // If NewRelic is enabled (parent application)
+		userAgent       string      // Custom user agent for outgoing HTTP Requests
 	}
 
 	// syncConfig holds all the configuration about the different sync processes

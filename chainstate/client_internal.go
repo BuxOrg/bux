@@ -13,14 +13,18 @@ import (
 // defaultMinercraftOptions will create the defaults
 func (c *Client) defaultMinercraftOptions() (opts *minercraft.ClientOptions) {
 	opts = minercraft.DefaultClientOptions()
-	opts.UserAgent = defaultUserAgent
+	if len(c.options.userAgent) > 0 {
+		opts.UserAgent = c.options.userAgent
+	}
 	return
 }
 
 // defaultWhatsOnChainOptions will create the defaults
 func (c *Client) defaultWhatsOnChainOptions() (opts *whatsonchain.Options) {
 	opts = whatsonchain.ClientDefaultOptions()
-	opts.UserAgent = defaultUserAgent
+	if len(c.options.userAgent) > 0 {
+		opts.UserAgent = c.options.userAgent
+	}
 
 	// Set a custom API key
 	// todo: rate limit should be customizable
@@ -34,7 +38,9 @@ func (c *Client) defaultWhatsOnChainOptions() (opts *whatsonchain.Options) {
 // defaultMatterCloudOptions will create the defaults
 func (c *Client) defaultMatterCloudOptions() (opts *mattercloud.Options) {
 	opts = mattercloud.ClientDefaultOptions()
-	opts.UserAgent = defaultUserAgent
+	if len(c.options.userAgent) > 0 {
+		opts.UserAgent = c.options.userAgent
+	}
 	return
 }
 

@@ -13,7 +13,7 @@ import (
 // loadCache will load caching configuration and start the Cachestore client
 func (c *Client) loadCache(ctx context.Context) (err error) {
 
-	// Load if not set by the user
+	// Load if a custom interface was NOT provided
 	if c.options.cacheStore.ClientInterface == nil {
 		c.options.cacheStore.ClientInterface, err = cachestore.NewClient(ctx, c.options.cacheStore.options...)
 	}
@@ -23,8 +23,9 @@ func (c *Client) loadCache(ctx context.Context) (err error) {
 // loadChainstate will load chainstate configuration and start the Chainstate client
 func (c *Client) loadChainstate(ctx context.Context) (err error) {
 
-	// Load if not set by the user
+	// Load chainstate if a custom interface was NOT provided
 	if c.options.chainstate.ClientInterface == nil {
+		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithUserAgent(c.UserAgent()))
 		c.options.chainstate.ClientInterface, err = chainstate.NewClient(ctx, c.options.chainstate.options...)
 	}
 	return
@@ -62,7 +63,7 @@ func (c *Client) loadPaymailClient() (err error) {
 // loadTaskmanager will load the TaskManager and start the TaskManager client
 func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 
-	// Load if not set by the user
+	// Load if a custom interface was NOT provided
 	if c.options.taskManager.ClientInterface == nil {
 		c.options.taskManager.ClientInterface, err = taskmanager.NewClient(
 			ctx, c.options.taskManager.options...,

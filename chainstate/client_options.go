@@ -185,6 +185,15 @@ func WithQueryTimeout(timeout time.Duration) ClientOps {
 	}
 }
 
+// WithUserAgent will set the custom user agent
+func WithUserAgent(agent string) ClientOps {
+	return func(c *clientOptions) {
+		if len(agent) > 0 {
+			c.userAgent = agent
+		}
+	}
+}
+
 // WithNetwork will set the network to use
 func WithNetwork(network Network) ClientOps {
 	return func(c *clientOptions) {

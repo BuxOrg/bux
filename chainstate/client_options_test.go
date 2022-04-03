@@ -419,6 +419,34 @@ func TestWithNetwork(t *testing.T) {
 	})
 }
 
+// TestWithUserAgent will test the method WithUserAgent()
+func TestWithUserAgent(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithUserAgent("")
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying empty string", func(t *testing.T) {
+		options := &clientOptions{
+			config: &syncConfig{},
+		}
+		opt := WithUserAgent("")
+		opt(options)
+		assert.Equal(t, "", options.userAgent)
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		options := &clientOptions{
+			config: &syncConfig{},
+		}
+		opt := WithUserAgent("test agent")
+		opt(options)
+		assert.Equal(t, "test agent", options.userAgent)
+	})
+}
+
 // TestWithLogger will test the method WithLogger()
 func TestWithLogger(t *testing.T) {
 	t.Parallel()

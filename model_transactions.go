@@ -33,7 +33,7 @@ const (
 	TransactionDirectionReconcile TransactionDirection = "reconcile"
 )
 
-// Transaction is an object representing the BitCoin transaction table
+// Transaction is an object representing the BitCoin transaction
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type Transaction struct {

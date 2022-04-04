@@ -9,7 +9,7 @@ import (
 	"github.com/bitcoinschema/go-bitcoin/v2"
 )
 
-// Destination is an object representing the BitCoin destination table
+// Destination is an object representing a BitCoin destination (address, script, etc)
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type Destination struct {

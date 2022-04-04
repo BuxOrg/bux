@@ -3,72 +3,41 @@ package bux
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/libsv/go-bc"
 )
 
-// BlockHeaderBase is the same fields share between multiple transaction models
-type BlockHeaderBase struct {
-	Hash string `json:"hash" toml:"hash" yaml:"hash" gorm:"<-:create;type:text;comment:This is the raw transaction hash" bson:"hash"`
-}
-
-// BlockHeader is an object representing the BitCoin transaction table
+// BlockHeader is an object representing the BitCoin block header
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type BlockHeader struct {
 	// Base model
 	Model `bson:",inline"`
 
-	// Standard transaction model base fields
-	BlockHeaderBase `bson:",inline"`
-
 	// Model specific fields
-	Version           uint32 `json:"version" toml:"version" yaml:"version" gorm:"<-create;type:int" bson:"version,omitempty"`
-	Height            uint32 `json:"height" toml:"height" yaml:"height" gorm:"<-create;type:int" bson:"height,omitempty"`
-	Time              uint32 `json:"time" toml:"time" yaml:"time" gorm:"<-create;type:int" bson:"time,omitempty"`
-	Nonce             uint32 `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;type:int" bson:"nonce,omitempty"`
-	HashPreviousBlock string `json:"hashPreviousBlock" toml:"hashPreviousBlock" yaml:"hashPreviousBlock" gorm:"<-:create;type:text;comment:This is the raw transaction hex" bson:"hashPreviousBlock"`
-	HashMerkleRoot    string `json:"hashMerkleRoot" toml:"hashMerkleRoot" yaml:"hashMerkleRoot" gorm:"<-:create;type:text;comment:This is the raw transaction hex" bson:"hashMerkleRoot"`
+	Hash              string `json:"hash" toml:"hash" yaml:"hash" gorm:"<-:create;type:char(64);primaryKey;comment:This is the block header" bson:"hash"`
+	Height            uint32 `json:"height" toml:"height" yaml:"height" gorm:"<-create;type:int;uniqueIndex;comment:This is the block height" bson:"height,omitempty"`
+	Time              uint32 `json:"time" toml:"time" yaml:"time" gorm:"<-create;type:int;index;comment:This is the time the block was mined" bson:"time,omitempty"`
+	Nonce             uint32 `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;type:int;comment:This is the nonce" bson:"nonce,omitempty"`
+	Version           uint32 `json:"version" toml:"version" yaml:"version" gorm:"<-create;type:int;comment:This is the version" bson:"version,omitempty"`
+	HashPreviousBlock string `json:"hash_previous_block" toml:"hash_previous_block" yaml:"hash_previous_block" gorm:"<-:create;type:text;index;comment:This is the hash of the previous block" bson:"hash_previous_block"`
+	HashMerkleRoot    string `json:"hash_merkle_root" toml:"hash_merkle_root" yaml:"hash_merkle_root" gorm:"<-;type:text;index;comment:This is the hash of the merkle root" bson:"hash_merkle_root"`
 	Bits              string `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;type:text;comment:This is the block difficulty" bson:"bits"`
 }
 
-// newBlockHeaderBase creates the standard transaction model base
-func newBlockHeaderBase(hash string, opts ...ModelOps) *BlockHeader {
-	return &BlockHeader{
-		BlockHeaderBase: BlockHeaderBase{
-			Hash: hash,
-		},
+// newBlockHeader will start a new transaction model
+func newBlockHeader(hash string, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
+
+	// Create a new model
+	bh = &BlockHeader{
+		Hash:  hash,
 		Model: *NewBaseModel(ModelBlockHeader, opts...),
 	}
-}
-
-// newBlockHeader will start a new transaction model
-func newBlockHeader(hash string, bh bc.BlockHeader, opts ...ModelOps) (nbh *BlockHeader) {
-	nbh = newBlockHeaderBase(hash, opts...)
 
 	// Set header info
-	nbh.setHeaderInfo(bh)
-
+	bh.setHeaderInfo(blockHeader)
 	return
-}
-
-// getBlockHeaderByID will get the model from a given transaction ID
-func getBlockHeaderByID(ctx context.Context, hash string, opts ...ModelOps) (*BlockHeader, error) {
-	// Construct an empty tx
-	bh := newBlockHeader(hash, bc.BlockHeader{}, opts...)
-	bh.Hash = hash
-
-	// Get the record
-	if err := Get(ctx, bh, nil, false, defaultDatabaseReadTimeout); err != nil {
-		if errors.Is(err, datastore.ErrNoResults) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return bh, nil
 }
 
 // GetModelName will get the name of the current model
@@ -92,23 +61,22 @@ func (m *BlockHeader) GetHash() string {
 }
 
 // setHeaderInfo will set the block header info from a bc.BlockHeader
-func (m *BlockHeader) setHeaderInfo(bh bc.BlockHeader) (err error) {
-	m.Time = bh.Time
-	m.Nonce = bh.Nonce
-	m.Version = bh.Version
-	m.HashPreviousBlock = hex.EncodeToString(bh.HashPrevBlock)
-	m.HashMerkleRoot = hex.EncodeToString(bh.HashMerkleRoot)
+func (m *BlockHeader) setHeaderInfo(bh bc.BlockHeader) {
 	m.Bits = hex.EncodeToString(bh.Bits)
-
-	return
+	m.HashMerkleRoot = hex.EncodeToString(bh.HashMerkleRoot)
+	m.HashPreviousBlock = hex.EncodeToString(bh.HashPrevBlock)
+	m.Nonce = bh.Nonce
+	m.Time = bh.Time
+	m.Version = bh.Version
 }
 
+// GetID will return the id of the field (hash)
 func (m *BlockHeader) GetID() string {
 	return m.Hash
 }
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
-func (m *BlockHeader) BeforeCreating(ctx context.Context) error {
+func (m *BlockHeader) BeforeCreating(_ context.Context) error {
 
 	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
 
@@ -122,13 +90,8 @@ func (m *BlockHeader) BeforeCreating(ctx context.Context) error {
 }
 
 // AfterCreated will fire after the model is created in the Datastore
-func (m *BlockHeader) AfterCreated(ctx context.Context) error {
+func (m *BlockHeader) AfterCreated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
-
-	// Pre-build the options
-	//opts := m.GetOptions(false)
-
-	// todo: run these in go routines?
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
@@ -141,69 +104,5 @@ func (m *BlockHeader) Display() interface{} {
 
 // Migrate model specific migration on startup
 func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
-
-	tableName := client.GetTableName(tableBlockHeaders)
-	if client.Engine() == datastore.MySQL {
-		if err := m.migrateMySQL(client, tableName); err != nil {
-			return err
-		}
-	} else if client.Engine() == datastore.PostgreSQL {
-		if err := m.migratePostgreSQL(client, tableName); err != nil {
-			return err
-		}
-	}
-
-	return client.IndexMetadata(tableName, xPubMetadataField)
-}
-
-// migratePostgreSQL is specific migration SQL for Postgresql
-func (m *BlockHeader) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
-
-	tx := client.Execute(`CREATE INDEX IF NOT EXISTS idx_` + tableName + `_xpub_in_ids ON ` +
-		tableName + ` USING gin (xpub_in_ids jsonb_ops)`)
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	if tx = client.Execute(`CREATE INDEX IF NOT EXISTS idx_` + tableName + `_xpub_out_ids ON ` +
-		tableName + ` USING gin (xpub_out_ids jsonb_ops)`); tx.Error != nil {
-		return tx.Error
-	}
-
-	return nil
-}
-
-// migrateMySQL is specific migration SQL for MySQL
-func (m *BlockHeader) migrateMySQL(client datastore.ClientInterface, tableName string) error {
-
-	idxName := "idx_" + tableName + "_xpub_in_ids"
-	idxExists, err := client.IndexExists(tableName, idxName)
-	if err != nil {
-		return err
-	}
-	if !idxExists {
-		tx := client.Execute("ALTER TABLE `" + tableName + "`" +
-			" ADD INDEX " + idxName + " ( (CAST(xpub_in_ids AS CHAR(64) ARRAY)) )")
-		if tx.Error != nil {
-			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
-			return nil // nolint: nilerr // error is not needed
-		}
-	}
-
-	idxName = "idx_" + tableName + "_xpub_out_ids"
-	if idxExists, err = client.IndexExists(
-		tableName, idxName,
-	); err != nil {
-		return err
-	}
-	if !idxExists {
-		tx := client.Execute("ALTER TABLE `" + tableName + "`" +
-			" ADD INDEX " + idxName + " ( (CAST(xpub_out_ids AS CHAR(64) ARRAY)) )")
-		if tx.Error != nil {
-			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
-			return nil // nolint: nilerr // error is not needed
-		}
-	}
-
-	return nil
+	return client.IndexMetadata(client.GetTableName(tableBlockHeaders), metadataField)
 }

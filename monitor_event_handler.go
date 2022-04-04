@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"fmt"
+
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
 )
@@ -34,7 +35,7 @@ func (h *eventHandler) OnError(_ *centrifuge.Client, e centrifuge.ErrorEvent) {
 func (h *eventHandler) OnMessage(_ *centrifuge.Client, e centrifuge.MessageEvent) {
 	fmt.Printf("Message from server: %s", string(e.Data))
 	// register transaction
-	//h.monitorConfig.
+	// h.monitorConfig.
 }
 
 func (h *eventHandler) OnDisconnect(_ *centrifuge.Client, e centrifuge.DisconnectEvent) {

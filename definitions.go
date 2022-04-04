@@ -41,29 +41,29 @@ var (
 	// AllModelNames is a list of all models
 	AllModelNames = []ModelName{
 		ModelAccessKey,
+		ModelBlockHeader,
+		ModelBlockHeader,
 		ModelDestination,
 		ModelIncomingTransaction,
 		ModelMetadata,
+		ModelPaymailAddress,
 		ModelSyncTransaction,
 		ModelTransaction,
-		ModelBlockHeader,
 		ModelUtxo,
 		ModelXPub,
-		ModelBlockHeader,
-		ModelPaymailAddress,
 	}
 )
 
 // Internal table names
 const (
 	tableAccessKeys           = "access_keys"
+	tableBlockHeaders         = "block_headers"
 	tableDestinations         = "destinations"
 	tableDraftTransactions    = "draft_transactions"
 	tableIncomingTransactions = "incoming_transactions"
 	tablePaymailAddresses     = "paymail_addresses"
 	tableSyncTransactions     = "sync_transactions"
 	tableTransactions         = "transactions"
-	tableBlockHeaders         = "block_headers"
 	tableUTXOs                = "utxos"
 	tableXPubs                = "xpubs"
 )
@@ -150,7 +150,7 @@ var (
 			Model: *NewBaseModel(ModelTransaction),
 		},
 
-		// Block Headers as received by the network
+		// Block Headers as received by the BitCoin network
 		&BlockHeader{
 			Model: *NewBaseModel(ModelBlockHeader),
 		},

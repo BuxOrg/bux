@@ -16,7 +16,7 @@ type UtxoPointer struct {
 	OutputIndex   uint32 `json:"output_index" toml:"output_index" yaml:"output_index" gorm:"<-:create;type:uint;comment:This is the index of the output in the transaction" bson:"output_index"`
 }
 
-// Utxo is an object representing the BitCoin UTXO table
+// Utxo is an object representing a BitCoin unspent transaction
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type Utxo struct {

@@ -21,12 +21,9 @@ func GetUnlockingScript(tx *bt.Tx, inputIndex uint32, privateKey *bec.PrivateKey
 		return nil, err
 	}
 
-	pubKey := privateKey.PubKey().SerialiseCompressed()
-	signature := sig.Serialise()
-
 	var s *bscript.Script
 	if s, err = bscript.NewP2PKHUnlockingScript(
-		pubKey, signature, shf,
+		privateKey.PubKey().SerialiseCompressed(), sig.Serialise(), shf,
 	); err != nil {
 		return nil, err
 	}

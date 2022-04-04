@@ -171,4 +171,8 @@ func TestGetAddressFromScript(t *testing.T) {
 	t.Run("stas 2", func(t *testing.T) {
 		assert.Equal(t, "1MXhcVvUz1LGSkoUFGkANHXkGCtrzFKHpA", GetAddressFromScript(stas2Hex))
 	})
+
+	t.Run("unknown", func(t *testing.T) {
+		assert.Equal(t, "", GetAddressFromScript("invalid-or-unknown-script"))
+	})
 }

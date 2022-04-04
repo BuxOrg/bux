@@ -41,7 +41,7 @@ func newPaymail(paymailAddress string, opts ...ModelOps) *PaymailAddress {
 		Alias:  alias,
 		Domain: domain,
 		ID:     id,
-		Model:  *NewBaseModel(ModelPaymail, opts...),
+		Model:  *NewBaseModel(ModelPaymailAddress, opts...),
 	}
 
 	// Set the xPub information if found
@@ -80,7 +80,7 @@ func getPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailA
 	// Get the record
 	paymailAddress := &PaymailAddress{
 		ID:    id,
-		Model: *NewBaseModel(ModelPaymail, opts...),
+		Model: *NewBaseModel(ModelPaymailAddress, opts...),
 	}
 	if err := Get(
 		ctx, paymailAddress, nil, false, defaultDatabaseReadTimeout,
@@ -155,12 +155,12 @@ func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
 
 // GetModelName returns the model name
 func (m *PaymailAddress) GetModelName() string {
-	return ModelPaymail.String()
+	return ModelPaymailAddress.String()
 }
 
 // GetModelTableName returns the model db table name
 func (m *PaymailAddress) GetModelTableName() string {
-	return tablePaymails
+	return tablePaymailAddresses
 }
 
 // Save the model
@@ -208,7 +208,7 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 // Migrate model specific migration on startup
 func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 
-	tableName := client.GetTableName(tablePaymails)
+	tableName := client.GetTableName(tablePaymailAddresses)
 	if client.Engine() == datastore.MySQL {
 		if err := m.migrateMySQL(client, tableName); err != nil {
 			return err
@@ -219,7 +219,7 @@ func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 		}
 	}
 
-	return client.IndexMetadata(client.GetTableName(tablePaymails), MetadataField)
+	return client.IndexMetadata(client.GetTableName(tablePaymailAddresses), MetadataField)
 }
 
 // migratePostgreSQL is specific migration SQL for Postgresql

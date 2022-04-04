@@ -116,15 +116,15 @@ func (c *Client) incrementWithMongo(
 	return
 }
 
-// getWithMongo will get a given struct from MongoDB
+// getWithMongo will get given struct(s) from MongoDB
 func (c *Client) getWithMongo(
 	ctx context.Context,
-	model interface{},
+	models interface{},
 	conditions map[string]interface{},
 	fieldResult interface{},
 ) error {
-	queryConditions := getMongoQueryConditions(model, conditions)
-	collectionName := utils.GetModelTableName(model)
+	queryConditions := getMongoQueryConditions(models, conditions)
+	collectionName := utils.GetModelTableName(models)
 	if collectionName == nil {
 		return ErrUnknownCollection
 	}
@@ -140,6 +140,7 @@ func (c *Client) getWithMongo(
 	}
 
 	if utils.IsModelSlice(model) {
+
 		c.DebugLog(fmt.Sprintf(logLine, "findMany", *collectionName, queryConditions))
 
 		var opts []*options.FindOptions
@@ -169,6 +170,7 @@ func (c *Client) getWithMongo(
 			if err = cursor.All(ctx, model); err != nil {
 				return err
 			}
+
 		}
 	} else {
 		c.DebugLog(fmt.Sprintf(logLine, "find", *collectionName, queryConditions))

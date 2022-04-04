@@ -29,12 +29,12 @@ const (
 	ModelIncomingTransaction ModelName = "incoming_transaction"
 	ModelMetadata            ModelName = "metadata"
 	ModelNameEmpty           ModelName = "empty"
+	ModelPaymailAddress      ModelName = "paymail_address"
 	ModelSyncTransaction     ModelName = "sync_transaction"
 	ModelTransaction         ModelName = "transaction"
 	ModelBlockHeader         ModelName = "block_header"
 	ModelUtxo                ModelName = "utxo"
 	ModelXPub                ModelName = "xpub"
-	ModelPaymail             ModelName = "paymail"
 )
 
 var (
@@ -49,8 +49,8 @@ var (
 		ModelBlockHeader,
 		ModelUtxo,
 		ModelXPub,
-		ModelPaymail,
 		ModelBlockHeader,
+		ModelPaymailAddress,
 	}
 )
 
@@ -60,12 +60,12 @@ const (
 	tableDestinations         = "destinations"
 	tableDraftTransactions    = "draft_transactions"
 	tableIncomingTransactions = "incoming_transactions"
+	tablePaymailAddresses     = "paymail_addresses"
 	tableSyncTransactions     = "sync_transactions"
 	tableTransactions         = "transactions"
 	tableBlockHeaders         = "block_headers"
 	tableUTXOs                = "utxos"
 	tableXPubs                = "xpubs"
-	tablePaymails             = "paymail_addresses"
 )
 
 const (

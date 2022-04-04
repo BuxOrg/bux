@@ -77,7 +77,6 @@ func (h *eventHandler) OnServerPublishLinear(_ *centrifuge.Client, e centrifuge.
 	}
 
 	if tx == "" {
-		fmt.Printf("filtered transaction...\n")
 		return
 	}
 	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx, "")

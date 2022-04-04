@@ -60,6 +60,9 @@ type ClientInterface interface {
 
 // MonitorService for the monitoring
 type MonitorService interface {
+	Connected()
+	Disconnected()
+	IsConnected() bool
 	GetMonitorDays() int
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int

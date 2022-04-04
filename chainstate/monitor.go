@@ -13,6 +13,7 @@ type Monitor struct {
 	logger                  Logger
 	client                  *centrifuge.Client
 	processor               MonitorProcessor
+	connected               bool
 	centrifugeServer        string
 	monitorDays             int
 	falsePositiveRate       float64
@@ -76,6 +77,7 @@ func NewMonitor(ctx context.Context, options *MonitorOptions) *Monitor {
 	return monitor
 }
 
+// Processor gets the monitor processor
 func (m *Monitor) Processor() MonitorProcessor {
 	return m.processor
 }
@@ -106,8 +108,24 @@ func (m *Monitor) Monitor(handler MonitorHandler) error {
 	return m.client.Connect()
 }
 
+// Connected sets the connected state to true
+func (m *Monitor) Connected() {
+	m.connected = true
+	return
+}
+
+// Disconnected sets the connected state to false
+func (m *Monitor) Disconnected() {
+	m.connected = false
+	return
+}
+
+// IsConnected returns whether we are connected to the socket
+func (m *Monitor) IsConnected() bool {
+	return m.connected
+}
+
 // PauseMonitor closes the monitoring socket and pauses monitoring
 func (m *Monitor) PauseMonitor() error {
-
 	return m.client.Disconnect()
 }

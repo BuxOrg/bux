@@ -11,16 +11,19 @@ import (
 	boom "github.com/tylertreat/BoomFilters"
 )
 
+// BloomProcessor bloom filter processor
 type BloomProcessor struct {
 	filter *boom.StableBloomFilter
 }
 
+// NewBloomProcessor initalize a new bloom processor
 func NewBloomProcessor(maxCells uint, falsePositiveRate float64) *BloomProcessor {
 	return &BloomProcessor{
 		filter: boom.NewDefaultStableBloomFilter(maxCells, falsePositiveRate),
 	}
 }
 
+// MonitorProcessor struct that defines interface to all filter processors
 type MonitorProcessor interface {
 	Add(item string)
 	Test(item string) bool
@@ -48,6 +51,7 @@ func (m *BloomProcessor) Reload(items []string) error {
 	return nil
 }
 
+// AddFilter add a filter to the current processor
 func (m *BloomProcessor) AddFilter(filterType TransactionType) {
 	switch filterType {
 	case Metanet:
@@ -60,6 +64,7 @@ func (m *BloomProcessor) AddFilter(filterType TransactionType) {
 	}
 }
 
+// FilterMempoolPublishEvent check whether a filter matches a mempool tx event
 func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
 	transaction := whatsonchain.TxInfo{}
 	err := json.Unmarshal(e.Data, &transaction)
@@ -75,22 +80,26 @@ func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 	return nil, nil
 }
 
+// RegexProcessor simple regex processor
 // This processor just uses regex checks to see if a raw hex string exists in a tx
 // This is bound to have some false positives but is somewhat performant when filter set is small
 type RegexProcessor struct {
 	filter []string
 }
 
+// NewRegexProcessor initialize a new regex processor
 func NewRegexProcessor() *RegexProcessor {
 	return &RegexProcessor{
 		filter: []string{},
 	}
 }
 
+// Add a new item to the processor
 func (p *RegexProcessor) Add(item string) {
 	p.filter = append(p.filter, item)
 }
 
+// Test checks whether the item matches an item in the processor
 func (p *RegexProcessor) Test(item string) bool {
 	for _, f := range p.filter {
 		if strings.Contains(item, f) {
@@ -100,6 +109,7 @@ func (p *RegexProcessor) Test(item string) bool {
 	return false
 }
 
+// Reload the items of the processor to match against
 func (p *RegexProcessor) Reload(items []string) error {
 	for _, i := range items {
 		p.Add(i)
@@ -107,6 +117,7 @@ func (p *RegexProcessor) Reload(items []string) error {
 	return nil
 }
 
+// FilterMempoolPublishEvent check whether a filter matches a mempool tx event
 func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
 	transaction := whatsonchain.TxInfo{}
 	err := json.Unmarshal(e.Data, &transaction)
@@ -120,6 +131,7 @@ func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 	return bt.NewTxFromString(transaction.Hex)
 }
 
+// AddFilter add a filter to the current processor
 func (m *RegexProcessor) AddFilter(filterType TransactionType) {
 	switch filterType {
 	case Metanet:

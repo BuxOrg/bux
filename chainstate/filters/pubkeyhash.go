@@ -1,12 +1,13 @@
 package filters
 
 import (
-	"github.com/mrz1836/go-whatsonchain"
 	"log"
 
 	"github.com/libsv/go-bt"
+	"github.com/mrz1836/go-whatsonchain"
 )
 
+// PubKeyHash processor
 func PubKeyHash(tx *whatsonchain.TxInfo) (*bt.Tx, error) {
 	log.Printf("Attempting to filter for pubkeyhash: %#v", tx)
 	// Loop through all of the outputs and check for pubkeyhash output

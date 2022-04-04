@@ -1,15 +1,19 @@
 package filters
 
 import (
-	"github.com/mrz1836/go-whatsonchain"
 	"strings"
 
 	"github.com/libsv/go-bt"
+	"github.com/mrz1836/go-whatsonchain"
 )
 
+// PlanariaDTemplate string template for a D transaction
 const PlanariaDTemplate = "006a223139694733575459537362796f7333754a373333794b347a45696f69314665734e55"
+
+// PlanariaDTemplateAlternate alternate string template for a D transaction
 const PlanariaDTemplateAlternate = "6a223139694733575459537362796f7333754a373333794b347a45696f69314665734e55"
 
+// PlanariaD processor
 func PlanariaD(tx *whatsonchain.TxInfo) (*bt.Tx, error) {
 	// Loop through all of the outputs and check for pubkeyhash output
 	for _, out := range tx.Vout {

@@ -211,6 +211,24 @@ func (m *Destination) BeforeCreating(_ context.Context) error {
 	return nil
 }
 
+// AfterCreated will fire after the model is created in the Datastore
+func (m *Destination) AfterCreated(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+
+	if m.Monitor.Valid {
+		monitor := m.Client().Chainstate().Monitor()
+		if monitor != nil {
+			processor := monitor.Processor()
+			if processor != nil {
+				processor.Add(m.LockingScript)
+			}
+		}
+	}
+
+	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	return nil
+}
+
 // setAddress will derive and set the address based on the chain (internal vs external)
 func (m *Destination) setAddress(rawXpubKey string) error {
 

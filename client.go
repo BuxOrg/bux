@@ -405,8 +405,8 @@ func (c *Client) Notifications() notifications.ClientInterface {
 	return nil
 }
 
-// ModifyNotificationsClient will overwrite the Notifications client with the given client
-func (c *Client) ModifyNotificationsClient(client notifications.ClientInterface) {
+// SetNotificationsClient will overwrite the Notifications client with the given client
+func (c *Client) SetNotificationsClient(client notifications.ClientInterface) {
 	c.options.notifications.client = client
 }
 

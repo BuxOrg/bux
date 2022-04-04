@@ -7,6 +7,12 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
+// checkForMethod is an interface to check for existing methods
+type checkForMethod interface {
+	GetModelName() string
+	GetModelTableName() string
+}
+
 // IsModelSlice returns true if the given interface is a slice of models
 func IsModelSlice(model interface{}) bool {
 	value := reflect.ValueOf(model)
@@ -19,26 +25,55 @@ func IsModelSlice(model interface{}) bool {
 
 // GetModelName get the name of the model via reflection
 func GetModelName(model interface{}) *string {
+
+	// Model is nil
 	if model == nil {
 		return nil
 	}
-	modelType := GetModelType(model)
-	modelValue := reflect.New(modelType)
-	name := modelValue.MethodByName("GetModelName").Call([]reflect.Value{})
+
+	// Model is a pointer
+	if reflect.ValueOf(model).Type().Kind() == reflect.Ptr {
+		if m, ok := model.(checkForMethod); ok {
+			name := m.GetModelName()
+			return &name
+		}
+		return nil
+	}
+
+	// Model is a struct
+	val := reflect.New(GetModelType(model)).MethodByName("GetModelName")
+	if val.Kind() == reflect.Invalid { // Struct does not contain the method
+		return nil
+	}
+	name := val.Call([]reflect.Value{})
 	modelName := name[0].String()
 	return &modelName
 }
 
 // GetModelTableName get the db table name of the model via reflection
 func GetModelTableName(model interface{}) *string {
+	// Model is nil
 	if model == nil {
 		return nil
 	}
-	modelType := GetModelType(model)
-	modelValue := reflect.New(modelType)
-	name := modelValue.MethodByName("GetModelTableName").Call([]reflect.Value{})
-	tableName := name[0].String()
-	return &tableName
+
+	// Model is a pointer
+	if reflect.ValueOf(model).Type().Kind() == reflect.Ptr {
+		if m, ok := model.(checkForMethod); ok {
+			name := m.GetModelTableName()
+			return &name
+		}
+		return nil
+	}
+
+	// Model is a struct
+	val := reflect.New(GetModelType(model)).MethodByName("GetModelTableName")
+	if val.Kind() == reflect.Invalid { // Struct does not contain the method
+		return nil
+	}
+	name := val.Call([]reflect.Value{})
+	modelName := name[0].String()
+	return &modelName
 }
 
 // GetModelType get the model type of the model interface via reflection

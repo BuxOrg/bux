@@ -14,7 +14,7 @@ func main() {
 		bux.WithFreeCache(),  // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithAutoMigrate(&bux.PaymailAddress{
-			Model: *bux.NewBaseModel(bux.ModelPaymail), // Add the paymail model (for use in BUX server & clients)
+			Model: *bux.NewBaseModel(bux.ModelPaymailAddress), // Add the paymail model (for use in BUX server & clients)
 		}),
 	)
 	if err != nil {

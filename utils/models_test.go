@@ -9,6 +9,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testModelName = "test_model"
+	testTableName = "test_model"
+)
+
+type testModel struct {
+	Field string `json:"field"`
+}
+
+// GetModelName will return a model name
+func (t *testModel) GetModelName() string {
+	return testModelName
+}
+
+// GetModelTableName will return a table name
+func (t *testModel) GetModelTableName() string {
+	return testTableName
+}
+
+type badModel struct {
+	Field string `json:"field"`
+}
+
 // TestGetModelStringAttribute will test the method GetModelStringAttribute()
 func TestGetModelStringAttribute(t *testing.T) {
 	t.Parallel()
@@ -141,6 +164,64 @@ func TestGetModelName(t *testing.T) {
 	t.Run("model is nil", func(t *testing.T) {
 		name := GetModelName(nil)
 		require.Nil(t, name)
+	})
+
+	t.Run("model is set - pointer", func(t *testing.T) {
+		tm := &testModel{Field: testModelName}
+		name := GetModelName(tm)
+		assert.Equal(t, testModelName, *name)
+	})
+
+	t.Run("model is set - value", func(t *testing.T) {
+		tm := testModel{Field: testModelName}
+		name := GetModelName(tm)
+		assert.Equal(t, testModelName, *name)
+	})
+
+	t.Run("model does not have method - pointer", func(t *testing.T) {
+		tm := &badModel{}
+		name := GetModelName(tm)
+		assert.Nil(t, name)
+	})
+
+	t.Run("model does not have method - value", func(t *testing.T) {
+		tm := badModel{}
+		name := GetModelName(tm)
+		assert.Nil(t, name)
+	})
+}
+
+// TestGetModelTableName will test the method GetModelTableName()
+func TestGetModelTableName(t *testing.T) {
+	t.Parallel()
+
+	t.Run("model is nil", func(t *testing.T) {
+		name := GetModelTableName(nil)
+		require.Nil(t, name)
+	})
+
+	t.Run("model is set - pointer", func(t *testing.T) {
+		tm := &testModel{Field: testTableName}
+		name := GetModelTableName(tm)
+		assert.Equal(t, testTableName, *name)
+	})
+
+	t.Run("model is set - value", func(t *testing.T) {
+		tm := testModel{Field: testTableName}
+		name := GetModelTableName(tm)
+		assert.Equal(t, testTableName, *name)
+	})
+
+	t.Run("model does not have method - pointer", func(t *testing.T) {
+		tm := &badModel{}
+		name := GetModelTableName(tm)
+		assert.Nil(t, name)
+	})
+
+	t.Run("model does not have method - value", func(t *testing.T) {
+		tm := badModel{}
+		name := GetModelTableName(tm)
+		assert.Nil(t, name)
 	})
 }
 

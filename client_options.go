@@ -221,13 +221,13 @@ func WithEncryption(key string) ClientOps {
 }
 
 // WithMempoolMonitoring will enable mempool monitoring for a given filter
-func WithMempoolMonitoring(filter string) ClientOps {
+/*func WithMempoolMonitoring(filter string) ClientOps {
 	return func(c *clientOptions) {
 		if c.chainstate != nil {
 			c.chainstate.options = append(c.chainstate.options, chainstate.WithMempoolMonitoring(filter))
 		}
 	}
-}
+}*/
 
 // WithModels will add additional models (will NOT migrate using datastore)
 //

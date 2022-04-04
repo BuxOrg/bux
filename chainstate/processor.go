@@ -7,6 +7,7 @@ import (
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
+	"strings"
 )
 
 type BloomProcessor struct {
@@ -64,9 +65,69 @@ func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 	if err != nil {
 		return nil, err
 	}
+	for _, out := range transaction.Vout {
+		p.Test(out.ScriptPubKey.Hex)
+	}
 	passes := p.Test(transaction.Hex)
 	if !passes {
 		return nil, nil
 	}
 	return bt.NewTxFromString(transaction.Hex)
+}
+
+// This processor just uses regex checks to see if a raw hex string exists in a tx
+// This is bound to have some false positives but is somewhat performant when filter set is small
+type RegexProcessor struct {
+	filter []string
+}
+
+func NewRegexProcessor() *RegexProcessor {
+	return &RegexProcessor{
+		filter: []string{},
+	}
+}
+
+func (p *RegexProcessor) Add(item string) {
+	p.filter = append(p.filter, item)
+}
+
+func (p *RegexProcessor) Test(item string) bool {
+	for _, f := range p.filter {
+		if strings.Contains(item, f) {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *RegexProcessor) Reload(items []string) error {
+	for _, i := range items {
+		p.Add(i)
+	}
+	return nil
+}
+
+func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
+	transaction := whatsonchain.TxInfo{}
+	err := json.Unmarshal(e.Data, &transaction)
+	if err != nil {
+		return nil, err
+	}
+	passes := p.Test(transaction.Hex)
+	if !passes {
+		return nil, nil
+	}
+	return bt.NewTxFromString(transaction.Hex)
+}
+
+func (m *RegexProcessor) AddFilter(filterType TransactionType) {
+	switch filterType {
+	case Metanet:
+		m.Add(filters.MetanetScriptTemplate)
+	case PlanariaB:
+		m.Add(filters.PlanariaDTemplate)
+		m.Add(filters.PlanariaBTemplateAlternate)
+	case RareCandyFrogCartel:
+		m.Add(filters.RareCandyFrogCartelScriptTemplate)
+	}
 }

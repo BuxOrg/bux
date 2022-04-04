@@ -64,7 +64,9 @@ func NewMonitor(ctx context.Context, options *MonitorOptions) *Monitor {
 		falsePositiveRate:       options.FalsePositiveRate,
 		monitorDays:             options.MonitorDays,
 	}
-	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+	//monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+	monitor.processor = NewRegexProcessor()
+	monitor.processor.AddFilter(RareCandyFrogCartel)
 
 	// Set logger if not set
 	if monitor.logger == nil {

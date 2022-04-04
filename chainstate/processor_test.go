@@ -61,7 +61,7 @@ func TestBloomProcessor_Add(t *testing.T) {
 				filter: tt.fields.filter,
 			}
 			m.Add(tt.args.item)
-			passes := m.Test("006afef108ac")
+			passes := m.Test("006a")
 			assert.Truef(t, passes, "%v - test of filter failed", tt.name)
 		})
 	}

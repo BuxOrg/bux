@@ -120,9 +120,9 @@ func TestBloomProcessor(t *testing.T) {
 			tx, err := m.FilterMempoolPublishEvent(event)
 			assert.NoError(t, err, "%s - mempool filter unexpectedly failed", tt.name)
 			if tt.args.passes {
-				assert.NotNilf(t, tx, "%s - expected tx to pass processor and didn't", tt.name)
+				assert.NotEqualf(t, tx, "", "%s - expected tx to pass processor and didn't", tt.name)
 			} else {
-				assert.Nil(t, tx, "%s - expected tx to not pass processor and did", tt.name)
+				assert.Equalf(t, tx, "", "%s - expected tx to not pass processor and did", tt.name)
 			}
 		})
 	}

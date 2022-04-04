@@ -2,11 +2,11 @@ package chainstate
 
 import (
 	"encoding/json"
+	"github.com/BuxOrg/bux/utils"
 	"strings"
 
 	"github.com/BuxOrg/bux/chainstate/filters"
 	"github.com/centrifugal/centrifuge-go"
-	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
 )
@@ -29,7 +29,7 @@ type MonitorProcessor interface {
 	Test(item string) bool
 	Reload(items []string) error
 	AddFilter(filterType TransactionType)
-	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (*bt.Tx, error)
+	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
 }
 
 // Add a new item to the bloom filter
@@ -65,19 +65,22 @@ func (m *BloomProcessor) AddFilter(filterType TransactionType) {
 }
 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
-func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
+func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
 	transaction := whatsonchain.TxInfo{}
 	err := json.Unmarshal(e.Data, &transaction)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	for _, out := range transaction.Vout {
-		passes := p.Test(out.ScriptPubKey.Hex)
+
+	lockingScripts := utils.P2PKHRegexpSubstr.FindAllString(transaction.Hex, -1)
+	for _, ls := range lockingScripts {
+		passes := p.Test(ls)
 		if passes {
-			return bt.NewTxFromString(transaction.Hex)
+			return transaction.Hex, nil
 		}
 	}
-	return nil, nil
+
+	return "", nil
 }
 
 // RegexProcessor simple regex processor
@@ -118,17 +121,17 @@ func (p *RegexProcessor) Reload(items []string) error {
 }
 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
-func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (*bt.Tx, error) {
+func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
 	transaction := whatsonchain.TxInfo{}
 	err := json.Unmarshal(e.Data, &transaction)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	passes := p.Test(transaction.Hex)
 	if !passes {
-		return nil, nil
+		return "", nil
 	}
-	return bt.NewTxFromString(transaction.Hex)
+	return transaction.Hex, nil
 }
 
 // AddFilter add a filter to the current processor

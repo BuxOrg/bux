@@ -28,8 +28,11 @@ const ScriptMetanet = "metanet"
 // ScriptTypeTokenStas is the type for a STAS output
 const ScriptTypeTokenStas = "stas"
 
-// p2PKHRegexp OP_DUP OP_HASH160 [pubkey hash] OP_EQUALVERIFY OP_CHECKSIG
-var p2PKHRegexp, _ = regexp.Compile("^76a914[0-9a-f]{40}88ac$")
+// P2PKHRegexp OP_DUP OP_HASH160 [pubkey hash] OP_EQUALVERIFY OP_CHECKSIG
+var P2PKHRegexp, _ = regexp.Compile("^76a914[0-9a-f]{40}88ac$")
+
+// P2PKHRegexpSubstr OP_DUP OP_HASH160 [pubkey hash] OP_EQUALVERIFY OP_CHECKSIG
+var P2PKHRegexpSubstr, _ = regexp.Compile("76a914[0-9a-f]{40}88ac")
 
 // p2SHRegexp OP_HASH160 [hash] OP_EQUAL
 var p2SHRegexp, _ = regexp.Compile("^a914[0-9a-f]{40}87$")
@@ -45,7 +48,7 @@ var stasRegexp, _ = regexp.Compile("^76a914[0-9a-f]{40}88ac6976aa607f5f7f7c5e7f7
 
 // IsP2PKH Check whether the given string is a p2pkh output
 func IsP2PKH(lockingScript string) bool {
-	return p2PKHRegexp.MatchString(lockingScript)
+	return P2PKHRegexp.MatchString(lockingScript)
 }
 
 // IsP2SH Check whether the given string is a p2shHex output

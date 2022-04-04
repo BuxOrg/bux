@@ -64,16 +64,16 @@ func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.Server
 		return
 	}
 
-	if tx == nil {
+	if tx == "" {
 		fmt.Printf("filtered transaction...\n")
 		return
 	}
-	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx.String(), "")
+	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx, "")
 	if err != nil {
 		fmt.Printf("error recording tx: %v", err)
 		return
 	}
-	fmt.Printf("successfully recorded tx: %v\n", tx.String())
+	fmt.Printf("successfully recorded tx: %v\n", tx)
 	return
 }
 

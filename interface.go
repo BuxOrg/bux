@@ -109,7 +109,7 @@ type ClientInterface interface {
 	IsNewRelicEnabled() bool
 	ModifyTaskPeriod(name string, period time.Duration) error
 	Notifications() notifications.ClientInterface
-	ModifyNotificationsClient(notifications.ClientInterface)
+	SetNotificationsClient(notifications.ClientInterface)
 	UserAgent() string
 	Version() string
 }

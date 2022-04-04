@@ -481,7 +481,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		}
 	}
 
-	m.Notify(notifications.EventTypeTransactionCreate, m, m.ID)
+	Notify(notifications.EventTypeTransactionCreate, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil

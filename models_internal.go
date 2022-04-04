@@ -69,6 +69,11 @@ func (m *Model) IsNew() bool {
 	return m.newRecord
 }
 
+// GetID will get the model id, if overwritten in the actual model
+func (m *Model) GetID() string {
+	return ""
+}
+
 // Name will get the collection name (model)
 func (m *Model) Name() string {
 	return m.name.String()
@@ -146,18 +151,18 @@ func (m *Model) AfterCreated(_ context.Context) error {
 }
 
 // Notify about an event on the model
-// it's a bit weird to call this on the model, with the model and id as parameters, but this seems to be the
-// easiest way to refactor away from the models themselves, with all the needed variables available.
-// We cannot access client.Notifications() on the model, so need the m *Model
-// We cannot access ID on the model and need id, mainly for error handling and reporting what went wrong :-/
-func (m *Model) Notify(event notifications.EventType, model interface{}, id string) {
+func Notify(event notifications.EventType, model interface{}) {
 	// run the notifications in a separate goroutine since there could be significant network delay
 	// communicating with a notification provider
 	go func() {
-		if n := m.client.Notifications(); n != nil {
-			ctx := context.Background()
-			if err := n.Notify(ctx, event, model, id); err != nil {
-				m.Client().Logger().Error(context.Background(), "failed notifying about "+string(event)+" on "+id+": "+err.Error())
+		m := model.(Model)
+		client := m.Client()
+		if client != nil {
+			if n := client.Notifications(); n != nil {
+				ctx := context.Background()
+				if err := n.Notify(ctx, event, model, m.GetID()); err != nil {
+					client.Logger().Error(context.Background(), "failed notifying about "+string(event)+" on "+m.GetID()+": "+err.Error())
+				}
 			}
 		}
 	}()

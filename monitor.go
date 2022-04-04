@@ -16,7 +16,7 @@ type destinationMonitor struct {
 
 func (c *Client) loadMonitoredDestinations(ctx context.Context, monitor chainstate.MonitorService) error {
 	conditions := map[string]interface{}{
-		"monitorConfig": map[string]interface{}{
+		"monitor": map[string]interface{}{
 			"$gt": time.Now().Add(time.Duration(-24*monitor.GetMonitorDays()) * time.Hour),
 		},
 	}

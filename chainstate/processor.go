@@ -2,12 +2,13 @@ package chainstate
 
 import (
 	"encoding/json"
+	"strings"
+
 	"github.com/BuxOrg/bux/chainstate/filters"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
-	"strings"
 )
 
 type BloomProcessor struct {
@@ -66,13 +67,12 @@ func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 		return nil, err
 	}
 	for _, out := range transaction.Vout {
-		p.Test(out.ScriptPubKey.Hex)
+		passes := p.Test(out.ScriptPubKey.Hex)
+		if passes {
+			return bt.NewTxFromString(transaction.Hex)
+		}
 	}
-	passes := p.Test(transaction.Hex)
-	if !passes {
-		return nil, nil
-	}
-	return bt.NewTxFromString(transaction.Hex)
+	return nil, nil
 }
 
 // This processor just uses regex checks to see if a raw hex string exists in a tx

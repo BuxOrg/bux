@@ -3,9 +3,11 @@ package bux
 import (
 	"context"
 	"fmt"
+	"runtime"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
+	"github.com/korovkin/limiter"
 )
 
 type eventHandler struct {
@@ -13,14 +15,17 @@ type eventHandler struct {
 	buxClient *Client
 	xpub      string
 	ctx       context.Context
+	limit     *limiter.ConcurrencyLimiter
 }
 
+// NewMonitorHandler create a new monitor handler
 func NewMonitorHandler(ctx context.Context, xpubKey string, buxClient *Client, monitor chainstate.MonitorService) eventHandler {
 	return eventHandler{
 		monitor:   monitor,
 		buxClient: buxClient,
 		xpub:      xpubKey,
 		ctx:       ctx,
+		limit:     limiter.NewConcurrencyLimiter(runtime.NumCPU()),
 	}
 }
 
@@ -59,6 +64,12 @@ func (h *eventHandler) OnServerLeave(_ *centrifuge.Client, e centrifuge.ServerLe
 }
 
 func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+	// todo make this configurable
+	//h.OnServerPublishLinear(nil, e)
+	h.OnServerPublishParallel(nil, e)
+}
+
+func (h *eventHandler) OnServerPublishLinear(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
 	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
 	if err != nil {
 		fmt.Printf("failed to process server event: %v", err)
@@ -75,7 +86,16 @@ func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.Server
 		return
 	}
 	fmt.Printf("successfully recorded tx: %v\n", tx)
-	return
+}
+
+func (h *eventHandler) OnServerPublishParallel(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+	_, err := h.limit.Execute(func() {
+		h.OnServerPublishLinear(nil, e)
+	})
+
+	if err != nil {
+		fmt.Printf("failed to start goroutine: %v", err)
+	}
 }
 
 func (h *eventHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.PublishEvent) {

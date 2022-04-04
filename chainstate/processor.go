@@ -2,10 +2,10 @@ package chainstate
 
 import (
 	"encoding/json"
-	"errors"
-	"github.com/BuxOrg/bux/utils"
+	"regexp"
 	"strings"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
@@ -15,13 +15,20 @@ import (
 type BloomProcessor struct {
 	filter     *boom.StableBloomFilter
 	filterType string
+	regex      *regexp.Regexp
 }
 
 // NewBloomProcessor initalize a new bloom processor
 func NewBloomProcessor(maxCells uint, falsePositiveRate float64, filterType string) *BloomProcessor {
+	regex := utils.GetDestinationTypeRegex(filterType)
+	if regex == nil {
+		regex = utils.GetDestinationTypeRegex(utils.ScriptTypePubKeyHash)
+	}
+
 	return &BloomProcessor{
 		filter:     boom.NewDefaultStableBloomFilter(maxCells, falsePositiveRate),
 		filterType: filterType,
+		regex:      regex,
 	}
 }
 
@@ -54,21 +61,16 @@ func (m *BloomProcessor) Reload(items []string) error {
 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
 func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
-	transaction := whatsonchain.TxInfo{}
-	err := json.Unmarshal(e.Data, &transaction)
-	if err != nil {
-		return "", err
-	}
 
-	regex := utils.GetDestinationTypeRegex(p.filterType)
-	if regex == nil {
-		return "", errors.New("failed to find regex for destination type")
-	}
-
-	lockingScripts := regex.FindAllString(transaction.Hex, -1)
+	lockingScripts := p.regex.FindAllString(string(e.Data), -1)
 	for _, ls := range lockingScripts {
 		passes := p.Test(ls)
 		if passes {
+			transaction := whatsonchain.TxInfo{}
+			err := json.Unmarshal(e.Data, &transaction)
+			if err != nil {
+				return "", err
+			}
 			return transaction.Hex, nil
 		}
 	}

@@ -178,6 +178,12 @@ func TestGetModelName(t *testing.T) {
 		assert.Equal(t, testModelName, *name)
 	})
 
+	t.Run("models are set - value", func(t *testing.T) {
+		tm := &[]testModel{{Field: testModelName}}
+		name := GetModelName(tm)
+		assert.Equal(t, testModelName, *name)
+	})
+
 	t.Run("model does not have method - pointer", func(t *testing.T) {
 		tm := &badModel{}
 		name := GetModelName(tm)
@@ -210,6 +216,12 @@ func TestGetModelTableName(t *testing.T) {
 		tm := testModel{Field: testTableName}
 		name := GetModelTableName(tm)
 		assert.Equal(t, testTableName, *name)
+	})
+
+	t.Run("models are set - value", func(t *testing.T) {
+		tm := &[]testModel{{Field: testModelName}}
+		name := GetModelTableName(tm)
+		assert.Equal(t, testModelName, *name)
 	})
 
 	t.Run("model does not have method - pointer", func(t *testing.T) {

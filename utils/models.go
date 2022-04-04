@@ -32,7 +32,8 @@ func GetModelName(model interface{}) *string {
 	}
 
 	// Model is a pointer
-	if reflect.ValueOf(model).Type().Kind() == reflect.Ptr {
+	k := GetModelType(model).Kind()
+	if reflect.ValueOf(model).Type().Kind() == reflect.Ptr && k != reflect.Struct {
 		if m, ok := model.(checkForMethod); ok {
 			name := m.GetModelName()
 			return &name
@@ -58,7 +59,8 @@ func GetModelTableName(model interface{}) *string {
 	}
 
 	// Model is a pointer
-	if reflect.ValueOf(model).Type().Kind() == reflect.Ptr {
+	k := GetModelType(model).Kind()
+	if reflect.ValueOf(model).Type().Kind() == reflect.Ptr && k != reflect.Struct {
 		if m, ok := model.(checkForMethod); ok {
 			name := m.GetModelTableName()
 			return &name

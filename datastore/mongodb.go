@@ -139,7 +139,7 @@ func (c *Client) getWithMongo(
 		fields = getFieldNames(fieldResult)
 	}
 
-	if utils.IsModelSlice(model) {
+	if utils.IsModelSlice(models) {
 
 		c.DebugLog(fmt.Sprintf(logLine, "findMany", *collectionName, queryConditions))
 
@@ -167,7 +167,7 @@ func (c *Client) getWithMongo(
 				return err
 			}
 		} else {
-			if err = cursor.All(ctx, model); err != nil {
+			if err = cursor.All(ctx, models); err != nil {
 				return err
 			}
 
@@ -199,7 +199,7 @@ func (c *Client) getWithMongo(
 				return err
 			}
 		} else {
-			if err := result.Decode(model); err != nil {
+			if err := result.Decode(models); err != nil {
 				c.DebugLog(fmt.Sprintf(logLine, "result err", *collectionName, err))
 				return err
 			}

@@ -112,6 +112,19 @@ func GetDestinationType(lockingScript string) string {
 	return ScriptTypeNonStandard
 }
 
+// GetDestinationTypeRegex Get the regex for destination type
+func GetDestinationTypeRegex(destType string) *regexp.Regexp {
+	switch destType {
+	case ScriptTypePubKeyHash:
+		return P2PKHSubstringRegexp
+	case ScriptMetanet:
+		return MetanetSubstringRegexp
+	case ScriptTypeTokenStas:
+		return StasSubstringRegexp
+	}
+	return nil
+}
+
 // GetAddressFromScript gets the destination address from the given locking script
 func GetAddressFromScript(lockingScript string) string {
 	scriptType := GetDestinationType(lockingScript)

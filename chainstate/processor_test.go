@@ -1,6 +1,7 @@
 package chainstate
 
 import (
+	"github.com/BuxOrg/bux/utils"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/stretchr/testify/assert"
 	boom "github.com/tylertreat/BoomFilters"
@@ -71,7 +72,8 @@ const testTransaction = `{
 
 func TestBloomProcessor(t *testing.T) {
 	type fields struct {
-		filter *boom.StableBloomFilter
+		filter     *boom.StableBloomFilter
+		filterType string
 	}
 	type args struct {
 		item   string
@@ -86,7 +88,8 @@ func TestBloomProcessor(t *testing.T) {
 		{
 			name: "valid address locking script with proper tx",
 			fields: fields{
-				filter: boom.NewDefaultStableBloomFilter(uint(1000), float64(0.001)),
+				filter:     boom.NewDefaultStableBloomFilter(uint(1000), float64(0.001)),
+				filterType: utils.ScriptTypePubKeyHash,
 			},
 			args: args{
 				item:   "76a914a9041707efa4c2edea3e3b93c83330b55c6497d088ac",
@@ -97,7 +100,8 @@ func TestBloomProcessor(t *testing.T) {
 		{
 			name: "bad address locking script with tx",
 			fields: fields{
-				filter: boom.NewDefaultStableBloomFilter(uint(1000), float64(0.001)),
+				filter:     boom.NewDefaultStableBloomFilter(uint(1000), float64(0.001)),
+				filterType: utils.ScriptTypePubKeyHash,
 			},
 			args: args{
 				item:   "efefefefefef",
@@ -109,7 +113,8 @@ func TestBloomProcessor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &BloomProcessor{
-				filter: tt.fields.filter,
+				filter:     tt.fields.filter,
+				filterType: tt.fields.filterType,
 			}
 			m.Add(tt.args.item)
 			event := centrifuge.ServerPublishEvent{
@@ -124,25 +129,6 @@ func TestBloomProcessor(t *testing.T) {
 			} else {
 				assert.Equalf(t, tx, "", "%s - expected tx to not pass processor and did", tt.name)
 			}
-		})
-	}
-}
-
-func TestNewBloomProcessor(t *testing.T) {
-	type args struct {
-		maxCells          uint
-		falsePositiveRate float64
-	}
-	tests := []struct {
-		name string
-		args args
-		want *BloomProcessor
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, NewBloomProcessor(tt.args.maxCells, tt.args.falsePositiveRate), "NewBloomProcessor(%v, %v)", tt.args.maxCells, tt.args.falsePositiveRate)
 		})
 	}
 }

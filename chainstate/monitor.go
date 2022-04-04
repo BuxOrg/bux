@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"github.com/BuxOrg/bux/utils"
 
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
@@ -64,7 +65,7 @@ func NewMonitor(ctx context.Context, options *MonitorOptions) *Monitor {
 		falsePositiveRate:       options.FalsePositiveRate,
 		monitorDays:             options.MonitorDays,
 	}
-	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate, utils.ScriptTypePubKeyHash)
 	//monitor.processor = NewRegexProcessor()
 
 	// Set logger if not set

@@ -2,10 +2,10 @@ package chainstate
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/BuxOrg/bux/utils"
 	"strings"
 
-	"github.com/BuxOrg/bux/chainstate/filters"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
@@ -13,13 +13,15 @@ import (
 
 // BloomProcessor bloom filter processor
 type BloomProcessor struct {
-	filter *boom.StableBloomFilter
+	filter     *boom.StableBloomFilter
+	filterType string
 }
 
 // NewBloomProcessor initalize a new bloom processor
-func NewBloomProcessor(maxCells uint, falsePositiveRate float64) *BloomProcessor {
+func NewBloomProcessor(maxCells uint, falsePositiveRate float64, filterType string) *BloomProcessor {
 	return &BloomProcessor{
-		filter: boom.NewDefaultStableBloomFilter(maxCells, falsePositiveRate),
+		filter:     boom.NewDefaultStableBloomFilter(maxCells, falsePositiveRate),
+		filterType: filterType,
 	}
 }
 
@@ -28,7 +30,6 @@ type MonitorProcessor interface {
 	Add(item string)
 	Test(item string) bool
 	Reload(items []string) error
-	AddFilter(filterType TransactionType)
 	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
 }
 
@@ -51,19 +52,6 @@ func (m *BloomProcessor) Reload(items []string) error {
 	return nil
 }
 
-// AddFilter add a filter to the current processor
-func (m *BloomProcessor) AddFilter(filterType TransactionType) {
-	switch filterType {
-	case Metanet:
-		m.Add(filters.MetanetScriptTemplate)
-	case PlanariaB:
-		m.Add(filters.PlanariaDTemplate)
-		m.Add(filters.PlanariaBTemplateAlternate)
-	case RareCandyFrogCartel:
-		m.Add(filters.RareCandyFrogCartelScriptTemplate)
-	}
-}
-
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
 func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
 	transaction := whatsonchain.TxInfo{}
@@ -72,7 +60,12 @@ func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 		return "", err
 	}
 
-	lockingScripts := utils.P2PKHRegexpSubstr.FindAllString(transaction.Hex, -1)
+	regex := utils.GetDestinationTypeRegex(p.filterType)
+	if regex == nil {
+		return "", errors.New("failed to find regex for destination type")
+	}
+
+	lockingScripts := regex.FindAllString(transaction.Hex, -1)
 	for _, ls := range lockingScripts {
 		passes := p.Test(ls)
 		if passes {
@@ -132,17 +125,4 @@ func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 		return "", nil
 	}
 	return transaction.Hex, nil
-}
-
-// AddFilter add a filter to the current processor
-func (m *RegexProcessor) AddFilter(filterType TransactionType) {
-	switch filterType {
-	case Metanet:
-		m.Add(filters.MetanetScriptTemplate)
-	case PlanariaB:
-		m.Add(filters.PlanariaDTemplate)
-		m.Add(filters.PlanariaBTemplateAlternate)
-	case RareCandyFrogCartel:
-		m.Add(filters.RareCandyFrogCartelScriptTemplate)
-	}
 }

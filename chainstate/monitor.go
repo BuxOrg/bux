@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 	"github.com/BuxOrg/bux/utils"
+
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
 )
@@ -17,7 +18,6 @@ type Monitor struct {
 	monitorDays             int
 	falsePositiveRate       float64
 	maxNumberOfDestinations int
-	saveDestinations        bool
 }
 
 // MonitorOptions options for starting this monitorConfig
@@ -26,10 +26,6 @@ type MonitorOptions struct {
 	MonitorDays             int
 	FalsePositiveRate       float64
 	MaxNumberOfDestinations int
-	SaveDestinations        bool
-	FilterType              string
-	Filters                 []string
-	RegexCheckOnly          bool
 }
 
 func (o *MonitorOptions) checkDefaults() {
@@ -41,9 +37,6 @@ func (o *MonitorOptions) checkDefaults() {
 	}
 	if o.MaxNumberOfDestinations == 0 {
 		o.MaxNumberOfDestinations = 100000
-	}
-	if o.FilterType == "" {
-		o.FilterType = utils.ScriptTypePubKeyHash
 	}
 }
 
@@ -72,12 +65,9 @@ func NewMonitor(ctx context.Context, options *MonitorOptions) *Monitor {
 		maxNumberOfDestinations: options.MaxNumberOfDestinations,
 		falsePositiveRate:       options.FalsePositiveRate,
 		monitorDays:             options.MonitorDays,
-		saveDestinations:        options.SaveDestinations,
 	}
-	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate, options.FilterType, options.RegexCheckOnly)
-	for _, filter := range options.Filters {
-		monitor.processor.Add(filter)
-	}
+	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate, utils.ScriptTypePubKeyHash)
+	//monitor.processor = NewRegexProcessor()
 
 	// Set logger if not set
 	if monitor.logger == nil {
@@ -95,11 +85,6 @@ func (m *Monitor) Processor() MonitorProcessor {
 // GetMonitorDays gets the monitorDays option
 func (m *Monitor) GetMonitorDays() int {
 	return m.monitorDays
-}
-
-// SaveDestinations returns the option to save the destinations that pass filter
-func (m *Monitor) SaveDestinations() bool {
-	return m.saveDestinations
 }
 
 // GetFalsePositiveRate gets the falsePositiveRate option

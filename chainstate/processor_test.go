@@ -127,7 +127,7 @@ func TestBloomProcessor(t *testing.T) {
 					Data: []byte(tt.args.txJson),
 				},
 			}
-			tx, _, err := m.FilterMempoolPublishEvent(event)
+			tx, err := m.FilterMempoolPublishEvent(event)
 			assert.NoError(t, err, "%s - mempool filter unexpectedly failed", tt.name)
 			if tt.args.passes {
 				assert.NotEqualf(t, tx, "", "%s - expected tx to pass processor and didn't", tt.name)
@@ -141,7 +141,7 @@ func TestBloomProcessor(t *testing.T) {
 // BENCHMARKS
 
 func setupBenchmarkData() *BloomProcessor {
-	m := NewBloomProcessor(100000, 0.001, utils.ScriptTypePubKeyHash, false)
+	m := NewBloomProcessor(100000, 0.001, utils.ScriptTypePubKeyHash)
 
 	for i := 0; i < 100000; i++ {
 		priv, _ := bitcoin.CreatePrivateKey()
@@ -168,7 +168,7 @@ func BenchmarkBloomProcessor(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		tx, _, _ := m.FilterMempoolPublishEvent(getEvent(i))
+		tx, _ := m.FilterMempoolPublishEvent(getEvent(i))
 		txResult = append(txResult, len(tx))
 	}
 }

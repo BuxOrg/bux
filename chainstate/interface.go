@@ -66,7 +66,6 @@ type MonitorService interface {
 	GetMonitorDays() int
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int
-	SaveDestinations() bool
 	Processor() MonitorProcessor
 	Monitor(handler MonitorHandler) error
 	PauseMonitor() error

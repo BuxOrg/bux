@@ -74,19 +74,16 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 }
 
 // loadMonitor will load the Monitor
-func (c *Client) loadMonitor(ctx context.Context, handler chainstate.MonitorHandler) (err error) {
+func (c *Client) loadMonitor(ctx context.Context) (err error) {
 	// Load monitor if set by the user
 	monitor := c.options.chainstate.Monitor()
-	if handler == nil {
-		// TODO: xpub needs to be passed in for recording tx
-		handler = NewMonitorHandler(ctx, "", c, monitor)
-	}
+	handler := NewMonitorHandler(ctx, "", c, monitor)
 	if monitor != nil {
 		err = c.loadMonitoredDestinations(ctx, monitor)
 		if err != nil {
 			return
 		}
-		err = monitor.Monitor(handler)
+		err = monitor.Monitor(&handler)
 	}
 	return
 }

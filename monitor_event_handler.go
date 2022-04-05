@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"fmt"
-	"log"
 	"runtime"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -12,24 +11,21 @@ import (
 )
 
 type eventHandler struct {
-	monitor          chainstate.MonitorService
-	buxClient        *Client
-	xpub             string
-	ctx              context.Context
-	limit            *limiter.ConcurrencyLimiter
-	filterType       string
-	saveDestinations bool
+	monitor   chainstate.MonitorService
+	buxClient *Client
+	xpub      string
+	ctx       context.Context
+	limit     *limiter.ConcurrencyLimiter
 }
 
 // NewMonitorHandler create a new monitor handler
-func NewMonitorHandler(ctx context.Context, xpubKey string, buxClient *Client, monitor chainstate.MonitorService) *eventHandler {
-	return &eventHandler{
-		monitor:          monitor,
-		buxClient:        buxClient,
-		xpub:             xpubKey,
-		ctx:              ctx,
-		limit:            limiter.NewConcurrencyLimiter(runtime.NumCPU()),
-		saveDestinations: monitor.SaveDestinations(),
+func NewMonitorHandler(ctx context.Context, xpubKey string, buxClient *Client, monitor chainstate.MonitorService) eventHandler {
+	return eventHandler{
+		monitor:   monitor,
+		buxClient: buxClient,
+		xpub:      xpubKey,
+		ctx:       ctx,
+		limit:     limiter.NewConcurrencyLimiter(runtime.NumCPU()),
 	}
 }
 
@@ -74,7 +70,7 @@ func (h *eventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.Server
 }
 
 func (h *eventHandler) OnServerPublishLinear(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
-	tx, lockingScripts, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
+	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
 	if err != nil {
 		fmt.Printf("failed to process server event: %v", err)
 		return
@@ -83,17 +79,6 @@ func (h *eventHandler) OnServerPublishLinear(_ *centrifuge.Client, e centrifuge.
 	if tx == "" {
 		return
 	}
-	if h.saveDestinations {
-		for _, lockingScript := range lockingScripts {
-			_, err := h.buxClient.NewDestinationForLockingScript(h.ctx, h.xpub, lockingScript, true, h.buxClient.DefaultModelOptions()...)
-			if err != nil {
-				log.Printf("error: failed to save destination: %v", err)
-				return
-			}
-
-		}
-	}
-
 	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx, "")
 	if err != nil {
 		fmt.Printf("error recording tx: %v", err)

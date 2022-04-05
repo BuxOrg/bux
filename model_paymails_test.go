@@ -74,7 +74,6 @@ func TestNewPaymail(t *testing.T) {
 		assert.Equal(t, "img url", p2.Avatar)
 		assert.Equal(t, "d8c2bed524071d72d859caf90da5f448b5861cd4d4fd47697f94166c13c5a987", p2.XpubID)
 		assert.Equal(t, paymailIdentityXPub, identityKey.String())
-		assert.Equal(t, uint32(0), p2.NextIdentityNum)
 
 		// Decrypt the external key
 		var decrypted string

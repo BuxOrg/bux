@@ -28,6 +28,9 @@ const (
 
 	// ScriptTypeTokenStas is the type for a STAS output
 	ScriptTypeTokenStas = "stas"
+
+	// ScriptTypeBitcomB is the type for an op return output with b:// protocol
+	ScriptTypeBitcomB = "bitcom-b"
 )
 
 var (
@@ -51,6 +54,12 @@ var (
 
 	// OpReturnRegexp OP_FALSE OP_RETURN
 	OpReturnRegexp, _ = regexp.Compile("^006a")
+
+	// BitcomBRegexp Regexp OP_FALSE OP_RETURN <bitcom> (19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut)
+	BitcomBRegexp, _ = regexp.Compile("^006a2231394878696756345179427633744870515663554551797131707a5a56646f4175744e")
+
+	// BitcomBSubstringRegexp substring b:// protocol
+	BitcomBSubstringRegexp, _ = regexp.Compile("006a2231394878696756345179427633744870515663554551797131707a5a56646f4175744e")
 
 	// OpReturnSubstringRegexp substring of OP_FALSE OP_RETURN
 	OpReturnSubstringRegexp, _ = regexp.Compile("006a")
@@ -85,6 +94,11 @@ func IsOpReturn(lockingScript string) bool {
 // IsStas Check whether the given string is a STAS token output
 func IsStas(lockingScript string) bool {
 	return StasRegexp.MatchString(lockingScript)
+}
+
+// IsBitcomB Check whether the given string is a Bitcom b:// op_return output
+func IsBitcomB(lockingScript string) bool {
+	return BitcomBRegexp.MatchString(lockingScript)
 }
 
 // IsMultiSig Check whether the given string is a multi-sig locking script
@@ -125,6 +139,8 @@ func GetDestinationTypeRegex(destType string) *regexp.Regexp {
 		return MetanetSubstringRegexp
 	case ScriptTypeTokenStas:
 		return StasSubstringRegexp
+	case ScriptTypeBitcomB:
+		return BitcomBSubstringRegexp
 	}
 	return nil
 }

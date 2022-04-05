@@ -149,7 +149,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Load the blockchain monitor
 	if client.options.chainstate.Monitor() != nil {
-		if err := client.loadMonitor(ctx); err != nil {
+		if err := client.loadMonitor(ctx, nil); err != nil {
 			return nil, err
 		}
 	}

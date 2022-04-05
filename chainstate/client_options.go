@@ -79,15 +79,6 @@ func WithNewRelic() ClientOps {
 	}
 }
 
-// WithMempoolMonitoring will enable mempool monitoring for a given filter
-/*func WithMempoolMonitoring(handler whatsonchain.SocketHandler, filter string) ClientOps {
-	return func(c *clientOptions) {
-		c.mempoolMonitoringEnabled = true
-		c.mempoolMonitoringFilter = filter
-		c.mempoolHandler = handler
-	}
-}*/
-
 // WithDebugging will enable debugging mode
 func WithDebugging() ClientOps {
 	return func(c *clientOptions) {

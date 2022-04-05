@@ -13,22 +13,24 @@ import (
 
 // BloomProcessor bloom filter processor
 type BloomProcessor struct {
-	filter     *boom.StableBloomFilter
-	filterType string
-	regex      *regexp.Regexp
+	filter         *boom.StableBloomFilter
+	filterType     string
+	regex          *regexp.Regexp
+	regexCheckOnly bool
 }
 
 // NewBloomProcessor initalize a new bloom processor
-func NewBloomProcessor(maxCells uint, falsePositiveRate float64, filterType string) *BloomProcessor {
+func NewBloomProcessor(maxCells uint, falsePositiveRate float64, filterType string, regexCheckOnly bool) *BloomProcessor {
 	regex := utils.GetDestinationTypeRegex(filterType)
 	if regex == nil {
 		regex = utils.GetDestinationTypeRegex(utils.ScriptTypePubKeyHash)
 	}
 
 	return &BloomProcessor{
-		filter:     boom.NewDefaultStableBloomFilter(maxCells, falsePositiveRate),
-		filterType: filterType,
-		regex:      regex,
+		filter:         boom.NewDefaultStableBloomFilter(maxCells, falsePositiveRate),
+		filterType:     filterType,
+		regex:          regex,
+		regexCheckOnly: regexCheckOnly,
 	}
 }
 
@@ -37,7 +39,7 @@ type MonitorProcessor interface {
 	Add(item string)
 	Test(item string) bool
 	Reload(items []string) error
-	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
+	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, []string, error)
 }
 
 // Add a new item to the bloom filter
@@ -47,6 +49,9 @@ func (m *BloomProcessor) Add(item string) {
 
 // Test checks whether the item is in the bloom filter
 func (m *BloomProcessor) Test(item string) bool {
+	if m.regexCheckOnly {
+		return true
+	}
 	return m.filter.Test([]byte(item))
 }
 
@@ -60,7 +65,7 @@ func (m *BloomProcessor) Reload(items []string) error {
 }
 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
-func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
+func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, []string, error) {
 
 	lockingScripts := p.regex.FindAllString(string(e.Data), -1)
 	for _, ls := range lockingScripts {
@@ -69,13 +74,13 @@ func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 			transaction := whatsonchain.TxInfo{}
 			err := json.Unmarshal(e.Data, &transaction)
 			if err != nil {
-				return "", err
+				return "", []string{}, err
 			}
-			return transaction.Hex, nil
+			return transaction.Hex, lockingScripts, nil
 		}
 	}
 
-	return "", nil
+	return "", []string{}, nil
 }
 
 // RegexProcessor simple regex processor

@@ -18,7 +18,7 @@ const (
 	dustLimit                  = uint64(546)       // Dust limit
 	mongoTestVersion           = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion          = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                    = "v0.2.0"          // bux version
+	version                    = "v0.2.1"          // bux version
 )
 
 // All the base models
@@ -76,6 +76,7 @@ const (
 	metadataField        = "metadata"
 	nextExternalNumField = "next_external_num"
 	nextInternalNumField = "next_internal_num"
+	satoshisField        = "satoshis"
 	spendingTxIDField    = "spending_tx_id"
 	statusField          = "status"
 	syncStatusField      = "sync_status"
@@ -99,11 +100,12 @@ const (
 	cacheKeyCapabilities            = "paymail-capabilities-"
 	cacheTTLAddressResolution       = 2 * time.Minute
 	cacheTTLCapabilities            = 60 * time.Minute
-	defaultAddressResolutionPurpose = "bux Address Resolution"
-	defaultSenderPaymail            = "bitcoinschema@moneybutton.com"
+	defaultAddressResolutionPurpose = "Created with BUX: getbux.io"
+	defaultSenderPaymail            = "buxorg@moneybutton.com"
 	handleHandcashPrefix            = "$"
 	handleMaxLength                 = 25
 	handleRelayPrefix               = "1"
+	p2pMetadataField                = "p2p_tx_metadata"
 
 	// Misc
 	gormTypeText = "text"

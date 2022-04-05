@@ -102,7 +102,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 
-	// Overwrite defaults with any set by user
+	// Overwrite defaults with any custom options provided by the user
 	for _, opt := range opts {
 		opt(client.options)
 	}
@@ -110,12 +110,12 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	ctx = client.GetOrStartTxn(ctx, "new_client")
 
-	// Load the cachestore client
+	// Load the Cachestore client
 	if err := client.loadCache(ctx); err != nil {
 		return nil, err
 	}
 
-	// Load the datastore (automatically migrate models)
+	// Load the Datastore (automatically migrate models)
 	if err := client.loadDatastore(ctx); err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Load the chainstate client
+	// Load the Chainstate client
 	if err := client.loadChainstate(ctx); err != nil {
 		return nil, err
 	}
@@ -137,19 +137,32 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Load the taskmanager (automatically start consumers and tasks)
+	// Load the Taskmanager (automatically start consumers and tasks)
 	if err := client.loadTaskmanager(ctx); err != nil {
 		return nil, err
 	}
 
-	// Load all model tasks
+	// Register all model tasks
 	if err := client.registerAllTasks(); err != nil {
 		return nil, err
 	}
 
-	// Set logger (if not set by user)
+	// Set the logger (if not set by user)
 	if client.options.logger == nil {
 		client.options.logger = logger.NewLogger(client.IsDebug())
+	}
+
+	// Default paymail server config (generic capabilities and domain check disabled)
+	if client.options.paymail.serverConfig.Configuration == nil {
+		var err error
+		if client.options.paymail.serverConfig.Configuration, err = server.NewConfig(
+			&PaymailServiceProvider{client: client},
+			server.WithGenericCapabilities(), server.WithDomainValidationDisabled(),
+		); err != nil {
+			return nil, err
+		}
+		client.options.paymail.serverConfig.DefaultFromPaymail = defaultSenderPaymail
+		client.options.paymail.serverConfig.DefaultNote = defaultAddressResolutionPurpose
 	}
 
 	// Return the client

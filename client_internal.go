@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/tonicpow/go-paymail"
+	"github.com/tonicpow/go-paymail/server"
 )
 
 // loadCache will load caching configuration and start the Cachestore client
@@ -98,4 +99,16 @@ func (c *Client) runModelRegisterTasks(models ...interface{}) (err error) {
 func (c *Client) registerAllTasks() error {
 	c.Taskmanager().ResetCron()
 	return c.runModelRegisterTasks(c.options.models.models...)
+}
+
+// loadDefaultPaymailConfig will load the default paymail server configuration
+func (c *Client) loadDefaultPaymailConfig() (err error) {
+	c.options.paymail.serverConfig.DefaultFromPaymail = defaultSenderPaymail
+	c.options.paymail.serverConfig.DefaultNote = defaultAddressResolutionPurpose
+	c.options.paymail.serverConfig.Configuration, err = server.NewConfig(
+		&PaymailServiceProvider{client: c},
+		server.WithGenericCapabilities(),
+		server.WithDomainValidationDisabled(),
+	)
+	return
 }

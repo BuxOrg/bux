@@ -128,6 +128,21 @@ func (m *PaymailAddress) setXPub() error {
 // GetIdentityXpub will get the identity related to the xPub
 func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
 
+	// Get the external xPub (to derive the identity key)
+	xPub, err := m.GetExternalXpub()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the child key
+	return bitcoin.GetHDKeyChild(
+		xPub, uint32(utils.MaxInt32),
+	)
+}
+
+// GetExternalXpub will get the external xPub
+func (m *PaymailAddress) GetExternalXpub() (*bip32.ExtendedKey, error) {
+
 	// Check if the xPub was encrypted
 	var externalKey string
 	if len(m.ExternalXpubKey) != utils.XpubKeyLength {
@@ -146,11 +161,7 @@ func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Get the child key
-	return bitcoin.GetHDKeyChild(
-		xPub, uint32(utils.MaxInt32),
-	)
+	return xPub, nil
 }
 
 // GetModelName returns the model name

@@ -139,7 +139,7 @@ func ReserveUtxos(ctx context.Context, xPubID, draftID string,
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWaitWriteLock(
-		ctx, "model-utxos-reserve-utxos-"+xPubID, m.Client().Cachestore(),
+		ctx, fmt.Sprintf(lockKeyReserveUtxo, xPubID), m.Client().Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -278,7 +279,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, "process-sync-transaction-"+syncTx.GetID(), syncTx.Client().Cachestore(),
+		ctx, fmt.Sprintf(lockKeyProcessSyncTx, syncTx.GetID()), syncTx.Client().Cachestore(),
 	)
 	defer unlock()
 	if err != nil {
@@ -328,7 +329,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, "process-sync-transaction-"+syncTx.GetID(), syncTx.Client().Cachestore(),
+		ctx, fmt.Sprintf(lockKeyProcessSyncTx, syncTx.GetID()), syncTx.Client().Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

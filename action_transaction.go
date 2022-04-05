@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/BuxOrg/bux/utils"
 )
@@ -37,7 +38,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, "action-record-transaction-"+id, c.Cachestore(),
+		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
 	)
 	defer unlock()
 	if err != nil {
@@ -99,7 +100,7 @@ func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWaitWriteLock(
-		ctx, "action-xpub-"+utils.Hash(rawXpubKey), c.Cachestore(),
+		ctx, fmt.Sprintf(lockKeyProcessXpub, utils.Hash(rawXpubKey)), c.Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

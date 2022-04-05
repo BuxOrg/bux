@@ -6,6 +6,14 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 )
 
+const (
+	lockKeyProcessIncomingTx = "process-incoming-transaction-%s" // + Tx ID
+	lockKeyProcessSyncTx     = "process-sync-transaction-%s"     // + Tx ID
+	lockKeyProcessXpub       = "action-xpub-id-%s"               // + Xpub ID
+	lockKeyRecordTx          = "action-record-transaction-%s"    // + Tx ID
+	lockKeyReserveUtxo       = "utxo-reserve-xpub-id-%s"         // + Xpub ID
+)
+
 // newWriteLock will take care of creating a lock and defer
 func newWriteLock(ctx context.Context, lockKey string, cacheStore cachestore.LockService) (func(), error) {
 	secret, err := cacheStore.WriteLock(ctx, lockKey, defaultCacheLockTTL)

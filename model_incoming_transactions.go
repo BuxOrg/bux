@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -238,7 +239,7 @@ func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransac
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, "process-incoming-transaction-"+incomingTx.GetID(), incomingTx.Client().Cachestore(),
+		ctx, fmt.Sprintf(lockKeyProcessIncomingTx, incomingTx.GetID()), incomingTx.Client().Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

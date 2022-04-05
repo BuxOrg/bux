@@ -32,8 +32,8 @@ func newTestPaymailClient(t *testing.T, domains []string) paymail.ClientInterfac
 	return newClient
 }
 
-// newTestPaymailServerConfig loads a basic test configuration
-func newTestPaymailServerConfig(t *testing.T, domain string) *server.Configuration {
+// newTestPaymailConfig loads a basic test configuration
+func newTestPaymailConfig(t *testing.T, domain string) *server.Configuration {
 	c, err := server.NewConfig(
 		new(mockServiceProvider),
 		server.WithDomain(domain),
@@ -96,7 +96,7 @@ func mockValidResponse(statusCode int, p2p bool, domain string) {
 func TestPaymailClient(t *testing.T) {
 	t.Parallel()
 
-	config := newTestPaymailServerConfig(t, testDomain)
+	config := newTestPaymailConfig(t, testDomain)
 	require.NotNil(t, config)
 
 	client := newTestPaymailClient(t, []string{testDomain})

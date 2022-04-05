@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 )
 
 // todo: finish unit tests!
@@ -174,85 +173,20 @@ func TestClient_PaymailClient(t *testing.T) {
 	})
 }
 
-// TestClient_ModifyPaymailConfig will test the method ModifyPaymailConfig()
-func TestClient_ModifyPaymailConfig(t *testing.T) {
+// TestClient_GetPaymailConfig will test the method GetPaymailConfig()
+func TestClient_GetPaymailConfig(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no options, panic", func(t *testing.T) {
 		assert.Panics(t, func() {
 			c := new(Client)
-			c.ModifyPaymailConfig(nil, "", "")
-		})
-	})
-
-	t.Run("update from sender and note", func(t *testing.T) {
-		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(
-			[]string{testDomain},
-			defaultSenderPaymail,
-			defaultAddressResolutionPurpose,
-			false, false,
-		))
-
-		tc, err := NewClient(context.Background(), opts...)
-		require.NoError(t, err)
-		assert.NotNil(t, tc.PaymailServerConfig())
-		defer CloseClient(context.Background(), t, tc)
-
-		tc.ModifyPaymailConfig(nil, "from", "note")
-
-		assert.Equal(t, "from", tc.PaymailServerConfig().DefaultFromPaymail)
-		assert.Equal(t, "note", tc.PaymailServerConfig().DefaultNote)
-		assert.NotNil(t, tc.PaymailServerConfig())
-	})
-
-	t.Run("update server config", func(t *testing.T) {
-		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(
-			[]string{testDomain},
-			defaultSenderPaymail,
-			defaultAddressResolutionPurpose,
-			false, false,
-		))
-
-		tc, err := NewClient(context.Background(), opts...)
-		require.NoError(t, err)
-		assert.NotNil(t, tc.PaymailServerConfig())
-		defer CloseClient(context.Background(), t, tc)
-
-		assert.Equal(t, defaultSenderPaymail, tc.PaymailServerConfig().DefaultFromPaymail)
-		assert.Equal(t, defaultAddressResolutionPurpose, tc.PaymailServerConfig().DefaultNote)
-
-		tc.ModifyPaymailConfig(&server.Configuration{
-			APIVersion:      "v2",
-			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
-			Port:            paymail.DefaultPort,
-			ServiceName:     paymail.DefaultServiceName,
-		}, "", "")
-
-		assert.Equal(t, defaultSenderPaymail, tc.PaymailServerConfig().DefaultFromPaymail)
-		assert.Equal(t, defaultAddressResolutionPurpose, tc.PaymailServerConfig().DefaultNote)
-
-		config := tc.PaymailServerConfig()
-		assert.NotNil(t, config)
-		assert.Equal(t, "v2", config.APIVersion)
-	})
-}
-
-// TestClient_PaymailServerConfig will test the method PaymailServerConfig()
-func TestClient_PaymailServerConfig(t *testing.T) {
-	t.Parallel()
-
-	t.Run("no options, panic", func(t *testing.T) {
-		assert.Panics(t, func() {
-			c := new(Client)
-			assert.Nil(t, c.PaymailServerConfig())
+			assert.Nil(t, c.GetPaymailConfig())
 		})
 	})
 
 	t.Run("valid paymail server config", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(
+		opts = append(opts, WithPaymailSupport(
 			[]string{testDomain},
 			defaultSenderPaymail,
 			defaultAddressResolutionPurpose,
@@ -263,8 +197,8 @@ func TestClient_PaymailServerConfig(t *testing.T) {
 		require.NoError(t, err)
 		defer CloseClient(context.Background(), t, tc)
 
-		assert.NotNil(t, tc.PaymailServerConfig())
-		assert.IsType(t, &PaymailServerOptions{}, tc.PaymailServerConfig())
+		assert.NotNil(t, tc.GetPaymailConfig())
+		assert.IsType(t, &PaymailServerOptions{}, tc.GetPaymailConfig())
 	})
 }
 
@@ -345,7 +279,7 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 
 	t.Run("valid server config", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(
+		opts = append(opts, WithPaymailSupport(
 			[]string{testDomain},
 			defaultSenderPaymail,
 			defaultAddressResolutionPurpose,
@@ -356,7 +290,7 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 		require.NoError(t, err)
 		defer CloseClient(context.Background(), t, tc)
 
-		assert.NotNil(t, tc.PaymailServerConfig())
-		assert.IsType(t, &PaymailServerOptions{}, tc.PaymailServerConfig())
+		assert.NotNil(t, tc.GetPaymailConfig())
+		assert.IsType(t, &PaymailServerOptions{}, tc.GetPaymailConfig())
 	})
 }

@@ -2,24 +2,7 @@ package bux
 
 import (
 	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 )
-
-// ModifyPaymailConfig will set the new values if found
-func (c *Client) ModifyPaymailConfig(config *server.Configuration,
-	defaultFromPaymail, defaultNote string) {
-	if c.options.paymail != nil {
-		if config != nil {
-			c.options.paymail.serverConfig.Configuration = config
-		}
-		if len(defaultFromPaymail) > 0 {
-			c.options.paymail.serverConfig.DefaultFromPaymail = defaultFromPaymail
-		}
-		if len(defaultNote) > 0 {
-			c.options.paymail.serverConfig.DefaultNote = defaultNote
-		}
-	}
-}
 
 // PaymailClient will return the Paymail if it exists
 func (c *Client) PaymailClient() paymail.ClientInterface {
@@ -29,8 +12,8 @@ func (c *Client) PaymailClient() paymail.ClientInterface {
 	return nil
 }
 
-// PaymailServerConfig will return the Paymail server config if it exists
-func (c *Client) PaymailServerConfig() *PaymailServerOptions {
+// GetPaymailConfig will return the Paymail server config if it exists
+func (c *Client) GetPaymailConfig() *PaymailServerOptions {
 	if c.options.paymail != nil && c.options.paymail.serverConfig != nil {
 		return c.options.paymail.serverConfig
 	}

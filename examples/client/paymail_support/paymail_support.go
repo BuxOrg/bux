@@ -13,9 +13,12 @@ func main() {
 		context.Background(), // Set context
 		bux.WithFreeCache(),  // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithAutoMigrate(&bux.PaymailAddress{
-			Model: *bux.NewBaseModel(bux.ModelPaymailAddress), // Add the paymail model (for use in BUX server & clients)
-		}),
+		bux.WithPaymailSupport(
+			[]string{"test.com"},
+			"from@test.com",
+			"some default note",
+			false, false,
+		),
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

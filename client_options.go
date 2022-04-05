@@ -424,8 +424,8 @@ func WithPaymailClient(client paymail.ClientInterface) ClientOps {
 	}
 }
 
-// WithPaymailServer will set the server configuration for Paymail
-func WithPaymailServer(domains []string, defaultFromPaymail, defaultNote string,
+// WithPaymailSupport will set the configuration for Paymail support (as a server)
+func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string,
 	domainValidation, senderValidation bool) ClientOps {
 	return func(c *clientOptions) {
 
@@ -454,6 +454,9 @@ func WithPaymailServer(domains []string, defaultFromPaymail, defaultNote string,
 		if len(defaultNote) > 0 {
 			c.paymail.serverConfig.DefaultNote = defaultNote
 		}
+
+		// Add the paymail_address model in bux
+		c.addModels(modelList, &PaymailAddress{Model: *NewBaseModel(ModelPaymailAddress)})
 	}
 }
 
@@ -471,6 +474,9 @@ func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, d
 		if len(defaultNote) > 0 {
 			c.paymail.serverConfig.DefaultNote = defaultNote
 		}
+
+		// Add the paymail_address model in bux
+		c.addModels(modelList, &PaymailAddress{Model: *NewBaseModel(ModelPaymailAddress)})
 	}
 }
 

@@ -14,13 +14,15 @@ import (
 	"github.com/tonicpow/go-paymail/server"
 )
 
-// PaymailServiceProvider is an interface for overriding the paymail actions in go-paymail/server
-type PaymailServiceProvider struct {
+// PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server
+//
+// This is an example and the default functionality for all the basic Paymail actions
+type PaymailDefaultServiceProvider struct {
 	client ClientInterface // (pointer) to the Client for accessing BUX model methods & etc
 }
 
 // createMetadata will create a new metadata seeded from the server information
-func (p *PaymailServiceProvider) createMetadata(serverMetaData *server.RequestMetadata, request string) (metadata Metadata) {
+func (p *PaymailDefaultServiceProvider) createMetadata(serverMetaData *server.RequestMetadata, request string) (metadata Metadata) {
 	metadata = make(Metadata)
 	metadata["paymail_request"] = request
 
@@ -42,7 +44,7 @@ func (p *PaymailServiceProvider) createMetadata(serverMetaData *server.RequestMe
 }
 
 // GetPaymailByAlias will get a paymail address and information by alias
-func (p *PaymailServiceProvider) GetPaymailByAlias(ctx context.Context, alias, domain string,
+func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(ctx context.Context, alias, domain string,
 	requestMetadata *server.RequestMetadata) (*paymail.AddressInformation, error) {
 
 	// Create the metadata
@@ -69,7 +71,7 @@ func (p *PaymailServiceProvider) GetPaymailByAlias(ctx context.Context, alias, d
 }
 
 // CreateAddressResolutionResponse will create the address resolution response
-func (p *PaymailServiceProvider) CreateAddressResolutionResponse(ctx context.Context, alias, domain string,
+func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(ctx context.Context, alias, domain string,
 	_ bool, requestMetadata *server.RequestMetadata) (*paymail.ResolutionPayload, error) {
 
 	// Create the metadata
@@ -92,7 +94,7 @@ func (p *PaymailServiceProvider) CreateAddressResolutionResponse(ctx context.Con
 }
 
 // CreateP2PDestinationResponse will create a p2p destination response
-func (p *PaymailServiceProvider) CreateP2PDestinationResponse(ctx context.Context, alias, domain string,
+func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(ctx context.Context, alias, domain string,
 	satoshis uint64, requestMetadata *server.RequestMetadata) (*paymail.PaymentDestinationPayload, error) {
 
 	// Generate a unique reference ID
@@ -131,7 +133,7 @@ func (p *PaymailServiceProvider) CreateP2PDestinationResponse(ctx context.Contex
 }
 
 // RecordTransaction will record the transaction
-func (p *PaymailServiceProvider) RecordTransaction(ctx context.Context,
+func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	p2pTx *paymail.P2PTransaction, requestMetadata *server.RequestMetadata) (*paymail.P2PTransactionPayload, error) {
 
 	// Create the metadata
@@ -157,7 +159,7 @@ func (p *PaymailServiceProvider) RecordTransaction(ctx context.Context,
 }
 
 // createPaymailInformation will get & create the paymail information (dynamic addresses)
-func (p *PaymailServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string,
+func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string,
 	opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey string, destination *Destination, err error) {
 
 	// Get the paymail address record

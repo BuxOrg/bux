@@ -11,7 +11,6 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 	"gorm.io/gorm/logger"
 )
 
@@ -99,14 +98,13 @@ type ClientInterface interface {
 	EnableNewRelic()
 	GetFeeUnit(_ context.Context, _ string) *utils.FeeUnit
 	GetOrStartTxn(ctx context.Context, name string) context.Context
+	GetPaymailConfig() *PaymailServerOptions
 	GetTaskPeriod(name string) time.Duration
 	IsDebug() bool
 	IsITCEnabled() bool
 	IsIUCEnabled() bool
 	IsNewRelicEnabled() bool
-	ModifyPaymailConfig(config *server.Configuration, defaultFromPaymail, defaultNote string)
 	ModifyTaskPeriod(name string, period time.Duration) error
-	PaymailServerConfig() *PaymailServerOptions
 	UserAgent() string
 	Version() string
 }

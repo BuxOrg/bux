@@ -103,12 +103,29 @@ func (c *Client) registerAllTasks() error {
 
 // loadDefaultPaymailConfig will load the default paymail server configuration
 func (c *Client) loadDefaultPaymailConfig() (err error) {
-	c.options.paymail.serverConfig.DefaultFromPaymail = defaultSenderPaymail
-	c.options.paymail.serverConfig.DefaultNote = defaultAddressResolutionPurpose
+
+	// Default FROM paymail
+	if len(c.options.paymail.serverConfig.DefaultFromPaymail) == 0 {
+		c.options.paymail.serverConfig.DefaultFromPaymail = defaultSenderPaymail
+	}
+
+	// Default note for address resolution
+	if len(c.options.paymail.serverConfig.DefaultNote) == 0 {
+		c.options.paymail.serverConfig.DefaultNote = defaultAddressResolutionPurpose
+	}
+
+	// Set default options if none are found
+	if len(c.options.paymail.serverConfig.options) == 0 {
+		c.options.paymail.serverConfig.options = append(c.options.paymail.serverConfig.options,
+			server.WithGenericCapabilities(),
+			server.WithDomainValidationDisabled(),
+		)
+	}
+
+	// Create the paymail configuration using the client and default service provider
 	c.options.paymail.serverConfig.Configuration, err = server.NewConfig(
 		&PaymailServiceProvider{client: c},
-		server.WithGenericCapabilities(),
-		server.WithDomainValidationDisabled(),
+		c.options.paymail.serverConfig.options...,
 	)
 	return
 }

@@ -80,9 +80,10 @@ type (
 
 	// PaymailServerOptions is the options for the Paymail server
 	PaymailServerOptions struct {
-		*server.Configuration        // Server configuration if Paymail is enabled
-		DefaultFromPaymail    string // IE: from@domain.com
-		DefaultNote           string // IE: some note for address resolution
+		*server.Configuration                    // Server configuration if Paymail is enabled
+		options               []server.ConfigOps // Options for the paymail server
+		DefaultFromPaymail    string             // IE: from@domain.com
+		DefaultNote           string             // IE: some note for address resolution
 	}
 
 	// taskManagerOptions holds the configuration for taskmanager

@@ -187,12 +187,12 @@ func TestClient_ModifyPaymailConfig(t *testing.T) {
 
 	t.Run("update from sender and note", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(&server.Configuration{
-			APIVersion:      "v1",
-			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
-			Port:            paymail.DefaultPort,
-			ServiceName:     paymail.DefaultServiceName,
-		}, defaultSenderPaymail, defaultAddressResolutionPurpose))
+		opts = append(opts, WithPaymailServer(
+			[]string{testDomain},
+			defaultSenderPaymail,
+			defaultAddressResolutionPurpose,
+			false, false,
+		))
 
 		tc, err := NewClient(context.Background(), opts...)
 		require.NoError(t, err)
@@ -208,12 +208,12 @@ func TestClient_ModifyPaymailConfig(t *testing.T) {
 
 	t.Run("update server config", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(&server.Configuration{
-			APIVersion:      "v1",
-			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
-			Port:            paymail.DefaultPort,
-			ServiceName:     paymail.DefaultServiceName,
-		}, defaultSenderPaymail, defaultAddressResolutionPurpose))
+		opts = append(opts, WithPaymailServer(
+			[]string{testDomain},
+			defaultSenderPaymail,
+			defaultAddressResolutionPurpose,
+			false, false,
+		))
 
 		tc, err := NewClient(context.Background(), opts...)
 		require.NoError(t, err)
@@ -252,12 +252,12 @@ func TestClient_PaymailServerConfig(t *testing.T) {
 
 	t.Run("valid paymail server config", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(&server.Configuration{
-			APIVersion:      "v1",
-			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
-			Port:            paymail.DefaultPort,
-			ServiceName:     paymail.DefaultServiceName,
-		}, defaultSenderPaymail, defaultAddressResolutionPurpose))
+		opts = append(opts, WithPaymailServer(
+			[]string{testDomain},
+			defaultSenderPaymail,
+			defaultAddressResolutionPurpose,
+			false, false,
+		))
 
 		tc, err := NewClient(context.Background(), opts...)
 		require.NoError(t, err)
@@ -345,12 +345,12 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 
 	t.Run("valid server config", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithPaymailServer(&server.Configuration{
-			APIVersion:      "v1",
-			BSVAliasVersion: paymail.DefaultBsvAliasVersion,
-			Port:            paymail.DefaultPort,
-			ServiceName:     paymail.DefaultServiceName,
-		}, defaultSenderPaymail, defaultAddressResolutionPurpose))
+		opts = append(opts, WithPaymailServer(
+			[]string{testDomain},
+			defaultSenderPaymail,
+			defaultAddressResolutionPurpose,
+			false, false,
+		))
 
 		tc, err := NewClient(context.Background(), opts...)
 		require.NoError(t, err)

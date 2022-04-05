@@ -72,9 +72,20 @@ type PaymailService interface {
 		metadata Metadata, opts ...ModelOps) (*PaymailAddress, error)
 }
 
+// ClientServices is the client related services
+type ClientServices interface {
+	Cachestore() cachestore.ClientInterface
+	Chainstate() chainstate.ClientInterface
+	Datastore() datastore.ClientInterface
+	Logger() logger.Interface
+	PaymailClient() paymail.ClientInterface
+	Taskmanager() taskmanager.ClientInterface
+}
+
 // ClientInterface is the client (bux engine) interface comprised of all services
 type ClientInterface interface {
 	AccessKeyService
+	ClientServices
 	DestinationService
 	PaymailService
 	TransactionService
@@ -82,10 +93,7 @@ type ClientInterface interface {
 	XPubService
 	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
 	AuthenticateRequest(ctx context.Context, req *http.Request, adminXPubs []string, adminRequired, requireSigning, signingDisabled bool) (*http.Request, error)
-	Cachestore() cachestore.ClientInterface
-	Chainstate() chainstate.ClientInterface
 	Close(ctx context.Context) error
-	Datastore() datastore.ClientInterface
 	Debug(on bool)
 	DefaultModelOptions(opts ...ModelOps) []ModelOps
 	EnableNewRelic()
@@ -96,12 +104,9 @@ type ClientInterface interface {
 	IsITCEnabled() bool
 	IsIUCEnabled() bool
 	IsNewRelicEnabled() bool
-	Logger() logger.Interface
 	ModifyPaymailConfig(config *server.Configuration, defaultFromPaymail, defaultNote string)
 	ModifyTaskPeriod(name string, period time.Duration) error
-	PaymailClient() paymail.ClientInterface
 	PaymailServerConfig() *PaymailServerOptions
-	Taskmanager() taskmanager.ClientInterface
 	UserAgent() string
 	Version() string
 }

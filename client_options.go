@@ -71,6 +71,7 @@ func defaultClientOptions() *clientOptions {
 			client: nil,
 			serverConfig: &PaymailServerOptions{
 				Configuration: nil,
+				options:       []server.ConfigOps{},
 			},
 		},
 
@@ -424,7 +425,42 @@ func WithPaymailClient(client paymail.ClientInterface) ClientOps {
 }
 
 // WithPaymailServer will set the server configuration for Paymail
-func WithPaymailServer(config *server.Configuration, defaultFromPaymail, defaultNote string) ClientOps {
+func WithPaymailServer(domains []string, defaultFromPaymail, defaultNote string,
+	domainValidation, senderValidation bool) ClientOps {
+	return func(c *clientOptions) {
+
+		// Add generic capabilities
+		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithGenericCapabilities())
+
+		// Add each domain
+		for _, domain := range domains {
+			c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithDomain(domain))
+		}
+
+		// Set the sender validation
+		if senderValidation {
+			c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithSenderValidation())
+		}
+
+		// Domain validation
+		if !domainValidation {
+			c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithDomainValidationDisabled())
+		}
+
+		// Add default values
+		if len(defaultFromPaymail) > 0 {
+			c.paymail.serverConfig.DefaultFromPaymail = defaultFromPaymail
+		}
+		if len(defaultNote) > 0 {
+			c.paymail.serverConfig.DefaultNote = defaultNote
+		}
+	}
+}
+
+// WithPaymailServerConfig will set the custom server configuration for Paymail
+//
+// This will allow overriding the Configuration.actions (paymail service provider)
+func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, defaultNote string) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil {
 			c.paymail.serverConfig.Configuration = config

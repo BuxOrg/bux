@@ -163,7 +163,7 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey string, destination *Destination, err error) {
 
 	// Get the paymail address record
-	paymailAddress, err = getPaymail(ctx, alias+"@"+domain)
+	paymailAddress, err = getPaymail(ctx, alias+"@"+domain, opts...)
 	if err != nil {
 		return nil, "", nil, err
 	}

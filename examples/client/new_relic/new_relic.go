@@ -22,9 +22,8 @@ func main() {
 	var client bux.ClientInterface
 	client, err = bux.NewClient(
 		newrelic.NewContext(context.Background(), app.StartTransaction("test-txn")),            // Set context
-		bux.WithFreeCache(),                                                                    // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithNewRelic(app),                                                                  // New relic application (from your own application or server)
+		bux.WithNewRelic(app), // New relic application (from your own application or server)
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

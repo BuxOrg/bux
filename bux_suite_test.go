@@ -320,7 +320,6 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 		WithDebugging(),
 		WithAutoMigrate(BaseModels...),
 		WithAutoMigrate(&PaymailAddress{}),
-		WithFreeCache(),
 	)
 	if taskManagerEnabled {
 		opts = append(opts, WithTaskQ(taskmanager.DefaultTaskQConfig(prefix+"_queue"), taskmanager.FactoryMemory))
@@ -353,7 +352,6 @@ func (ts *EmbeddedDBTestSuite) genericMockedDBClient(t *testing.T, database data
 		database, prefix,
 		true, true, WithDebugging(),
 		WithCustomTaskManager(&taskManagerMockBase{}),
-		WithFreeCache(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tc)

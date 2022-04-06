@@ -261,6 +261,9 @@ func WithLogger(customLogger logger.Interface) ClientOps {
 			if c.dataStore != nil {
 				c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(c.logger))
 			}
+			if c.cacheStore != nil {
+				c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(c.logger))
+			}
 		}
 	}
 }

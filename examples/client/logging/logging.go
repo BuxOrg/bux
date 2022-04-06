@@ -11,8 +11,7 @@ import (
 
 func main() {
 	client, err := bux.NewClient(
-		context.Background(),                                                                   // Set context
-		bux.WithFreeCache(),                                                                    // Cache
+		context.Background(), // Set context
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithLogger(logger.NewLogger(false)),                                                // Example of using a custom logger
 	)

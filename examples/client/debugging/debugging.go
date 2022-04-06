@@ -11,7 +11,6 @@ import (
 func main() {
 	client, err := bux.NewClient(
 		context.Background(), // Set context
-		bux.WithFreeCache(),  // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithDebugging(), // Enable debugging (verbose logs)
 	)

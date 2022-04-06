@@ -34,7 +34,6 @@ func main() {
 			TxTimeout: defaultTimeouts,
 			User:      os.Getenv("DB_USER"),
 		}),
-		bux.WithFreeCache(), // Cache
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithAutoMigrate( // All models
 			append(bux.BaseModels, &bux.PaymailAddress{

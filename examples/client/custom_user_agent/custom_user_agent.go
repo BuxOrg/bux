@@ -10,8 +10,7 @@ import (
 
 func main() {
 	client, err := bux.NewClient(
-		context.Background(),                                                                   // Set context
-		bux.WithFreeCache(),                                                                    // Cache
+		context.Background(), // Set context
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithUserAgent("my-custom-user-agent"),                                              // Custom user agent
 	)

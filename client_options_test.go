@@ -260,7 +260,7 @@ func TestWithFreeCache(t *testing.T) {
 }
 
 // TestWithFreeCacheConnection will test the method WithFreeCacheConnection()
-func TestWithMcacheConnection(t *testing.T) {
+func TestWithFreeCacheConnection(t *testing.T) {
 	t.Parallel()
 
 	t.Run("using a nil client", func(t *testing.T) {
@@ -269,8 +269,14 @@ func TestWithMcacheConnection(t *testing.T) {
 			WithFreeCacheConnection(nil),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
-		require.Error(t, err)
-		require.Nil(t, tc)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+
+		defer CloseClient(context.Background(), t, tc)
+
+		cs := tc.Cachestore()
+		require.NotNil(t, cs)
+		assert.Equal(t, cachestore.FreeCache, cs.Engine())
 	})
 
 	t.Run("using an existing connection", func(t *testing.T) {

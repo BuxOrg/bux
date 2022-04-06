@@ -11,11 +11,10 @@ import (
 
 func main() {
 	client, err := bux.NewClient(
-		context.Background(),                                                                   // Set context
-		bux.WithFreeCache(),                                                                    // Cache
+		context.Background(), // Set context
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithDebugging(),                                                                    // Enable debugging (verbose logs)
-		bux.WithEncryption(os.Getenv("BUX_ENCRYPTION_KEY")),                                    // Encryption key for external public keys (paymail)
+		bux.WithDebugging(), // Enable debugging (verbose logs)
+		bux.WithEncryption(os.Getenv("BUX_ENCRYPTION_KEY")), // Encryption key for external public keys (paymail)
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

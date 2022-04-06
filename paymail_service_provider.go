@@ -34,7 +34,7 @@ func (p *PaymailDefaultServiceProvider) createMetadata(serverMetaData *server.Re
 			metadata["note"] = serverMetaData.Note
 		}
 		if serverMetaData.Domain != "" {
-			metadata["domain"] = serverMetaData.Domain
+			metadata[domainField] = serverMetaData.Domain
 		}
 		if serverMetaData.IPAddress != "" {
 			metadata["ip_address"] = serverMetaData.IPAddress

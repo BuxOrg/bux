@@ -69,8 +69,10 @@ const (
 	ReferenceIDField = "reference_id"
 
 	// Internal field names
+	aliasField           = "alias"
 	broadcastStatusField = "broadcast_status"
 	currentBalanceField  = "current_balance"
+	domainField          = "domain"
 	draftIDField         = "draft_id"
 	idField              = "id"
 	metadataField        = "metadata"
@@ -162,5 +164,10 @@ var (
 		&Utxo{
 			Model: *NewBaseModel(ModelUtxo),
 		},
+
+		// Paymail addresses related to XPubs (automatically added when paymail is enabled)
+		/*&PaymailAddress{
+			Model: *NewBaseModel(ModelPaymailAddress),
+		},*/
 	}
 )

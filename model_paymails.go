@@ -28,6 +28,9 @@ type PaymailAddress struct {
 	Username        string `json:"username" toml:"username" yaml:"username" gorm:"<-;type:varchar(255);uniqueIndex;comment:This is username" bson:"username"`                                                                             // Full username
 	Avatar          string `json:"avatar" toml:"avatar" yaml:"avatar" gorm:"<-;type:text;comment:This is avatar url" bson:"avatar"`                                                                                                       // This is the url of the user (public profile)
 	ExternalXpubKey string `json:"external_xpub_key" toml:"external_xpub_key" yaml:"external_xpub_key" gorm:"<-:create;type:varchar(512);index;comment:This is full xPub for external use, encryption optional" bson:"external_xpub_key"` // PublicKey hex encoded
+
+	// Private fields
+	externalXpubKeyDecrypted string
 }
 
 // newPaymail create new paymail model
@@ -57,8 +60,8 @@ func getPaymail(ctx context.Context, address string, opts ...ModelOps) (*Paymail
 	paymailAddress := newPaymail(address, opts...)
 	paymailAddress.ID = ""
 	conditions := map[string]interface{}{
-		"alias":  paymailAddress.Alias,
-		"domain": paymailAddress.Domain,
+		aliasField:  paymailAddress.Alias,
+		domainField: paymailAddress.Domain,
 	}
 
 	if err := Get(
@@ -114,11 +117,14 @@ func (m *PaymailAddress) setXPub() error {
 		return err
 	}
 
+	// Set the decrypted version
+	m.externalXpubKeyDecrypted = paymailExternalKey.String()
+
 	// Encrypt the xPub
 	if len(m.encryptionKey) > 0 {
-		m.ExternalXpubKey, err = utils.Encrypt(m.encryptionKey, paymailExternalKey.String())
+		m.ExternalXpubKey, err = utils.Encrypt(m.encryptionKey, m.externalXpubKeyDecrypted)
 	} else {
-		m.ExternalXpubKey = paymailExternalKey.String()
+		m.ExternalXpubKey = m.externalXpubKeyDecrypted
 	}
 
 	return err
@@ -143,20 +149,19 @@ func (m *PaymailAddress) GetIdentityXpub() (*bip32.ExtendedKey, error) {
 func (m *PaymailAddress) GetExternalXpub() (*bip32.ExtendedKey, error) {
 
 	// Check if the xPub was encrypted
-	var externalKey string
 	if len(m.ExternalXpubKey) != utils.XpubKeyLength {
 		var err error
-		if externalKey, err = utils.Decrypt(
+		if m.externalXpubKeyDecrypted, err = utils.Decrypt(
 			m.encryptionKey, m.ExternalXpubKey,
 		); err != nil {
 			return nil, err
 		}
 	} else {
-		externalKey = m.ExternalXpubKey
+		m.externalXpubKeyDecrypted = m.ExternalXpubKey
 	}
 
 	// Get the xPub
-	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(externalKey)
+	xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(m.externalXpubKeyDecrypted)
 	if err != nil {
 		return nil, err
 	}
@@ -187,10 +192,6 @@ func (m *PaymailAddress) GetID() string {
 func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
 
-	if _, err = utils.ValidateXPub(m.ExternalXpubKey); err != nil {
-		return
-	}
-
 	if m.ID == "" {
 		return ErrMissingPaymailID
 	}
@@ -205,6 +206,10 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 
 	if len(m.ExternalXpubKey) == 0 {
 		return ErrMissingPaymailExternalXPub
+	} else if len(m.externalXpubKeyDecrypted) > 0 {
+		if _, err = utils.ValidateXPub(m.externalXpubKeyDecrypted); err != nil {
+			return
+		}
 	}
 
 	if len(m.XpubID) == 0 {
@@ -234,14 +239,12 @@ func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 
 // migratePostgreSQL is specific migration SQL for Postgresql
 func (m *PaymailAddress) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
-
 	tx := client.Execute(`CREATE UNIQUE INDEX IF NOT EXISTS "idx_paymail_address" ON "` + tableName + `" ("alias","domain")`)
 	return tx.Error
 }
 
 // migrateMySQL is specific migration SQL for MySQL
 func (m *PaymailAddress) migrateMySQL(client datastore.ClientInterface, tableName string) error {
-
 	tx := client.Execute("CREATE UNIQUE INDEX idx_paymail_address ON `" + tableName + "` (alias, domain)")
 	return tx.Error
 }

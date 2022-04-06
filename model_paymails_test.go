@@ -58,8 +58,8 @@ func TestNewPaymail(t *testing.T) {
 		)
 		p2.ID = "" // Remove ID (to make query work)
 		conditions := map[string]interface{}{
-			"alias":  p.Alias,
-			"domain": p.Domain,
+			aliasField:  p.Alias,
+			domainField: p.Domain,
 		}
 		err = Get(ctx, p2, conditions, false, 0)
 		require.NoError(t, err)

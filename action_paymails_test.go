@@ -7,8 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var externalXPubID = "xpub69PUyEkuD8cqyA9ekUkp3FwaeW1uyLxbwybEy3bmyD7mM6zShsJqfRCv12B43h6KiEiZgF3BFSMnYLsVZr526n37qsqVXkPKYWQ8En2xbi1"
-var testPaymail = "paymail@tester.com"
+var (
+	externalXPubID = "xpub69PUyEkuD8cqyA9ekUkp3FwaeW1uyLxbwybEy3bmyD7mM6zShsJqfRCv12B43h6KiEiZgF3BFSMnYLsVZr526n37qsqVXkPKYWQ8En2xbi1"
+	testAvatar     = "https://i.imgur.com/MYSVX44.png"
+	testAvatar2    = "https://i.imgur.com/cBJKPDh.png"
+	testPaymail    = "paymail@tester.com"
+	testPublicName = "Public Name"
+)
 
 func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 	for _, testCase := range dbTestCases {
@@ -16,8 +21,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
-			paymail := ""
-			address, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, paymail, tc.client.DefaultModelOptions()...)
+			address, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, "", testPublicName, testAvatar, tc.client.DefaultModelOptions()...)
 			require.ErrorIs(t, err, ErrMissingPaymailAddress)
 			require.Nil(t, address)
 		})
@@ -26,12 +30,14 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
-			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, tc.client.DefaultModelOptions()...)
+			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 
 			assert.Equal(t, "paymail", paymailAddress.Alias)
 			assert.Equal(t, "tester.com", paymailAddress.Domain)
+			assert.Equal(t, testAvatar, paymailAddress.Avatar)
+			assert.Equal(t, testPublicName, paymailAddress.PublicName)
 			assert.Equal(t, testXPubID, paymailAddress.XpubID)
 			assert.Equal(t, externalXPubID, paymailAddress.ExternalXpubKey)
 
@@ -42,6 +48,8 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 
 			assert.Equal(t, "paymail", p2.Alias)
 			assert.Equal(t, "tester.com", p2.Domain)
+			assert.Equal(t, testAvatar, p2.Avatar)
+			assert.Equal(t, testPublicName, p2.PublicName)
 			assert.Equal(t, testXPubID, p2.XpubID)
 			assert.Equal(t, externalXPubID, p2.ExternalXpubKey)
 		})
@@ -72,7 +80,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
-			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, tc.client.DefaultModelOptions()...)
+			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 
@@ -94,7 +102,6 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 	}
 }
 
-// TestClient_UpdateXpubMetadata will test the method UpdatePaymailAddressMetadata()
 func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 
 	for _, testCase := range dbTestCases {
@@ -110,7 +117,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 			opts := tc.client.DefaultModelOptions()
 			opts = append(opts, WithMetadatas(metadata))
 
-			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, opts...)
+			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 
@@ -130,10 +137,41 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 			assert.Equal(t, "new-value", paymailAddress.Metadata["test-key-new"])
 			assert.Equal(t, "new-value-2", paymailAddress.Metadata["test-key-new-2"])
 
-			err = paymailAddress.Save(tc.ctx)
+			var p2 *PaymailAddress
+			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			require.NoError(t, err)
+			require.NotNil(t, p2)
+			assert.Len(t, paymailAddress.Metadata, 2)
+		})
+	}
+}
+
+func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddress() {
+
+	for _, testCase := range dbTestCases {
+		ts.T().Run(testCase.name+" - valid", func(t *testing.T) {
+			tc := ts.genericDBClient(t, testCase.database, false)
+			defer tc.Close(tc.ctx)
+
+			opts := tc.client.DefaultModelOptions()
+			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
+			require.NoError(t, err)
+			require.NotNil(t, paymailAddress)
+			assert.Equal(t, testPublicName, paymailAddress.PublicName)
+			assert.Equal(t, testAvatar, paymailAddress.Avatar)
+
+			paymailAddress, err = tc.client.UpdatePaymailAddress(tc.ctx, testPaymail, testPublicName+"2", testAvatar2, opts...)
 			require.NoError(t, err)
 
-			// todo: make sure it was saved
+			assert.Equal(t, testPublicName+"2", paymailAddress.PublicName)
+			assert.Equal(t, testAvatar2, paymailAddress.Avatar)
+
+			var p2 *PaymailAddress
+			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			require.NoError(t, err)
+			require.NotNil(t, p2)
+			assert.Equal(t, testPublicName+"2", p2.PublicName)
+			assert.Equal(t, testAvatar2, p2.Avatar)
 		})
 	}
 }

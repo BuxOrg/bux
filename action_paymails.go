@@ -8,7 +8,8 @@ import (
 )
 
 // NewPaymailAddress will create a new paymail address
-func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address string, opts ...ModelOps) (*PaymailAddress, error) {
+func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, publicName, avatar string,
+	opts ...ModelOps) (*PaymailAddress, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_paymail_address")
@@ -21,6 +22,10 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address string,
 			WithXPub(xPubKey),
 		)...)...,
 	)
+
+	// Set the optional fields
+	paymailAddress.Avatar = avatar
+	paymailAddress.PublicName = publicName
 
 	// Save the model
 	if err := paymailAddress.Save(ctx); err != nil {
@@ -52,6 +57,7 @@ func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts 
 
 	// We will do a soft delete to make sure we still have the history for this address
 	// setting the Domain to a random string solved the problem of the unique index on Alias/Domain
+	// todo: figure out a different approach - history table?
 	paymailAddress.Alias = paymailAddress.Alias + "@" + paymailAddress.Domain
 	paymailAddress.Domain = randomString
 	paymailAddress.DeletedAt.Valid = true
@@ -77,6 +83,39 @@ func (c *Client) UpdatePaymailAddressMetadata(ctx context.Context, address strin
 
 	// Update the metadata
 	paymailAddress.UpdateMetadata(metadata)
+
+	// Save the model
+	if err = paymailAddress.Save(ctx); err != nil {
+		return nil, err
+	}
+
+	return paymailAddress, nil
+}
+
+// UpdatePaymailAddress will update optional fields of the paymail address
+func (c *Client) UpdatePaymailAddress(ctx context.Context, address, publicName, avatar string,
+	opts ...ModelOps) (*PaymailAddress, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "update_paymail_address")
+
+	// Get the paymail address
+	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
+	if err != nil {
+		return nil, err
+	} else if paymailAddress == nil {
+		return nil, ErrMissingPaymail
+	}
+
+	// Update the public name
+	if paymailAddress.PublicName != publicName {
+		paymailAddress.PublicName = publicName
+	}
+
+	// Update the avatar
+	if paymailAddress.Avatar != avatar {
+		paymailAddress.Avatar = avatar
+	}
 
 	// Save the model
 	if err = paymailAddress.Save(ctx); err != nil {

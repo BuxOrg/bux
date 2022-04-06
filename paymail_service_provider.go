@@ -65,7 +65,7 @@ func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(ctx context.Context, a
 		Domain:      paymailAddress.Domain,
 		ID:          paymailAddress.ID,
 		LastAddress: destination.Address,
-		Name:        paymailAddress.Username.String,
+		Name:        paymailAddress.PublicName,
 		PubKey:      pubKey,
 	}, nil
 }

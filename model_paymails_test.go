@@ -46,8 +46,7 @@ func TestNewPaymail(t *testing.T) {
 			WithXPub(testXpub),
 			WithEncryptionKey(testEncryption),
 		)
-		p.Username.String = "Tester"
-		p.Username.Valid = true
+		p.PublicName = "Tester"
 		p.Avatar = "img url"
 		err = p.Save(ctx)
 		require.NoError(t, err)
@@ -71,7 +70,7 @@ func TestNewPaymail(t *testing.T) {
 		require.NotNil(t, identityKey)
 
 		assert.Equal(t, paymail, p2.Alias+"@"+p2.Domain)
-		assert.Equal(t, "Tester", p2.Username.String)
+		assert.Equal(t, "Tester", p2.PublicName)
 		assert.Equal(t, "img url", p2.Avatar)
 		assert.Equal(t, "d8c2bed524071d72d859caf90da5f448b5861cd4d4fd47697f94166c13c5a987", p2.XpubID)
 		assert.Equal(t, paymailIdentityXPub, identityKey.String())

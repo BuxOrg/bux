@@ -168,8 +168,9 @@ func TestWithRedisConnection(t *testing.T) {
 	t.Run("apply empty redis connection", func(t *testing.T) {
 		opts := []ClientOps{WithDebugging(), WithRedisConnection(nil)}
 		c, err := NewClient(context.Background(), opts...)
-		assert.Nil(t, c)
-		assert.Error(t, err)
+		assert.NotNil(t, c)
+		assert.NoError(t, err)
+		assert.Equal(t, FreeCache, c.Engine())
 	})
 
 	t.Run("apply existing external redis connection", func(t *testing.T) {
@@ -228,5 +229,30 @@ func TestWithFreeCacheConnection(t *testing.T) {
 
 		assert.Equal(t, FreeCache, c.Engine())
 		assert.Equal(t, freeClient, c.FreeCache())
+	})
+}
+
+// TestWithLogger will test the method WithLogger()
+func TestWithLogger(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithLogger(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		options := &clientOptions{}
+		opt := WithLogger(nil)
+		opt(options)
+		assert.Nil(t, options.logger)
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		options := &clientOptions{}
+		customClient := newLogger()
+		opt := WithLogger(customClient)
+		opt(options)
+		assert.Equal(t, customClient, options.logger)
 	})
 }

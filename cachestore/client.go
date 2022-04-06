@@ -20,6 +20,7 @@ type (
 		debug           bool             // For extra logs and additional debug information
 		engine          Engine           // Cachestore engine (redis or mcache)
 		freecache       *freecache.Cache // Driver (client) for local in-memory storage
+		logger          Logger           // Internal logging
 		newRelicEnabled bool             // If NewRelic is enabled (parent application)
 		redis           *cache.Client    // Current redis client (read & write)
 		redisConfig     *RedisConfig     // Configuration for a new redis client
@@ -40,9 +41,15 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		opt(client.options)
 	}
 
-	// EMPTY! Engine was NOT set
+	// Set logger if not set
+	if client.options.logger == nil {
+		client.options.logger = newLogger()
+	}
+
+	// EMPTY! Engine was NOT set, show warning and use in-memory cache
 	if client.Engine().IsEmpty() {
-		return nil, ErrNoEngine
+		client.options.logger.Warn(ctx, "cachestore engine was not set, using in-memory FreeCache")
+		client.options.engine = FreeCache
 	}
 
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)

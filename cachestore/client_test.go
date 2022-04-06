@@ -44,29 +44,31 @@ func TestNewClient(t *testing.T) {
 		})
 	}
 
-	t.Run("empty client, no options", func(t *testing.T) {
+	t.Run("empty client, no options, defaults to FreeCache", func(t *testing.T) {
 		c, err := NewClient(context.Background())
-		assert.Nil(t, c)
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrNoEngine)
+		assert.NotNil(t, c)
+		assert.NoError(t, err)
+		assert.Equal(t, FreeCache, c.Engine())
 	})
 
-	t.Run("[redis] - fail if redis connection is nil", func(t *testing.T) {
+	t.Run("[redis] - redis connection is nil", func(t *testing.T) {
 		c, err := NewClient(context.Background(),
 			WithRedisConnection(nil),
 			WithDebugging(),
 		)
-		assert.Nil(t, c)
-		assert.Error(t, err)
+		assert.NotNil(t, c)
+		assert.NoError(t, err)
+		assert.Equal(t, FreeCache, c.Engine())
 	})
 
-	t.Run("[redis] - fail if redis config is nil", func(t *testing.T) {
+	t.Run("[redis] - redis config is nil", func(t *testing.T) {
 		c, err := NewClient(context.Background(),
 			WithRedis(nil),
 			WithDebugging(),
 		)
-		assert.Nil(t, c)
-		assert.Error(t, err)
+		assert.NotNil(t, c)
+		assert.NoError(t, err)
+		assert.Equal(t, FreeCache, c.Engine())
 	})
 
 	t.Run("[redis] - bad redis connection", func(t *testing.T) {

@@ -106,3 +106,12 @@ func WithFreeCacheConnection(client *freecache.Cache) ClientOps {
 		}
 	}
 }
+
+// WithLogger will set the custom logger interface
+func WithLogger(customLogger Logger) ClientOps {
+	return func(c *clientOptions) {
+		if customLogger != nil {
+			c.logger = customLogger
+		}
+	}
+}

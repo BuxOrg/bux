@@ -15,7 +15,7 @@ func newLogger() Logger {
 // basicLogger is a basic logging implementation
 type basicLogger struct{}
 
-// Info print information
+// Info will print information
 func (l *basicLogger) Info(_ context.Context, message string, params ...interface{}) {
 	displayLog(zlogger.INFO, message, params...)
 }

@@ -2,8 +2,10 @@ package bux
 
 import (
 	"context"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
@@ -52,7 +54,7 @@ func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(ctx context.Context, a
 
 	// Create the paymail information
 	paymailAddress, pubKey, destination, err := p.createPaymailInformation(
-		ctx, alias, domain, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, alias, domain, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -79,7 +81,7 @@ func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(ctx cont
 
 	// Create the paymail information
 	_, _, destination, err := p.createPaymailInformation(
-		ctx, alias, domain, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, alias, domain, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -112,7 +114,7 @@ func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(ctx context
 	// todo: strategy to break apart outputs based on satoshis (return x Outputs)
 	var destination *Destination
 	_, _, destination, err = p.createPaymailInformation(
-		ctx, alias, domain, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, alias, domain, false, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -160,7 +162,7 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 
 // createPaymailInformation will get & create the paymail information (dynamic addresses)
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string,
-	opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey string, destination *Destination, err error) {
+	monitor bool, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey string, destination *Destination, err error) {
 
 	// Get the paymail address record
 	paymailAddress, err = getPaymail(ctx, alias+"@"+domain, opts...)
@@ -207,6 +209,14 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	destination = newDestination(paymailAddress.XpubID, lockingScript, append(opts, New())...)
 	destination.Chain = utils.ChainExternal
 	destination.Num = xPub.NextExternalNum
+
+	// Only on for basic address resolution, not enabled for p2p
+	if monitor {
+		destination.Monitor = utils.NullTime{NullTime: sql.NullTime{
+			Valid: true,
+			Time:  time.Now(),
+		}}
+	}
 
 	// Create the new destination
 	if err = destination.Save(ctx); err != nil {

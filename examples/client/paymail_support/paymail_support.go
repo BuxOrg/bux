@@ -16,7 +16,7 @@ func main() {
 			[]string{"test.com"},
 			"from@test.com",
 			"some default note",
-			false, false,
+			true, false,
 		),
 	)
 	if err != nil {

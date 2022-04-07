@@ -114,6 +114,9 @@ func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Tra
 	tx.rawXpubKey = incomingTx.rawXpubKey
 	tx.setXPubID()
 
+	// Set the generic metadata (might be ignored if no xPub is used)
+	tx.Metadata = incomingTx.Metadata
+
 	// Set the fields
 	tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
 	tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
@@ -309,6 +312,7 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 			// todo will this overwrite the global metadata ?
 			m.Metadata = nil
 		}
+		m.DebugLog("xPub id is missing from transaction, cannot store metadata")
 	}
 
 	return Save(ctx, m)

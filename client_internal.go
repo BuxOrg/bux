@@ -117,7 +117,7 @@ func (c *Client) loadDefaultPaymailConfig() (err error) {
 	// Set default options if none are found
 	if len(c.options.paymail.serverConfig.options) == 0 {
 		c.options.paymail.serverConfig.options = append(c.options.paymail.serverConfig.options,
-			server.WithGenericCapabilities(),
+			server.WithP2PCapabilities(),
 			server.WithDomainValidationDisabled(),
 		)
 	}

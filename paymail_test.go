@@ -37,7 +37,7 @@ func newTestPaymailConfig(t *testing.T, domain string) *server.Configuration {
 	c, err := server.NewConfig(
 		new(mockServiceProvider),
 		server.WithDomain(domain),
-		server.WithGenericCapabilities(),
+		server.WithP2PCapabilities(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, c)

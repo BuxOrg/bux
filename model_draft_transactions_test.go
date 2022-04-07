@@ -767,7 +767,7 @@ func createDraftTransactionFromHex(hex string, inInfo []interface{}) (*DraftTran
 }
 
 func TestDraftTransaction_estimateFees(t *testing.T) {
-	jsonFile, err := os.Open("./model_draft_transactions_test.json")
+	jsonFile, err := os.Open("./tests/model_draft_transactions_test.json")
 	require.NoError(t, err)
 	defer func() {
 		_ = jsonFile.Close()

@@ -12,5 +12,6 @@ type HTTPInterface interface {
 
 // ClientInterface is the notification client interface
 type ClientInterface interface {
-	Notify(ctx context.Context, eventType EventType, model interface{}, id string) error
+	Notify(ctx context.Context, modelType string, eventType EventType, model interface{}, id string) error
+	GetWebhookEndpoint() string
 }

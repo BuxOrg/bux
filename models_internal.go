@@ -151,21 +151,20 @@ func (m *Model) AfterCreated(_ context.Context) error {
 }
 
 // Notify about an event on the model
-func Notify(event notifications.EventType, model interface{}) {
+func Notify(eventType notifications.EventType, model interface{}) {
 	// run the notifications in a separate goroutine since there could be significant network delay
 	// communicating with a notification provider
 
-	// todo: this does not work: panic: interface conversion: interface {} is *bux.Destination, not bux.Model
-	/*go func() {
-		m := model.(Model)
+	go func() {
+		m := model.(ModelInterface)
 		client := m.Client()
 		if client != nil {
 			if n := client.Notifications(); n != nil {
 				ctx := context.Background()
-				if err := n.Notify(ctx, event, model, m.GetID()); err != nil {
-					client.Logger().Error(context.Background(), "failed notifying about "+string(event)+" on "+m.GetID()+": "+err.Error())
+				if err := n.Notify(ctx, m.GetModelName(), eventType, model, m.GetID()); err != nil {
+					client.Logger().Error(context.Background(), "failed notifying about "+string(eventType)+" on "+m.GetID()+": "+err.Error())
 				}
 			}
 		}
-	}()*/
+	}()
 }

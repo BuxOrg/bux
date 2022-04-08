@@ -4,11 +4,17 @@ package notifications
 type EventType string
 
 const (
-	// EventTypeDestinationCreate when a new destination is created
-	EventTypeDestinationCreate EventType = "destination_create"
+	// EventTypeCreate when a new model is created
+	EventTypeCreate EventType = "create"
 
-	// EventTypeTransactionCreate when a new transaction is created
-	EventTypeTransactionCreate EventType = "transaction_create"
+	// EventTypeRead when a new model is read
+	EventTypeRead EventType = "read"
+
+	// EventTypeUpdate when a new model is updated
+	EventTypeUpdate EventType = "update"
+
+	// EventTypeDelete when a new model is deleted
+	EventTypeDelete EventType = "delete"
 )
 
 type (

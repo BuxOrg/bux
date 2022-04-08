@@ -249,9 +249,31 @@ func (m *Destination) Migrate(client datastore.ClientInterface) error {
 }
 
 // AfterCreated will fire after the model is created in the Datastore
-func (m *Destination) AfterCreated(ctx context.Context) error {
+func (m *Destination) AfterCreated(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
-	Notify(notifications.EventTypeDestinationCreate, m)
+	Notify(notifications.EventTypeCreate, m)
 
+	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	return nil
+}
+
+// AfterUpdated will fire after the model is updated in the Datastore
+func (m *Destination) AfterUpdated(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+
+	Notify(notifications.EventTypeUpdate, m)
+
+	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	return nil
+}
+
+// AfterDeleted will fire after the model is deleted in the Datastore
+func (m *Destination) AfterDeleted(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
+
+	Notify(notifications.EventTypeDelete, m)
+
+	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
 	return nil
 }

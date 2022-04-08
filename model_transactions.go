@@ -485,9 +485,28 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		}
 	}
 
-	Notify(notifications.EventTypeTransactionCreate, m)
-
+	Notify(notifications.EventTypeCreate, m)
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	return nil
+}
+
+// AfterUpdated will fire after the model is updated in the Datastore
+func (m *Transaction) AfterUpdated(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+
+	Notify(notifications.EventTypeUpdate, m)
+
+	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	return nil
+}
+
+// AfterDeleted will fire after the model is deleted in the Datastore
+func (m *Transaction) AfterDeleted(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
+
+	Notify(notifications.EventTypeDelete, m)
+
+	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
 	return nil
 }
 

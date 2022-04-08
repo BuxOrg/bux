@@ -10,16 +10,22 @@ import (
 	"github.com/mrz1836/go-logger"
 )
 
+// GetWebhookEndpoint get the configured webhook endpoint
+func (c *Client) GetWebhookEndpoint() string {
+	return c.options.config.webhookEndpoint
+}
+
 // Notify create a new notification
-func (c *Client) Notify(ctx context.Context, eventType EventType, model interface{}, id string) error {
+func (c *Client) Notify(ctx context.Context, modelType string, eventType EventType, model interface{}, id string) error {
 
 	if len(c.options.config.webhookEndpoint) == 0 {
 		logger.Printf("NOTIFY %s: %s - %v", eventType, id, model)
 	} else {
 		jsonData, err := json.Marshal(map[string]interface{}{
-			"event": eventType,
-			"id":    id,
-			"model": model,
+			"modelType": modelType,
+			"eventType": eventType,
+			"id":        id,
+			"model":     model,
 		})
 		if err != nil {
 			return err

@@ -76,8 +76,8 @@ type (
 
 	// notificationsOptions holds the configuration for notifications
 	notificationsOptions struct {
-		client          notifications.ClientInterface
-		webhookEndpoint string
+		client          notifications.ClientInterface // Notifications client
+		webhookEndpoint string                        // Webhook endpoint
 	}
 
 	// paymailOptions holds the configuration for Paymail
@@ -143,12 +143,12 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	}
 
 	// Load the Paymail client (if client does not exist)
-	if err := client.loadPaymailClient(); err != nil {
+	if err = client.loadPaymailClient(); err != nil {
 		return nil, err
 	}
 
 	// Load the Paymail client (if client does not exist)
-	if err := client.loadNotificationClient(); err != nil {
+	if err = client.loadNotificationClient(); err != nil {
 		return nil, err
 	}
 

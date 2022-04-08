@@ -1,1 +1,56 @@
 package notifications
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/mrz1836/go-logger"
+)
+
+// Notify create a new notification
+func (c *Client) Notify(ctx context.Context, eventType EventType, model interface{}, id string) error {
+
+	if len(c.options.config.webhookEndpoint) == 0 {
+		logger.Printf("NOTIFY %s: %s - %v", eventType, id, model)
+	} else {
+		jsonData, err := json.Marshal(map[string]interface{}{
+			"event": eventType,
+			"id":    id,
+			"model": model,
+		})
+		if err != nil {
+			return err
+		}
+
+		var req *http.Request
+		if req, err = http.NewRequestWithContext(ctx,
+			http.MethodPost,
+			c.options.config.webhookEndpoint,
+			bytes.NewBuffer(jsonData),
+		); err != nil {
+			return err
+		}
+
+		var response *http.Response
+		if response, err = c.options.httpClient.Do(req); err != nil {
+			return err
+		}
+		defer func() {
+			_ = response.Body.Close()
+		}()
+
+		if response.StatusCode != http.StatusOK {
+			// todo queue notification for another try ...
+			logger.Data(2, logger.INFO,
+				fmt.Sprintf("%s: %d", "received invalid response from notification endpoint: ",
+					response.StatusCode,
+				),
+			)
+		}
+	}
+
+	return nil
+}

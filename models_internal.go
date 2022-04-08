@@ -154,7 +154,9 @@ func (m *Model) AfterCreated(_ context.Context) error {
 func Notify(event notifications.EventType, model interface{}) {
 	// run the notifications in a separate goroutine since there could be significant network delay
 	// communicating with a notification provider
-	go func() {
+
+	// todo: this does not work: panic: interface conversion: interface {} is *bux.Destination, not bux.Model
+	/*go func() {
 		m := model.(Model)
 		client := m.Client()
 		if client != nil {
@@ -165,5 +167,5 @@ func Notify(event notifications.EventType, model interface{}) {
 				}
 			}
 		}
-	}()
+	}()*/
 }

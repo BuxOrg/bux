@@ -1,5 +1,14 @@
 package notifications
 
+import (
+	"net/http"
+	"time"
+)
+
+const (
+	defaultHTTPTimeout = 20 * time.Second
+)
+
 // ClientOps allow functional options to be supplied
 // that overwrite default client options.
 type ClientOps func(c *clientOptions)
@@ -14,10 +23,13 @@ func defaultClientOptions() *clientOptions {
 		config: &notificationsConfig{
 			webhookEndpoint: "",
 		},
+		httpClient: &http.Client{
+			Timeout: defaultHTTPTimeout,
+		},
 	}
 }
 
-// WithNotifications will set the default http endpoint notifications handler
+// WithNotifications will set the webhook endpoint
 func WithNotifications(webhookEndpoint string) ClientOps {
 	return func(c *clientOptions) {
 		c.config.webhookEndpoint = webhookEndpoint

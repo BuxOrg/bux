@@ -181,7 +181,7 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, minerCraft miner
 
 	// Something went wrong - got back an id that does not match
 	if resp == nil || !strings.EqualFold(resp.Results.TxID, id) {
-		return errors.New("returned tx does not match given tx id")
+		return errors.New("returned tx id [" + resp.Results.TxID + "] does not match given tx id [" + id + "]")
 	}
 
 	// mAPI success of broadcast
@@ -215,7 +215,7 @@ func broadcastMatterCloud(ctx context.Context, client ClientInterface, matterClo
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(resp.Result.TxID, id) {
-		return errors.New("returned tx does not match given tx id")
+		return errors.New("returned tx id [" + resp.Result.TxID + "] does not match given tx id [" + id + "]")
 	}
 
 	// Success was a failure?
@@ -244,7 +244,7 @@ func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, whatsOnC
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(txID, id) {
-		return errors.New("returned tx does not match given tx id")
+		return errors.New("returned tx id [" + txID + "] does not match given tx id [" + id + "]")
 	}
 
 	// Success
@@ -268,7 +268,7 @@ func broadcastNowNodes(ctx context.Context, client ClientInterface, nowNodes now
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(result.Result, txID) {
-		return errors.New("returned tx does not match given tx id")
+		return errors.New("returned tx id [" + result.Result + "] does not match given tx id [" + txID + "]")
 	}
 
 	// Success

@@ -18,6 +18,10 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 		return ErrInvalidTransactionHex
 	}
 
+	// Added debugging
+	c.DebugLog("tx id: " + id)
+	c.DebugLog("txHex: " + txHex)
+
 	// Broadcast!
 	err := c.broadcast(ctx, id, txHex, timeout)
 	if err != nil {

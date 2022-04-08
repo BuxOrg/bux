@@ -98,6 +98,7 @@ type ClientInterface interface {
 	Close(ctx context.Context) error
 	Debug(on bool)
 	DefaultModelOptions(opts ...ModelOps) []ModelOps
+	DefaultSyncConfig() *SyncConfig
 	EnableNewRelic()
 	GetFeeUnit(_ context.Context, _ string) *utils.FeeUnit
 	GetOrStartTxn(ctx context.Context, name string) context.Context

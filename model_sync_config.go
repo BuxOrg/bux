@@ -49,12 +49,3 @@ func (t SyncConfig) Value() (driver.Value, error) {
 
 	return string(marshal), nil
 }
-
-// DefaultSyncConfig will return a default broadcast config
-// todo: these defaults should come from bux config and possible to change
-func DefaultSyncConfig() *SyncConfig {
-	return &SyncConfig{
-		Broadcast:   true,
-		SyncOnChain: true,
-	}
-}

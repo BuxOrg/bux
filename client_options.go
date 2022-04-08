@@ -42,6 +42,8 @@ func defaultClientOptions() *clientOptions {
 		chainstate: &chainstateOptions{
 			ClientInterface: nil,
 			options:         []chainstate.ClientOps{},
+			broadcasting:    true, // Enabled by default for new users
+			syncOnChain:     true, // Enabled by default for new users
 		},
 
 		// Blank cache config
@@ -552,6 +554,14 @@ func WithCustomChainstate(chainState chainstate.ClientInterface) ClientOps {
 		if chainState != nil {
 			c.chainstate.ClientInterface = chainState
 		}
+	}
+}
+
+// WithChainstateOptions will set chainstate defaults
+func WithChainstateOptions(broadcasting, syncOnChain bool) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.broadcasting = broadcasting
+		c.chainstate.syncOnChain = syncOnChain
 	}
 }
 

@@ -46,6 +46,8 @@ type (
 	chainstateOptions struct {
 		chainstate.ClientInterface                        // Client for Chainstate
 		options                    []chainstate.ClientOps // List of options
+		broadcasting               bool                   // Default value for all transactions
+		syncOnChain                bool                   // Default value for all transactions
 	}
 
 	// cacheStoreOptions holds the cache configuration and client
@@ -426,4 +428,12 @@ func (c *Client) UserAgent() string {
 // Version will return the version
 func (c *Client) Version() string {
 	return version
+}
+
+// DefaultSyncConfig will return the default sync config from the client defaults (for chainstate)
+func (c *Client) DefaultSyncConfig() *SyncConfig {
+	return &SyncConfig{
+		Broadcast:   c.options.chainstate.broadcasting,
+		SyncOnChain: c.options.chainstate.syncOnChain,
+	}
 }

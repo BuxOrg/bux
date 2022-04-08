@@ -29,12 +29,12 @@ type SyncTransaction struct {
 	SyncStatus      SyncStatus     `json:"sync_status" toml:"sync_status" yaml:"sync_status" gorm:"<-;type:varchar(10);index;comment:This is the status of the on-chain sync" bson:"sync_status"`
 }
 
-// newSyncTransaction will start a new model
+// newSyncTransaction will start a new model (config is required)
 func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *SyncTransaction {
 
-	// Use a default config if null
+	// Do not allow making a model without the configuration
 	if config == nil {
-		config = DefaultSyncConfig()
+		return nil
 	}
 
 	// Broadcasting
@@ -118,6 +118,11 @@ func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]
 	}
 
 	return txs, nil
+}
+
+// isSkipped will return true if Broadcasting & SyncOnChain are both skipped
+func (m *SyncTransaction) isSkipped() bool {
+	return m.BroadcastStatus == SyncStatusSkipped && m.SyncStatus == SyncStatusSkipped
 }
 
 // GetModelName will get the name of the current model

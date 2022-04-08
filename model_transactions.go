@@ -414,13 +414,21 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 	// Validations and broadcast config check
 	if m.draftTransaction != nil {
 
-		// Do we have a broadcast config? Create the new record
-		if m.draftTransaction.Configuration.Sync != nil {
-			m.syncTransaction = newSyncTransaction(
-				m.GetID(),
-				m.draftTransaction.Configuration.Sync,
-				m.GetOptions(true)...,
-			)
+		// No config set? Use the default from the client
+		if m.draftTransaction.Configuration.Sync == nil {
+			m.draftTransaction.Configuration.Sync = m.Client().DefaultSyncConfig()
+		}
+
+		// Create the sync transaction model
+		sync := newSyncTransaction(
+			m.GetID(),
+			m.draftTransaction.Configuration.Sync,
+			m.GetOptions(true)...,
+		)
+
+		// If all the options are skipped, do not make a new model (ignore the record)
+		if !sync.isSkipped() {
+			m.syncTransaction = sync
 		}
 	}
 

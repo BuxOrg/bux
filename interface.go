@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/tonicpow/go-paymail"
@@ -107,6 +108,8 @@ type ClientInterface interface {
 	IsIUCEnabled() bool
 	IsNewRelicEnabled() bool
 	ModifyTaskPeriod(name string, period time.Duration) error
+	Notifications() notifications.ClientInterface
+	SetNotificationsClient(notifications.ClientInterface)
 	UserAgent() string
 	Version() string
 }

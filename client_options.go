@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
@@ -65,6 +66,9 @@ func defaultClientOptions() *clientOptions {
 
 		// Blank NewRelic config
 		newRelic: &newRelicOptions{},
+
+		// Blank notifications config
+		notifications: &notificationsOptions{},
 
 		// Blank Paymail config
 		paymail: &paymailOptions{
@@ -575,5 +579,25 @@ func WithMatterCloudAPIKey(apiKey string) ClientOps {
 		if len(apiKey) > 0 {
 			c.chainstate.options = append(c.chainstate.options, chainstate.WithMatterCloudAPIKey(apiKey))
 		}
+	}
+}
+
+// -----------------------------------------------------------------
+// NOTIFICATIONS
+// -----------------------------------------------------------------
+
+// WithNotifications will set the notifications config
+func WithNotifications(webhookEndpoint string) ClientOps {
+	return func(c *clientOptions) {
+		if len(webhookEndpoint) > 0 {
+			c.notifications.webhookEndpoint = webhookEndpoint
+		}
+	}
+}
+
+// WithNotificationsInterface will set a notifications interface
+func WithNotificationsInterface(notify notifications.ClientInterface) ClientOps {
+	return func(c *clientOptions) {
+		c.notifications.client = notify
 	}
 }

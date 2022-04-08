@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/logger"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -25,19 +26,20 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cacheStore    *cacheStoreOptions  // Configuration options for Cachestore (ristretto, redis, etc.)
-		chainstate    *chainstateOptions  // Configuration options for Chainstate (broadcast, sync, etc.)
-		dataStore     *dataStoreOptions   // Configuration options for the DataStore (MySQL, etc.)
-		debug         bool                // If the client is in debug mode
-		encryptionKey string              // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
-		itc           bool                // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
-		iuc           bool                // (Input UTXO Check) True will check input utxos when saving transactions
-		logger        glogger.Interface   // Internal logging
-		models        *modelOptions       // Configuration options for the loaded models
-		newRelic      *newRelicOptions    // Configuration options for NewRelic
-		paymail       *paymailOptions     // Paymail options & client
-		taskManager   *taskManagerOptions // Configuration options for the TaskManager (TaskQ, etc.)
-		userAgent     string              // User agent for all outgoing requests
+		cacheStore    *cacheStoreOptions    // Configuration options for Cachestore (ristretto, redis, etc.)
+		chainstate    *chainstateOptions    // Configuration options for Chainstate (broadcast, sync, etc.)
+		dataStore     *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
+		debug         bool                  // If the client is in debug mode
+		encryptionKey string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
+		itc           bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
+		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
+		logger        glogger.Interface     // Internal logging
+		models        *modelOptions         // Configuration options for the loaded models
+		newRelic      *newRelicOptions      // Configuration options for NewRelic
+		notifications *notificationsOptions // Configuration options for Notifications
+		paymail       *paymailOptions       // Paymail options & client
+		taskManager   *taskManagerOptions   // Configuration options for the TaskManager (TaskQ, etc.)
+		userAgent     string                // User agent for all outgoing requests
 	}
 
 	// chainstateOptions holds the chainstate configuration and client
@@ -70,6 +72,12 @@ type (
 	newRelicOptions struct {
 		app     *newrelic.Application // NewRelic client application (if enabled)
 		enabled bool                  // If NewRelic is enabled for deep Transaction tracing
+	}
+
+	// notificationsOptions holds the configuration for notifications
+	notificationsOptions struct {
+		client          notifications.ClientInterface
+		webhookEndpoint string
 	}
 
 	// paymailOptions holds the configuration for Paymail
@@ -134,9 +142,13 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Load the Paymail client (outgoing requests)
-	// (if a custom client does not exist)
-	if err = client.loadPaymailClient(); err != nil {
+	// Load the Paymail client (if client does not exist)
+	if err := client.loadPaymailClient(); err != nil {
+		return nil, err
+	}
+
+	// Load the Paymail client (if client does not exist)
+	if err := client.loadNotificationClient(); err != nil {
 		return nil, err
 	}
 
@@ -383,6 +395,19 @@ func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
 
 	// register all tasks again (safely override)
 	return c.registerAllTasks()
+}
+
+// Notifications will return the Notifications if it exists
+func (c *Client) Notifications() notifications.ClientInterface {
+	if c.options.notifications != nil && c.options.notifications.client != nil {
+		return c.options.notifications.client
+	}
+	return nil
+}
+
+// SetNotificationsClient will overwrite the Notifications client with the given client
+func (c *Client) SetNotificationsClient(client notifications.ClientInterface) {
+	c.options.notifications.client = client
 }
 
 // Taskmanager will return the Taskmanager if it exists

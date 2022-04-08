@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt/v2"
 )
@@ -483,6 +484,8 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 			m.DebugLog("error updating draft transaction: " + err.Error())
 		}
 	}
+
+	Notify(notifications.EventTypeTransactionCreate, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil

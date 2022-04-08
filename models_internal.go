@@ -3,6 +3,8 @@ package bux
 import (
 	"context"
 	"time"
+
+	"github.com/BuxOrg/bux/notifications"
 )
 
 // AfterDeleted will fire after a successful delete in the Datastore
@@ -65,6 +67,11 @@ func (m *Model) GetOptions(isNewRecord bool) (opts []ModelOps) {
 // IsNew returns true if the model is (or was) a new record
 func (m *Model) IsNew() bool {
 	return m.newRecord
+}
+
+// GetID will get the model id, if overwritten in the actual model
+func (m *Model) GetID() string {
+	return ""
 }
 
 // Name will get the collection name (model)
@@ -141,4 +148,22 @@ func (m *Model) AfterCreated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
+}
+
+// Notify about an event on the model
+func Notify(event notifications.EventType, model interface{}) {
+	// run the notifications in a separate goroutine since there could be significant network delay
+	// communicating with a notification provider
+	go func() {
+		m := model.(Model)
+		client := m.Client()
+		if client != nil {
+			if n := client.Notifications(); n != nil {
+				ctx := context.Background()
+				if err := n.Notify(ctx, event, model, m.GetID()); err != nil {
+					client.Logger().Error(context.Background(), "failed notifying about "+string(event)+" on "+m.GetID()+": "+err.Error())
+				}
+			}
+		}
+	}()
 }

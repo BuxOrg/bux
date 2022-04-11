@@ -3,13 +3,20 @@ package bux
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/libsv/go-bk/bec"
+	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2"
+	"github.com/libsv/go-bt/v2/bscript"
+	"github.com/libsv/go-bt/v2/sighash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -829,4 +836,118 @@ func TestDraftTransaction_RegisterTasks(t *testing.T) {
 
 		assert.Equal(t, 10*time.Minute, client.GetTaskPeriod(draftCleanupTask))
 	})
+}
+
+func TestDraftTransaction_SignInputs(t *testing.T) {
+	ctx, client, deferMe := CreateTestSQLiteClient(t, true, false)
+	defer deferMe()
+
+	xPrivString := "xprv9s21ZrQH143K31pvNoYNcRZjtdJXnNVEc5NmBbgJmEg27YWbZVL7jTLQhPELqAR7tcJTnF9AJLwVN5w3ABZvrfeDLm4vnBDw76bkx8a2NxK"
+	xPrivHD, err := bitcoin.GenerateHDKeyFromString(xPrivString)
+	require.NoError(t, err)
+	xPubHD, _ := xPrivHD.Neuter()
+	xPubID := utils.Hash(xPubHD.String())
+
+	xPub := newXpub(xPubHD.String(), client.DefaultModelOptions(New())...)
+	err = xPub.Save(ctx)
+	require.NoError(t, err)
+
+	// Derive the child key (chain)
+	var chainKey *bip32.ExtendedKey
+	if chainKey, err = xPrivHD.Child(
+		0,
+	); err != nil {
+		return
+	}
+
+	// Derive the child key (num)
+	var numKey *bip32.ExtendedKey
+	if numKey, err = chainKey.Child(
+		0,
+	); err != nil {
+		return
+	}
+
+	// Get the private key
+	var privateKey *bec.PrivateKey
+	if privateKey, err = bitcoin.GetPrivateKeyFromHDKey(
+		numKey,
+	); err != nil {
+		return
+	}
+
+	// create a destination for the utxo
+	lockingScript := "76a91447868e6b13de36e2739d8f2a9e0e0a323ad9b8ff88ac"
+	destination := newDestination(xPubID, lockingScript, append(client.DefaultModelOptions(), New())...)
+	err = destination.Save(ctx)
+	require.NoError(t, err)
+
+	// create a utxo with enough output for all our tests
+	txID := "aa9cd99d6c1c179de6ab9785f6d27d6589a72c1523f1fc37de041a66dbbdbdb6"
+	utxo := newUtxo(xPubID, txID, lockingScript, 0, 12229, client.DefaultModelOptions(New())...)
+	err = utxo.Save(ctx)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name    string
+		config  *TransactionConfig
+		xPriv   *bip32.ExtendedKey
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "sign 1",
+			config: &TransactionConfig{
+				SendAllTo: "1AqYEDUf16CHaD2guBLHHhosfV2AyYJLz",
+			},
+			xPriv:   xPrivHD,
+			wantErr: assert.NoError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := newDraftTransaction(xPub.rawXpubKey, tt.config, client.DefaultModelOptions(New())...)
+			err = m.createTransactionHex(ctx)
+			require.NoError(t, err)
+
+			var gotSignedHex string
+			gotSignedHex, err = m.SignInputs(tt.xPriv)
+			if !tt.wantErr(t, err, fmt.Sprintf("SignInputs(%v)", tt.xPriv)) {
+				return
+			}
+
+			var tx *bt.Tx
+			tx, err = bt.NewTxFromString(gotSignedHex)
+
+			var ls *bscript.Script
+			if ls, err = bscript.NewFromHexString(
+				lockingScript,
+			); err != nil {
+				return
+			}
+			tx.Inputs[0].PreviousTxScript = ls
+			tx.Inputs[0].PreviousTxSatoshis = 12229
+
+			require.NoError(t, err)
+			assert.True(t, tx.Version > 0)
+			for _, input := range tx.Inputs {
+				var unlocker string
+				unlocker, err = input.UnlockingScript.ToASM()
+				require.NoError(t, err)
+				scriptParts := strings.Split(unlocker, " ")
+				pubKey := hex.EncodeToString(privateKey.PubKey().SerialiseCompressed())
+
+				var hash []byte
+				hash, err = tx.CalcInputSignatureHash(0, sighash.AllForkID)
+				require.NoError(t, err)
+
+				var hash32 [32]byte
+				copy(hash32[:], hash)
+				var verified bool
+				verified, err = bitcoin.VerifyMessageDER(hash32, pubKey, scriptParts[0])
+				require.NoError(t, err)
+				assert.True(t, verified)
+			}
+		})
+	}
 }

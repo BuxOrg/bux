@@ -303,6 +303,9 @@ func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) erro
 		if err != nil {
 			return err
 		}
+		if destination == nil {
+			return ErrMissingDestination
+		}
 		m.Configuration.Inputs = append(
 			m.Configuration.Inputs, &TransactionInput{
 				Utxo:        *utxo,
@@ -673,6 +676,7 @@ func (m *DraftTransaction) SignInputs(xPriv *bip32.ExtendedKey) (signedHex strin
 			return
 		}
 		txDraft.Inputs[index].PreviousTxScript = ls
+		txDraft.Inputs[index].PreviousTxSatoshis = input.Satoshis
 
 		// Derive the child key (chain)
 		var chainKey *bip32.ExtendedKey

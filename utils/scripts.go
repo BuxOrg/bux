@@ -9,24 +9,25 @@ import (
 
 // GetUnlockingScript will generate an unlocking script
 func GetUnlockingScript(tx *bt.Tx, inputIndex uint32, privateKey *bec.PrivateKey) (*bscript.Script, error) {
-	shf := sighash.AllForkID
+	sigHashFlags := sighash.AllForkID
 
-	sh, err := tx.CalcInputSignatureHash(inputIndex, shf)
+	sigHash, err := tx.CalcInputSignatureHash(inputIndex, sigHashFlags)
 	if err != nil {
 		return nil, err
 	}
 
 	var sig *bec.Signature
-	if sig, err = privateKey.Sign(bt.ReverseBytes(sh)); err != nil {
+	if sig, err = privateKey.Sign(sigHash); err != nil {
 		return nil, err
 	}
 
-	var s *bscript.Script
-	if s, err = bscript.NewP2PKHUnlockingScript(
-		privateKey.PubKey().SerialiseCompressed(), sig.Serialise(), shf,
-	); err != nil {
+	pubKey := privateKey.PubKey().SerialiseCompressed()
+	signature := sig.Serialise()
+
+	var script *bscript.Script
+	if script, err = bscript.NewP2PKHUnlockingScript(pubKey, signature, sigHashFlags); err != nil {
 		return nil, err
 	}
 
-	return s, nil
+	return script, nil
 }

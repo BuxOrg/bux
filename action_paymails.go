@@ -7,6 +7,23 @@ import (
 	"github.com/BuxOrg/bux/utils"
 )
 
+// GetPaymailAddress will get a paymail address model
+func (c *Client) GetPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_paymail_address")
+
+	// Get the paymail address
+	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
+	if err != nil {
+		return nil, err
+	} else if paymailAddress == nil {
+		return nil, ErrMissingPaymail
+	}
+
+	return paymailAddress, nil
+}
+
 // NewPaymailAddress will create a new paymail address
 func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, publicName, avatar string,
 	opts ...ModelOps) (*PaymailAddress, error) {

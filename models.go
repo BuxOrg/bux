@@ -9,6 +9,8 @@ import (
 	"github.com/BuxOrg/bux/utils"
 )
 
+var defaultPageSize = 25
+
 // Model is the generic model field(s) and interface(s)
 //
 // gorm: https://gorm.io/docs/models.html
@@ -30,6 +32,7 @@ type Model struct {
 	name          ModelName       // Name of model (table name)
 	newRecord     bool            // Determine if the record is new (create vs update)
 	rawXpubKey    string          // Used on "CREATE" on some instances
+	pageSize      int             // number of items per page to get if being used in for instance getModels
 }
 
 // ModelInterface is the interface that all models share

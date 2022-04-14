@@ -31,14 +31,14 @@ func (l *basicLogger) LogMode(level logger.LogLevel) Logger {
 
 // Info will print information
 func (l *basicLogger) Info(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel <= logger.Info {
+	if l.LogLevel >= logger.Info {
 		displayLog(zlogger.INFO, message, params...)
 	}
 }
 
 // Warn will print a warning
 func (l *basicLogger) Warn(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel <= logger.Warn {
+	if l.LogLevel >= logger.Warn {
 		displayLog(zlogger.WARN, message, params...)
 	}
 }

@@ -33,28 +33,28 @@ func (l *basicLogger) LogMode(level logger.LogLevel) logger.Interface {
 
 // Info print information
 func (l *basicLogger) Info(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel <= logger.Info {
+	if l.LogLevel >= logger.Info {
 		displayLog(zlogger.INFO, message, params...)
 	}
 }
 
 // Warn print warn messages
 func (l *basicLogger) Warn(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel <= logger.Warn {
+	if l.LogLevel >= logger.Warn {
 		displayLog(zlogger.WARN, message, params...)
 	}
 }
 
 // Error print error messages
 func (l *basicLogger) Error(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel <= logger.Error {
+	if l.LogLevel >= logger.Error {
 		displayLog(zlogger.ERROR, message, params...)
 	}
 }
 
 // Trace print sql message (Gorm Specific)
 func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	if l.LogLevel <= logger.Silent {
+	if l.LogLevel >= logger.Silent {
 		return
 	}
 

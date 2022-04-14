@@ -47,9 +47,11 @@ func (c *Client) loadDatastore(ctx context.Context) (err error) {
 	}
 
 	// Load client (runs ALL options, IE: auto migrate models)
-	c.options.dataStore.ClientInterface, err = datastore.NewClient(
-		ctx, c.options.dataStore.options...,
-	)
+	if c.options.dataStore.ClientInterface == nil {
+		c.options.dataStore.ClientInterface, err = datastore.NewClient(
+			ctx, c.options.dataStore.options...,
+		)
+	}
 	return
 }
 

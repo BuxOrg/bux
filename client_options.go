@@ -202,18 +202,10 @@ func WithDebugging() ClientOps {
 		c.debug = true
 
 		// Enable debugging on other services
-		if c.chainstate != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithDebugging())
-		}
-		if c.cacheStore != nil {
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithDebugging())
-		}
-		if c.dataStore != nil {
-			c.dataStore.options = append(c.dataStore.options, datastore.WithDebugging())
-		}
-		if c.taskManager != nil {
-			c.taskManager.options = append(c.taskManager.options, taskmanager.WithDebugging())
-		}
+		c.cacheStore.options = append(c.cacheStore.options, cachestore.WithDebugging())
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithDebugging())
+		c.dataStore.options = append(c.dataStore.options, datastore.WithDebugging())
+		c.taskManager.options = append(c.taskManager.options, taskmanager.WithDebugging())
 	}
 }
 

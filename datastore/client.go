@@ -49,6 +49,11 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		opt(client.options)
 	}
 
+	// Set logger if not set now
+	if client.options.logger == nil {
+		client.options.logger = newBasicLogger(client.IsDebug())
+	}
+
 	// EMPTY! Engine was NOT set and will use the default (file based)
 	if client.Engine().IsEmpty() {
 
@@ -105,11 +110,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		}
 	}
 
-	// Set logger if not set now
-	if client.options.logger == nil {
-		client.options.logger = newBasicLogger(client.IsDebug())
-	}
-
 	// Return the client
 	return client, nil
 }
@@ -159,7 +159,7 @@ func (c *Client) IsNewRelicEnabled() bool {
 
 // DebugLog will display verbose logs
 func (c *Client) DebugLog(text string) {
-	if c.options.debug && c.options.logger != nil {
+	if c.IsDebug() && c.options.logger != nil {
 		c.options.logger.Info(context.Background(), text)
 	}
 }

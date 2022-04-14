@@ -191,7 +191,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	if m.Configuration.SendAllTo != "" { // Send TO ALL
 		var spendableUtxos []*Utxo
 		if spendableUtxos, err = GetSpendableUtxos(
-			ctx, m.XpubID, utils.ScriptTypePubKeyHash, m.Configuration.FromUtxos, opts...,
+			ctx, m.XpubID, utils.ScriptTypePubKeyHash, 0, 0, m.Configuration.FromUtxos, opts...,
 		); err != nil {
 			return err
 		}

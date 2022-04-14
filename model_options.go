@@ -61,3 +61,10 @@ func WithMetadatas(metadata map[string]interface{}) ModelOps {
 		}
 	}
 }
+
+// WithPageSize will set the pageSize to use on the model in queries
+func WithPageSize(pageSize int) ModelOps {
+	return func(m *Model) {
+		m.pageSize = pageSize
+	}
+}

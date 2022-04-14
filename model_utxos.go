@@ -51,8 +51,8 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 	}
 }
 
-// GetSpendableUtxos Get all spendable utxos - yes really!
-func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
+// GetSpendableUtxos Get all spendable utxos by page / pageSize
+func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, page, pageSize int, fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Construct the conditions and results
 	var models []Utxo
@@ -78,7 +78,7 @@ func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, fromUtxos [
 		// Get the records
 		if err := getModels(
 			ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-			&models, conditions, 0, 0, "", "", defaultDatabaseReadTimeout,
+			&models, conditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
 		); err != nil {
 			if errors.Is(err, datastore.ErrNoResults) {
 				return nil, nil
@@ -147,45 +147,69 @@ func ReserveUtxos(ctx context.Context, xPubID, draftID string,
 	}
 
 	// Get spendable utxos
-	// todo improve this to not Get all utxos - make smarter
-	var freeUtxos []*Utxo
-	if freeUtxos, err = GetSpendableUtxos(
-		ctx, xPubID, utils.ScriptTypePubKeyHash, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
-	); err != nil {
-		return nil, err
-	}
-
-	// Set vars
-	size := utils.GetInputSizeForType(utils.ScriptTypePubKeyHash)
+	utxos := new([]*Utxo)
 	feeNeeded := uint64(0)
 	reservedSatoshis := uint64(0)
-	utxos := new([]*Utxo)
+	page := 1
+	pageSize := m.pageSize
+	if pageSize == 0 {
+		pageSize = defaultPageSize
+	}
 
-	// Loop the returned utxos
-	for _, utxo := range freeUtxos {
+	// get all utxos, if we are getting from given utxos
+	if fromUtxos != nil {
+		page = 0
+		pageSize = 0
+	}
 
-		// Set the values on the UTXO
-		utxo.DraftID.Valid = true
-		utxo.DraftID.String = draftID
-		utxo.ReservedAt.Valid = true
-		utxo.ReservedAt.Time = time.Now().UTC()
-
-		// Accumulate the reserved satoshis
-		reservedSatoshis += utxo.Satoshis
-
-		// Save the UTXO
-		// todo: should occur in 1 DB transaction
-		if err = utxo.Save(ctx); err != nil {
+reserveUtxoLoop:
+	for {
+		var freeUtxos []*Utxo
+		if freeUtxos, err = GetSpendableUtxos(
+			ctx, xPubID, utils.ScriptTypePubKeyHash, page, pageSize, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
+		); err != nil {
 			return nil, err
 		}
 
-		// Add the utxo to the final slice
-		*utxos = append(*utxos, utxo)
+		if len(freeUtxos) == 0 {
+			break reserveUtxoLoop
+		}
 
-		// add fee for this new input
-		feeNeeded += uint64(float64(size) * feePerByte)
-		if reservedSatoshis >= (satoshis + feeNeeded) {
-			break
+		// Set vars
+		size := utils.GetInputSizeForType(utils.ScriptTypePubKeyHash)
+
+		// Loop the returned utxos
+		for _, utxo := range freeUtxos {
+			fmt.Printf("GOT UTXO: %s", utxo.ID)
+
+			// Set the values on the UTXO
+			utxo.DraftID.Valid = true
+			utxo.DraftID.String = draftID
+			utxo.ReservedAt.Valid = true
+			utxo.ReservedAt.Time = time.Now().UTC()
+
+			// Accumulate the reserved satoshis
+			reservedSatoshis += utxo.Satoshis
+
+			// Save the UTXO
+			// todo: should occur in 1 DB transaction
+			if err = utxo.Save(ctx); err != nil {
+				return nil, err
+			}
+
+			// Add the utxo to the final slice
+			*utxos = append(*utxos, utxo)
+
+			// add fee for this new input
+			feeNeeded += uint64(float64(size) * feePerByte)
+			if reservedSatoshis >= (satoshis + feeNeeded) {
+				break reserveUtxoLoop
+			}
+		}
+
+		if pageSize == 0 {
+			// break the loop if we are not paginating
+			break reserveUtxoLoop
 		}
 	}
 
@@ -197,8 +221,6 @@ func ReserveUtxos(ctx context.Context, xPubID, draftID string,
 		}
 		return nil, ErrNotEnoughUtxos
 	}
-
-	// todo: return error if no UTXOs found or saved?
 
 	return *utxos, nil
 }
@@ -357,5 +379,29 @@ func (m *Utxo) GenerateID() string {
 
 // Migrate model specific migration on startup
 func (m *Utxo) Migrate(client datastore.ClientInterface) error {
+
+	tableName := client.GetTableName(tableUTXOs)
+	if client.Engine() == datastore.MySQL {
+		if err := m.migrateMySQL(client, tableName); err != nil {
+			return err
+		}
+	} else if client.Engine() == datastore.PostgreSQL {
+		if err := m.migratePostgreSQL(client, tableName); err != nil {
+			return err
+		}
+	}
+
 	return client.IndexMetadata(client.GetTableName(tableUTXOs), metadataField)
+}
+
+// migratePostgreSQL is specific migration SQL for Postgresql
+func (m *Utxo) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
+	tx := client.Execute(`CREATE INDEX IF NOT EXISTS "idx_utxo_reserved" ON "` + tableName + `" ("xpub_id","type","draft_id","spending_tx_id")`)
+	return tx.Error
+}
+
+// migrateMySQL is specific migration SQL for MySQL
+func (m *Utxo) migrateMySQL(client datastore.ClientInterface, tableName string) error {
+	tx := client.Execute("CREATE INDEX idx_utxo_reserved ON `" + tableName + "` (xpub_id,type,draft_id,spending_tx_id)")
+	return tx.Error
 }

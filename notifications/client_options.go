@@ -3,6 +3,8 @@ package notifications
 import (
 	"net/http"
 	"time"
+
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -33,5 +35,19 @@ func defaultClientOptions() *clientOptions {
 func WithNotifications(webhookEndpoint string) ClientOps {
 	return func(c *clientOptions) {
 		c.config.webhookEndpoint = webhookEndpoint
+	}
+}
+
+// WithLogger will set the logger
+func WithLogger(log logger.Interface) ClientOps {
+	return func(c *clientOptions) {
+		c.logger = log
+	}
+}
+
+// WithDebug will set debugging on notifications
+func WithDebug() ClientOps {
+	return func(c *clientOptions) {
+		c.debug = true
 	}
 }

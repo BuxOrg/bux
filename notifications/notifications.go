@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mrz1836/go-logger"
+	"gorm.io/gorm/logger"
 )
 
 // GetWebhookEndpoint get the configured webhook endpoint
@@ -15,11 +15,18 @@ func (c *Client) GetWebhookEndpoint() string {
 	return c.options.config.webhookEndpoint
 }
 
+// Logger get the logger
+func (c *Client) Logger() logger.Interface {
+	return c.options.logger
+}
+
 // Notify create a new notification
 func (c *Client) Notify(ctx context.Context, modelType string, eventType EventType, model interface{}, id string) error {
 
 	if len(c.options.config.webhookEndpoint) == 0 {
-		logger.Printf("NOTIFY %s: %s - %v", eventType, id, model)
+		if c.options.debug && c.Logger() != nil {
+			c.Logger().Info(ctx, fmt.Sprintf("NOTIFY %s: %s - %v", eventType, id, model))
+		}
 	} else {
 		jsonData, err := json.Marshal(map[string]interface{}{
 			"modelType": modelType,
@@ -50,11 +57,10 @@ func (c *Client) Notify(ctx context.Context, modelType string, eventType EventTy
 
 		if response.StatusCode != http.StatusOK {
 			// todo queue notification for another try ...
-			logger.Data(2, logger.INFO,
-				fmt.Sprintf("%s: %d", "received invalid response from notification endpoint: ",
-					response.StatusCode,
-				),
-			)
+			if c.Logger() != nil {
+				c.Logger().Error(ctx, fmt.Sprintf("%s: %d", "received invalid response from notification endpoint: ",
+					response.StatusCode))
+			}
 		}
 	}
 

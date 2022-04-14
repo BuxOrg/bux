@@ -1,5 +1,7 @@
 package notifications
 
+import "gorm.io/gorm/logger"
+
 // EventType event types thrown in Bux
 type EventType string
 
@@ -28,6 +30,8 @@ type (
 	clientOptions struct {
 		config     *notificationsConfig // Configuration for broadcasting and other chain-state actions
 		httpClient HTTPInterface
+		debug      bool
+		logger     logger.Interface
 	}
 
 	// syncConfig holds all the configuration about the different notifications

@@ -59,9 +59,16 @@ func (c *Client) loadDatastore(ctx context.Context) (err error) {
 func (c *Client) loadNotificationClient() (err error) {
 	// Only load if it's not set (the client can be overloaded)
 	if c.options.notifications.client == nil {
-		c.options.notifications.client, err = notifications.NewClient(
+		opts := []notifications.ClientOps{
 			notifications.WithNotifications(c.options.notifications.webhookEndpoint),
-		)
+		}
+		if c.options.logger != nil {
+			opts = append(opts, notifications.WithLogger(c.options.logger))
+		}
+		if c.options.debug {
+			opts = append(opts, notifications.WithDebug())
+		}
+		c.options.notifications.client, err = notifications.NewClient(opts...)
 	}
 	return
 }

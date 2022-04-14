@@ -815,7 +815,6 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 		feeEstimate := draftTransaction.estimateFee(&feeUnit)
 		assert.Greater(t, sizeEstimate, realSize)
 		assert.Greater(t, feeEstimate, realFee)
-		// fmt.Printf("%s\nSIZE: %d = %d ? => FEE: %d = %d ?\n\n", txID, sizeEstimate, realSize, feeEstimate, realFee)
 	}
 }
 

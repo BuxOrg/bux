@@ -52,15 +52,16 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 }
 
 // GetSpendableUtxos Get all spendable utxos by page / pageSize
-func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, page, pageSize int, fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
+func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, page, pageSize int,
+	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Construct the conditions and results
 	var models []Utxo
 	conditions := map[string]interface{}{
-		xPubIDField:       xPubID,
-		typeField:         utxoType,
 		draftIDField:      nil,
 		spendingTxIDField: nil,
+		typeField:         utxoType,
+		xPubIDField:       xPubID,
 	}
 
 	if fromUtxos != nil {
@@ -180,7 +181,6 @@ reserveUtxoLoop:
 
 		// Loop the returned utxos
 		for _, utxo := range freeUtxos {
-			fmt.Printf("GOT UTXO: %s", utxo.ID)
 
 			// Set the values on the UTXO
 			utxo.DraftID.Valid = true

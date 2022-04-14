@@ -8,12 +8,6 @@ import (
 	"github.com/mrz1836/go-cache"
 )
 
-// Logger is the logger interface for debug messages
-type Logger interface {
-	Info(ctx context.Context, message string, params ...interface{})
-	Warn(ctx context.Context, message string, params ...interface{})
-}
-
 // LockService are the locking related methods
 type LockService interface {
 	ReleaseLock(ctx context.Context, lockKey, secret string) (bool, error)

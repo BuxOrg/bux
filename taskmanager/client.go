@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/vmihailenco/taskq/v3"
 )
@@ -17,12 +18,12 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cronService     CronService   // Internal cron job client
-		debug           bool          // For extra logs and additional debug information
-		engine          Engine        // Taskmanager engine (taskq or machinery)
-		logger          Logger        // Internal logging
-		newRelicEnabled bool          // If NewRelic is enabled (parent application)
-		taskq           *taskqOptions // All configuration and options for using TaskQ
+		cronService     CronService      // Internal cron job client
+		debug           bool             // For extra logs and additional debug information
+		engine          Engine           // Taskmanager engine (taskq or machinery)
+		logger          logger.Interface // Internal logging
+		newRelicEnabled bool             // If NewRelic is enabled (parent application)
+		taskq           *taskqOptions    // All configuration and options for using TaskQ
 	}
 
 	// taskqOptions holds all the configuration for the TaskQ engine
@@ -49,6 +50,11 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 		opt(client.options)
 	}
 
+	// Set logger if not set
+	if client.options.logger == nil {
+		client.options.logger = logger.NewLogger(client.IsDebug())
+	}
+
 	// EMPTY! Engine was NOT set
 	if client.Engine().IsEmpty() {
 		return nil, ErrNoEngine
@@ -69,11 +75,6 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 	// Detect if a cron service provider was set
 	if client.options.cronService == nil { // Use a local cron
 		client.localCron()
-	}
-
-	// Set logger if not set
-	if client.options.logger == nil {
-		client.options.logger = newLogger()
 	}
 
 	// Return the client

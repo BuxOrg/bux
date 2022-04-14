@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-minercraft"
@@ -469,7 +470,7 @@ func TestWithLogger(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		customClient := newBasicLogger(true)
+		customClient := logger.NewLogger(true)
 		opt := WithLogger(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.logger)

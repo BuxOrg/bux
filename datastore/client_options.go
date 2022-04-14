@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"go.mongodb.org/mongo-driver/mongo"
-	"gorm.io/gorm/logger"
 )
 
 // ClientOps allow functional options to be supplied

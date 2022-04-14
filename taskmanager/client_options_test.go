@@ -3,6 +3,7 @@ package taskmanager
 import (
 	"testing"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -91,7 +92,7 @@ func TestWithLogger(t *testing.T) {
 
 	t.Run("test applying option", func(t *testing.T) {
 		options := &clientOptions{}
-		customClient := newLogger()
+		customClient := logger.NewLogger(true)
 		opt := WithLogger(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.logger)

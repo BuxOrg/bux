@@ -10,7 +10,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	glogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/dbresolver"
 )
@@ -34,7 +34,7 @@ const (
 )
 
 // openSQLDatabase will open a new SQL database
-func openSQLDatabase(optionalLogger logger.Interface, configs ...*SQLConfig) (db *gorm.DB, err error) {
+func openSQLDatabase(optionalLogger glogger.Interface, configs ...*SQLConfig) (db *gorm.DB, err error) {
 
 	// Try to find a source
 	var sourceConfig *SQLConfig
@@ -126,7 +126,7 @@ func openSQLDatabase(optionalLogger logger.Interface, configs ...*SQLConfig) (db
 }
 
 // openSQLiteDatabase will open a SQLite database connection
-func openSQLiteDatabase(optionalLogger logger.Interface, config *SQLiteConfig) (db *gorm.DB, err error) {
+func openSQLiteDatabase(optionalLogger glogger.Interface, config *SQLiteConfig) (db *gorm.DB, err error) {
 
 	// Check for an existing connection
 	var dialector gorm.Dialector
@@ -270,7 +270,7 @@ func getSourceDatabase(configs []*SQLConfig) (*SQLConfig, []*SQLConfig) {
 }
 
 // getGormSessionConfig returns the gorm session config
-func getGormSessionConfig(preparedStatement, debug bool, optionalLogger logger.Interface) *gorm.Session {
+func getGormSessionConfig(preparedStatement, debug bool, optionalLogger glogger.Interface) *gorm.Session {
 
 	config := &gorm.Session{
 		AllowGlobalUpdate:        false,
@@ -289,14 +289,14 @@ func getGormSessionConfig(preparedStatement, debug bool, optionalLogger logger.I
 
 	// Optional logger vs basic
 	if optionalLogger == nil {
-		logLevel := logger.Silent
+		logLevel := glogger.Silent
 		if debug {
-			logLevel = logger.Info
+			logLevel = glogger.Info
 		}
 
-		config.Logger = logger.New(
+		config.Logger = glogger.New(
 			log.New(os.Stdout, "\r\n ", log.LstdFlags), // io writer
-			logger.Config{
+			glogger.Config{
 				SlowThreshold:             5 * time.Second, // Slow SQL threshold
 				LogLevel:                  logLevel,        // Log level
 				IgnoreRecordNotFoundError: true,            // Ignore ErrRecordNotFound error for logger
@@ -311,7 +311,7 @@ func getGormSessionConfig(preparedStatement, debug bool, optionalLogger logger.I
 // getGormConfig will return a valid gorm.Config
 //
 // See: https://gorm.io/docs/gorm_config.html
-func getGormConfig(tablePrefix string, preparedStatement, debug bool, optionalLogger logger.Interface) *gorm.Config {
+func getGormConfig(tablePrefix string, preparedStatement, debug bool, optionalLogger glogger.Interface) *gorm.Config {
 
 	// Set the prefix
 	if len(tablePrefix) > 0 {
@@ -344,14 +344,14 @@ func getGormConfig(tablePrefix string, preparedStatement, debug bool, optionalLo
 
 	// Optional logger vs basic
 	if optionalLogger == nil {
-		logLevel := logger.Silent
+		logLevel := glogger.Silent
 		if debug {
-			logLevel = logger.Info
+			logLevel = glogger.Info
 		}
 
-		config.Logger = logger.New(
+		config.Logger = glogger.New(
 			log.New(os.Stdout, "\r\n ", log.LstdFlags), // io writer
-			logger.Config{
+			glogger.Config{
 				SlowThreshold:             5 * time.Second, // Slow SQL threshold
 				LogLevel:                  logLevel,        // Log level
 				IgnoreRecordNotFoundError: true,            // Ignore ErrRecordNotFound error for logger

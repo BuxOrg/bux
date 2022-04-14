@@ -14,7 +14,6 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
-	glogger "gorm.io/gorm/logger"
 )
 
 type (
@@ -33,7 +32,7 @@ type (
 		encryptionKey string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
 		itc           bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
 		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
-		logger        glogger.Interface     // Internal logging
+		logger        logger.Interface      // Internal logging
 		models        *modelOptions         // Configuration options for the loaded models
 		newRelic      *newRelicOptions      // Configuration options for NewRelic
 		notifications *notificationsOptions // Configuration options for Notifications
@@ -279,7 +278,7 @@ func (c *Client) Datastore() datastore.ClientInterface {
 }
 
 // Logger will return the Logger if it exists
-func (c *Client) Logger() glogger.Interface {
+func (c *Client) Logger() logger.Interface {
 	return c.options.logger
 }
 
@@ -407,7 +406,7 @@ func (c *Client) Notifications() notifications.ClientInterface {
 	return nil
 }
 
-// SetNotificationsClient will overwrite the Notifications client with the given client
+// SetNotificationsClient will overwrite the notification's client with the given client
 func (c *Client) SetNotificationsClient(client notifications.ClientInterface) {
 	c.options.notifications.client = client
 }

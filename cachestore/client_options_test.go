@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/coocood/freecache"
 	"github.com/mrz1836/go-cache"
@@ -250,7 +251,7 @@ func TestWithLogger(t *testing.T) {
 
 	t.Run("test applying option", func(t *testing.T) {
 		options := &clientOptions{}
-		customClient := newBasicLogger(true)
+		customClient := logger.NewLogger(true)
 		opt := WithLogger(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.logger)

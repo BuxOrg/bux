@@ -6,11 +6,6 @@ import (
 	"github.com/vmihailenco/taskq/v3"
 )
 
-// Logger is the logger interface for debug messages
-type Logger interface {
-	Info(ctx context.Context, message string, params ...interface{})
-}
-
 // TaskService is the task related methods
 type TaskService interface {
 	RegisterTask(task *Task) error

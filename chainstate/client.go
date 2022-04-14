@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
@@ -20,11 +21,11 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config          *syncConfig // Configuration for broadcasting and other chain-state actions
-		debug           bool        // For extra logs and additional debug information
-		logger          Logger      // Internal logger interface
-		newRelicEnabled bool        // If NewRelic is enabled (parent application)
-		userAgent       string      // Custom user agent for outgoing HTTP Requests
+		config          *syncConfig      // Configuration for broadcasting and other chain-state actions
+		debug           bool             // For extra logs and additional debug information
+		logger          logger.Interface // Internal logger interface
+		newRelicEnabled bool             // If NewRelic is enabled (parent application)
+		userAgent       string           // Custom user agent for outgoing HTTP Requests
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -69,7 +70,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = newBasicLogger(client.IsDebug())
+		client.options.logger = logger.NewLogger(client.IsDebug())
 	}
 
 	// Start Minercraft

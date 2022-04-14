@@ -174,7 +174,7 @@ func (c *Client) GetModel(
 	c.options.db = nrgorm.SetTxnToGorm(newrelic.FromContext(ctx), c.options.db)
 
 	// Create a new context, and new db tx
-	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.logger)
+	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.loggerDB)
 	defer cancel()
 
 	// Check for errors or no records found
@@ -225,7 +225,7 @@ func (c *Client) find(ctx context.Context, result interface{}, conditions map[st
 	c.options.db = nrgorm.SetTxnToGorm(newrelic.FromContext(ctx), c.options.db)
 
 	// Create a new context, and new db tx
-	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.logger)
+	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.loggerDB)
 	defer cancel()
 
 	// Create the offset

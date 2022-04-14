@@ -52,7 +52,7 @@ func (c *Client) AutoMigrateDatabase(ctx context.Context, models ...interface{})
 	}
 
 	// Migrate database for SQL (using GORM)
-	return autoMigrateSQLDatabase(ctx, c.Engine(), c.options.db, c.IsDebug(), c.options.logger, models...)
+	return autoMigrateSQLDatabase(ctx, c.Engine(), c.options.db, c.IsDebug(), c.options.loggerDB, models...)
 }
 
 // IsAutoMigrate returns whether auto migration is on

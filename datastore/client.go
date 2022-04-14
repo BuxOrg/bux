@@ -4,10 +4,11 @@ import (
 	"context"
 	"strings"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	glogger "gorm.io/gorm/logger"
 )
 
 type (
@@ -19,19 +20,20 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		autoMigrate     bool             // Setting for Auto Migration of SQL tables
-		db              *gorm.DB         // Database connection for Read-Only requests (can be same as Write)
-		debug           bool             // Setting for global debugging
-		engine          Engine           // Datastore engine (MySQL, PostgreSQL, SQLite)
-		logger          logger.Interface // Custom logger interface
-		migratedModels  []string         // List of models (types) that have been migrated
-		migrateModels   []interface{}    // Models for migrations
-		mongoDB         *mongo.Database  // Database connection for a MongoDB datastore
-		mongoDBConfig   *MongoDBConfig   // Configuration for a MongoDB datastore
-		newRelicEnabled bool             // If NewRelic is enabled (parent application)
-		sqlConfigs      []*SQLConfig     // Configuration for a MySQL or PostgreSQL datastore
-		sqLite          *SQLiteConfig    // Configuration for a SQLite datastore
-		tablePrefix     string           // Model table prefix
+		autoMigrate     bool              // Setting for Auto Migration of SQL tables
+		db              *gorm.DB          // Database connection for Read-Only requests (can be same as Write)
+		debug           bool              // Setting for global debugging
+		engine          Engine            // Datastore engine (MySQL, PostgreSQL, SQLite)
+		logger          logger.Interface  // Custom logger interface (from BUX)
+		loggerDB        glogger.Interface // Custom logger interface (for GORM)
+		migratedModels  []string          // List of models (types) that have been migrated
+		migrateModels   []interface{}     // Models for migrations
+		mongoDB         *mongo.Database   // Database connection for a MongoDB datastore
+		mongoDBConfig   *MongoDBConfig    // Configuration for a MongoDB datastore
+		newRelicEnabled bool              // If NewRelic is enabled (parent application)
+		sqlConfigs      []*SQLConfig      // Configuration for a MySQL or PostgreSQL datastore
+		sqLite          *SQLiteConfig     // Configuration for a SQLite datastore
+		tablePrefix     string            // Model table prefix
 	}
 )
 
@@ -49,10 +51,13 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		opt(client.options)
 	}
 
-	// Set logger if not set now
+	// Set logger (if not set already)
 	if client.options.logger == nil {
-		client.options.logger = newBasicLogger(client.IsDebug())
+		client.options.logger = logger.NewLogger(client.IsDebug())
 	}
+
+	// Create GORM logger
+	client.options.loggerDB = &DatabaseLogWrapper{client.options.logger}
 
 	// EMPTY! Engine was NOT set and will use the default (file based)
 	if client.Engine().IsEmpty() {
@@ -85,7 +90,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	var err error
 	if client.Engine() == MySQL || client.Engine() == PostgreSQL {
 		if client.options.db, err = openSQLDatabase(
-			client.options.logger, client.options.sqlConfigs...,
+			client.options.loggerDB, client.options.sqlConfigs...,
 		); err != nil {
 			return nil, err
 		}
@@ -97,7 +102,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		}
 	} else { // SQLite
 		if client.options.db, err = openSQLiteDatabase(
-			client.options.logger, client.options.sqLite,
+			client.options.loggerDB, client.options.sqLite,
 		); err != nil {
 			return nil, err
 		}

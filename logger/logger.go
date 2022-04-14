@@ -6,55 +6,82 @@ import (
 	"time"
 
 	zlogger "github.com/mrz1836/go-logger"
-	glogger "gorm.io/gorm/logger"
-	"gorm.io/gorm/utils"
+)
+
+// Interface is a logger interface
+type Interface interface {
+	SetMode(LogLevel) Interface
+	GetMode() LogLevel
+	Info(context.Context, string, ...interface{})
+	Warn(context.Context, string, ...interface{})
+	Error(context.Context, string, ...interface{})
+	Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error)
+}
+
+// LogLevel is the log level
+type LogLevel int
+
+const (
+	// Silent silent log level
+	Silent LogLevel = iota + 1
+	// Error error log level
+	Error
+	// Warn warn log level
+	Warn
+	// Info info log level
+	Info
 )
 
 // NewLogger will return a basic logger interface
-func NewLogger(debugging bool) glogger.Interface {
-	logLevel := glogger.Warn
+func NewLogger(debugging bool) Interface {
+	logLevel := Warn
 	if debugging {
-		logLevel = glogger.Info
+		logLevel = Info
 	}
-	return &basicLogger{LogLevel: logLevel}
+	return &basicLogger{logLevel: logLevel}
 }
 
 // basicLogger is a basic implementation of the logger interface if no custom logger is provided
 type basicLogger struct {
-	LogLevel glogger.LogLevel
+	logLevel LogLevel
 }
 
-// LogMode log mode
-func (l *basicLogger) LogMode(level glogger.LogLevel) glogger.Interface {
+// SetMode will set the log mode
+func (l *basicLogger) SetMode(level LogLevel) Interface {
 	newLogger := *l
-	newLogger.LogLevel = level
+	newLogger.logLevel = level
 	return &newLogger
+}
+
+// GetMode will get the log mode
+func (l *basicLogger) GetMode() LogLevel {
+	return l.logLevel
 }
 
 // Info print information
 func (l *basicLogger) Info(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel >= glogger.Info {
+	if l.logLevel >= Info {
 		displayLog(zlogger.INFO, message, params...)
 	}
 }
 
 // Warn print warn messages
 func (l *basicLogger) Warn(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel >= glogger.Warn {
+	if l.logLevel >= Warn {
 		displayLog(zlogger.WARN, message, params...)
 	}
 }
 
 // Error print error messages
 func (l *basicLogger) Error(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel >= glogger.Error {
+	if l.logLevel >= Error {
 		displayLog(zlogger.ERROR, message, params...)
 	}
 }
 
-// Trace print sql message (Gorm Specific)
+// Trace is for GORM and SQL tracing
 func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	if l.LogLevel >= glogger.Silent {
+	if l.logLevel >= Silent {
 		return
 	}
 
@@ -63,7 +90,7 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 	level := zlogger.DEBUG
 
 	params := []zlogger.KeyValue{
-		zlogger.MakeParameter("executing_file", utils.FileWithLineNum()),
+		// zlogger.MakeParameter("executing_file", utils.FileWithLineNum()),  // @mrz turned off for removing the gorm dependency
 		zlogger.MakeParameter("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
 		zlogger.MakeParameter("rows", rows),
 		zlogger.MakeParameter("sql", sql),

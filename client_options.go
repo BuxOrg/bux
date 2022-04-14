@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/coocood/freecache"
@@ -18,7 +19,6 @@ import (
 	"github.com/tonicpow/go-paymail/server"
 	"github.com/vmihailenco/taskq/v3"
 	"go.mongodb.org/mongo-driver/mongo"
-	"gorm.io/gorm/logger"
 )
 
 // ClientOps allow functional options to be supplied that overwrite default client options.
@@ -178,18 +178,10 @@ func WithNewRelic(app *newrelic.Application) ClientOps {
 		c.newRelic.app = app
 
 		// Enable New relic on other services
-		if c.chainstate != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithNewRelic())
-		}
-		if c.cacheStore != nil {
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithNewRelic())
-		}
-		if c.dataStore != nil {
-			c.dataStore.options = append(c.dataStore.options, datastore.WithNewRelic())
-		}
-		if c.taskManager != nil {
-			c.taskManager.options = append(c.taskManager.options, taskmanager.WithNewRelic())
-		}
+		c.cacheStore.options = append(c.cacheStore.options, cachestore.WithNewRelic())
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithNewRelic())
+		c.dataStore.options = append(c.dataStore.options, datastore.WithNewRelic())
+		c.taskManager.options = append(c.taskManager.options, taskmanager.WithNewRelic())
 
 		// Enable the service
 		c.newRelic.enabled = true
@@ -249,19 +241,11 @@ func WithLogger(customLogger logger.Interface) ClientOps {
 		if customLogger != nil {
 			c.logger = customLogger
 
-			// Enable debugging on other services
-			if c.chainstate != nil {
-				c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(c.logger))
-			}
-			if c.taskManager != nil {
-				c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(c.logger))
-			}
-			if c.dataStore != nil {
-				c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(c.logger))
-			}
-			if c.cacheStore != nil {
-				c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(c.logger))
-			}
+			// Enable the logger on all services
+			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(c.logger))
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(c.logger))
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{Interface: c.logger}))
+			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(c.logger))
 		}
 	}
 }

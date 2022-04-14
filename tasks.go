@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/datastore"
-	"gorm.io/gorm/logger"
+	"github.com/BuxOrg/bux/logger"
 )
 
 // TaskCleanupDraftTransactions will clean up all old expired draft transactions

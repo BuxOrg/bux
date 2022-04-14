@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
@@ -213,7 +214,7 @@ func WithCustomMiners(miners []*minercraft.Miner) ClientOps {
 }
 
 // WithLogger will set a custom logger
-func WithLogger(customLogger Logger) ClientOps {
+func WithLogger(customLogger logger.Interface) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger

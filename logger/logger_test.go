@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	glogger "gorm.io/gorm/logger"
 )
 
 func TestNewLogger(t *testing.T) {
@@ -26,7 +25,7 @@ func TestBasicLogger_LogMode(t *testing.T) {
 		l := NewLogger(true)
 		require.NotNil(t, l)
 
-		l2 := l.LogMode(glogger.Info)
+		l2 := l.SetMode(Info)
 		require.NotNil(t, l2)
 	})
 }

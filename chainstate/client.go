@@ -67,6 +67,11 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	ctx = client.options.getTxnCtx(ctx)
 
+	// Set logger if not set
+	if client.options.logger == nil {
+		client.options.logger = newBasicLogger(client.IsDebug())
+	}
+
 	// Start Minercraft
 	if err := client.startMinerCraft(ctx); err != nil {
 		return nil, err
@@ -82,11 +87,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Start NowNodes
 	client.startNowNodes(ctx)
-
-	// Set logger if not set
-	if client.options.logger == nil {
-		client.options.logger = newLogger()
-	}
 
 	// Return the client
 	return client, nil

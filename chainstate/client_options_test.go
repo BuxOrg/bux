@@ -469,7 +469,7 @@ func TestWithLogger(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		customClient := newLogger()
+		customClient := newBasicLogger(true)
 		opt := WithLogger(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.logger)

@@ -121,6 +121,11 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	ctx = client.GetOrStartTxn(ctx, "new_client")
 
+	// Set the logger (if no custom logger was detected)
+	if client.options.logger == nil {
+		client.options.logger = logger.NewLogger(client.IsDebug())
+	}
+
 	// Load the Cachestore client
 	var err error
 	if err = client.loadCache(ctx); err != nil {
@@ -162,11 +167,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Register all model tasks & custom tasks
 	if err = client.registerAllTasks(); err != nil {
 		return nil, err
-	}
-
-	// Set the logger (if no custom logger was detected)
-	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug())
 	}
 
 	// Default paymail server config (generic capabilities and domain check disabled)

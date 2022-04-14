@@ -33,21 +33,21 @@ func (l *basicLogger) LogMode(level glogger.LogLevel) glogger.Interface {
 
 // Info print information
 func (l *basicLogger) Info(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel >= glogger.Info {
+	if l.LogLevel <= glogger.Info {
 		displayLog(zlogger.INFO, message, params...)
 	}
 }
 
 // Warn print warn messages
 func (l *basicLogger) Warn(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel >= glogger.Warn {
+	if l.LogLevel <= glogger.Warn {
 		displayLog(zlogger.WARN, message, params...)
 	}
 }
 
 // Error print error messages
 func (l *basicLogger) Error(_ context.Context, message string, params ...interface{}) {
-	if l.LogLevel >= glogger.Error {
+	if l.LogLevel <= glogger.Error {
 		displayLog(zlogger.ERROR, message, params...)
 	}
 }

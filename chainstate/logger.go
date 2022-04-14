@@ -5,19 +5,35 @@ import (
 	"fmt"
 
 	zlogger "github.com/mrz1836/go-logger"
+	"gorm.io/gorm/logger"
 )
 
-// newLogger will return a basic logger interface
-func newLogger() Logger {
-	return &basicLogger{}
+// newBasicLogger will return a basic logger interface
+func newBasicLogger(debugging bool) Logger {
+	logLevel := logger.Warn
+	if debugging {
+		logLevel = logger.Info
+	}
+	return &basicLogger{LogLevel: logLevel}
 }
 
 // basicLogger is a basic logging implementation
-type basicLogger struct{}
+type basicLogger struct {
+	LogLevel logger.LogLevel
+}
+
+// LogMode log mode
+func (l *basicLogger) LogMode(level logger.LogLevel) Logger {
+	newLogger := *l
+	newLogger.LogLevel = level
+	return &newLogger
+}
 
 // Info print information
 func (l *basicLogger) Info(_ context.Context, message string, params ...interface{}) {
-	displayLog(zlogger.INFO, message, params...)
+	if l.LogLevel <= logger.Info {
+		displayLog(zlogger.INFO, message, params...)
+	}
 }
 
 // displayLog will display a log using logger

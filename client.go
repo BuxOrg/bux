@@ -77,8 +77,9 @@ type (
 
 	// notificationsOptions holds the configuration for notifications
 	notificationsOptions struct {
-		client          notifications.ClientInterface // Notifications client
-		webhookEndpoint string                        // Webhook endpoint
+		notifications.ClientInterface                           // Notifications client
+		options                       []notifications.ClientOps // List of options
+		webhookEndpoint               string                    // Webhook endpoint
 	}
 
 	// paymailOptions holds the configuration for Paymail
@@ -153,7 +154,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Load the Paymail client (if client does not exist)
+	// Load the Notification client (if client does not exist)
 	if err = client.loadNotificationClient(); err != nil {
 		return nil, err
 	}
@@ -289,26 +290,27 @@ func (c *Client) Debug(on bool) {
 	c.options.debug = on
 
 	// Set debugging on the Cachestore
-	cs := c.Cachestore()
-	if cs != nil {
+	if cs := c.Cachestore(); cs != nil {
 		cs.Debug(on)
 	}
 
 	// Set debugging on the Chainstate
-	ch := c.Chainstate()
-	if ch != nil {
+	if ch := c.Chainstate(); ch != nil {
 		ch.Debug(on)
 	}
 
 	// Set debugging on the Datastore
-	ds := c.Datastore()
-	if ds != nil {
+	if ds := c.Datastore(); ds != nil {
 		ds.Debug(on)
 	}
 
+	// Set debugging on the Notifications
+	if n := c.Notifications(); n != nil {
+		n.Debug(on)
+	}
+
 	// Set debugging on the Taskmanager
-	tm := c.Taskmanager()
-	if tm != nil {
+	if tm := c.Taskmanager(); tm != nil {
 		tm.Debug(on)
 	}
 }
@@ -400,15 +402,15 @@ func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
 
 // Notifications will return the Notifications if it exists
 func (c *Client) Notifications() notifications.ClientInterface {
-	if c.options.notifications != nil && c.options.notifications.client != nil {
-		return c.options.notifications.client
+	if c.options.notifications != nil && c.options.notifications.ClientInterface != nil {
+		return c.options.notifications.ClientInterface
 	}
 	return nil
 }
 
 // SetNotificationsClient will overwrite the notification's client with the given client
 func (c *Client) SetNotificationsClient(client notifications.ClientInterface) {
-	c.options.notifications.client = client
+	c.options.notifications.ClientInterface = client
 }
 
 // Taskmanager will return the Taskmanager if it exists

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"gorm.io/gorm/logger"
+	"github.com/BuxOrg/bux/logger"
 )
 
 const (
@@ -25,6 +25,7 @@ func defaultClientOptions() *clientOptions {
 		config: &notificationsConfig{
 			webhookEndpoint: "",
 		},
+		logger: nil,
 		httpClient: &http.Client{
 			Timeout: defaultHTTPTimeout,
 		},
@@ -39,14 +40,14 @@ func WithNotifications(webhookEndpoint string) ClientOps {
 }
 
 // WithLogger will set the logger
-func WithLogger(log logger.Interface) ClientOps {
+func WithLogger(customLogger logger.Interface) ClientOps {
 	return func(c *clientOptions) {
-		c.logger = log
+		c.logger = customLogger
 	}
 }
 
-// WithDebug will set debugging on notifications
-func WithDebug() ClientOps {
+// WithDebugging will set debugging on notifications
+func WithDebugging() ClientOps {
 	return func(c *clientOptions) {
 		c.debug = true
 	}

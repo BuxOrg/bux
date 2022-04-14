@@ -60,7 +60,7 @@ func TestClient_Notify(t *testing.T) {
 			httpMock: func() {
 				httpmock.RegisterResponder(http.MethodPost, webhookURL,
 					httpmock.NewStringResponder(
-						200,
+						http.StatusOK,
 						`OK`,
 					),
 				)

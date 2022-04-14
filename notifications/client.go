@@ -1,6 +1,6 @@
 package notifications
 
-import "gorm.io/gorm/logger"
+import "github.com/BuxOrg/bux/logger"
 
 // EventType event types thrown in Bux
 type EventType string
@@ -29,8 +29,8 @@ type (
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
 		config     *notificationsConfig // Configuration for broadcasting and other chain-state actions
-		httpClient HTTPInterface
 		debug      bool
+		httpClient HTTPInterface
 		logger     logger.Interface
 	}
 
@@ -53,6 +53,26 @@ func NewClient(opts ...ClientOps) (ClientInterface, error) {
 		opt(client.options)
 	}
 
+	// Set logger if not set
+	if client.options.logger == nil {
+		client.options.logger = logger.NewLogger(client.IsDebug())
+	}
+
 	// Return the client
 	return client, nil
+}
+
+// IsDebug will return if debugging is enabled
+func (c *Client) IsDebug() bool {
+	return c.options.debug
+}
+
+// Debug will set the debug flag
+func (c *Client) Debug(on bool) {
+	c.options.debug = on
+}
+
+// Logger get the logger
+func (c *Client) Logger() logger.Interface {
+	return c.options.logger
 }

@@ -18,7 +18,7 @@ import (
 func TestClient_Debug(t *testing.T) {
 	t.Parallel()
 
-	t.Run("load basic Datastore and Cachestore with debug", func(t *testing.T) {
+	t.Run("load basic with debug", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			DefaultClientOpts(false, true)...,
@@ -32,8 +32,9 @@ func TestClient_Debug(t *testing.T) {
 		tc.Debug(true)
 
 		assert.Equal(t, true, tc.IsDebug())
-		assert.Equal(t, true, tc.Datastore().IsDebug())
 		assert.Equal(t, true, tc.Cachestore().IsDebug())
+		assert.Equal(t, true, tc.Datastore().IsDebug())
+		assert.Equal(t, true, tc.Notifications().IsDebug())
 		assert.Equal(t, true, tc.Taskmanager().IsDebug())
 	})
 }

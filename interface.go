@@ -83,6 +83,7 @@ type ClientServices interface {
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
 	Logger() logger.Interface
+	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface
 	Taskmanager() taskmanager.ClientInterface
 }
@@ -112,7 +113,6 @@ type ClientInterface interface {
 	IsIUCEnabled() bool
 	IsNewRelicEnabled() bool
 	ModifyTaskPeriod(name string, period time.Duration) error
-	Notifications() notifications.ClientInterface
 	SetNotificationsClient(notifications.ClientInterface)
 	UserAgent() string
 	Version() string

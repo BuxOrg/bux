@@ -70,7 +70,10 @@ func defaultClientOptions() *clientOptions {
 		newRelic: &newRelicOptions{},
 
 		// Blank notifications config
-		notifications: &notificationsOptions{},
+		notifications: &notificationsOptions{
+			ClientInterface: nil,
+			webhookEndpoint: "",
+		},
 
 		// Blank Paymail config
 		paymail: &paymailOptions{
@@ -182,6 +185,7 @@ func WithNewRelic(app *newrelic.Application) ClientOps {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithNewRelic())
 		c.dataStore.options = append(c.dataStore.options, datastore.WithNewRelic())
 		c.taskManager.options = append(c.taskManager.options, taskmanager.WithNewRelic())
+		// c.notifications.options = append(c.notifications.options, notifications.WithNewRelic())
 
 		// Enable the service
 		c.newRelic.enabled = true
@@ -197,6 +201,7 @@ func WithDebugging() ClientOps {
 		c.cacheStore.options = append(c.cacheStore.options, cachestore.WithDebugging())
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithDebugging())
 		c.dataStore.options = append(c.dataStore.options, datastore.WithDebugging())
+		c.notifications.options = append(c.notifications.options, notifications.WithDebugging())
 		c.taskManager.options = append(c.taskManager.options, taskmanager.WithDebugging())
 	}
 }
@@ -246,6 +251,7 @@ func WithLogger(customLogger logger.Interface) ClientOps {
 			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(c.logger))
 			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{Interface: c.logger}))
 			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(c.logger))
+			c.notifications.options = append(c.notifications.options, notifications.WithLogger(c.logger))
 		}
 	}
 }
@@ -581,9 +587,11 @@ func WithNotifications(webhookEndpoint string) ClientOps {
 	}
 }
 
-// WithNotificationsInterface will set a notifications interface
-func WithNotificationsInterface(notify notifications.ClientInterface) ClientOps {
+// WithCustomNotifications will set a custom notifications interface
+func WithCustomNotifications(customNotifications notifications.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
-		c.notifications.client = notify
+		if customNotifications != nil {
+			c.notifications.ClientInterface = customNotifications
+		}
 	}
 }

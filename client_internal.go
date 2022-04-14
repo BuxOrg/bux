@@ -92,7 +92,7 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 	// Load monitor if set by the user
 	monitor := c.options.chainstate.Monitor()
 	if monitor != nil {
-		handler := NewMonitorHandler(ctx, "", c, monitor)
+		handler := NewTransactionMonitorHandler(ctx, "", c, monitor)
 		err = c.loadMonitoredDestinations(ctx, monitor)
 		if err != nil {
 			return

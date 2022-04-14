@@ -59,6 +59,7 @@ type MonitorService interface {
 	Disconnected()
 	IsConnected() bool
 	GetMonitorDays() int
+	SaveDestinations() bool
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int
 	GetProcessMempoolOnConnect() bool

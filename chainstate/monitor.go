@@ -18,6 +18,7 @@ type Monitor struct {
 	connected               bool
 	centrifugeServer        string
 	monitorDays             int
+	saveDestinations        bool
 	falsePositiveRate       float64
 	maxNumberOfDestinations int
 	processMempoolOnConnect bool
@@ -71,6 +72,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) *Monitor {
 		maxNumberOfDestinations: options.MaxNumberOfDestinations,
 		falsePositiveRate:       options.FalsePositiveRate,
 		monitorDays:             options.MonitorDays,
+		saveDestinations:        options.SaveDestinations,
 		processMempoolOnConnect: options.ProcessMempoolOnConnect,
 	}
 	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
@@ -106,6 +108,11 @@ func (m *Monitor) GetMaxNumberOfDestinations() int {
 // GetProcessMempoolOnConnect gets whether the whole mempool should be processed when connecting
 func (m *Monitor) GetProcessMempoolOnConnect() bool {
 	return m.processMempoolOnConnect
+}
+
+// SaveDestinations gets whether or not we should save destinations from transactions that pass monitor filter
+func (m *Monitor) SaveDestinations() bool {
+	return m.saveDestinations
 }
 
 // SetChainstateOptions sets the chainstate options on the monitor to allow more synching capabilities

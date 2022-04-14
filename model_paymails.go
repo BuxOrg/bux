@@ -76,6 +76,47 @@ func getPaymail(ctx context.Context, address string, opts ...ModelOps) (*Paymail
 	return paymailAddress, nil
 }
 
+// getPaymails will get all the paymails with the given conditions
+func getPaymails(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	pageSize, page int, opts ...ModelOps) ([]*PaymailAddress, error) {
+
+	var models []PaymailAddress
+	dbConditions := map[string]interface{}{}
+
+	if metadata != nil {
+		dbConditions[metadataField] = metadata
+	}
+
+	if conditions != nil && len(*conditions) > 0 {
+		and := make([]map[string]interface{}, 0)
+		if _, ok := dbConditions["$and"]; ok {
+			and = dbConditions["$and"].([]map[string]interface{})
+		}
+		and = append(and, *conditions)
+		dbConditions["$and"] = and
+	}
+
+	// Get the records
+	if err := getModels(
+		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		&models, dbConditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Loop and enrich
+	destinations := make([]*PaymailAddress, 0)
+	for index := range models {
+		models[index].enrich(ModelDestination, opts...)
+		destinations = append(destinations, &models[index])
+	}
+
+	return destinations, nil
+}
+
 // getPaymailByID will get the paymail with the given ID
 func getPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailAddress, error) {
 

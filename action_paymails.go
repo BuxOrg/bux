@@ -24,6 +24,52 @@ func (c *Client) GetPaymailAddress(ctx context.Context, address string, opts ...
 	return paymailAddress, nil
 }
 
+// GetPaymailAddresses will get all the paymails from the Datastore
+func (c *Client) GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, pageSize, page int) ([]*PaymailAddress, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_transaction")
+
+	// Get the transaction by ID
+	// todo: add params for: page size and page (right now it is unlimited)
+	paymailAddresses, err := getPaymails(
+		ctx, metadataConditions, conditions, pageSize, page,
+		c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return paymailAddresses, nil
+}
+
+// GetPaymailAddressesByXPubID will get all the paymails for xPubID from the Datastore
+func (c *Client) GetPaymailAddressesByXPubID(ctx context.Context, xPubID string,
+	metadataConditions *Metadata, conditions *map[string]interface{}, pageSize, page int) ([]*PaymailAddress, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_transaction")
+
+	if conditions == nil {
+		*conditions = make(map[string]interface{})
+	}
+	// add the xpub_id to the conditions
+	(*conditions)["xpub_id"] = xPubID
+
+	// Get the transaction by ID
+	// todo: add params for: page size and page (right now it is unlimited)
+	paymailAddresses, err := getPaymails(
+		ctx, metadataConditions, conditions, pageSize, page,
+		c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return paymailAddresses, nil
+}
+
 // NewPaymailAddress will create a new paymail address
 func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, publicName, avatar string,
 	opts ...ModelOps) (*PaymailAddress, error) {

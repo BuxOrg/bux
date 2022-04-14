@@ -67,6 +67,8 @@ type XPubService interface {
 // PaymailService is the paymail actions
 type PaymailService interface {
 	GetPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error)
+	GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata, conditions *map[string]interface{}, pageSize, page int) ([]*PaymailAddress, error)
+	GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata, conditions *map[string]interface{}, pageSize, page int) ([]*PaymailAddress, error)
 	NewPaymailAddress(ctx context.Context, key, address, publicName, avatar string, opts ...ModelOps) (*PaymailAddress, error)
 	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
 	UpdatePaymailAddress(ctx context.Context, address, publicName, avatar string,

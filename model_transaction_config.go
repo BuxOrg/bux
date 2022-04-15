@@ -29,7 +29,8 @@ type TransactionConfig struct {
 	ExpiresIn                  time.Duration        `json:"expires_in" toml:"expires_in" yaml:"expires_in"`
 	Fee                        uint64               `json:"fee" toml:"fee" yaml:"fee"`
 	FeeUnit                    *utils.FeeUnit       `json:"fee_unit" toml:"fee_unit" yaml:"fee_unit"`
-	FromUtxos                  []*UtxoPointer       `json:"from_utxos" toml:"from_utxos" yaml:"from_utxos"`
+	FromUtxos                  []*UtxoPointer       `json:"from_utxos" toml:"from_utxos" yaml:"from_utxos"`          // use these utxos for the transaction
+	IncludeUtxos               []*UtxoPointer       `json:"include_utxos" toml:"include_utxos" yaml:"include_utxos"` // include these utxos for the transaction, among others necessary if more is needed for fees
 	Inputs                     []*TransactionInput  `json:"inputs" toml:"inputs" yaml:"inputs"`
 	Miner                      string               `json:"miner" toml:"miner" yaml:"miner"`
 	Outputs                    []*TransactionOutput `json:"outputs" toml:"outputs" yaml:"outputs"`
@@ -65,6 +66,7 @@ type TransactionOutput struct {
 	Scripts   []*ScriptOutput `json:"scripts" toml:"scripts" yaml:"scripts" bson:"scripts"`
 	To        string          `json:"to,omitempty" toml:"to" yaml:"to" bson:"to,omitempty"`
 	OpReturn  *OpReturn       `json:"op_return" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`
+	Script    *string         `json:"script" toml:"script" yaml:"script" bson:"script,omitempty"` // custom (non-standard) script output
 }
 
 // PaymailP4 paymail configuration for the p2p payments on this output
@@ -167,10 +169,9 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 		}
 		return t.processAddressOutput()
 	} else if t.OpReturn != nil { // OP_RETURN output
-		if checkSatoshis && t.Satoshis > 0 {
-			return ErrOutputValueUnSpendable
-		}
 		return t.processOpReturnOutput()
+	} else if t.Script != nil { // Custom script output
+		return t.processScriptOutput()
 	}
 
 	// No value set in either ToPaymail or ToAddress
@@ -317,6 +318,30 @@ func (t *TransactionOutput) processAddressOutput() (err error) {
 		},
 	)
 	return
+}
+
+// processScriptOutput will process a custom bitcoin script output
+func (t *TransactionOutput) processScriptOutput() (err error) {
+	if t.Script == nil || *t.Script == "" {
+		return ErrInvalidScriptOutput
+	}
+
+	// check whether go-bt parses the script correctly
+	if _, err = bscript.NewFromHexString(*t.Script); err != nil {
+		return
+	}
+
+	// Append the script
+	t.Scripts = append(
+		t.Scripts,
+		&ScriptOutput{
+			Satoshis:   t.Satoshis,
+			Script:     *t.Script,
+			ScriptType: utils.GetDestinationType(*t.Script), // try to determine type
+		},
+	)
+
+	return nil
 }
 
 // processOpReturnOutput will process an op_return output

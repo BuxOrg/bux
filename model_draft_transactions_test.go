@@ -1,6 +1,7 @@
 package bux
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -616,6 +617,45 @@ func TestDraftTransaction_AfterUpdated(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, gUtxo2.DraftID.Valid)
 		assert.False(t, gUtxo2.ReservedAt.Valid)
+	})
+}
+
+// TestDraftTransaction_addIncludeUtxos will test the method addIncludeUtxos()
+func TestDraftTransaction_addIncludeUtxos(t *testing.T) {
+	t.Run("no includeUtxos", func(t *testing.T) {
+		ctx := context.Background()
+		draft := &DraftTransaction{
+			Configuration: TransactionConfig{},
+		}
+		err := draft.addIncludeUtxos(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draft.Configuration.Inputs, 0)
+	})
+
+	t.Run("with includeUtxos", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		destination := newDestination(testXPubID, testSTASScriptPubKey, client.DefaultModelOptions(New())...)
+		err := destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testSTAStxID, testSTASLockingScript, 0, 550, client.DefaultModelOptions(New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draft := newDraftTransaction("", &TransactionConfig{
+			IncludeUtxos: []*UtxoPointer{{
+				testSTAStxID,
+				0,
+			}},
+		}, client.DefaultModelOptions(New())...)
+
+		err = draft.addIncludeUtxos(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draft.Configuration.Inputs, 1)
+		assert.Equal(t, testSTASLockingScript, draft.Configuration.Inputs[0].ScriptPubKey)
+		assert.Equal(t, testSTASScriptPubKey, draft.Configuration.Inputs[0].Destination.LockingScript)
 	})
 }
 

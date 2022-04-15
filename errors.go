@@ -64,6 +64,9 @@ var ErrInvalidLockingScript = errors.New("invalid locking script")
 // ErrInvalidOpReturnOutput is when a locking script is not a valid op_return
 var ErrInvalidOpReturnOutput = errors.New("invalid op_return output")
 
+// ErrInvalidScriptOutput is when a locking script is not a valid bitcoin script
+var ErrInvalidScriptOutput = errors.New("invalid script output")
+
 // ErrInvalidTransactionID is when a transaction id cannot be decoded
 var ErrInvalidTransactionID = errors.New("invalid transaction id")
 

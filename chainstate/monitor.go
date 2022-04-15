@@ -12,6 +12,7 @@ import (
 
 // Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
 type Monitor struct {
+	debug                   bool
 	chainstateOptions       *clientOptions
 	logger                  logger.Interface
 	client                  *centrifuge.Client
@@ -28,6 +29,7 @@ type Monitor struct {
 
 // MonitorOptions options for starting this monitorConfig
 type MonitorOptions struct {
+	Debug                   bool
 	CentrifugeServer        string
 	MonitorDays             int
 	FalsePositiveRate       float64
@@ -69,6 +71,7 @@ func newClient(wsURL string, handler whatsonchain.SocketHandler) *centrifuge.Cli
 func NewMonitor(_ context.Context, options *MonitorOptions) *Monitor {
 	options.checkDefaults()
 	monitor := &Monitor{
+		debug:                   options.Debug,
 		centrifugeServer:        options.CentrifugeServer,
 		maxNumberOfDestinations: options.MaxNumberOfDestinations,
 		falsePositiveRate:       options.FalsePositiveRate,
@@ -76,14 +79,26 @@ func NewMonitor(_ context.Context, options *MonitorOptions) *Monitor {
 		saveDestinations:        options.SaveDestinations,
 		processMempoolOnConnect: options.ProcessMempoolOnConnect,
 	}
-	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
-
 	// Set logger if not set
 	if monitor.logger == nil {
 		monitor.logger = logger.NewLogger(true)
 	}
 
+	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+	monitor.processor.Debug(options.Debug)
+	monitor.processor.SetLogger(monitor.logger)
+
 	return monitor
+}
+
+// IsDebug gets whether debugging is on
+func (m *Monitor) IsDebug() bool {
+	return m.debug
+}
+
+// Logger gets the current logger
+func (m *Monitor) Logger() Logger {
+	return m.logger
 }
 
 // Processor gets the monitor processor
@@ -127,6 +142,7 @@ func (m *Monitor) Monitor(handler MonitorHandler) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
+		m.logger.Info(context.Background(), "[MONITOR] Connecting to server: %s", m.centrifugeServer)
 		m.client = newClient(m.centrifugeServer, handler)
 	}
 
@@ -164,7 +180,9 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 
 		// run the processing of the txs in a different thread
 		go func() {
-			fmt.Printf("ProcessMempool mempoolTxs: %d\n", len(mempoolTxs))
+			if m.debug {
+				m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool mempoolTxs: %d\n", len(mempoolTxs)))
+			}
 			if len(mempoolTxs) > 0 {
 				hashes := new(whatsonchain.TxHashes)
 				hashes.TxIDs = append(hashes.TxIDs, mempoolTxs...)
@@ -180,14 +198,18 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 					}
 					batches = append(batches, hashes.TxIDs[i:end])
 				}
-				fmt.Printf("ProcessMempool created batches: %d\n", len(batches))
+				if m.debug {
+					m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool created batches: %d\n", len(batches)))
+				}
 
 				var currentRateLimit int
 				// Loop Batches - and get each batch (multiple batches of MaxTransactionsRaw)
 				// this code comes from the go-whatsonchain lib, but we want to process per 20
 				// and not the whole batch in 1 go
 				for i, batch := range batches {
-					fmt.Printf("ProcessMempool processing batch: %d\n", i+1)
+					if m.debug {
+						m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool processing batch: %d\n", i+1))
+					}
 
 					txHashes := new(whatsonchain.TxHashes)
 					txHashes.TxIDs = append(txHashes.TxIDs, batch...)
@@ -202,20 +224,24 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 
 					// Add to the list
 					for _, tx := range returnedList {
-						// fmt.Printf("ProcessMempool tx: %s\n", tx.TxID)
+						if m.debug {
+							m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool tx: %s\n", tx.TxID))
+						}
 						var txHex string
 						txHex, err = m.processor.FilterMempoolTx(tx.Hex) // todo off
 						if err != nil {
-							fmt.Printf("error recording tx: %e\n", err)
+							m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx %s: %s\n", tx.TxID, err.Error()))
 							continue
 						}
 						if txHex != "" {
-							err = m.handler.RecordTransaction(ctx, "", txHex, "")
+							err = m.handler.RecordTransaction(ctx, txHex)
 							if err != nil {
-								fmt.Printf("error recording tx: %e\n", err)
+								m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %s\n", err.Error()))
 								continue
 							}
-							fmt.Printf("successfully recorded tx: %s\n", tx.TxID)
+							if m.debug {
+								m.logger.Info(ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %s\n", tx.TxID))
+							}
 						}
 					}
 

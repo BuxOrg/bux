@@ -16,6 +16,12 @@ type HTTPInterface interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// Logger is the logger interface for debug messages
+type Logger interface {
+	Info(ctx context.Context, message string, params ...interface{})
+	Error(ctx context.Context, message string, params ...interface{})
+}
+
 // ChainService is the chain related methods
 type ChainService interface {
 	Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) error
@@ -55,6 +61,8 @@ type ClientInterface interface {
 
 // MonitorService for the monitoring
 type MonitorService interface {
+	IsDebug() bool
+	Logger() Logger
 	Connected()
 	Disconnected()
 	IsConnected() bool

@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
@@ -221,7 +222,10 @@ func (m *Destination) AfterCreated(_ context.Context) error {
 		if monitor != nil {
 			processor := monitor.Processor()
 			if processor != nil {
-				processor.Add(utils.P2PKHRegexpString, m.LockingScript)
+				err := processor.Add(utils.P2PKHRegexpString, m.LockingScript)
+				if err != nil {
+					m.DebugLog(fmt.Sprintf("ERROR: failed adding destination to monitor: %s", err.Error()))
+				}
 			}
 		}
 	}

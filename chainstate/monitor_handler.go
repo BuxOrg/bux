@@ -10,6 +10,6 @@ import (
 type MonitorHandler interface {
 	whatsonchain.SocketHandler
 	SetMonitor(monitor *Monitor)
-	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string) error
+	RecordTransaction(ctx context.Context, txHex string) error
 	GetWhatsOnChain() whatsonchain.ClientInterface
 }

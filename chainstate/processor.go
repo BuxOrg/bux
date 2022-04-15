@@ -14,6 +14,8 @@ import (
 
 // BloomProcessor bloom filter processor
 type BloomProcessor struct {
+	debug             bool
+	logger            Logger
 	filters           map[string]*BloomProcessorFilter
 	maxCells          uint
 	falsePositiveRate float64
@@ -36,6 +38,10 @@ func NewBloomProcessor(maxCells uint, falsePositiveRate float64) *BloomProcessor
 
 // MonitorProcessor struct that defines interface to all filter processors
 type MonitorProcessor interface {
+	Debug(bool)
+	IsDebug() bool
+	SetLogger(logger Logger)
+	Logger() Logger
 	Add(regexString, item string) error
 	Test(regexString string, item string) bool
 	Reload(regexString string, items []string) error
@@ -44,11 +50,33 @@ type MonitorProcessor interface {
 	GetHash() string
 }
 
+// Debug set debugging
+func (p *BloomProcessor) Debug(debug bool) {
+	p.debug = debug
+}
+
+// IsDebug return whether debugging is on/off
+func (p *BloomProcessor) IsDebug() bool {
+	return p.debug
+}
+
+// SetLogger set the logger
+func (p *BloomProcessor) SetLogger(logger Logger) {
+	p.logger = logger
+}
+
+// Logger return the logger
+func (p *BloomProcessor) Logger() Logger {
+	return p.logger
+}
+
+// GetHash get the hash of the current filter
 func (p *BloomProcessor) GetHash() string {
 	h := sha256.New()
 	for _, f := range p.filters {
-		f.filter.WriteTo(h)
-
+		if _, err := f.filter.WriteTo(h); err != nil {
+			return ""
+		}
 	}
 	hash := h.Sum(nil)
 	return hex.EncodeToString(hash)
@@ -82,12 +110,14 @@ func (p *BloomProcessor) Test(regexString, item string) bool {
 }
 
 // Reload the bloom filter from the DB
-func (p *BloomProcessor) Reload(regexString string, items []string) error {
+func (p *BloomProcessor) Reload(regexString string, items []string) (err error) {
 	for _, item := range items {
-		_ = p.Add(regexString, item)
+		if err = p.Add(regexString, item); err != nil {
+			return
+		}
 	}
 
-	return nil
+	return
 }
 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
@@ -133,6 +163,8 @@ func (p *BloomProcessor) FilterMempoolTx(txHex string) (string, error) {
 // This processor just uses regex checks to see if a raw hex string exists in a tx
 // This is bound to have some false positives but is somewhat performant when filter set is small
 type RegexProcessor struct {
+	debug  bool
+	logger Logger
 	filter []string
 }
 
@@ -141,6 +173,26 @@ func NewRegexProcessor() *RegexProcessor {
 	return &RegexProcessor{
 		filter: []string{},
 	}
+}
+
+// Debug set debugging
+func (p *RegexProcessor) Debug(debug bool) {
+	p.debug = debug
+}
+
+// IsDebug return whether debugging is on/off
+func (p *RegexProcessor) IsDebug() bool {
+	return p.debug
+}
+
+// SetLogger set the logger
+func (p *RegexProcessor) SetLogger(logger Logger) {
+	p.logger = logger
+}
+
+// Logger return the logger
+func (p *RegexProcessor) Logger() Logger {
+	return p.logger
 }
 
 // Add a new item to the processor
@@ -160,11 +212,13 @@ func (p *RegexProcessor) Test(_ string, item string) bool {
 }
 
 // Reload the items of the processor to match against
-func (p *RegexProcessor) Reload(_ string, items []string) error {
+func (p *RegexProcessor) Reload(_ string, items []string) (err error) {
 	for _, i := range items {
-		p.Add(i, "")
+		if err = p.Add(i, ""); err != nil {
+			return
+		}
 	}
-	return nil
+	return
 }
 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
@@ -190,6 +244,7 @@ func (p *RegexProcessor) FilterMempoolTx(hex string) (string, error) {
 	return "", nil
 }
 
+// GetHash get the hash of the filter
 func (p *RegexProcessor) GetHash() string {
 	return ""
 }

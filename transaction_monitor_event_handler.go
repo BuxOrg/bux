@@ -5,40 +5,42 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/mrz1836/go-whatsonchain"
-
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/korovkin/limiter"
+	"github.com/mrz1836/go-whatsonchain"
 )
 
 type transactionEventHandler struct {
+	debug     bool
+	logger    chainstate.Logger
 	monitor   chainstate.MonitorService
 	buxClient ClientInterface
-	xpub      string
 	ctx       context.Context
 	limit     *limiter.ConcurrencyLimiter
 }
 
 // NewTransactionMonitorHandler create a new monitor handler
-func NewTransactionMonitorHandler(ctx context.Context, xpubKey string, buxClient ClientInterface, monitor chainstate.MonitorService) transactionEventHandler {
+func NewTransactionMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor chainstate.MonitorService) transactionEventHandler {
 	return transactionEventHandler{
+		debug:     monitor.IsDebug(),
+		logger:    monitor.Logger(),
 		monitor:   monitor,
 		buxClient: buxClient,
-		xpub:      xpubKey,
 		ctx:       ctx,
 		limit:     limiter.NewConcurrencyLimiter(runtime.NumCPU()),
 	}
 }
 
 func (h *transactionEventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.ConnectEvent) {
-	fmt.Printf("Conntected to server: %s\n", e.ClientID)
+	ctx := context.Background()
+	h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Connected to server: %s\n", e.ClientID))
 	if h.monitor.GetProcessMempoolOnConnect() {
-		fmt.Printf("PROCESS MEMPOOL\n")
+		h.logger.Info(ctx, "[MONITOR] PROCESS MEMPOOL")
 		go func() {
-			err := h.monitor.ProcessMempool(context.Background())
+			err := h.monitor.ProcessMempool(ctx)
 			if err != nil {
-				fmt.Printf("ERROR processing mempool: %s\n", err.Error())
+				h.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
 			}
 		}()
 	}
@@ -46,7 +48,8 @@ func (h *transactionEventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.C
 }
 
 func (h *transactionEventHandler) OnError(_ *centrifuge.Client, e centrifuge.ErrorEvent) {
-	fmt.Printf("Error: %s", e.Message)
+	ctx := context.Background()
+	h.logger.Error(ctx, fmt.Sprintf("[MONITOR] Error: %s", e.Message))
 }
 
 func (h *transactionEventHandler) OnMessage(_ *centrifuge.Client, e centrifuge.MessageEvent) {
@@ -81,7 +84,8 @@ func (h *transactionEventHandler) OnUnsubscribe(_ *centrifuge.Subscription, e ce
 }
 
 func (h *transactionEventHandler) OnServerJoin(_ *centrifuge.Client, e centrifuge.ServerJoinEvent) {
-	fmt.Printf("Joined server: %v\n", e)
+	ctx := context.Background()
+	h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Joined server: %v\n", e))
 }
 
 func (h *transactionEventHandler) OnServerLeave(_ *centrifuge.Client, e centrifuge.ServerLeaveEvent) {
@@ -94,9 +98,10 @@ func (h *transactionEventHandler) OnServerPublish(_ *centrifuge.Client, e centri
 }
 
 func (h *transactionEventHandler) OnServerPublishLinear(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+	ctx := context.Background()
 	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
 	if err != nil {
-		fmt.Printf("failed to process server event: %v\n", err)
+		h.logger.Error(ctx, fmt.Sprintf("[MONITOR] failed to process server event: %v\n", err))
 		return
 	}
 
@@ -107,21 +112,25 @@ func (h *transactionEventHandler) OnServerPublishLinear(_ *centrifuge.Client, e 
 	if tx == "" {
 		return
 	}
-	_, err = h.buxClient.RecordTransaction(h.ctx, h.xpub, tx, "")
+	_, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx)
 	if err != nil {
-		fmt.Printf("error recording tx: %v\n", err)
+		h.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v\n", err))
 		return
 	}
-	fmt.Printf("successfully recorded tx: %v\n", tx)
+
+	if h.debug {
+		h.logger.Info(ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v\n", tx))
+	}
 }
 
 func (h *transactionEventHandler) OnServerPublishParallel(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+	ctx := context.Background()
 	_, err := h.limit.Execute(func() {
 		h.OnServerPublishLinear(nil, e)
 	})
 
 	if err != nil {
-		fmt.Printf("failed to start goroutine: %v", err)
+		h.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR failed to start goroutine: %v", err))
 	}
 }
 
@@ -131,9 +140,9 @@ func (h *transactionEventHandler) SetMonitor(monitor *chainstate.Monitor) {
 }
 
 // RecordTransaction records a transaction into bux
-func (h *transactionEventHandler) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string) error {
+func (h *transactionEventHandler) RecordTransaction(ctx context.Context, txHex string) error {
 
-	_, err := h.buxClient.RecordTransaction(ctx, xPubKey, txHex, draftID)
+	_, err := h.buxClient.RecordMonitoredTransaction(ctx, txHex)
 
 	return err
 }

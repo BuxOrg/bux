@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -28,6 +29,10 @@ func (c *Client) loadMonitoredDestinations(ctx context.Context, monitor chainsta
 
 	for _, model := range destinations {
 		_ = monitor.Processor().Add(utils.P2PKHRegexpString, model.LockingScript)
+	}
+
+	if c.options.debug && c.Logger() != nil {
+		c.Logger().Info(ctx, fmt.Sprintf("[MONITOR] Added %d destinations to monitor", len(destinations)))
 	}
 
 	return nil

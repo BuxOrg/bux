@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/BuxOrg/bux/logger"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
 )
@@ -12,7 +13,7 @@ import (
 // Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
 type Monitor struct {
 	chainstateOptions       *clientOptions
-	logger                  Logger
+	logger                  logger.Interface
 	client                  *centrifuge.Client
 	processor               MonitorProcessor
 	connected               bool
@@ -79,7 +80,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) *Monitor {
 
 	// Set logger if not set
 	if monitor.logger == nil {
-		monitor.logger = newLogger()
+		monitor.logger = logger.NewLogger(true)
 	}
 
 	return monitor

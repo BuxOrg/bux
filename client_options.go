@@ -597,8 +597,8 @@ func WithNotifications(webhookEndpoint string) ClientOps {
 	}
 }
 
-// WithNotificationsInterface will set a notifications interface
-func WithNotificationsInterface(notify notifications.ClientInterface) ClientOps {
+// WithCustomNotifications will set a custom notifications interface
+func WithCustomNotifications(customNotifications notifications.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
 		if customNotifications != nil {
 			c.notifications.ClientInterface = customNotifications

@@ -21,11 +21,11 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config          *syncConfig // Configuration for broadcasting and other chain-state actions
-		debug           bool        // For extra logs and additional debug information
-		logger          Logger      // Internal logger interface
-		newRelicEnabled bool        // If NewRelic is enabled (parent application)
-		userAgent       string      // Custom user agent for outgoing HTTP Requests
+		config          *syncConfig      // Configuration for broadcasting and other chain-state actions
+		debug           bool             // For extra logs and additional debug information
+		logger          logger.Interface // Internal logger interface
+		newRelicEnabled bool             // If NewRelic is enabled (parent application)
+		userAgent       string           // Custom user agent for outgoing HTTP Requests
 		monitor         MonitorService
 	}
 

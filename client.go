@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/tonicpow/go-paymail"
+
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -12,7 +14,6 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 )
 
@@ -174,11 +175,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		if err := client.loadMonitor(ctx); err != nil {
 			return nil, err
 		}
-	}
-
-	// Set logger (if not set by user)
-	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug())
 	}
 
 	// Default paymail server config (generic capabilities and domain check disabled)

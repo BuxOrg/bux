@@ -1,6 +1,8 @@
 package chainstate
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"regexp"
 	"strings"
@@ -39,6 +41,17 @@ type MonitorProcessor interface {
 	Reload(regexString string, items []string) error
 	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
 	FilterMempoolTx(txHex string) (string, error)
+	GetHash() string
+}
+
+func (p *BloomProcessor) GetHash() string {
+	h := sha256.New()
+	for _, f := range p.filters {
+		f.filter.WriteTo(h)
+
+	}
+	hash := h.Sum(nil)
+	return hex.EncodeToString(hash)
 }
 
 // Add a new item to the bloom filter
@@ -175,4 +188,8 @@ func (p *RegexProcessor) FilterMempoolTx(hex string) (string, error) {
 		return hex, nil
 	}
 	return "", nil
+}
+
+func (p *RegexProcessor) GetHash() string {
+	return ""
 }

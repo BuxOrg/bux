@@ -71,6 +71,7 @@ type MonitorService interface {
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int
 	GetProcessMempoolOnConnect() bool
+	Add(regexpString string, item string) error
 	Processor() MonitorProcessor
 	ProcessMempool(ctx context.Context) error
 	Monitor(handler MonitorHandler) error

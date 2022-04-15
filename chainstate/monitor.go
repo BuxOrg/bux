@@ -2,11 +2,11 @@ package chainstate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/logger"
-	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
@@ -15,7 +15,7 @@ type Monitor struct {
 	debug                   bool
 	chainstateOptions       *clientOptions
 	logger                  logger.Interface
-	client                  *centrifuge.Client
+	client                  MonitorClient
 	processor               MonitorProcessor
 	connected               bool
 	centrifugeServer        string
@@ -48,23 +48,6 @@ func (o *MonitorOptions) checkDefaults() {
 	if o.MaxNumberOfDestinations == 0 {
 		o.MaxNumberOfDestinations = 100000
 	}
-}
-
-func newClient(wsURL string, handler whatsonchain.SocketHandler) *centrifuge.Client {
-	c := centrifuge.NewJsonClient(wsURL, centrifuge.DefaultConfig())
-
-	c.OnConnect(handler)
-	c.OnDisconnect(handler)
-	c.OnMessage(handler)
-	c.OnError(handler)
-
-	c.OnServerPublish(handler)
-	c.OnServerSubscribe(handler)
-	c.OnServerUnsubscribe(handler)
-	c.OnServerJoin(handler)
-	c.OnServerLeave(handler)
-
-	return c
 }
 
 // NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
@@ -143,10 +126,19 @@ func (m *Monitor) Monitor(handler MonitorHandler) error {
 		handler.SetMonitor(m)
 		m.handler = handler
 		m.logger.Info(context.Background(), "[MONITOR] Connecting to server: %s", m.centrifugeServer)
-		m.client = newClient(m.centrifugeServer, handler)
+		m.client = newCentrifugeClient(m.centrifugeServer, handler)
 	}
 
 	return m.client.Connect()
+}
+
+// Add a new item to monitor
+func (m *Monitor) Add(regexString, item string) error {
+	if m.processor == nil {
+		return errors.New("monitor processor not available")
+	}
+	// todo signal to bux-agent that a new item was added
+	return m.processor.Add(regexString, item)
 }
 
 // Connected sets the connected state to true

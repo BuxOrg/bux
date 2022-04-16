@@ -138,6 +138,10 @@ func (m *Monitor) Add(regexString, item string) error {
 		return errors.New("monitor processor not available")
 	}
 	// todo signal to bux-agent that a new item was added
+	_, err := m.client.AddFilter(regexString, item)
+	if err != nil {
+		return err
+	}
 	return m.processor.Add(regexString, item)
 }
 

@@ -12,12 +12,14 @@ import (
 type MonitorClient interface {
 	Connect() error
 	Disconnect() error
+	SetToken(token string)
 	AddFilter(regex, item string) (centrifuge.PublishResult, error)
 }
 
 // AgentClient implements MonitorClient with needed agent methods
 type AgentClient struct {
 	*centrifuge.Client
+	Token string
 }
 
 // Connect establishes connection to agent
@@ -28,6 +30,10 @@ func (a *AgentClient) Connect() error {
 // Disconnect closes connection to agent
 func (a *AgentClient) Disconnect() error {
 	return a.Client.Disconnect()
+}
+
+func (a *AgentClient) SetToken(token string) {
+	a.Client.SetToken(token)
 }
 
 // TODO: Just rely on the agent for this data type

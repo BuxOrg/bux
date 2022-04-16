@@ -16,6 +16,7 @@ type Monitor struct {
 	chainstateOptions       *clientOptions
 	logger                  logger.Interface
 	client                  MonitorClient
+	token                   string
 	processor               MonitorProcessor
 	connected               bool
 	centrifugeServer        string
@@ -36,6 +37,7 @@ type MonitorOptions struct {
 	MaxNumberOfDestinations int
 	ProcessMempoolOnConnect bool
 	SaveDestinations        bool
+	Token                   string
 }
 
 func (o *MonitorOptions) checkDefaults() {
@@ -61,6 +63,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) *Monitor {
 		monitorDays:             options.MonitorDays,
 		saveDestinations:        options.SaveDestinations,
 		processMempoolOnConnect: options.ProcessMempoolOnConnect,
+		token:                   options.Token,
 	}
 	// Set logger if not set
 	if monitor.logger == nil {
@@ -127,6 +130,9 @@ func (m *Monitor) Monitor(handler MonitorHandler) error {
 		m.handler = handler
 		m.logger.Info(context.Background(), "[MONITOR] Connecting to server: %s", m.centrifugeServer)
 		m.client = newCentrifugeClient(m.centrifugeServer, handler)
+		if m.token != "" {
+			m.client.SetToken(m.token)
+		}
 	}
 
 	return m.client.Connect()

@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/libsv/go-bc"
+
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -33,6 +35,11 @@ type TransactionService interface {
 		opts ...ModelOps) (*Transaction, error)
 	RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
+}
+
+// BlockHeaderService is the block header actions
+type BlockHeaderService interface {
+	RecordBlockHeader(ctx context.Context, hash string, bh bc.BlockHeader, opts ...ModelOps) (*BlockHeader, error)
 }
 
 // DestinationService is the destination actions
@@ -96,6 +103,7 @@ type ClientInterface interface {
 	DestinationService
 	PaymailService
 	TransactionService
+	BlockHeaderService
 	UTXOService
 	XPubService
 	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error

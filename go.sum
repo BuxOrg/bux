@@ -620,8 +620,9 @@ github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lN
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
-github.com/mrz1836/go-api-router v0.4.11 h1:8MC8BtGKKEboND1ktceogQoGLW2w86Ez+WrWNo3P1I0=
 github.com/mrz1836/go-api-router v0.4.11/go.mod h1:sMGyMQsX1E3YVN2Tu+lsfcjLFKOUxn3UdH5mDzGPusM=
+github.com/mrz1836/go-api-router v0.4.12 h1:hpFiIFdfLJaiJOow98+er4/xe+MFO7BJlaYc9Wc1fhw=
+github.com/mrz1836/go-api-router v0.4.12/go.mod h1:pJhNcPP+pUWHUzII4ysnrQTGktFRcM178a9cdfW2f2U=
 github.com/mrz1836/go-cache v0.6.5 h1:/8QNCgQBexlXFxgT7o9eLxC+exoLT0R6a8fh8gAL5uA=
 github.com/mrz1836/go-cache v0.6.5/go.mod h1:3mY8RNuPkr2JM6pEo7oO6fJcvkOVdaaFybqfKPM1L/Q=
 github.com/mrz1836/go-logger v0.2.5 h1:n4yQKHalut4MYoZsk9pXVf7bIcW9J/vdl9zYJAE67ts=
@@ -636,8 +637,8 @@ github.com/mrz1836/go-sanitize v1.1.5 h1:LOywG3ijK/B/D9ik3hsniyIzA1JVZlM2wmp3Q/C
 github.com/mrz1836/go-sanitize v1.1.5/go.mod h1:HnnbbJTcBhbr770WyRL4SA95I4FFOnGg/RTLJybsuN8=
 github.com/mrz1836/go-validate v0.2.0 h1:F8AcgJRW0B/hUNFAXijrN/EGqYlAIkIIpMDkIMMRUho=
 github.com/mrz1836/go-validate v0.2.0/go.mod h1:IoGAb4rTAL6KgAxOiWL4ICwLqxGbKCKT1GyaSuE/4bk=
-github.com/mrz1836/go-whatsonchain v0.10.3 h1:hY1GnEaeXIp+j/Q+nC8mcKPflWGtWQ++5mhHuFBRvxo=
-github.com/mrz1836/go-whatsonchain v0.10.3/go.mod h1:eTHXB8rB3R2pT+opTGS7taY6vzHUzgoRrd+dzAxyuWM=
+github.com/mrz1836/go-whatsonchain v0.10.4 h1:reZbJ2HlnwQmfB4cKcDAzZ9QTrUbk3AhiIGng+Hny3M=
+github.com/mrz1836/go-whatsonchain v0.10.4/go.mod h1:JuGpqX7Y/QWNkqgkn9gW2yJ2wtUMzzaC8BDTEoaEz6A=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nats-io/jwt v0.3.0/go.mod h1:fRYCDE99xlTsqUzISS1Bi75UBJ6ljOJQOAAu5VglpSg=
@@ -1348,8 +1349,9 @@ google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c/go.mod h1:UODoCrxH
 google.golang.org/genproto v0.0.0-20210917145530-b395a37504d4/go.mod h1:eFjDcFEctNawg4eG61bRv87N7iHBWyVhJu7u1kqDUXY=
 google.golang.org/genproto v0.0.0-20220216160803-4663080d8bc8/go.mod h1:kGP+zUP2Ddo0ayMi4YuN7C3WZyJvGLZRh8Z5wnAqvEI=
 google.golang.org/genproto v0.0.0-20220407135246-8d918b4c0f5b/go.mod h1:8w6bsBMX6yCPbAVTeqQHvzxW0EIFigd5lZyahWgyfDo=
-google.golang.org/genproto v0.0.0-20220413183235-5e96e2839df9 h1:XGQ6tc+EnM35IAazg4y6AHmUg4oK8NXsXaILte1vRlk=
 google.golang.org/genproto v0.0.0-20220413183235-5e96e2839df9/go.mod h1:8w6bsBMX6yCPbAVTeqQHvzxW0EIFigd5lZyahWgyfDo=
+google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4 h1:myaecH64R0bIEDjNORIel4iXubqzaHU1K2z8ajBwWcM=
+google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4/go.mod h1:8w6bsBMX6yCPbAVTeqQHvzxW0EIFigd5lZyahWgyfDo=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.20.0/go.mod h1:chYK+tFQF0nDUGJgXMSgLCQk3phJEuONr2DCgLDdAQM=

@@ -24,7 +24,7 @@ require (
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.5
-	github.com/mrz1836/go-whatsonchain v0.10.3
+	github.com/mrz1836/go-whatsonchain v0.10.4
 	github.com/newrelic/go-agent/v3 v3.15.2
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
@@ -94,7 +94,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/miekg/dns v1.1.48 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
-	github.com/mrz1836/go-api-router v0.4.11 // indirect
+	github.com/mrz1836/go-api-router v0.4.12 // indirect
 	github.com/mrz1836/go-parameters v0.2.8 // indirect
 	github.com/mrz1836/go-sanitize v1.1.5 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
@@ -130,7 +130,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	google.golang.org/genproto v0.0.0-20220413183235-5e96e2839df9 // indirect
+	google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4 // indirect
 	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

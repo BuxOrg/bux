@@ -192,7 +192,7 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(_ *centrifuge.Client, e 
 	}
 	_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, bh)
 	if err != nil {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording block header: %v", err))
 		return
 	}
 

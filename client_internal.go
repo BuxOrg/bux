@@ -77,7 +77,6 @@ func (c *Client) loadPaymailClient() (err error) {
 
 // loadTaskmanager will load the TaskManager and start the TaskManager client
 func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
-
 	// Load if a custom interface was NOT provided
 	if c.options.taskManager.ClientInterface == nil {
 		c.options.taskManager.ClientInterface, err = taskmanager.NewClient(
@@ -91,14 +90,18 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 func (c *Client) loadMonitor(ctx context.Context) (err error) {
 	// Load monitor if set by the user
 	monitor := c.options.chainstate.Monitor()
-	if monitor != nil {
-		handler := NewMonitorHandler(ctx, c, monitor)
+	if monitor == nil {
+		return
+	}
+	handler := NewMonitorHandler(ctx, c, monitor)
+	if c.options.chainstate.Monitor().LoadMonitoredDestinations() {
 		err = c.loadMonitoredDestinations(ctx, monitor)
 		if err != nil {
 			return
 		}
-		err = monitor.Monitor(&handler)
 	}
+
+	err = monitor.Monitor(&handler)
 	return
 }
 

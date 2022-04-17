@@ -12,32 +12,37 @@ import (
 
 // Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
 type Monitor struct {
-	debug                   bool
-	chainstateOptions       *clientOptions
-	logger                  logger.Interface
-	client                  MonitorClient
-	token                   string
-	processor               MonitorProcessor
-	connected               bool
-	centrifugeServer        string
-	monitorDays             int
-	saveDestinations        bool
-	falsePositiveRate       float64
-	maxNumberOfDestinations int
-	processMempoolOnConnect bool
-	handler                 MonitorHandler
+	debug                        bool
+	chainstateOptions            *clientOptions
+	logger                       logger.Interface
+	client                       MonitorClient
+	token                        string
+	processor                    MonitorProcessor
+	connected                    bool
+	centrifugeServer             string
+	monitorDays                  int
+	saveTransactionsDestinations bool
+	loadMOnitoredDestinations    bool
+	falsePositiveRate            float64
+	maxNumberOfDestinations      int
+	processMempoolOnConnect      bool
+	filterType                   string
+	regexList                    []string
+	handler                      MonitorHandler
 }
 
 // MonitorOptions options for starting this monitorConfig
 type MonitorOptions struct {
-	Debug                   bool
-	CentrifugeServer        string
-	MonitorDays             int
-	FalsePositiveRate       float64
-	MaxNumberOfDestinations int
-	ProcessMempoolOnConnect bool
-	SaveDestinations        bool
-	Token                   string
+	Debug                       bool
+	CentrifugeServer            string
+	MonitorDays                 int
+	FalsePositiveRate           float64
+	MaxNumberOfDestinations     int
+	ProcessMempoolOnConnect     bool
+	LoadMonitoredDestinations   bool
+	ProcessorType               string
+	SaveTransactionDestinations bool
+	Token                       string
 }
 
 func (o *MonitorOptions) checkDefaults() {
@@ -56,21 +61,27 @@ func (o *MonitorOptions) checkDefaults() {
 func NewMonitor(_ context.Context, options *MonitorOptions) *Monitor {
 	options.checkDefaults()
 	monitor := &Monitor{
-		debug:                   options.Debug,
-		centrifugeServer:        options.CentrifugeServer,
-		maxNumberOfDestinations: options.MaxNumberOfDestinations,
-		falsePositiveRate:       options.FalsePositiveRate,
-		monitorDays:             options.MonitorDays,
-		saveDestinations:        options.SaveDestinations,
-		processMempoolOnConnect: options.ProcessMempoolOnConnect,
-		token:                   options.Token,
+		debug:                        options.Debug,
+		centrifugeServer:             options.CentrifugeServer,
+		maxNumberOfDestinations:      options.MaxNumberOfDestinations,
+		falsePositiveRate:            options.FalsePositiveRate,
+		monitorDays:                  options.MonitorDays,
+		saveTransactionsDestinations: options.SaveTransactionDestinations,
+		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
+		token:                        options.Token,
 	}
 	// Set logger if not set
 	if monitor.logger == nil {
 		monitor.logger = logger.NewLogger(true)
 	}
 
-	monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+	switch monitor.filterType {
+	case "regex":
+		monitor.processor = NewRegexProcessor()
+	case "bloom":
+	default:
+		monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
+	}
 	monitor.processor.Debug(options.Debug)
 	monitor.processor.SetLogger(monitor.logger)
 
@@ -114,7 +125,12 @@ func (m *Monitor) GetProcessMempoolOnConnect() bool {
 
 // SaveDestinations gets whether or not we should save destinations from transactions that pass monitor filter
 func (m *Monitor) SaveDestinations() bool {
-	return m.saveDestinations
+	return m.saveTransactionsDestinations
+}
+
+// LooadMonitoredDestinations gets where we want to add the monitored destiantions from the database into the processor
+func (m *Monitor) LoadMonitoredDestinations() bool {
+	return m.loadMOnitoredDestinations
 }
 
 // SetChainstateOptions sets the chainstate options on the monitor to allow more synching capabilities

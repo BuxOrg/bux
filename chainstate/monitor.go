@@ -27,7 +27,6 @@ type Monitor struct {
 	maxNumberOfDestinations      int
 	processMempoolOnConnect      bool
 	filterType                   string
-	regexList                    []string
 	handler                      MonitorHandler
 }
 
@@ -128,7 +127,7 @@ func (m *Monitor) SaveDestinations() bool {
 	return m.saveTransactionsDestinations
 }
 
-// LooadMonitoredDestinations gets where we want to add the monitored destiantions from the database into the processor
+// LoadMonitoredDestinations gets where we want to add the monitored destinations from the database into the processor
 func (m *Monitor) LoadMonitoredDestinations() bool {
 	return m.loadMOnitoredDestinations
 }
@@ -144,7 +143,7 @@ func (m *Monitor) Monitor(handler MonitorHandler) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
-		m.logger.Info(context.Background(), "[MONITOR] Connecting to server: %s", m.centrifugeServer)
+		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Connecting to server: %s", m.centrifugeServer))
 		m.client = newCentrifugeClient(m.centrifugeServer, handler)
 		if m.token != "" {
 			m.client.SetToken(m.token)

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/libsv/go-bc"
-
 	"github.com/mrz1836/go-whatsonchain"
 )
 

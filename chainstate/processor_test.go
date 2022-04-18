@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	boom "github.com/tylertreat/BoomFilters"
 )
 

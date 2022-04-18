@@ -1,8 +1,9 @@
 package filters
 
 import (
-	"github.com/mrz1836/go-whatsonchain"
 	"testing"
+
+	"github.com/mrz1836/go-whatsonchain"
 )
 
 func TestPlanariaB(t *testing.T) {

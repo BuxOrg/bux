@@ -127,6 +127,20 @@ func (c *Client) IncrementModel(
 	return
 }
 
+// CreateInBatches create all the models given in batches
+func (c *Client) CreateInBatches(
+	ctx context.Context,
+	models interface{},
+	batchSize int,
+) error {
+	if c.Engine() == MongoDB {
+		return c.CreateInBatchesMongo(ctx, models, batchSize)
+	}
+
+	tx := c.options.db.CreateInBatches(models, batchSize)
+	return tx.Error
+}
+
 // convertToInt64 will convert an interface to an int64
 func convertToInt64(i interface{}) int64 {
 	switch v := i.(type) {

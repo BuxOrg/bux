@@ -204,3 +204,10 @@ func WithLogger(customLogger logger.Interface) ClientOps {
 		}
 	}
 }
+
+// WithImportBlockHeaders will set the import block headers option
+func WithImportBlockHeaders(blockHeadersZipFileURL string) ClientOps {
+	return func(c *clientOptions) {
+		c.importBlockHeaders = blockHeadersZipFileURL
+	}
+}

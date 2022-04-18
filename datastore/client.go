@@ -20,20 +20,21 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		autoMigrate     bool              // Setting for Auto Migration of SQL tables
-		db              *gorm.DB          // Database connection for Read-Only requests (can be same as Write)
-		debug           bool              // Setting for global debugging
-		engine          Engine            // Datastore engine (MySQL, PostgreSQL, SQLite)
-		logger          logger.Interface  // Custom logger interface (from BUX)
-		loggerDB        glogger.Interface // Custom logger interface (for GORM)
-		migratedModels  []string          // List of models (types) that have been migrated
-		migrateModels   []interface{}     // Models for migrations
-		mongoDB         *mongo.Database   // Database connection for a MongoDB datastore
-		mongoDBConfig   *MongoDBConfig    // Configuration for a MongoDB datastore
-		newRelicEnabled bool              // If NewRelic is enabled (parent application)
-		sqlConfigs      []*SQLConfig      // Configuration for a MySQL or PostgreSQL datastore
-		sqLite          *SQLiteConfig     // Configuration for a SQLite datastore
-		tablePrefix     string            // Model table prefix
+		autoMigrate        bool              // Setting for Auto Migration of SQL tables
+		db                 *gorm.DB          // Database connection for Read-Only requests (can be same as Write)
+		debug              bool              // Setting for global debugging
+		engine             Engine            // Datastore engine (MySQL, PostgreSQL, SQLite)
+		importBlockHeaders string            // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
+		logger             logger.Interface  // Custom logger interface (from BUX)
+		loggerDB           glogger.Interface // Custom logger interface (for GORM)
+		migratedModels     []string          // List of models (types) that have been migrated
+		migrateModels      []interface{}     // Models for migrations
+		mongoDB            *mongo.Database   // Database connection for a MongoDB datastore
+		mongoDBConfig      *MongoDBConfig    // Configuration for a MongoDB datastore
+		newRelicEnabled    bool              // If NewRelic is enabled (parent application)
+		sqlConfigs         []*SQLConfig      // Configuration for a MySQL or PostgreSQL datastore
+		sqLite             *SQLiteConfig     // Configuration for a SQLite datastore
+		tablePrefix        string            // Model table prefix
 	}
 )
 

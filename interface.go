@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/libsv/go-bc"
-
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -14,6 +12,7 @@ import (
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-paymail"
 )
 

@@ -32,12 +32,13 @@ func (a *AgentClient) Disconnect() error {
 	return a.Client.Disconnect()
 }
 
+// SetToken set the client token
 func (a *AgentClient) SetToken(token string) {
 	a.Client.SetToken(token)
 }
 
-// TODO: Just rely on the agent for this data type
 // AddFilterMessage defines a new filter to be published from the client
+// todo Just rely on the agent for this data type
 type AddFilterMessage struct {
 	Timestamp int64  `json:"timestamp"`
 	Regex     string `json:"regex"`
@@ -45,7 +46,7 @@ type AddFilterMessage struct {
 	Hash      string `json:"hash"`
 }
 
-// AddFilter adds a new filtero the agent
+// AddFilter adds a new filter to the agent
 func (a *AgentClient) AddFilter(regex, item string) (centrifuge.PublishResult, error) {
 	msg := AddFilterMessage{
 		Regex:     regex,

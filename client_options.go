@@ -250,6 +250,13 @@ func WithIUCDisabled() ClientOps {
 	}
 }
 
+// WithImportBlockHeaders will import block headers on startup
+func WithImportBlockHeaders(blockHeadersZipFileURL string) ClientOps {
+	return func(c *clientOptions) {
+		c.dataStore.options = append(c.dataStore.options, datastore.WithImportBlockHeaders(blockHeadersZipFileURL))
+	}
+}
+
 // WithLogger will set the custom logger interface
 func WithLogger(customLogger logger.Interface) ClientOps {
 	return func(c *clientOptions) {

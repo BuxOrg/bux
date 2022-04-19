@@ -85,7 +85,7 @@ type MonitorProcessor interface {
 	FilterTransactionPublishEvent(eData []byte) (string, error)
 	FilterTransaction(txHex string) (string, error)
 	GetFilters() map[string]*BloomProcessorFilter
-	SetFilter(regex string, bloomFilter []byte) error
+	SetFilter(regex string, filter []byte) error
 	GetHash() string
 	IsDebug() bool
 	Logger() Logger

@@ -1,6 +1,7 @@
 package chainstate
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -71,8 +72,20 @@ func (p *BloomProcessor) GetFilters() map[string]*BloomProcessorFilter {
 	return p.filters
 }
 
-func (p *BloomProcessor) SetFilter(regex string, bloomFilter []byte) error {
-	//p.filters[regex] =
+func (p *BloomProcessor) SetFilter(regex string, filter []byte) error {
+	filterBuffer := bytes.NewBuffer(filter)
+	r, err := regexp.Compile(regex)
+	if err != nil {
+		return err
+	}
+
+	bloomFilter := &BloomProcessorFilter{
+		Filter: boom.NewDefaultStableBloomFilter(p.maxCells, p.falsePositiveRate),
+		regex:  r,
+	}
+	bloomFilter.Filter.ReadFrom(filterBuffer)
+
+	p.filters[regex] = bloomFilter
 	return nil
 }
 
@@ -235,4 +248,12 @@ func (p *RegexProcessor) FilterTransaction(hex string) (string, error) {
 // GetHash get the hash of the Filter
 func (p *RegexProcessor) GetHash() string {
 	return ""
+}
+
+func (p *RegexProcessor) GetFilters() map[string]*BloomProcessorFilter {
+	return nil
+}
+
+func (p *RegexProcessor) SetFilter(_ string, _ []byte) error {
+	return nil
 }

@@ -177,7 +177,7 @@ func (h *MonitorEventHandler) ProcessBlockHeaders(ctx context.Context, client *c
 		h.logger.Error(h.ctx, err.Error())
 	} else {
 		var subscription *centrifuge.Subscription
-		subscription, err = client.NewSubscription("block:headers:history:" + lastBlockHeader.ID)
+		subscription, err = client.NewSubscription("block:headers:history:" + fmt.Sprint(lastBlockHeader.Height))
 		if err != nil {
 			h.logger.Error(h.ctx, err.Error())
 		} else {

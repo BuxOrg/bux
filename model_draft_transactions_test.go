@@ -433,6 +433,67 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
 		assert.Equal(t, uint64(239829), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
+
+	t.Run("include utxos - tokens", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		destination := newDestination(testXPubID, testLockingScript,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		destination = newDestination(testXPubID, testSTASScriptPubKey,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 1, 110000,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+		utxo = newUtxo(testXPubID, testTxID, testSTASLockingScript, 2, 564,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		// todo how to make sure we do not unwittingly destroy tokens ?
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			IncludeUtxos: []*UtxoPointer{{
+				TransactionID: testTxID,
+				OutputIndex:   2,
+			}},
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 1000,
+			}, {
+				Script:   &testSTASLockingScript, // send token to the same destination
+				Satoshis: 564,
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, testXPubID, draftTransaction.XpubID)
+		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
+		assert.Equal(t, uint64(347), draftTransaction.Configuration.Fee)
+		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
+		assert.Len(t, draftTransaction.Configuration.Outputs, 2)
+		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Inputs[0].ScriptPubKey)
+		assert.Equal(t, uint64(564), draftTransaction.Configuration.Inputs[0].Satoshis)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+	})
 }
 
 // TestDraftTransaction_setChangeDestination setting the change destination

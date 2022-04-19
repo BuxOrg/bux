@@ -189,14 +189,8 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	var inputUtxos *[]*bt.UTXO
 	var satoshisReserved uint64
 
-	if m.Configuration.IncludeUtxos != nil {
-		err = m.addIncludeUtxos(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
 	if m.Configuration.SendAllTo != "" { // Send TO ALL
+
 		var spendableUtxos []*Utxo
 		// todo should all utxos be sent to the SendAllTo address, not only the p2pkhs?
 		if spendableUtxos, err = GetSpendableUtxos(
@@ -232,6 +226,15 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 			return err
 		}
 	} else {
+
+		// we can only include separate utxos (like tokens) when not using SendToAll
+		if m.Configuration.IncludeUtxos != nil {
+			err = m.addIncludeUtxos(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
 		// Reserve and Get utxos for the transaction
 		var reservedUtxos []*Utxo
 		feePerByte := float64(m.Configuration.FeeUnit.Satoshis / m.Configuration.FeeUnit.Bytes)
@@ -398,7 +401,7 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 					LockingScript: s,
 					Satoshis:      0,
 				})
-			} else {
+			} else if sc.ScriptType == utils.ScriptTypePubKeyHash {
 				// sending to a p2pkh
 				if sc.Satoshis == 0 {
 					return ErrOutputValueTooLow
@@ -409,6 +412,12 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 				); err != nil {
 					return
 				}
+			} else {
+				// add non-standard output script
+				tx.AddOutput(&bt.Output{
+					LockingScript: s,
+					Satoshis:      sc.Satoshis,
+				})
 			}
 		}
 	}

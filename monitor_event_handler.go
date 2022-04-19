@@ -59,8 +59,11 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 		}
 	}
 }
-func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, event centrifuge.UnsubscribeEvent) {
-	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] Done processing block: %s", subscription.Channel()))
+
+func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, _ centrifuge.UnsubscribeEvent) {
+
+	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %s", subscription.Channel()))
+	// close wait group
 	b.wg.Done()
 }
 
@@ -79,15 +82,6 @@ func NewMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor c
 // OnConnect event when connected
 func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.ConnectEvent) {
 	h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] Connected to server: %s", e.ClientID))
-	if h.monitor.GetProcessMempoolOnConnect() {
-		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
-		go func() {
-			err := h.monitor.ProcessMempool(h.ctx)
-			if err != nil {
-				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
-			}
-		}()
-	}
 
 	agentClient := &chainstate.AgentClient{
 		Client: client,
@@ -98,6 +92,16 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 		if err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
 		}
+	}
+
+	if h.monitor.GetProcessMempoolOnConnect() {
+		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
+		go func() {
+			err := h.monitor.ProcessMempool(h.ctx)
+			if err != nil {
+				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
+			}
+		}()
 	}
 
 	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCKS")
@@ -143,6 +147,11 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 
 				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Waiting for waitgroup to finish"))
 				handler.wg.Wait()
+
+				// save that block header has been synced
+				blockHeader.Synced.Valid = true
+				blockHeader.Synced.Time = time.Now()
+				err = blockHeader.Save(ctx)
 			}
 		}
 

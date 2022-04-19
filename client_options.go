@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"database/sql"
+	"net/http"
 	"strings"
 	"time"
 
@@ -61,6 +62,10 @@ func defaultClientOptions() *clientOptions {
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
 			options:         []datastore.ClientOps{},
+		},
+
+		httpClient: &http.Client{
+			Timeout: defaultHTTPTimeout,
 		},
 
 		// Blank model options (use the Base models)
@@ -258,6 +263,13 @@ func WithIUCDisabled() ClientOps {
 func WithImportBlockHeaders(blockHeadersZipFileURL string) ClientOps {
 	return func(c *clientOptions) {
 		c.dataStore.options = append(c.dataStore.options, datastore.WithImportBlockHeaders(blockHeadersZipFileURL))
+	}
+}
+
+// WithHTTPClient will set the custom http interface
+func WithHTTPClient(httpClient HTTPInterface) ClientOps {
+	return func(c *clientOptions) {
+		c.httpClient = httpClient
 	}
 }
 

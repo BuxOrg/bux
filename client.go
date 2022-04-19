@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/BuxOrg/bux/cachestore"
@@ -289,11 +288,6 @@ func (c *Client) Datastore() datastore.ClientInterface {
 
 // HTTPClient will return the http interface to use in the client
 func (c *Client) HTTPClient() HTTPInterface {
-	if c.options.httpClient == nil {
-		c.options.httpClient = &http.Client{
-			Timeout: defaultHTTPTimeout,
-		}
-	}
 	return c.options.httpClient
 }
 

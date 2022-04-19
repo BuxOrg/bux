@@ -122,6 +122,7 @@ type ClientInterface interface {
 	GetOrStartTxn(ctx context.Context, name string) context.Context
 	GetPaymailConfig() *PaymailServerOptions
 	GetTaskPeriod(name string) time.Duration
+	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsITCEnabled() bool
 	IsIUCEnabled() bool

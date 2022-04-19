@@ -60,11 +60,6 @@ func (c *Client) IsAutoMigrate() bool {
 	return c.options.autoMigrate
 }
 
-// ImportBlockHeadersFromURL will the URL where to import block headers from
-func (c *Client) ImportBlockHeadersFromURL() string {
-	return c.options.importBlockHeaders
-}
-
 // autoMigrateMongoDatabase will start a new database for Mongo
 func autoMigrateMongoDatabase(ctx context.Context, _ Engine, options *clientOptions,
 	_ ...interface{}) error {

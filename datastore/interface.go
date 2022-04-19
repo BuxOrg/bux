@@ -40,5 +40,4 @@ type ClientInterface interface {
 	IsAutoMigrate() bool
 	IsDebug() bool
 	IsNewRelicEnabled() bool
-	ImportBlockHeadersFromURL() string
 }

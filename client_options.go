@@ -257,9 +257,9 @@ func WithIUCDisabled() ClientOps {
 }
 
 // WithImportBlockHeaders will import block headers on startup
-func WithImportBlockHeaders(blockHeadersZipFileURL string) ClientOps {
+func WithImportBlockHeaders(importBlockHeadersURL string) ClientOps {
 	return func(c *clientOptions) {
-		c.dataStore.options = append(c.dataStore.options, datastore.WithImportBlockHeaders(blockHeadersZipFileURL))
+		c.importBlockHeadersURL = importBlockHeadersURL
 	}
 }
 

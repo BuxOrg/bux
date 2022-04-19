@@ -135,7 +135,7 @@ func (m *BlockHeader) Display() interface{} {
 // Migrate model specific migration on startup
 func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 	// import all previous block headers from file
-	blockHeadersFile := client.ImportBlockHeadersFromURL()
+	blockHeadersFile := m.Client().ImportBlockHeadersFromURL()
 	if blockHeadersFile != "" {
 		go func() {
 			ctx := context.Background()

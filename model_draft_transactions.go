@@ -188,8 +188,11 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 	var inputUtxos *[]*bt.UTXO
 	var satoshisReserved uint64
+
 	if m.Configuration.SendAllTo != "" { // Send TO ALL
+
 		var spendableUtxos []*Utxo
+		// todo should all utxos be sent to the SendAllTo address, not only the p2pkhs?
 		if spendableUtxos, err = GetSpendableUtxos(
 			ctx, m.XpubID, utils.ScriptTypePubKeyHash, 0, 0, m.Configuration.FromUtxos, opts...,
 		); err != nil {
@@ -223,6 +226,15 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 			return err
 		}
 	} else {
+
+		// we can only include separate utxos (like tokens) when not using SendToAll
+		if m.Configuration.IncludeUtxos != nil {
+			err = m.addIncludeUtxos(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
 		// Reserve and Get utxos for the transaction
 		var reservedUtxos []*Utxo
 		feePerByte := float64(m.Configuration.FeeUnit.Satoshis / m.Configuration.FeeUnit.Bytes)
@@ -293,12 +305,35 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	return
 }
 
+func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
+	// Whatever utxos are selected, the IncludeUtxos should be added to the transaction
+	// This can be used to add for instance tokens where fees need to be paid from other utxos
+	// The satoshis of these inputs are not added to the reserved satoshis. If these inputs contain satoshis
+	// that will be added to the total inputs and handled with the change addresses.
+	includeUtxos := make([]*Utxo, 0)
+	opts := m.GetOptions(false)
+	for _, utxo := range m.Configuration.IncludeUtxos {
+		utxoModel, err := getUtxo(ctx, utxo.TransactionID, utxo.OutputIndex, opts...)
+		if err != nil {
+			return err
+		}
+
+		includeUtxos = append(includeUtxos, utxoModel)
+	}
+
+	return m.processUtxos(
+		ctx, includeUtxos,
+	)
+}
+
 // processUtxos will process the utxos
 func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) error {
 	// Get destinations
+	opts := m.GetOptions(false)
 	for _, utxo := range utxos {
+		lockingScript := utils.GetDestinationLockingScript(utxo.ScriptPubKey)
 		destination, err := getDestinationByLockingScript(
-			ctx, utxo.ScriptPubKey, m.GetOptions(false)...,
+			ctx, lockingScript, opts...,
 		)
 		if err != nil {
 			return err
@@ -352,9 +387,15 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 				sc.Script,
 			); err != nil {
 				return
+
 			}
 
-			if sc.ScriptType == utils.ScriptTypeNullData {
+			scriptType := sc.ScriptType
+			if scriptType == "" {
+				scriptType = utils.GetDestinationType(sc.Script)
+			}
+
+			if scriptType == utils.ScriptTypeNullData {
 				// op_return output - only one allowed to have 0 satoshi value ???
 				if sc.Satoshis > 0 {
 					return ErrInvalidOpReturnOutput
@@ -364,7 +405,7 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 					LockingScript: s,
 					Satoshis:      0,
 				})
-			} else {
+			} else if scriptType == utils.ScriptTypePubKeyHash {
 				// sending to a p2pkh
 				if sc.Satoshis == 0 {
 					return ErrOutputValueTooLow
@@ -375,6 +416,12 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 				); err != nil {
 					return
 				}
+			} else {
+				// add non-standard output script
+				tx.AddOutput(&bt.Output{
+					LockingScript: s,
+					Satoshis:      sc.Satoshis,
+				})
 			}
 		}
 	}

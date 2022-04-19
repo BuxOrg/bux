@@ -556,10 +556,12 @@ func (m *Transaction) processOutputs(ctx context.Context) (err error) {
 	numberOfOutputsProcessed := 0
 	for index := range m.TransactionBase.parsedTx.Outputs {
 		amount := m.TransactionBase.parsedTx.Outputs[index].Satoshis
-		lockingScript := m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
 
 		// only save outputs with a satoshi value attached to it
 		if amount > 0 {
+
+			txLockingScript := m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
+			lockingScript := utils.GetDestinationLockingScript(txLockingScript)
 
 			// only Save utxos for known destinations
 			// todo: optimize this SQL SELECT by requesting all the scripts at once (vs in this loop)
@@ -578,7 +580,7 @@ func (m *Transaction) processOutputs(ctx context.Context) (err error) {
 
 				// Append the UTXO model
 				m.utxos = append(m.utxos, *newUtxo(
-					destination.XpubID, m.ID, lockingScript, uint32(index),
+					destination.XpubID, m.ID, txLockingScript, uint32(index),
 					amount, newOpts...,
 				))
 

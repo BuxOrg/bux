@@ -27,7 +27,7 @@ const (
 	ScriptMetanet = "metanet"
 
 	// ScriptTypeTokenStas is the type for a STAS output
-	ScriptTypeTokenStas = "stas"
+	ScriptTypeTokenStas = "token_stas"
 )
 
 var (
@@ -154,4 +154,24 @@ func GetAddressFromScript(lockingScript string) (address string) {
 		address, _ = bitcoin.GetAddressFromScript(lockingScript[:50])
 	}
 	return address
+}
+
+// GetDestinationLockingScript gets the destination locking script from non-standard locking scripts that reference
+// a destination (hashed pubkey) - this can be used to determine destination for tokens (like STAS, run etc.)
+func GetDestinationLockingScript(lockingScript string) string {
+	destinationType := GetDestinationType(lockingScript)
+
+	switch destinationType {
+	case ScriptTypeTokenStas:
+		// STAS token, extract the destination from the token and return it's locking script
+		// this will match the token to an existing destination and add the output to the correct xpub utxo
+		tokenLockingScript, err := GetLockingScriptFromSTASLockingScript(lockingScript)
+		if err != nil {
+			return lockingScript
+		}
+		return tokenLockingScript
+	}
+
+	// just return the locking script, type is ScriptTypePubKeyHash or ScriptTypeNonStandard
+	return lockingScript
 }

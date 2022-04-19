@@ -1,6 +1,7 @@
 package bux
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -432,6 +433,77 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
 		assert.Equal(t, uint64(239829), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
+
+	t.Run("include utxos - tokens", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		destination := newDestination(testXPubID, testLockingScript,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		destination = newDestination(testXPubID, testSTASScriptPubKey,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 1, 110000,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+		utxo = newUtxo(testXPubID, testTxID, testSTASLockingScript, 2, 564,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		// todo how to make sure we do not unwittingly destroy tokens ?
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			IncludeUtxos: []*UtxoPointer{{
+				TransactionID: testTxID,
+				OutputIndex:   2,
+			}},
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 1000,
+			}, {
+				Script:   testSTASLockingScript, // send token to the same destination
+				Satoshis: 564,
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, testXPubID, draftTransaction.XpubID)
+		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
+		assert.Equal(t, uint64(1184), draftTransaction.Configuration.Fee)
+		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
+		assert.Len(t, draftTransaction.Configuration.Outputs, 3)
+
+		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Inputs[0].ScriptPubKey)
+		assert.Equal(t, uint64(564), draftTransaction.Configuration.Inputs[0].Satoshis)
+
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+
+		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].To)
+		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Script)
+		assert.Len(t, draftTransaction.Configuration.Outputs[1].Scripts, 1)
+		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].Scripts[0].Address)
+		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
+		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
+	})
 }
 
 // TestDraftTransaction_setChangeDestination setting the change destination
@@ -616,6 +688,45 @@ func TestDraftTransaction_AfterUpdated(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, gUtxo2.DraftID.Valid)
 		assert.False(t, gUtxo2.ReservedAt.Valid)
+	})
+}
+
+// TestDraftTransaction_addIncludeUtxos will test the method addIncludeUtxos()
+func TestDraftTransaction_addIncludeUtxos(t *testing.T) {
+	t.Run("no includeUtxos", func(t *testing.T) {
+		ctx := context.Background()
+		draft := &DraftTransaction{
+			Configuration: TransactionConfig{},
+		}
+		err := draft.addIncludeUtxos(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draft.Configuration.Inputs, 0)
+	})
+
+	t.Run("with includeUtxos", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false)
+		defer deferMe()
+
+		destination := newDestination(testXPubID, testSTASScriptPubKey, client.DefaultModelOptions(New())...)
+		err := destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testSTAStxID, testSTASLockingScript, 0, 550, client.DefaultModelOptions(New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draft := newDraftTransaction("", &TransactionConfig{
+			IncludeUtxos: []*UtxoPointer{{
+				testSTAStxID,
+				0,
+			}},
+		}, client.DefaultModelOptions(New())...)
+
+		err = draft.addIncludeUtxos(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draft.Configuration.Inputs, 1)
+		assert.Equal(t, testSTASLockingScript, draft.Configuration.Inputs[0].ScriptPubKey)
+		assert.Equal(t, testSTASScriptPubKey, draft.Configuration.Inputs[0].Destination.LockingScript)
 	})
 }
 

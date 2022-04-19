@@ -61,7 +61,7 @@ func (m *BlockHeader) GetModelTableName() string {
 }
 
 // GetUnsyncedBlockHeaders will return all block headers that have not been marked as synced
-func (m *BlockHeader) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error) {
+func GetUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHeader, error) {
 
 	// Construct an empty model
 	var models []BlockHeader
@@ -69,13 +69,12 @@ func (m *BlockHeader) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHead
 		"synced": nil,
 	}
 
-	opts := m.GetOptions(false)
 	pageSize := 0
 	page := 0
 
 	// Get the records
 	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		ctx, NewBaseModel(ModelBlockHeader, opts...).Client().Datastore(),
 		&models, conditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
@@ -87,11 +86,11 @@ func (m *BlockHeader) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHead
 	// Loop and enrich
 	blockHeaders := make([]*BlockHeader, 0)
 	for index := range models {
-		models[index].enrich(ModelDestination, opts...)
+		models[index].enrich(ModelBlockHeader, opts...)
 		blockHeaders = append(blockHeaders, &models[index])
 	}
 
-	return nil, nil
+	return blockHeaders, nil
 }
 
 // Save will Save the model into the Datastore

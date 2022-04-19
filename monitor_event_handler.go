@@ -42,7 +42,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 		// block subscription
 		tx, err := b.monitor.Processor().FilterTransactionPublishEvent(e.Data)
 		if err != nil {
-
+			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] Error processing block data: %s", err.Error()))
 		}
 
 		if tx == "" {
@@ -60,6 +60,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 	}
 }
 func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, event centrifuge.UnsubscribeEvent) {
+	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] Done processing block: %s", subscription.Channel()))
 	b.wg.Done()
 }
 
@@ -116,16 +117,12 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 	for {
 		// get all block headers that have not been marked as synced
 		blockHeaders, err := h.buxClient.GetUnsyncedBlockHeaders(ctx)
-		for _, blockHeader := range blockHeaders {
-			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Processing block %d: %s", blockHeader.Height, blockHeader.ID))
-			if err != nil {
-				h.logger.Error(h.ctx, err.Error())
-			} else {
-				var subscription *centrifuge.Subscription
-				subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
-				if err != nil {
-					h.logger.Error(h.ctx, err.Error())
-				}
+		if err != nil {
+			h.logger.Error(h.ctx, err.Error())
+		} else {
+			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] processing block headers: %d", len(blockHeaders)))
+			for _, blockHeader := range blockHeaders {
+				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Processing block %d: %s", blockHeader.Height, blockHeader.ID))
 				handler := &blockSubscriptionHandler{
 					debug:     h.debug,
 					logger:    h.logger,
@@ -134,8 +131,17 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 					ctx:       context.Background(),
 				}
 				handler.wg.Add(1)
+
+				var subscription *centrifuge.Subscription
+				subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
+				if err != nil {
+					h.logger.Error(h.ctx, err.Error())
+				}
+				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
 				subscription.OnPublish(handler)
 				subscription.OnUnsubscribe(handler)
+
+				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Waiting for waitgroup to finish"))
 				handler.wg.Wait()
 			}
 		}

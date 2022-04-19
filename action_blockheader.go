@@ -51,5 +51,5 @@ func (c *Client) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, e
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_unsynced_blockheaders")
 
-	return c.GetUnsyncedBlockHeaders(ctx)
+	return GetUnsyncedBlockHeaders(ctx, c.DefaultModelOptions()...)
 }

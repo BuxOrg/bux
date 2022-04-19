@@ -4,16 +4,18 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 )
 
 // StorageService is the storage related methods
 type StorageService interface {
 	AutoMigrateDatabase(ctx context.Context, models ...interface{}) error
+	CreateInBatches(ctx context.Context, models interface{}, batchSize int) error
 	Execute(query string) *gorm.DB
 	GetModel(ctx context.Context, model interface{}, conditions map[string]interface{}, timeout time.Duration) error
 	GetModels(ctx context.Context, models interface{}, conditions map[string]interface{}, pageSize, page int,
-		orderByField, sortDirection string, timeout time.Duration) error
+		orderByField, sortDirection string, fieldResults interface{}, timeout time.Duration) error
 	HasMigratedModel(modelType string) bool
 	IncrementModel(ctx context.Context, model interface{},
 		fieldName string, increment int64) (newValue int64, err error)
@@ -33,6 +35,8 @@ type ClientInterface interface {
 	Engine() Engine
 	GetDatabaseName() string
 	GetTableName(modelName string) string
+	GetMongoCollection(collectionName string) *mongo.Collection
+	GetMongoCollectionByTableName(tableName string) *mongo.Collection
 	IsAutoMigrate() bool
 	IsDebug() bool
 	IsNewRelicEnabled() bool

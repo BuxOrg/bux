@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+// MonitorBlockHeaders will start up a block headers monitor
+func (c *Client) MonitorBlockHeaders(ctx context.Context) error {
+	return nil
+}
+
 // Broadcast will attempt to broadcast a transaction
 func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) error {
 

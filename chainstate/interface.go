@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/centrifugal/centrifuge-go"
+	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
@@ -14,6 +16,12 @@ import (
 // HTTPInterface is the HTTP client interface
 type HTTPInterface interface {
 	Do(req *http.Request) (*http.Response, error)
+}
+
+// Logger is the logger interface for debug messages
+type Logger interface {
+	Info(ctx context.Context, message string, params ...interface{})
+	Error(ctx context.Context, message string, params ...interface{})
 }
 
 // ChainService is the chain related methods
@@ -47,7 +55,59 @@ type ClientInterface interface {
 	IsDebug() bool
 	IsNewRelicEnabled() bool
 	Miners() []*minercraft.Miner
+	Monitor() MonitorService
 	Network() Network
 	QueryMiners() []*minercraft.Miner
 	QueryTimeout() time.Duration
+}
+
+// MonitorClient interface
+type MonitorClient interface {
+	AddFilter(regex, item string) (centrifuge.PublishResult, error)
+	Connect() error
+	Disconnect() error
+	SetToken(token string)
+}
+
+// MonitorHandler interface
+type MonitorHandler interface {
+	whatsonchain.SocketHandler
+	SetMonitor(monitor *Monitor)
+	RecordTransaction(ctx context.Context, txHex string) error
+	RecordBlockHeader(ctx context.Context, bh bc.BlockHeader) error
+	GetWhatsOnChain() whatsonchain.ClientInterface
+}
+
+// MonitorProcessor struct that defines interface to all filter processors
+type MonitorProcessor interface {
+	Add(regexString, item string) error
+	Debug(bool)
+	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
+	FilterMempoolTx(txHex string) (string, error)
+	GetHash() string
+	IsDebug() bool
+	Logger() Logger
+	Reload(regexString string, items []string) error
+	SetLogger(logger Logger)
+	Test(regexString string, item string) bool
+}
+
+// MonitorService for the monitoring
+type MonitorService interface {
+	IsDebug() bool
+	Logger() Logger
+	Connected()
+	Disconnected()
+	IsConnected() bool
+	GetMonitorDays() int
+	SaveDestinations() bool
+	LoadMonitoredDestinations() bool
+	GetFalsePositiveRate() float64
+	GetMaxNumberOfDestinations() int
+	GetProcessMempoolOnConnect() bool
+	Add(regexpString string, item string) error
+	Processor() MonitorProcessor
+	ProcessMempool(ctx context.Context) error
+	Monitor(handler MonitorHandler) error
+	PauseMonitor() error
 }

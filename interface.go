@@ -12,6 +12,7 @@ import (
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-paymail"
 )
 
@@ -31,7 +32,13 @@ type TransactionService interface {
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
+	RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
+}
+
+// BlockHeaderService is the block header actions
+type BlockHeaderService interface {
+	RecordBlockHeader(ctx context.Context, hash string, bh bc.BlockHeader, opts ...ModelOps) (*BlockHeader, error)
 }
 
 // DestinationService is the destination actions
@@ -77,11 +84,17 @@ type PaymailService interface {
 		metadata Metadata, opts ...ModelOps) (*PaymailAddress, error)
 }
 
+// HTTPInterface is the HTTP client interface
+type HTTPInterface interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // ClientServices is the client related services
 type ClientServices interface {
 	Cachestore() cachestore.ClientInterface
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
+	HTTPClient() HTTPInterface
 	Logger() logger.Interface
 	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface
@@ -95,6 +108,7 @@ type ClientInterface interface {
 	DestinationService
 	PaymailService
 	TransactionService
+	BlockHeaderService
 	UTXOService
 	XPubService
 	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
@@ -108,6 +122,7 @@ type ClientInterface interface {
 	GetOrStartTxn(ctx context.Context, name string) context.Context
 	GetPaymailConfig() *PaymailServerOptions
 	GetTaskPeriod(name string) time.Duration
+	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsITCEnabled() bool
 	IsIUCEnabled() bool

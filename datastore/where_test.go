@@ -1,8 +1,11 @@
 package datastore
 
 import (
+	"database/sql"
 	"testing"
+	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -27,6 +30,51 @@ func Test_whereSlice(t *testing.T) {
 		query := whereSlice(SQLite, "xpub_in_ids", "id_1")
 		expected := `EXISTS (SELECT 1 FROM json_each(xpub_in_ids) WHERE value = "id_1")`
 		assert.Equal(t, expected, query)
+	})
+}
+
+// Test_processConditions test the SQL where selectors
+func Test_processConditions(t *testing.T) {
+	conditions := map[string]interface{}{
+		"monitor": map[string]interface{}{
+			"$gt": utils.NullTime{NullTime: sql.NullTime{
+				Valid: true,
+				Time:  time.Date(2022, 4, 4, 15, 12, 37, 651387237, time.UTC),
+			}},
+		},
+	}
+
+	t.Run("MySQL", func(t *testing.T) {
+		tx := &mockSQLCtx{
+			WhereClauses: make([]interface{}, 0),
+			Vars:         make(map[string]interface{}),
+		}
+		varNum := 0
+		_ = processConditions(tx, conditions, MySQL, &varNum, nil)
+		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Equal(t, "2022-04-04 15:12:37", tx.Vars["var0"])
+	})
+
+	t.Run("Postgres", func(t *testing.T) {
+		tx := &mockSQLCtx{
+			WhereClauses: make([]interface{}, 0),
+			Vars:         make(map[string]interface{}),
+		}
+		varNum := 0
+		_ = processConditions(tx, conditions, PostgreSQL, &varNum, nil)
+		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Equal(t, "2022-04-04T15:12:37Z", tx.Vars["var0"])
+	})
+
+	t.Run("SQLite", func(t *testing.T) {
+		tx := &mockSQLCtx{
+			WhereClauses: make([]interface{}, 0),
+			Vars:         make(map[string]interface{}),
+		}
+		varNum := 0
+		_ = processConditions(tx, conditions, SQLite, &varNum, nil)
+		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Equal(t, "2022-04-04T15:12:37.651Z", tx.Vars["var0"])
 	})
 }
 

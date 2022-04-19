@@ -26,6 +26,7 @@ type (
 		logger          logger.Interface // Internal logger interface
 		newRelicEnabled bool             // If NewRelic is enabled (parent application)
 		userAgent       string           // Custom user agent for outgoing HTTP Requests
+		monitor         MonitorService
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -149,6 +150,14 @@ func (c *Client) Network() Network {
 // Minercraft will return the Minercraft client
 func (c *Client) Minercraft() minercraft.ClientInterface {
 	return c.options.config.minercraft
+}
+
+// Monitor will return the Monitor client
+func (c *Client) Monitor() MonitorService {
+	if c.options.monitor == nil {
+		return nil
+	}
+	return c.options.monitor
 }
 
 // WhatsOnChain will return the WhatsOnChain client

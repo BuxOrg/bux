@@ -1,7 +1,9 @@
 package bux
 
 import (
+	"context"
 	"database/sql"
+	"net/http"
 	"strings"
 	"time"
 
@@ -56,6 +58,11 @@ func defaultClientOptions() *clientOptions {
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
 			options:         []datastore.ClientOps{},
+		},
+
+		// Default http client
+		httpClient: &http.Client{
+			Timeout: defaultHTTPTimeout,
 		},
 
 		// Blank model options (use the Base models)
@@ -215,6 +222,15 @@ func WithEncryption(key string) ClientOps {
 	}
 }
 
+// WithMempoolMonitoring will enable mempool monitoring for a given filter
+/*func WithMempoolMonitoring(filter string) ClientOps {
+	return func(c *clientOptions) {
+		if c.chainstate != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMempoolMonitoring(filter))
+		}
+	}
+}*/
+
 // WithModels will add additional models (will NOT migrate using datastore)
 //
 // Pointers of structs (IE: &models.Xpub{})
@@ -237,6 +253,20 @@ func WithITCDisabled() ClientOps {
 func WithIUCDisabled() ClientOps {
 	return func(c *clientOptions) {
 		c.iuc = false
+	}
+}
+
+// WithImportBlockHeaders will import block headers on startup
+func WithImportBlockHeaders(importBlockHeadersURL string) ClientOps {
+	return func(c *clientOptions) {
+		c.importBlockHeadersURL = importBlockHeadersURL
+	}
+}
+
+// WithHTTPClient will set the custom http interface
+func WithHTTPClient(httpClient HTTPInterface) ClientOps {
+	return func(c *clientOptions) {
+		c.httpClient = httpClient
 	}
 }
 
@@ -592,6 +622,24 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 	return func(c *clientOptions) {
 		if customNotifications != nil {
 			c.notifications.ClientInterface = customNotifications
+		}
+	}
+}
+
+// WithMonitoring will create a new monitorConfig interface with the given options
+func WithMonitoring(ctx context.Context, monitorOptions *chainstate.MonitorOptions) ClientOps {
+	return func(c *clientOptions) {
+		if monitorOptions != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoring(ctx, monitorOptions))
+		}
+	}
+}
+
+// WithMonitoringInterface will set the interface to use for monitoring the blockchain
+func WithMonitoringInterface(monitor chainstate.MonitorService) ClientOps {
+	return func(c *clientOptions) {
+		if monitor != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoringInterface(monitor))
 		}
 	}
 }

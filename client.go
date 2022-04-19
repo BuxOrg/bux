@@ -25,20 +25,22 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cacheStore    *cacheStoreOptions    // Configuration options for Cachestore (ristretto, redis, etc.)
-		chainstate    *chainstateOptions    // Configuration options for Chainstate (broadcast, sync, etc.)
-		dataStore     *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
-		debug         bool                  // If the client is in debug mode
-		encryptionKey string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
-		itc           bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
-		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
-		logger        logger.Interface      // Internal logging
-		models        *modelOptions         // Configuration options for the loaded models
-		newRelic      *newRelicOptions      // Configuration options for NewRelic
-		notifications *notificationsOptions // Configuration options for Notifications
-		paymail       *paymailOptions       // Paymail options & client
-		taskManager   *taskManagerOptions   // Configuration options for the TaskManager (TaskQ, etc.)
-		userAgent     string                // User agent for all outgoing requests
+		cacheStore            *cacheStoreOptions    // Configuration options for Cachestore (ristretto, redis, etc.)
+		chainstate            *chainstateOptions    // Configuration options for Chainstate (broadcast, sync, etc.)
+		dataStore             *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
+		debug                 bool                  // If the client is in debug mode
+		encryptionKey         string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
+		httpClient            HTTPInterface         // HTTP interface to use
+		importBlockHeadersURL string                // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
+		itc                   bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
+		iuc                   bool                  // (Input UTXO Check) True will check input utxos when saving transactions
+		logger                logger.Interface      // Internal logging
+		models                *modelOptions         // Configuration options for the loaded models
+		newRelic              *newRelicOptions      // Configuration options for NewRelic
+		notifications         *notificationsOptions // Configuration options for Notifications
+		paymail               *paymailOptions       // Paymail options & client
+		taskManager           *taskManagerOptions   // Configuration options for the TaskManager (TaskQ, etc.)
+		userAgent             string                // User agent for all outgoing requests
 	}
 
 	// chainstateOptions holds the chainstate configuration and client
@@ -169,6 +171,13 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
+	// Load the blockchain monitor
+	if client.options.chainstate.Monitor() != nil {
+		if err = client.loadMonitor(ctx); err != nil {
+			return nil, err
+		}
+	}
+
 	// Default paymail server config (generic capabilities and domain check disabled)
 	if client.options.paymail.serverConfig.Configuration == nil {
 		if err = client.loadDefaultPaymailConfig(); err != nil {
@@ -278,6 +287,16 @@ func (c *Client) Datastore() datastore.ClientInterface {
 	return nil
 }
 
+// HTTPClient will return the http interface to use in the client
+func (c *Client) HTTPClient() HTTPInterface {
+	return c.options.httpClient
+}
+
+// ImportBlockHeadersFromURL will the URL where to import block headers from
+func (c *Client) ImportBlockHeadersFromURL() string {
+	return c.options.importBlockHeadersURL
+}
+
 // Logger will return the Logger if it exists
 func (c *Client) Logger() logger.Interface {
 	return c.options.logger
@@ -357,6 +376,11 @@ func (c *Client) IsDebug() bool {
 // IsNewRelicEnabled will return the flag (bool)
 func (c *Client) IsNewRelicEnabled() bool {
 	return c.options.newRelic.enabled
+}
+
+// IsMempoolMonitoringEnabled will return whether mempool monitoring is on
+func (c *Client) IsMempoolMonitoringEnabled() bool {
+	return c.options.chainstate.IsNewRelicEnabled()
 }
 
 // IsITCEnabled will return the flag (bool)

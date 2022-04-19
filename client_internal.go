@@ -28,8 +28,10 @@ func (c *Client) loadChainstate(ctx context.Context) (err error) {
 	// Load chainstate if a custom interface was NOT provided
 	if c.options.chainstate.ClientInterface == nil {
 		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithUserAgent(c.UserAgent()))
+		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithHTTPClient(c.HTTPClient()))
 		c.options.chainstate.ClientInterface, err = chainstate.NewClient(ctx, c.options.chainstate.options...)
 	}
+
 	return
 }
 
@@ -76,7 +78,6 @@ func (c *Client) loadPaymailClient() (err error) {
 
 // loadTaskmanager will load the TaskManager and start the TaskManager client
 func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
-
 	// Load if a custom interface was NOT provided
 	if c.options.taskManager.ClientInterface == nil {
 		c.options.taskManager.ClientInterface, err = taskmanager.NewClient(
@@ -86,10 +87,30 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 	return
 }
 
+// loadMonitor will load the Monitor
+func (c *Client) loadMonitor(ctx context.Context) (err error) {
+	// Load monitor if set by the user
+	monitor := c.options.chainstate.Monitor()
+	if monitor == nil {
+		return
+	}
+	handler := NewMonitorHandler(ctx, c, monitor)
+	if c.options.chainstate.Monitor().LoadMonitoredDestinations() {
+		err = c.loadMonitoredDestinations(ctx, monitor)
+		if err != nil {
+			return
+		}
+	}
+
+	err = monitor.Monitor(&handler)
+	return
+}
+
 // runModelMigrations will run the model Migrate() method for all models
 func (c *Client) runModelMigrations(models ...interface{}) (err error) {
 	d := c.Datastore()
 	for _, model := range models {
+		model.(ModelInterface).SetOptions(WithClient(c))
 		if err = model.(ModelInterface).Migrate(d); err != nil {
 			return
 		}

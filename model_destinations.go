@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
@@ -10,7 +11,7 @@ import (
 	"github.com/bitcoinschema/go-bitcoin/v2"
 )
 
-// Destination is an object representing the BitCoin destination table
+// Destination is an object representing a BitCoin destination (address, script, etc)
 //
 // Gorm related models & indexes: https://gorm.io/docs/models.html - https://gorm.io/docs/indexes.html
 type Destination struct {
@@ -26,7 +27,7 @@ type Destination struct {
 	Num           uint32         `json:"num" toml:"num" yaml:"num" gorm:"<-:create;type:int;comment:This is the chain/(num) location of the address related to the xPub" bson:"num"`
 	Address       string         `json:"address" toml:"address" yaml:"address" gorm:"<-:create;type:varchar(35);index;comment:This is the BitCoin address" bson:"address"`
 	DraftID       string         `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-:create;type:varchar(64);index;comment:This is the related draft id (if internal tx)" bson:"draft_id,omitempty"`
-	Monitor       utils.NullTime `json:"monitor" toml:"monitor" yaml:"monitor" gorm:";comment:Whether this address should be monitored" bson:"monitor,omitempty"`
+	Monitor       utils.NullTime `json:"monitor" toml:"monitor" yaml:"monitor" gorm:";comment:When this address was last used for an external transaction, for monitoring" bson:"monitor,omitempty"`
 }
 
 // newDestination will start a new Destination model for a locking script
@@ -212,6 +213,27 @@ func (m *Destination) BeforeCreating(_ context.Context) error {
 	return nil
 }
 
+// AfterCreated will fire after the model is created in the Datastore
+func (m *Destination) AfterCreated(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+
+	if m.Monitor.Valid {
+		monitor := m.Client().Chainstate().Monitor()
+		if monitor != nil {
+			m.DebugLog(fmt.Sprintf("Adding destination to monitor: %s", m.LockingScript))
+			err := monitor.Add(utils.P2PKHRegexpString, m.LockingScript)
+			if err != nil {
+				m.DebugLog(fmt.Sprintf("ERROR: failed adding destination to monitor: %s", err.Error()))
+			}
+		}
+	}
+
+	Notify(notifications.EventTypeCreate, m)
+
+	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	return nil
+}
+
 // setAddress will derive and set the address based on the chain (internal vs external)
 func (m *Destination) setAddress(rawXpubKey string) error {
 
@@ -246,16 +268,6 @@ func (m *Destination) setAddress(rawXpubKey string) error {
 // Migrate model specific migration on startup
 func (m *Destination) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableDestinations), metadataField)
-}
-
-// AfterCreated will fire after the model is created in the Datastore
-func (m *Destination) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
-
-	Notify(notifications.EventTypeCreate, m)
-
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
-	return nil
 }
 
 // AfterUpdated will fire after the model is updated in the Datastore

@@ -85,6 +85,42 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 	return transaction, nil
 }
 
+// RecordMonitoredTransaction will parse the transaction and Save it into the Datastore
+//
+// This function will try to record the transaction directly, without checking draft ids etc.
+func (c *Client) RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "record_monitored_transaction")
+
+	// Create the model & set the default options (gives options from client->model)
+	newOpts := c.DefaultModelOptions(append(opts, New())...)
+	transaction := newTransaction(txHex, newOpts...)
+
+	// Ensure that we have a transaction id (created from the txHex)
+	id := transaction.GetID()
+	if len(id) == 0 {
+		return nil, ErrMissingTxHex
+	}
+
+	// Create the lock and set the release for after the function completes
+	unlock, err := newWriteLock(
+		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
+	)
+	defer unlock()
+	if err != nil {
+		return nil, err
+	}
+
+	// Process & save the transaction model
+	if err = transaction.Save(ctx); err != nil {
+		return nil, err
+	}
+
+	// Return the response
+	return transaction, nil
+}
+
 // NewTransaction will create a new draft transaction and return it
 //
 // ctx is the context

@@ -124,6 +124,10 @@ type chainStateEverythingOnChain struct {
 	chainStateEverythingInMempool
 }
 
+func (c *chainStateEverythingOnChain) Monitor() chainstate.MonitorService {
+	return nil
+}
+
 func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id string,
 	_ chainstate.RequiredIn, _ time.Duration) (*chainstate.TransactionInfo, error) {
 

@@ -68,5 +68,5 @@ func getModels(
 	timeout time.Duration,
 ) error {
 	// Attempt to Get the model (by model fields & given conditions)
-	return datastore.GetModels(ctx, models, conditions, pageSize, page, orderByField, sortDirection, timeout)
+	return datastore.GetModels(ctx, models, conditions, pageSize, page, orderByField, sortDirection, nil, timeout)
 }

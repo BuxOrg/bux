@@ -121,7 +121,7 @@ func TestBloomProcessor(t *testing.T) {
 			m := &BloomProcessor{
 				filters: map[string]*BloomProcessorFilter{
 					tt.fields.filterType: {
-						filter: tt.fields.filter,
+						Filter: tt.fields.filter,
 						regex:  utils.P2PKHSubstringRegexp,
 					},
 				},
@@ -135,7 +135,7 @@ func TestBloomProcessor(t *testing.T) {
 			}
 			var tx string
 			tx, err = m.FilterMempoolPublishEvent(event)
-			assert.NoError(t, err, "%s - mempool filter unexpectedly failed", tt.name)
+			assert.NoError(t, err, "%s - mempool Filter unexpectedly failed", tt.name)
 			if tt.args.passes {
 				assert.NotEqualf(t, tx, "", "%s - expected tx to pass processor and didn't", tt.name)
 			} else {

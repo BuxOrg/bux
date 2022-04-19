@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"strings"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
@@ -36,7 +37,7 @@ func NewMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor c
 }
 
 // OnConnect event when connected
-func (h *MonitorEventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.ConnectEvent) {
+func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.ConnectEvent) {
 	h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] Connected to server: %s", e.ClientID))
 	if h.monitor.GetProcessMempoolOnConnect() {
 		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
@@ -47,7 +48,53 @@ func (h *MonitorEventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.Conne
 			}
 		}()
 	}
+
+	// todo add all filters from processor on startup filters
+	agentClient := &chainstate.AgentClient{
+		Client: client,
+	}
+	filters := h.monitor.Processor().GetFilters()
+	for regex, bloomFilter := range filters {
+		_, err := agentClient.SetFilter(regex, bloomFilter)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
+		}
+	}
+
+	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCKS")
+	go func() {
+		err := h.ProcessBlocks(h.ctx, client)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing blocks: %s", err.Error()))
+		}
+	}()
+
 	h.monitor.Connected()
+}
+
+// ProcessBlocks processes all transactions in blocks that have not yet been synced
+func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrifuge.Client) error {
+
+	for {
+		// get all block headers that have not been marked as synced
+		blockHeaders, err := h.buxClient.GetUnsyncedBlockHeaders(ctx)
+		for _, blockHeader := range blockHeaders {
+			if err != nil {
+				h.logger.Error(h.ctx, err.Error())
+			} else {
+				subscription, err := client.NewSubscription("block:sync:" + blockHeader.ID)
+				if err != nil {
+					h.logger.Error(h.ctx, err.Error())
+				}
+				subscription.OnPublish(h)
+				//subscription.OnUnsubscribe(func())
+			}
+		}
+
+		// sleep 30
+	}
+
+	return nil
 }
 
 // OnError on error event
@@ -90,7 +137,30 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 }
 
 // OnPublish ???
-func (h *MonitorEventHandler) OnPublish(_ *centrifuge.Subscription, e centrifuge.PublishEvent) {
+func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
+
+	channelName := subscription.Channel()
+	if strings.HasPrefix(channelName, "block:sync:") {
+		// block subscription
+		tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
+		if err != nil {
+
+		}
+
+		if tx == "" {
+			return
+		}
+		_, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+			return
+		}
+
+		if h.debug {
+			h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
+		}
+	}
+
 	if h.debug {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e))
 	}
@@ -150,7 +220,7 @@ func (h *MonitorEventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge
 }
 
 func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
-	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
+	tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
 	if err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] failed to process server event: %v", err))
 		return
@@ -208,30 +278,6 @@ func (h *MonitorEventHandler) onServerPublishLinear(c *centrifuge.Client, e cent
 		h.processMempoolPublish(c, e)
 	case "block:headers":
 		h.processBlockHeaderPublish(c, e)
-	}
-	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
-	if err != nil {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] failed to process server event: %v", err))
-		return
-	}
-
-	if h.monitor.SaveDestinations() {
-		// Process transaction and save outputs
-		// todo replace printf
-		fmt.Printf("Should save the destination here...\n")
-	}
-
-	if tx == "" {
-		return
-	}
-	_, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx)
-	if err != nil {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
-		return
-	}
-
-	if h.debug {
-		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
 	}
 }
 

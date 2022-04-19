@@ -45,3 +45,11 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.Block
 	// Return the response
 	return blockHeader, nil
 }
+
+func (c *Client) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_unsynced_blockheaders")
+
+	return c.GetUnsyncedBlockHeaders(ctx)
+}

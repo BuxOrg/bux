@@ -78,12 +78,14 @@ type MonitorHandler interface {
 	GetWhatsOnChain() whatsonchain.ClientInterface
 }
 
-// MonitorProcessor struct that defines interface to all filter processors
+// MonitorProcessor struct that defines interface to all Filter processors
 type MonitorProcessor interface {
 	Add(regexString, item string) error
 	Debug(bool)
-	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
-	FilterMempoolTx(txHex string) (string, error)
+	FilterTransactionPublishEvent(eData []byte) (string, error)
+	FilterTransaction(txHex string) (string, error)
+	GetFilters() map[string]*BloomProcessorFilter
+	SetFilter(regex string, bloomFilter []byte) error
 	GetHash() string
 	IsDebug() bool
 	Logger() Logger

@@ -10,7 +10,7 @@ import (
 	"github.com/mrz1836/go-whatsonchain"
 )
 
-// Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
+// Monitor starts a new monitorConfig to monitorConfig and Filter transactions from a source
 type Monitor struct {
 	centrifugeServer             string
 	chainstateOptions            *clientOptions
@@ -56,7 +56,7 @@ func (o *MonitorOptions) checkDefaults() {
 	}
 }
 
-// NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
+// NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom Filter
 func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 	options.checkDefaults()
 	monitor = &Monitor{
@@ -122,7 +122,7 @@ func (m *Monitor) GetProcessMempoolOnConnect() bool {
 	return m.processMempoolOnConnect
 }
 
-// SaveDestinations gets whether we should save destinations from transactions that pass monitor filter
+// SaveDestinations gets whether we should save destinations from transactions that pass monitor Filter
 func (m *Monitor) SaveDestinations() bool {
 	return m.saveTransactionsDestinations
 }
@@ -245,7 +245,7 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 							m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool tx: %s\n", tx.TxID))
 						}
 						var txHex string
-						txHex, err = m.processor.FilterMempoolTx(tx.Hex) // todo off
+						txHex, err = m.processor.FilterTransaction(tx.Hex) // todo off
 						if err != nil {
 							m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx %s: %s\n", tx.TxID, err.Error()))
 							continue

@@ -41,6 +41,7 @@ type TransactionService interface {
 // BlockHeaderService is the block header actions
 type BlockHeaderService interface {
 	RecordBlockHeader(ctx context.Context, hash string, bh bc.BlockHeader, opts ...ModelOps) (*BlockHeader, error)
+	GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error)
 }
 
 // DestinationService is the destination actions

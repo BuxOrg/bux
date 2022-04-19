@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/centrifugal/centrifuge-go"
 	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
 )
 
-// BloomProcessor bloom filter processor
+// BloomProcessor bloom Filter processor
 type BloomProcessor struct {
 	debug             bool
 	falsePositiveRate float64
@@ -23,7 +22,7 @@ type BloomProcessor struct {
 
 // BloomProcessorFilter struct
 type BloomProcessorFilter struct {
-	filter *boom.StableBloomFilter
+	Filter *boom.StableBloomFilter
 	regex  *regexp.Regexp
 }
 
@@ -56,11 +55,11 @@ func (p *BloomProcessor) Logger() Logger {
 	return p.logger
 }
 
-// GetHash get the hash of the current filter
+// GetHash get the hash of the current Filter
 func (p *BloomProcessor) GetHash() string {
 	h := sha256.New()
 	for _, f := range p.filters {
-		if _, err := f.filter.WriteTo(h); err != nil {
+		if _, err := f.Filter.WriteTo(h); err != nil {
 			return ""
 		}
 	}
@@ -68,34 +67,43 @@ func (p *BloomProcessor) GetHash() string {
 	return hex.EncodeToString(hash)
 }
 
-// Add a new item to the bloom filter
+func (p *BloomProcessor) GetFilters() map[string]*BloomProcessorFilter {
+	return p.filters
+}
+
+func (p *BloomProcessor) SetFilter(regex string, bloomFilter []byte) error {
+	//p.filters[regex] =
+	return nil
+}
+
+// Add a new item to the bloom Filter
 func (p *BloomProcessor) Add(regexString, item string) error {
 
-	// check whether this regex filter already exists, otherwise initialize it
+	// check whether this regex Filter already exists, otherwise initialize it
 	if p.filters[regexString] == nil {
 		r, err := regexp.Compile(regexString)
 		if err != nil {
 			return err
 		}
 		p.filters[regexString] = &BloomProcessorFilter{
-			filter: boom.NewDefaultStableBloomFilter(p.maxCells, p.falsePositiveRate),
+			Filter: boom.NewDefaultStableBloomFilter(p.maxCells, p.falsePositiveRate),
 			regex:  r,
 		}
 	}
-	p.filters[regexString].filter.Add([]byte(item))
+	p.filters[regexString].Filter.Add([]byte(item))
 
 	return nil
 }
 
-// Test checks whether the item is in the bloom filter
+// Test checks whether the item is in the bloom Filter
 func (p *BloomProcessor) Test(regexString, item string) bool {
 	if p.filters[regexString] == nil {
 		return false
 	}
-	return p.filters[regexString].filter.Test([]byte(item))
+	return p.filters[regexString].Filter.Test([]byte(item))
 }
 
-// Reload the bloom filter from the DB
+// Reload the bloom Filter from the DB
 func (p *BloomProcessor) Reload(regexString string, items []string) (err error) {
 	for _, item := range items {
 		if err = p.Add(regexString, item); err != nil {
@@ -106,17 +114,17 @@ func (p *BloomProcessor) Reload(regexString string, items []string) (err error) 
 	return
 }
 
-// FilterMempoolPublishEvent check whether a filter matches a mempool tx event
-func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
+// FilterTransactionPublishEvent check whether a Filter matches a tx event
+func (p *BloomProcessor) FilterTransactionPublishEvent(eData []byte) (string, error) {
 	transaction := whatsonchain.TxInfo{}
-	_ = json.Unmarshal(e.Data, &transaction) // todo: missing error check
+	_ = json.Unmarshal(eData, &transaction) // todo: missing error check
 
 	for _, f := range p.filters {
-		lockingScripts := f.regex.FindAllString(string(e.Data), -1)
+		lockingScripts := f.regex.FindAllString(string(eData), -1)
 		for _, ls := range lockingScripts {
-			if passes := f.filter.Test([]byte(ls)); passes {
+			if passes := f.Filter.Test([]byte(ls)); passes {
 				tx := whatsonchain.TxInfo{}
-				if err := json.Unmarshal(e.Data, &tx); err != nil {
+				if err := json.Unmarshal(eData, &tx); err != nil {
 					return "", err
 				}
 				return tx.Hex, nil
@@ -127,13 +135,13 @@ func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 	return "", nil
 }
 
-// FilterMempoolTx check whether a filter matches a mempool tx event
-func (p *BloomProcessor) FilterMempoolTx(txHex string) (string, error) {
+// FilterTransaction check whether a Filter matches a tx event
+func (p *BloomProcessor) FilterTransaction(txHex string) (string, error) {
 
 	for _, f := range p.filters {
 		lockingScripts := f.regex.FindAllString(txHex, -1)
 		for _, ls := range lockingScripts {
-			if passes := f.filter.Test([]byte(ls)); passes {
+			if passes := f.Filter.Test([]byte(ls)); passes {
 				return txHex, nil
 			}
 		}
@@ -144,7 +152,7 @@ func (p *BloomProcessor) FilterMempoolTx(txHex string) (string, error) {
 
 // RegexProcessor simple regex processor
 // This processor just uses regex checks to see if a raw hex string exists in a tx
-// This is bound to have some false positives but is somewhat performant when filter set is small
+// This is bound to have some false positives but is somewhat performant when Filter set is small
 type RegexProcessor struct {
 	debug  bool
 	filter []string
@@ -204,10 +212,10 @@ func (p *RegexProcessor) Reload(_ string, items []string) (err error) {
 	return
 }
 
-// FilterMempoolPublishEvent check whether a filter matches a mempool tx event
-func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
+// FilterTransactionPublishEvent check whether a Filter matches a tx event
+func (p *RegexProcessor) FilterTransactionPublishEvent(eData []byte) (string, error) {
 	transaction := whatsonchain.TxInfo{}
-	if err := json.Unmarshal(e.Data, &transaction); err != nil {
+	if err := json.Unmarshal(eData, &transaction); err != nil {
 		return "", err
 	}
 	if passes := p.Test("", transaction.Hex); !passes {
@@ -216,15 +224,15 @@ func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 	return transaction.Hex, nil
 }
 
-// FilterMempoolTx filters mempool transaction
-func (p *RegexProcessor) FilterMempoolTx(hex string) (string, error) {
+// FilterTransaction filters transaction
+func (p *RegexProcessor) FilterTransaction(hex string) (string, error) {
 	if passes := p.Test("", hex); passes {
 		return hex, nil
 	}
 	return "", nil
 }
 
-// GetHash get the hash of the filter
+// GetHash get the hash of the Filter
 func (p *RegexProcessor) GetHash() string {
 	return ""
 }

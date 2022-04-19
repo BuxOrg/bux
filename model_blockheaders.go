@@ -94,6 +94,32 @@ func GetUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHea
 	return blockHeaders, nil
 }
 
+// GetLastBlockHeader will return the last block header in the database
+func GetLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, error) {
+
+	// Construct an empty model
+	var model []BlockHeader
+
+	// Get the records
+	if err := getModels(
+		ctx, NewBaseModel(ModelBlockHeader, opts...).Client().Datastore(),
+		&model, nil, 1, 1, "height", "desc", defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if len(model) == 1 {
+		blockHeader := model[0]
+		blockHeader.enrich(ModelBlockHeader, opts...)
+		return &blockHeader, nil
+	}
+
+	return nil, nil
+}
+
 // Save will Save the model into the Datastore
 func (m *BlockHeader) Save(ctx context.Context) (err error) {
 	return Save(ctx, m)

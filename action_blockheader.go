@@ -54,3 +54,12 @@ func (c *Client) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, e
 
 	return GetUnsyncedBlockHeaders(ctx, c.DefaultModelOptions()...)
 }
+
+// GetLastBlockHeader get last block header
+func (c *Client) GetLastBlockHeader(ctx context.Context) (*BlockHeader, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_last_blockheader")
+
+	return GetLastBlockHeader(ctx, c.DefaultModelOptions()...)
+}

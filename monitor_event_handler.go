@@ -104,6 +104,12 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 		}()
 	}
 
+	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCK HEADERS")
+	err := h.ProcessBlockHeaders(h.ctx, client)
+	if err != nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
+	}
+
 	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCKS")
 	go func() {
 		err := h.ProcessBlocks(h.ctx, client)
@@ -161,6 +167,27 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 
 		time.Sleep(30 * time.Second)
 	}
+}
+
+// ProcessBlockHeaders processes all missing block headers
+func (h *MonitorEventHandler) ProcessBlockHeaders(ctx context.Context, client *centrifuge.Client) error {
+
+	lastBlockHeader, err := h.buxClient.GetLastBlockHeader(ctx)
+	if err != nil {
+		h.logger.Error(h.ctx, err.Error())
+	} else {
+		var subscription *centrifuge.Subscription
+		subscription, err = client.NewSubscription("block:headers:history:" + lastBlockHeader.ID)
+		if err != nil {
+			h.logger.Error(h.ctx, err.Error())
+		} else {
+			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block header subscription: %v", subscription))
+			subscription.OnPublish(h)
+			subscription.Subscribe()
+		}
+	}
+
+	return nil
 }
 
 // OnError on error event
@@ -313,7 +340,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 	}
 }
 
-func (h *MonitorEventHandler) processBlockHeaderPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Client, e centrifuge.ServerPublishEvent) {
 	bi := whatsonchain.BlockInfo{}
 	err := json.Unmarshal(e.Data, &bi)
 	if err != nil {
@@ -338,6 +365,10 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(_ *centrifuge.Client, e 
 	}
 	if previousBlockHeader == nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR Previous block header not found: %d", height-1))
+		err = h.ProcessBlockHeaders(h.ctx, client)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
+		}
 		return
 	}
 

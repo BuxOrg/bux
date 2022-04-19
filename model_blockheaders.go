@@ -124,12 +124,15 @@ func getBlockHeaderByHeight(ctx context.Context, height uint32, opts ...ModelOps
 
 	// Construct an empty model
 	blockHeader := &BlockHeader{
-		Height: height,
-		Model:  *NewBaseModel(ModelDestination, opts...),
+		Model: *NewBaseModel(ModelDestination, opts...),
+	}
+
+	conditions := map[string]interface{}{
+		"height": height,
 	}
 
 	// Get the record
-	if err := Get(ctx, blockHeader, nil, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, blockHeader, conditions, true, defaultDatabaseReadTimeout); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

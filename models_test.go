@@ -122,7 +122,7 @@ func TestModel_GetModelTableName(t *testing.T) {
 	})
 }
 
-func (ts *EmbeddedDBTestSuite) createXpubModels(tc *TestingClient, t *testing.T, number int) *TestingClient {
+func (ts *EmbeddedDBTestSuite) createXpubModels(tc *TestingClient, t *testing.T, number int) {
 	for i := 0; i < number; i++ {
 		_, xPublicKey, err := bitcoin.GenerateHDKeyPair(bitcoin.SecureSeedLength)
 		require.NoError(t, err)
@@ -133,8 +133,6 @@ func (ts *EmbeddedDBTestSuite) createXpubModels(tc *TestingClient, t *testing.T,
 		err = xPub.Save(tc.ctx)
 		require.NoError(t, err)
 	}
-
-	return tc
 }
 
 type xPubFieldsTest struct {

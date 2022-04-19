@@ -2,9 +2,18 @@ package bux
 
 import (
 	"context"
+	"database/sql"
+	"encoding/csv"
 	"encoding/hex"
+	"errors"
+	"io"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bc"
 )
 
@@ -16,22 +25,23 @@ type BlockHeader struct {
 	Model `bson:",inline"`
 
 	// Model specific fields
-	Hash              string `json:"hash" toml:"hash" yaml:"hash" gorm:"<-:create;type:char(64);primaryKey;comment:This is the block header" bson:"hash"`
-	Height            uint32 `json:"height" toml:"height" yaml:"height" gorm:"<-create;type:int;uniqueIndex;comment:This is the block height" bson:"height,omitempty"`
-	Time              uint32 `json:"time" toml:"time" yaml:"time" gorm:"<-create;type:int;index;comment:This is the time the block was mined" bson:"time,omitempty"`
-	Nonce             uint32 `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;type:int;comment:This is the nonce" bson:"nonce,omitempty"`
-	Version           uint32 `json:"version" toml:"version" yaml:"version" gorm:"<-create;type:int;comment:This is the version" bson:"version,omitempty"`
-	HashPreviousBlock string `json:"hash_previous_block" toml:"hash_previous_block" yaml:"hash_previous_block" gorm:"<-:create;type:text;index;comment:This is the hash of the previous block" bson:"hash_previous_block"`
-	HashMerkleRoot    string `json:"hash_merkle_root" toml:"hash_merkle_root" yaml:"hash_merkle_root" gorm:"<-;type:text;index;comment:This is the hash of the merkle root" bson:"hash_merkle_root"`
-	Bits              string `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;type:text;comment:This is the block difficulty" bson:"bits"`
+	ID                string         `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the block hash" bson:"_id"`
+	Height            uint32         `json:"height" toml:"height" yaml:"height" gorm:"<-create;uniqueIndex;comment:This is the block height" bson:"height"`
+	Time              uint32         `json:"time" toml:"time" yaml:"time" gorm:"<-create;index;comment:This is the time the block was mined" bson:"time"`
+	Nonce             uint32         `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;comment:This is the nonce" bson:"nonce"`
+	Version           uint32         `json:"version" toml:"version" yaml:"version" gorm:"<-create;comment:This is the version" bson:"version"`
+	HashPreviousBlock string         `json:"hash_previous_block" toml:"hash_previous_block" yaml:"hash_previous_block" gorm:"<-:create;type:char(64);index;comment:This is the hash of the previous block" bson:"hash_previous_block"`
+	HashMerkleRoot    string         `json:"hash_merkle_root" toml:"hash_merkle_root" yaml:"hash_merkle_root" gorm:"<-;type:char(64);index;comment:This is the hash of the merkle root" bson:"hash_merkle_root"`
+	Bits              string         `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;comment:This is the block difficulty" bson:"bits"`
+	Synced            utils.NullTime `json:"synced" toml:"synced" yaml:"synced" gorm:"type:timestamp;index;comment:This is when the block was last synced to the bux server" bson:"synced,omitempty"`
 }
 
-// newBlockHeader will start a new transaction model
+// newBlockHeader will start a new block header model
 func newBlockHeader(hash string, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
 
 	// Create a new model
 	bh = &BlockHeader{
-		Hash:  hash,
+		ID:    hash,
 		Model: *NewBaseModel(ModelBlockHeader, opts...),
 	}
 
@@ -57,7 +67,7 @@ func (m *BlockHeader) Save(ctx context.Context) (err error) {
 
 // GetHash will get the hash of the block header
 func (m *BlockHeader) GetHash() string {
-	return m.Hash
+	return m.ID
 }
 
 // setHeaderInfo will set the block header info from a bc.BlockHeader
@@ -72,7 +82,27 @@ func (m *BlockHeader) setHeaderInfo(bh bc.BlockHeader) {
 
 // GetID will return the id of the field (hash)
 func (m *BlockHeader) GetID() string {
-	return m.Hash
+	return m.ID
+}
+
+// getBlockHeaderByHeight will get the block header given by height
+func getBlockHeaderByHeight(ctx context.Context, height uint32, opts ...ModelOps) (*BlockHeader, error) {
+
+	// Construct an empty model
+	blockHeader := &BlockHeader{
+		Height: height,
+		Model:  *NewBaseModel(ModelDestination, opts...),
+	}
+
+	// Get the record
+	if err := Get(ctx, blockHeader, nil, true, defaultDatabaseReadTimeout); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return blockHeader, nil
 }
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
@@ -81,7 +111,7 @@ func (m *BlockHeader) BeforeCreating(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
 
 	// Test for required field(s)
-	if len(m.Hash) == 0 {
+	if len(m.ID) == 0 {
 		return ErrMissingFieldHash
 	}
 
@@ -104,5 +134,182 @@ func (m *BlockHeader) Display() interface{} {
 
 // Migrate model specific migration on startup
 func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
-	return client.IndexMetadata(client.GetTableName(tableBlockHeaders), metadataField)
+	// import all previous block headers from file
+	blockHeadersFile := client.ImportBlockHeadersFromURL()
+	if blockHeadersFile != "" {
+		go func() {
+			ctx := context.Background()
+			// check whether we have block header 0, then we do not import again
+			blockHeader0, err := getBlockHeaderByHeight(ctx, 0, m.Client().DefaultModelOptions()...)
+			if err != nil {
+				m.Client().Logger().Error(ctx, err.Error())
+			} else {
+				if blockHeader0 == nil {
+					// import block headers in the background
+					m.Client().Logger().Info(ctx, "Importing block headers into database")
+					err = m.importBlockHeaders(ctx, client, blockHeadersFile)
+					if err != nil {
+						m.Client().Logger().Error(ctx, err.Error())
+					} else {
+						m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
+					}
+				}
+			}
+		}()
+	}
+
+	return nil
+}
+
+func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.ClientInterface, blockHeadersFile string) error {
+
+	file, err := ioutil.TempFile("", "blocks_bux.tsv")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = os.Remove(file.Name())
+		if err != nil {
+			m.Client().Logger().Error(ctx, err.Error())
+		}
+	}()
+
+	err = utils.DownloadAndUnzipFile(ctx, m.Client().HTTPClient(), file, blockHeadersFile)
+	if err != nil {
+		return err
+	}
+
+	blockFile := file.Name()
+
+	/* local file import
+	var err error
+	pwd, _ := os.Getwd()
+	blockFile := pwd + "/blocks/blocks_bux.tsv"
+	*/
+
+	batchSize := 1000
+	if m.Client().Datastore().Engine() == datastore.MongoDB {
+		batchSize = 10000
+	}
+	models := make([]*BlockHeader, 0)
+	count := 0
+	readModel := func(model *BlockHeader) error {
+		count++
+
+		models = append(models, model)
+
+		if count%batchSize == 0 {
+			// insert in batches of batchSize
+			err = client.CreateInBatches(ctx, models, batchSize)
+			if err != nil {
+				return err
+			}
+			// reset models
+			models = make([]*BlockHeader, 0)
+		}
+		return nil
+	}
+
+	// accumulate the models into a slice
+	err = m.importCSVFile(ctx, blockFile, readModel)
+	if errors.Is(err, io.EOF) {
+		if count%batchSize != 0 {
+			// remaining batch
+			return client.CreateInBatches(ctx, models, batchSize)
+		}
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string, readModel func(model *BlockHeader) error) error {
+	CSVFile, err := os.Open(blockFile) //nolint:gosec // file only added by administrator via config
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = CSVFile.Close()
+		if err != nil {
+			m.Client().Logger().Error(ctx, err.Error())
+		}
+	}()
+
+	reader := csv.NewReader(CSVFile)
+	reader.Comma = '\t'             // It's a tab-delimited file
+	reader.LazyQuotes = true        // Some fields are like \t"F" ST.\t
+	reader.FieldsPerRecord = 0      // -1 is variable #, 0 is [0]th line's #
+	reader.TrimLeadingSpace = false // Keep the fields' whitespace how it is
+
+	// read first line - HEADER
+	_, err = reader.Read()
+	if err != nil {
+		return err
+	}
+
+	for {
+		var row []string
+		row, err = reader.Read()
+		if err != nil {
+			return err
+		}
+
+		var parsedInt uint64
+
+		parsedInt, err = strconv.ParseUint(row[1], 10, 32)
+		if err != nil {
+			return err
+		}
+		height := uint32(parsedInt)
+
+		parsedInt, err = strconv.ParseUint(row[3], 10, 32)
+		if err != nil {
+			return err
+		}
+		nonce := uint32(parsedInt)
+
+		parsedInt, err = strconv.ParseUint(row[4], 10, 32)
+		if err != nil {
+			return err
+		}
+		ver := uint32(parsedInt)
+		parsedInt, err = strconv.ParseUint(row[7], 10, 32)
+		if err != nil {
+			return err
+		}
+		bits := parsedInt
+
+		var timeField time.Time
+		timeField, err = time.Parse("2006-01-02 15:04:05", row[2])
+		if err != nil {
+			return err
+		}
+
+		var syncedTime time.Time
+		syncedTime, err = time.Parse("2006-01-02 15:04:05", row[8])
+		if err != nil {
+			return err
+		}
+
+		model := &BlockHeader{
+			ID:                row[0],
+			Height:            height,
+			Time:              uint32(timeField.Unix()),
+			Nonce:             nonce,
+			Version:           ver,
+			HashPreviousBlock: row[5],
+			HashMerkleRoot:    row[6],
+			Bits:              strconv.FormatUint(bits, 16),
+			Synced:            utils.NullTime{NullTime: sql.NullTime{Valid: true, Time: syncedTime}},
+		}
+		model.Model.CreatedAt = time.Now()
+
+		// call the readModel callback function to add the model to the database
+		err = readModel(model)
+		if err != nil {
+			return err
+		}
+	}
 }

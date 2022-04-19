@@ -116,6 +116,53 @@ func (c *Client) incrementWithMongo(
 	return
 }
 
+// CreateInBatchesMongo insert multiple models vai bulk.Write
+func (c *Client) CreateInBatchesMongo(
+	ctx context.Context,
+	models interface{},
+	batchSize int,
+) error {
+
+	collectionName := utils.GetModelTableName(models)
+	if collectionName == nil {
+		return ErrUnknownCollection
+	}
+
+	mongoModels := make([]mongo.WriteModel, 0)
+	collection := c.GetMongoCollection(*collectionName)
+	bulkOptions := options.BulkWrite().SetOrdered(true)
+	count := 0
+
+	switch reflect.TypeOf(models).Kind() { //nolint:exhaustive // we only get slices
+	case reflect.Slice:
+		s := reflect.ValueOf(models)
+		for i := 0; i < s.Len(); i++ {
+			m := mongo.NewInsertOneModel()
+			m.SetDocument(s.Index(i).Interface())
+			mongoModels = append(mongoModels, m)
+			count++
+
+			if count%batchSize == 0 {
+				_, err := collection.BulkWrite(ctx, mongoModels, bulkOptions)
+				if err != nil {
+					return err
+				}
+				// reset the bulk
+				mongoModels = make([]mongo.WriteModel, 0)
+			}
+		}
+	}
+
+	if count%batchSize != 0 {
+		_, err := collection.BulkWrite(ctx, mongoModels, bulkOptions)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // getWithMongo will get given struct(s) from MongoDB
 func (c *Client) getWithMongo(
 	ctx context.Context,
@@ -205,6 +252,22 @@ func (c *Client) getWithMongo(
 	}
 
 	return nil
+}
+
+// GetMongoCollection will get the mongo collection for the given tableName
+func (c *Client) GetMongoCollection(
+	collectionName string,
+) *mongo.Collection {
+	return c.options.mongoDB.Collection(
+		setPrefix(c.options.mongoDBConfig.TablePrefix, collectionName),
+	)
+}
+
+// GetMongoCollectionByTableName will get the mongo collection for the given tableName
+func (c *Client) GetMongoCollectionByTableName(
+	tableName string,
+) *mongo.Collection {
+	return c.options.mongoDB.Collection(tableName)
 }
 
 func getFieldNames(fieldResult interface{}) []string {
@@ -436,8 +499,17 @@ func openMongoDatabase(ctx context.Context, config *MongoDBConfig) (*mongo.Datab
 // getMongoIndexes will get indexes from mongo
 func getMongoIndexes() map[string][]mongo.IndexModel {
 
-	// todo: move these to bux out of this package
 	return map[string][]mongo.IndexModel{
+		"block_headers": {
+			mongo.IndexModel{Keys: bsonx.Doc{{
+				Key:   "height",
+				Value: bsonx.Int32(1),
+			}}},
+			mongo.IndexModel{Keys: bsonx.Doc{{
+				Key:   "synced",
+				Value: bsonx.Int32(1),
+			}}},
+		},
 		"destinations": {
 			mongo.IndexModel{Keys: bsonx.Doc{{
 				Key:   "address",

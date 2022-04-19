@@ -109,6 +109,7 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 func (c *Client) runModelMigrations(models ...interface{}) (err error) {
 	d := c.Datastore()
 	for _, model := range models {
+		model.(ModelInterface).SetOptions(WithClient(c))
 		if err = model.(ModelInterface).Migrate(d); err != nil {
 			return
 		}

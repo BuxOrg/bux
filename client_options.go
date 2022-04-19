@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"database/sql"
+	"net/http"
 	"strings"
 	"time"
 
@@ -24,6 +25,10 @@ import (
 
 // ClientOps allow functional options to be supplied that overwrite default client options.
 type ClientOps func(c *clientOptions)
+
+const (
+	defaultHTTPTimeout = 20 * time.Second
+)
 
 // defaultClientOptions will return an clientOptions struct with the default settings
 //
@@ -57,6 +62,10 @@ func defaultClientOptions() *clientOptions {
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
 			options:         []datastore.ClientOps{},
+		},
+
+		httpClient: &http.Client{
+			Timeout: defaultHTTPTimeout,
 		},
 
 		// Blank model options (use the Base models)
@@ -247,6 +256,20 @@ func WithITCDisabled() ClientOps {
 func WithIUCDisabled() ClientOps {
 	return func(c *clientOptions) {
 		c.iuc = false
+	}
+}
+
+// WithImportBlockHeaders will import block headers on startup
+func WithImportBlockHeaders(blockHeadersZipFileURL string) ClientOps {
+	return func(c *clientOptions) {
+		c.dataStore.options = append(c.dataStore.options, datastore.WithImportBlockHeaders(blockHeadersZipFileURL))
+	}
+}
+
+// WithHTTPClient will set the custom http interface
+func WithHTTPClient(httpClient HTTPInterface) ClientOps {
+	return func(c *clientOptions) {
+		c.httpClient = httpClient
 	}
 }
 

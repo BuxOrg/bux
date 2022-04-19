@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/libsv/go-bc"
-
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/korovkin/limiter"
+	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
@@ -159,6 +158,8 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 
 	if h.monitor.SaveDestinations() {
 		// Process transaction and save outputs
+		// todo replace printf
+		fmt.Printf("Should save the destination here...\n")
 	}
 
 	if tx == "" {
@@ -216,6 +217,8 @@ func (h *MonitorEventHandler) onServerPublishLinear(c *centrifuge.Client, e cent
 
 	if h.monitor.SaveDestinations() {
 		// Process transaction and save outputs
+		// todo replace printf
+		fmt.Printf("Should save the destination here...\n")
 	}
 
 	if tx == "" {

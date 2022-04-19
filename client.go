@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/tonicpow/go-paymail"
-
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -14,6 +12,7 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 )
 
@@ -31,6 +30,7 @@ type (
 		dataStore     *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
 		debug         bool                  // If the client is in debug mode
 		encryptionKey string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
+		httpClient    HTTPInterface         // HTTP interface to use
 		itc           bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
 		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
 		logger        logger.Interface      // Internal logging
@@ -172,7 +172,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Load the blockchain monitor
 	if client.options.chainstate.Monitor() != nil {
-		if err := client.loadMonitor(ctx); err != nil {
+		if err = client.loadMonitor(ctx); err != nil {
 			return nil, err
 		}
 	}
@@ -284,6 +284,11 @@ func (c *Client) Datastore() datastore.ClientInterface {
 		return c.options.dataStore.ClientInterface
 	}
 	return nil
+}
+
+// HTTPClient will return the http interface to use in the client
+func (c *Client) HTTPClient() HTTPInterface {
+	return c.options.httpClient
 }
 
 // Logger will return the Logger if it exists

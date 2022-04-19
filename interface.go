@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/libsv/go-bc"
-
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -14,6 +12,7 @@ import (
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-paymail"
 )
 
@@ -85,11 +84,17 @@ type PaymailService interface {
 		metadata Metadata, opts ...ModelOps) (*PaymailAddress, error)
 }
 
+// HTTPInterface is the HTTP client interface
+type HTTPInterface interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // ClientServices is the client related services
 type ClientServices interface {
 	Cachestore() cachestore.ClientInterface
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
+	HTTPClient() HTTPInterface
 	Logger() logger.Interface
 	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface

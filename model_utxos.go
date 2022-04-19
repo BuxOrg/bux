@@ -31,7 +31,7 @@ type Utxo struct {
 	XpubID       string           `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
 	Satoshis     uint64           `json:"satoshis" toml:"satoshis" yaml:"satoshis" gorm:"<-:create;type:uint;comment:This is the amount of satoshis in the output" bson:"satoshis"`
 	ScriptPubKey string           `json:"script_pub_key" toml:"script_pub_key" yaml:"script_pub_key" gorm:"<-:create;type:text;comment:This is the script pub key" bson:"script_pub_key"`
-	Type         string           `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:text;comment:Type of output" bson:"type"`
+	Type         string           `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:varchar(32);comment:Type of output" bson:"type"`
 	DraftID      utils.NullString `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-;type:varchar(64);index;comment:Related draft id for reservations" bson:"draft_id,omitempty"`
 	ReservedAt   utils.NullTime   `json:"reserved_at" toml:"reserved_at" yaml:"reserved_at" gorm:"<-;comment:When it was reserved" bson:"reserved_at,omitempty"`
 	SpendingTxID utils.NullString `json:"spending_tx_id,omitempty" toml:"spending_tx_id" yaml:"spending_tx_id" gorm:"<-;type:char(64);index;comment:This is tx ID of the spend" bson:"spending_tx_id,omitempty"`
@@ -402,6 +402,17 @@ func (m *Utxo) migratePostgreSQL(client datastore.ClientInterface, tableName str
 
 // migrateMySQL is specific migration SQL for MySQL
 func (m *Utxo) migrateMySQL(client datastore.ClientInterface, tableName string) error {
-	tx := client.Execute("CREATE INDEX idx_utxo_reserved ON `" + tableName + "` (xpub_id,type,draft_id,spending_tx_id)")
-	return tx.Error
+	idxName := "idx_" + tableName + "_reserved"
+	idxExists, err := client.IndexExists(tableName, idxName)
+	if err != nil {
+		return err
+	}
+	if !idxExists {
+		tx := client.Execute("CREATE INDEX `" + idxName + "` ON `" + tableName + "` (xpub_id,type,draft_id,spending_tx_id)")
+		if tx.Error != nil {
+			return tx.Error
+		}
+	}
+
+	return nil
 }

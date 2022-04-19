@@ -26,13 +26,13 @@ type BlockHeader struct {
 
 	// Model specific fields
 	ID                string         `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the block hash" bson:"_id"`
-	Height            uint32         `json:"height" toml:"height" yaml:"height" gorm:"<-create;type:int unsigned;uniqueIndex;comment:This is the block height" bson:"height"`
-	Time              uint32         `json:"time" toml:"time" yaml:"time" gorm:"<-create;type:int unsigned;index;comment:This is the time the block was mined" bson:"time"`
-	Nonce             uint32         `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;type:int unsigned;comment:This is the nonce" bson:"nonce"`
-	Version           uint32         `json:"version" toml:"version" yaml:"version" gorm:"<-create;type:int unsigned;comment:This is the version" bson:"version"`
+	Height            uint32         `json:"height" toml:"height" yaml:"height" gorm:"<-create;uniqueIndex;comment:This is the block height" bson:"height"`
+	Time              uint32         `json:"time" toml:"time" yaml:"time" gorm:"<-create;index;comment:This is the time the block was mined" bson:"time"`
+	Nonce             uint32         `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;comment:This is the nonce" bson:"nonce"`
+	Version           uint32         `json:"version" toml:"version" yaml:"version" gorm:"<-create;comment:This is the version" bson:"version"`
 	HashPreviousBlock string         `json:"hash_previous_block" toml:"hash_previous_block" yaml:"hash_previous_block" gorm:"<-:create;type:char(64);index;comment:This is the hash of the previous block" bson:"hash_previous_block"`
 	HashMerkleRoot    string         `json:"hash_merkle_root" toml:"hash_merkle_root" yaml:"hash_merkle_root" gorm:"<-;type:char(64);index;comment:This is the hash of the merkle root" bson:"hash_merkle_root"`
-	Bits              string         `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;type:int unsigned;comment:This is the block difficulty" bson:"bits"`
+	Bits              string         `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;comment:This is the block difficulty" bson:"bits"`
 	Synced            utils.NullTime `json:"synced" toml:"synced" yaml:"synced" gorm:"type:timestamp;index;comment:This is when the block was last synced to the bux server" bson:"synced,omitempty"`
 }
 

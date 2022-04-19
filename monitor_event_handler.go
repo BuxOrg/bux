@@ -144,7 +144,7 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
 					subscription.OnPublish(handler)
 					subscription.OnUnsubscribe(handler)
-
+					subscription.Subscribe()
 					h.logger.Info(ctx, "[MONITOR] Waiting for waitgroup to finish")
 					handler.wg.Wait()
 

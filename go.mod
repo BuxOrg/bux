@@ -18,7 +18,7 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jarcoal/httpmock v1.1.0
 	github.com/korovkin/limiter v0.0.0-20220321204241-2880bd9cecaf
-	github.com/libsv/go-bc v0.1.9
+	github.com/libsv/go-bc v0.1.10
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.4
 	github.com/libsv/go-bt/v2 v2.1.0-beta.2.0.20211221142324-0d686850c5e0
@@ -26,7 +26,7 @@ require (
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.5
-	github.com/mrz1836/go-whatsonchain v0.10.3
+	github.com/mrz1836/go-whatsonchain v0.10.4
 	github.com/newrelic/go-agent/v3 v3.15.2
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
@@ -98,7 +98,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/miekg/dns v1.1.48 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
-	github.com/mrz1836/go-api-router v0.4.11 // indirect
+	github.com/mrz1836/go-api-router v0.4.12 // indirect
 	github.com/mrz1836/go-parameters v0.2.8 // indirect
 	github.com/mrz1836/go-sanitize v1.1.5 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
@@ -129,13 +129,13 @@ require (
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
+	golang.org/x/net v0.0.0-20220418201149-a630d4f3e7a2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	google.golang.org/genproto v0.0.0-20220413183235-5e96e2839df9 // indirect
+	google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4 // indirect
 	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

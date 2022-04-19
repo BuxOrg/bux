@@ -26,10 +26,6 @@ import (
 // ClientOps allow functional options to be supplied that overwrite default client options.
 type ClientOps func(c *clientOptions)
 
-const (
-	defaultHTTPTimeout = 20 * time.Second
-)
-
 // defaultClientOptions will return an clientOptions struct with the default settings
 //
 // Useful for starting with the default and then modifying as needed
@@ -64,6 +60,7 @@ func defaultClientOptions() *clientOptions {
 			options:         []datastore.ClientOps{},
 		},
 
+		// Default http client
 		httpClient: &http.Client{
 			Timeout: defaultHTTPTimeout,
 		},

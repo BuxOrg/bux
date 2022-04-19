@@ -159,6 +159,10 @@ func (w *whatsOnChainBase) NewMempoolWebsocket(whatsonchain.SocketHandler) *cent
 	return nil
 }
 
+func (w *whatsOnChainBase) NewBlockHeadersWebsocket(whatsonchain.SocketHandler) *centrifuge.Client {
+	return nil
+}
+
 func (w *whatsOnChainBase) HTTPClient() whatsonchain.HTTPInterface {
 	return nil
 }

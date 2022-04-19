@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
@@ -22,6 +24,43 @@ type MonitorEventHandler struct {
 	buxClient ClientInterface
 	ctx       context.Context
 	limit     *limiter.ConcurrencyLimiter
+}
+
+type blockSubscriptionHandler struct {
+	debug     bool
+	logger    chainstate.Logger
+	monitor   chainstate.MonitorService
+	buxClient ClientInterface
+	ctx       context.Context
+	wg        sync.WaitGroup
+}
+
+func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
+
+	channelName := subscription.Channel()
+	if strings.HasPrefix(channelName, "block:sync:") {
+		// block subscription
+		tx, err := b.monitor.Processor().FilterTransactionPublishEvent(e.Data)
+		if err != nil {
+
+		}
+
+		if tx == "" {
+			return
+		}
+		_, err = b.buxClient.RecordMonitoredTransaction(b.ctx, tx)
+		if err != nil {
+			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+			return
+		}
+
+		if b.debug {
+			b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
+		}
+	}
+}
+func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, event centrifuge.UnsubscribeEvent) {
+	b.wg.Done()
 }
 
 // NewMonitorHandler create a new monitor handler
@@ -49,7 +88,6 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 		}()
 	}
 
-	// todo add all filters from processor on startup filters
 	agentClient := &chainstate.AgentClient{
 		Client: client,
 	}
@@ -79,22 +117,31 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 		// get all block headers that have not been marked as synced
 		blockHeaders, err := h.buxClient.GetUnsyncedBlockHeaders(ctx)
 		for _, blockHeader := range blockHeaders {
+			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Processing block %d: %s", blockHeader.Height, blockHeader.ID))
 			if err != nil {
 				h.logger.Error(h.ctx, err.Error())
 			} else {
-				subscription, err := client.NewSubscription("block:sync:" + blockHeader.ID)
+				var subscription *centrifuge.Subscription
+				subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
 				if err != nil {
 					h.logger.Error(h.ctx, err.Error())
 				}
-				subscription.OnPublish(h)
-				//subscription.OnUnsubscribe(func())
+				handler := &blockSubscriptionHandler{
+					debug:     h.debug,
+					logger:    h.logger,
+					monitor:   h.monitor,
+					buxClient: h.buxClient,
+					ctx:       context.Background(),
+				}
+				handler.wg.Add(1)
+				subscription.OnPublish(handler)
+				subscription.OnUnsubscribe(handler)
+				handler.wg.Wait()
 			}
 		}
 
-		// sleep 30
+		time.Sleep(30 * time.Second)
 	}
-
-	return nil
 }
 
 // OnError on error event

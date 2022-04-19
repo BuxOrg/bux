@@ -8,14 +8,6 @@ import (
 	"github.com/mrz1836/go-whatsonchain"
 )
 
-// MonitorClient interface
-type MonitorClient interface {
-	Connect() error
-	Disconnect() error
-	SetToken(token string)
-	AddFilter(regex, item string) (centrifuge.PublishResult, error)
-}
-
 // AgentClient implements MonitorClient with needed agent methods
 type AgentClient struct {
 	*centrifuge.Client
@@ -40,10 +32,10 @@ func (a *AgentClient) SetToken(token string) {
 // AddFilterMessage defines a new filter to be published from the client
 // todo Just rely on the agent for this data type
 type AddFilterMessage struct {
-	Timestamp int64  `json:"timestamp"`
-	Regex     string `json:"regex"`
 	Filter    string `json:"filter"`
 	Hash      string `json:"hash"`
+	Regex     string `json:"regex"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 // AddFilter adds a new filter to the agent
@@ -65,14 +57,13 @@ func newCentrifugeClient(wsURL string, handler whatsonchain.SocketHandler) Monit
 
 	c.OnConnect(handler)
 	c.OnDisconnect(handler)
-	c.OnMessage(handler)
 	c.OnError(handler)
-
+	c.OnMessage(handler)
+	c.OnServerJoin(handler)
+	c.OnServerLeave(handler)
 	c.OnServerPublish(handler)
 	c.OnServerSubscribe(handler)
 	c.OnServerUnsubscribe(handler)
-	c.OnServerJoin(handler)
-	c.OnServerLeave(handler)
 
 	return &AgentClient{Client: c}
 }

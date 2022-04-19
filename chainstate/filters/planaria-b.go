@@ -15,7 +15,7 @@ const PlanariaBTemplateAlternate = "6a223139487869675634517942763374487051566355
 
 // PlanariaB processor
 func PlanariaB(tx *whatsonchain.TxInfo) (*bt.Tx, error) {
-	// Loop through all of the outputs and check for pubkeyhash output
+	// Loop through all the outputs and check for pubkeyhash output
 	for _, out := range tx.Vout {
 		// if any output contains a pubkeyhash output, include this tx in the filter
 		if strings.HasPrefix(out.ScriptPubKey.Hex, PlanariaBTemplate) || strings.HasPrefix(out.ScriptPubKey.Hex, PlanariaBTemplateAlternate) {

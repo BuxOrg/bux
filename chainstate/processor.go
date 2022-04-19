@@ -15,10 +15,10 @@ import (
 // BloomProcessor bloom filter processor
 type BloomProcessor struct {
 	debug             bool
-	logger            Logger
-	filters           map[string]*BloomProcessorFilter
-	maxCells          uint
 	falsePositiveRate float64
+	filters           map[string]*BloomProcessorFilter
+	logger            Logger
+	maxCells          uint
 }
 
 // BloomProcessorFilter struct
@@ -34,20 +34,6 @@ func NewBloomProcessor(maxCells uint, falsePositiveRate float64) *BloomProcessor
 		maxCells:          maxCells,
 		falsePositiveRate: falsePositiveRate,
 	}
-}
-
-// MonitorProcessor struct that defines interface to all filter processors
-type MonitorProcessor interface {
-	Debug(bool)
-	IsDebug() bool
-	SetLogger(logger Logger)
-	Logger() Logger
-	Add(regexString, item string) error
-	Test(regexString string, item string) bool
-	Reload(regexString string, items []string) error
-	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
-	FilterMempoolTx(txHex string) (string, error)
-	GetHash() string
 }
 
 // Debug set debugging
@@ -123,16 +109,14 @@ func (p *BloomProcessor) Reload(regexString string, items []string) (err error) 
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
 func (p *BloomProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
 	transaction := whatsonchain.TxInfo{}
-	_ = json.Unmarshal(e.Data, &transaction)
+	_ = json.Unmarshal(e.Data, &transaction) // todo: missing error check
 
 	for _, f := range p.filters {
 		lockingScripts := f.regex.FindAllString(string(e.Data), -1)
 		for _, ls := range lockingScripts {
-			passes := f.filter.Test([]byte(ls))
-			if passes {
+			if passes := f.filter.Test([]byte(ls)); passes {
 				tx := whatsonchain.TxInfo{}
-				err := json.Unmarshal(e.Data, &tx)
-				if err != nil {
+				if err := json.Unmarshal(e.Data, &tx); err != nil {
 					return "", err
 				}
 				return tx.Hex, nil
@@ -149,8 +133,7 @@ func (p *BloomProcessor) FilterMempoolTx(txHex string) (string, error) {
 	for _, f := range p.filters {
 		lockingScripts := f.regex.FindAllString(txHex, -1)
 		for _, ls := range lockingScripts {
-			passes := f.filter.Test([]byte(ls))
-			if passes {
+			if passes := f.filter.Test([]byte(ls)); passes {
 				return txHex, nil
 			}
 		}
@@ -164,8 +147,8 @@ func (p *BloomProcessor) FilterMempoolTx(txHex string) (string, error) {
 // This is bound to have some false positives but is somewhat performant when filter set is small
 type RegexProcessor struct {
 	debug  bool
-	logger Logger
 	filter []string
+	logger Logger
 }
 
 // NewRegexProcessor initialize a new regex processor
@@ -224,12 +207,10 @@ func (p *RegexProcessor) Reload(_ string, items []string) (err error) {
 // FilterMempoolPublishEvent check whether a filter matches a mempool tx event
 func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEvent) (string, error) {
 	transaction := whatsonchain.TxInfo{}
-	err := json.Unmarshal(e.Data, &transaction)
-	if err != nil {
+	if err := json.Unmarshal(e.Data, &transaction); err != nil {
 		return "", err
 	}
-	passes := p.Test("", transaction.Hex)
-	if !passes {
+	if passes := p.Test("", transaction.Hex); !passes {
 		return "", nil
 	}
 	return transaction.Hex, nil
@@ -237,8 +218,7 @@ func (p *RegexProcessor) FilterMempoolPublishEvent(e centrifuge.ServerPublishEve
 
 // FilterMempoolTx filters mempool transaction
 func (p *RegexProcessor) FilterMempoolTx(hex string) (string, error) {
-	passes := p.Test("", hex)
-	if passes {
+	if passes := p.Test("", hex); passes {
 		return hex, nil
 	}
 	return "", nil

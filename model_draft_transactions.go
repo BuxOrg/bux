@@ -389,9 +389,15 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 				sc.Script,
 			); err != nil {
 				return
+
 			}
 
-			if sc.ScriptType == utils.ScriptTypeNullData {
+			scriptType := sc.ScriptType
+			if scriptType == "" {
+				scriptType = utils.GetDestinationType(sc.Script)
+			}
+
+			if scriptType == utils.ScriptTypeNullData {
 				// op_return output - only one allowed to have 0 satoshi value ???
 				if sc.Satoshis > 0 {
 					return ErrInvalidOpReturnOutput
@@ -401,7 +407,7 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 					LockingScript: s,
 					Satoshis:      0,
 				})
-			} else if sc.ScriptType == utils.ScriptTypePubKeyHash {
+			} else if scriptType == utils.ScriptTypePubKeyHash {
 				// sending to a p2pkh
 				if sc.Satoshis == 0 {
 					return ErrOutputValueTooLow

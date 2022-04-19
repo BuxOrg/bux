@@ -36,7 +36,7 @@ type BlockHeader struct {
 	Synced            utils.NullTime `json:"synced" toml:"synced" yaml:"synced" gorm:"type:timestamp;index;comment:This is when the block was last synced to the bux server" bson:"synced,omitempty"`
 }
 
-// newBlockHeader will start a new transaction model
+// newBlockHeader will start a new block header model
 func newBlockHeader(hash string, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
 
 	// Create a new model
@@ -174,7 +174,7 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 		}
 	}()
 
-	err = utils.DownloadAndUnzipFile(ctx, file, blockHeadersFile)
+	err = utils.DownloadAndUnzipFile(ctx, m.Client().HTTPClient(), file, blockHeadersFile)
 	if err != nil {
 		return err
 	}

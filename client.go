@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/BuxOrg/bux/cachestore"
@@ -30,6 +31,7 @@ type (
 		dataStore     *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
 		debug         bool                  // If the client is in debug mode
 		encryptionKey string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
+		httpClient    HTTPInterface         // HTTP interface to use
 		itc           bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
 		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
 		logger        logger.Interface      // Internal logging
@@ -283,6 +285,16 @@ func (c *Client) Datastore() datastore.ClientInterface {
 		return c.options.dataStore.ClientInterface
 	}
 	return nil
+}
+
+// HTTPClient will return the http interface to use in the client
+func (c *Client) HTTPClient() HTTPInterface {
+	if c.options.httpClient == nil {
+		c.options.httpClient = &http.Client{
+			Timeout: defaultHTTPTimeout,
+		}
+	}
+	return c.options.httpClient
 }
 
 // Logger will return the Logger if it exists

@@ -158,6 +158,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 
 	if h.monitor.SaveDestinations() {
 		// Process transaction and save outputs
+		// todo replace printf
 		fmt.Printf("Should save the destination here...\n")
 	}
 
@@ -216,6 +217,7 @@ func (h *MonitorEventHandler) onServerPublishLinear(c *centrifuge.Client, e cent
 
 	if h.monitor.SaveDestinations() {
 		// Process transaction and save outputs
+		// todo replace printf
 		fmt.Printf("Should save the destination here...\n")
 	}
 

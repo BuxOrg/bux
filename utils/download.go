@@ -11,9 +11,8 @@ import (
 )
 
 // DownloadAndUnzipFile download the zip file from the URL and put it's content in the file
-func DownloadAndUnzipFile(ctx context.Context, file *os.File, URL string) error {
+func DownloadAndUnzipFile(ctx context.Context, client HTTPInterface, file *os.File, URL string) error {
 
-	client := http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, URL, nil)
 	if err != nil {
 		return err

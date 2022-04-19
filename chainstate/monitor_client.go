@@ -18,6 +18,7 @@ type AddFilterMessage struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
+// SetFilterMessage defines a new filter message with a list of filters
 type SetFilterMessage struct {
 	Filter    []byte `json:"Filter"`
 	Hash      string `json:"hash"`

@@ -46,6 +46,7 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, height uint
 	return blockHeader, nil
 }
 
+// GetUnsyncedBlockHeaders get all unsynced block headers
 func (c *Client) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error) {
 
 	// Check for existing NewRelic transaction

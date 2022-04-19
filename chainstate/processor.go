@@ -68,10 +68,12 @@ func (p *BloomProcessor) GetHash() string {
 	return hex.EncodeToString(hash)
 }
 
+// GetFilters get all filters from the bloom processor
 func (p *BloomProcessor) GetFilters() map[string]*BloomProcessorFilter {
 	return p.filters
 }
 
+// SetFilter replace and set a filter
 func (p *BloomProcessor) SetFilter(regex string, filter []byte) error {
 	filterBuffer := bytes.NewBuffer(filter)
 	r, err := regexp.Compile(regex)
@@ -83,7 +85,10 @@ func (p *BloomProcessor) SetFilter(regex string, filter []byte) error {
 		Filter: boom.NewDefaultStableBloomFilter(p.maxCells, p.falsePositiveRate),
 		regex:  r,
 	}
-	bloomFilter.Filter.ReadFrom(filterBuffer)
+	_, err = bloomFilter.Filter.ReadFrom(filterBuffer)
+	if err != nil {
+		return err
+	}
 
 	p.filters[regex] = bloomFilter
 	return nil
@@ -250,10 +255,12 @@ func (p *RegexProcessor) GetHash() string {
 	return ""
 }
 
+// GetFilters get all filters from the bloom processor
 func (p *RegexProcessor) GetFilters() map[string]*BloomProcessorFilter {
 	return nil
 }
 
+// SetFilter replace and set a filter
 func (p *RegexProcessor) SetFilter(_ string, _ []byte) error {
 	return nil
 }

@@ -145,7 +145,7 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 					subscription.OnPublish(handler)
 					subscription.OnUnsubscribe(handler)
 
-					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Waiting for waitgroup to finish"))
+					h.logger.Info(ctx, "[MONITOR] Waiting for waitgroup to finish")
 					handler.wg.Wait()
 
 					// save that block header has been synced
@@ -210,7 +210,8 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 		// block subscription
 		tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
 		if err != nil {
-
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx: %v", err))
+			return
 		}
 
 		if tx == "" {

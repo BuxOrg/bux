@@ -12,7 +12,7 @@ import (
 // hash is the hash of the block header
 // bh is the block header data
 // opts are model options and can include "metadata"
-func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.BlockHeader,
+func (c *Client) RecordBlockHeader(ctx context.Context, hash string, height uint32, bh bc.BlockHeader,
 	opts ...ModelOps) (*BlockHeader, error) {
 
 	// Check for existing NewRelic transaction
@@ -20,7 +20,7 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.Block
 
 	// Create the model & set the default options (gives options from client->model)
 	newOpts := c.DefaultModelOptions(append(opts, New())...)
-	blockHeader := newBlockHeader(hash, bh, newOpts...)
+	blockHeader := newBlockHeader(hash, height, bh, newOpts...)
 
 	// Ensure that we have a transaction id (created from the txHex)
 	id := blockHeader.GetID()

@@ -140,18 +140,22 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 				subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
 				if err != nil {
 					h.logger.Error(h.ctx, err.Error())
+				} else {
+					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
+					subscription.OnPublish(handler)
+					subscription.OnUnsubscribe(handler)
+
+					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Waiting for waitgroup to finish"))
+					handler.wg.Wait()
+
+					// save that block header has been synced
+					blockHeader.Synced.Valid = true
+					blockHeader.Synced.Time = time.Now()
+					err = blockHeader.Save(ctx)
+					if err != nil {
+						h.logger.Error(h.ctx, err.Error())
+					}
 				}
-				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
-				subscription.OnPublish(handler)
-				subscription.OnUnsubscribe(handler)
-
-				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Waiting for waitgroup to finish"))
-				handler.wg.Wait()
-
-				// save that block header has been synced
-				blockHeader.Synced.Valid = true
-				blockHeader.Synced.Time = time.Now()
-				err = blockHeader.Save(ctx)
 			}
 		}
 
@@ -323,7 +327,19 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(_ *centrifuge.Client, e 
 		Time:           uint32(bi.Time),
 		Bits:           []byte(bi.Bits),
 	}
-	_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, bh)
+
+	height := uint32(bi.Height)
+	previousBlockHeader, err := getBlockHeaderByHeight(h.ctx, height-1, h.buxClient.DefaultModelOptions()...)
+	if err != nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR retreiving previous block header: %v", err))
+		return
+	}
+	if previousBlockHeader == nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR Previous block header not found: %d", height-1))
+		return
+	}
+
+	_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, height, bh)
 	if err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording block header: %v", err))
 		return

@@ -37,12 +37,13 @@ type BlockHeader struct {
 }
 
 // newBlockHeader will start a new block header model
-func newBlockHeader(hash string, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
+func newBlockHeader(hash string, height uint32, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
 
 	// Create a new model
 	bh = &BlockHeader{
-		ID:    hash,
-		Model: *NewBaseModel(ModelBlockHeader, opts...),
+		ID:     hash,
+		Height: height,
+		Model:  *NewBaseModel(ModelBlockHeader, opts...),
 	}
 
 	// Set header info

@@ -311,8 +311,9 @@ func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
 	// The satoshis of these inputs are not added to the reserved satoshis. If these inputs contain satoshis
 	// that will be added to the total inputs and handled with the change addresses.
 	includeUtxos := make([]*Utxo, 0)
+	opts := m.GetOptions(false)
 	for _, utxo := range m.Configuration.IncludeUtxos {
-		utxoModel, err := getUtxo(ctx, utxo.TransactionID, utxo.OutputIndex, m.GetOptions(false)...)
+		utxoModel, err := getUtxo(ctx, utxo.TransactionID, utxo.OutputIndex, opts...)
 		if err != nil {
 			return err
 		}
@@ -320,22 +321,19 @@ func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
 		includeUtxos = append(includeUtxos, utxoModel)
 	}
 
-	if err := m.processUtxos(
+	return m.processUtxos(
 		ctx, includeUtxos,
-	); err != nil {
-		return err
-	}
-
-	return nil
+	)
 }
 
 // processUtxos will process the utxos
 func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) error {
 	// Get destinations
+	opts := m.GetOptions(false)
 	for _, utxo := range utxos {
 		lockingScript := utils.GetDestinationLockingScript(utxo.ScriptPubKey)
 		destination, err := getDestinationByLockingScript(
-			ctx, lockingScript, m.GetOptions(false)...,
+			ctx, lockingScript, opts...,
 		)
 		if err != nil {
 			return err

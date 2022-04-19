@@ -457,7 +457,7 @@ func TestTransactionConfig_processScriptOutput(t *testing.T) {
 	t.Run("empty script", func(t *testing.T) {
 		script := ""
 		output := &TransactionOutput{
-			Script: &script,
+			Script: script,
 		}
 		err := output.processScriptOutput()
 		require.ErrorIs(t, err, ErrInvalidScriptOutput)
@@ -466,7 +466,7 @@ func TestTransactionConfig_processScriptOutput(t *testing.T) {
 	t.Run("invalid hex", func(t *testing.T) {
 		script := "test"
 		output := &TransactionOutput{
-			Script: &script,
+			Script: script,
 		}
 		err := output.processScriptOutput()
 		require.Error(t, err)
@@ -475,7 +475,7 @@ func TestTransactionConfig_processScriptOutput(t *testing.T) {
 	t.Run("p2pkh script", func(t *testing.T) {
 		script := testLockingScript
 		output := &TransactionOutput{
-			Script: &script,
+			Script: script,
 		}
 		err := output.processScriptOutput()
 		require.NoError(t, err)
@@ -484,7 +484,7 @@ func TestTransactionConfig_processScriptOutput(t *testing.T) {
 	t.Run("STAS token script", func(t *testing.T) {
 		script := testSTASLockingScript
 		output := &TransactionOutput{
-			Script: &script,
+			Script: script,
 		}
 		err := output.processScriptOutput()
 		require.NoError(t, err)

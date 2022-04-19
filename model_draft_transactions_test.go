@@ -474,7 +474,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 				To:       testExternalAddress,
 				Satoshis: 1000,
 			}, {
-				Script:   &testSTASLockingScript, // send token to the same destination
+				Script:   testSTASLockingScript, // send token to the same destination
 				Satoshis: 564,
 			}},
 		}, append(client.DefaultModelOptions(), New())...)
@@ -498,7 +498,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].To)
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Satoshis)
-		assert.Equal(t, testSTASLockingScript, *draftTransaction.Configuration.Outputs[1].Script)
+		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Script)
 		assert.Len(t, draftTransaction.Configuration.Outputs[1].Scripts, 1)
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].Scripts[0].Address)
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)

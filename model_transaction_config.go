@@ -65,8 +65,8 @@ type TransactionOutput struct {
 	Satoshis  uint64          `json:"satoshis" toml:"satoshis" yaml:"satoshis" bson:"satoshis"`
 	Scripts   []*ScriptOutput `json:"scripts" toml:"scripts" yaml:"scripts" bson:"scripts"`
 	To        string          `json:"to,omitempty" toml:"to" yaml:"to" bson:"to,omitempty"`
-	OpReturn  *OpReturn       `json:"op_return" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`
-	Script    *string         `json:"script" toml:"script" yaml:"script" bson:"script,omitempty"` // custom (non-standard) script output
+	OpReturn  *OpReturn       `json:"op_return,omitempty" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`
+	Script    string          `json:"script,omitempty" toml:"script" yaml:"script" bson:"script,omitempty"` // custom (non-standard) script output
 }
 
 // PaymailP4 paymail configuration for the p2p payments on this output
@@ -170,7 +170,7 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 		return t.processAddressOutput()
 	} else if t.OpReturn != nil { // OP_RETURN output
 		return t.processOpReturnOutput()
-	} else if t.Script != nil { // Custom script output
+	} else if t.Script != "" { // Custom script output
 		return t.processScriptOutput()
 	}
 
@@ -322,12 +322,12 @@ func (t *TransactionOutput) processAddressOutput() (err error) {
 
 // processScriptOutput will process a custom bitcoin script output
 func (t *TransactionOutput) processScriptOutput() (err error) {
-	if t.Script == nil || *t.Script == "" {
+	if t.Script == "" {
 		return ErrInvalidScriptOutput
 	}
 
 	// check whether go-bt parses the script correctly
-	if _, err = bscript.NewFromHexString(*t.Script); err != nil {
+	if _, err = bscript.NewFromHexString(t.Script); err != nil {
 		return
 	}
 
@@ -336,8 +336,8 @@ func (t *TransactionOutput) processScriptOutput() (err error) {
 		t.Scripts,
 		&ScriptOutput{
 			Satoshis:   t.Satoshis,
-			Script:     *t.Script,
-			ScriptType: utils.GetDestinationType(*t.Script), // try to determine type
+			Script:     t.Script,
+			ScriptType: utils.GetDestinationType(t.Script), // try to determine type
 		},
 	)
 

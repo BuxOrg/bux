@@ -150,16 +150,20 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
 					subscription.OnPublish(handler)
 					subscription.OnUnsubscribe(handler)
-					subscription.Subscribe()
-					h.logger.Info(ctx, "[MONITOR] Waiting for waitgroup to finish")
-					handler.wg.Wait()
-
-					// save that block header has been synced
-					blockHeader.Synced.Valid = true
-					blockHeader.Synced.Time = time.Now()
-					err = blockHeader.Save(ctx)
+					err = subscription.Subscribe()
 					if err != nil {
 						h.logger.Error(h.ctx, err.Error())
+					} else {
+						h.logger.Info(ctx, "[MONITOR] Waiting for waitgroup to finish")
+						handler.wg.Wait()
+
+						// save that block header has been synced
+						blockHeader.Synced.Valid = true
+						blockHeader.Synced.Time = time.Now()
+						err = blockHeader.Save(ctx)
+						if err != nil {
+							h.logger.Error(h.ctx, err.Error())
+						}
 					}
 				}
 			}
@@ -183,7 +187,10 @@ func (h *MonitorEventHandler) ProcessBlockHeaders(ctx context.Context, client *c
 		} else {
 			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block header subscription: %v", subscription))
 			subscription.OnPublish(h)
-			subscription.Subscribe()
+			err = subscription.Subscribe()
+			if err != nil {
+				h.logger.Error(h.ctx, err.Error())
+			}
 		}
 	}
 
@@ -253,10 +260,41 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 		if h.debug {
 			h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
 		}
-	}
+	} else if strings.HasPrefix(channelName, "block:headers:history:") {
+		bi := whatsonchain.BlockInfo{}
+		err := json.Unmarshal(e.Data, &bi)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
+		}
 
-	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e))
+		var existingBlock *BlockHeader
+		existingBlock, err = h.buxClient.GetBlockHeaderByHeight(h.ctx, uint32(bi.Height))
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR getting block header by height: %v", err))
+		}
+		if existingBlock == nil {
+			if err != nil {
+				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
+				return
+			}
+			bh := bc.BlockHeader{
+				HashPrevBlock:  []byte(bi.PreviousBlockHash),
+				HashMerkleRoot: []byte(bi.MerkleRoot),
+				Nonce:          uint32(bi.Nonce),
+				Version:        uint32(bi.Version),
+				Time:           uint32(bi.Time),
+				Bits:           []byte(bi.Bits),
+			}
+			_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, uint32(bi.Height), bh)
+			if err != nil {
+				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording block header: %v", err))
+				return
+			}
+		}
+	} else {
+		if h.debug {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e.Data))
+		}
 	}
 }
 

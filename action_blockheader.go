@@ -63,3 +63,12 @@ func (c *Client) GetLastBlockHeader(ctx context.Context) (*BlockHeader, error) {
 
 	return GetLastBlockHeader(ctx, c.DefaultModelOptions()...)
 }
+
+// GetBlockHeaderByHeight get the block header by height
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint32) (*BlockHeader, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_blockheader_by_height")
+
+	return getBlockHeaderByHeight(ctx, height, c.DefaultModelOptions()...)
+}

@@ -200,24 +200,27 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 	// import all previous block headers from file
 	blockHeadersFile := m.Client().ImportBlockHeadersFromURL()
 	if blockHeadersFile != "" {
-		go func() {
-			ctx := context.Background()
-			// check whether we have block header 0, then we do not import again
-			blockHeader0, err := getBlockHeaderByHeight(ctx, 0, m.Client().DefaultModelOptions()...)
-			if err != nil {
-				m.Client().Logger().Error(ctx, err.Error())
-			} else {
-				if blockHeader0 == nil {
-					// import block headers in the background
-					m.Client().Logger().Info(ctx, "importing block headers into database")
-					if err = m.importBlockHeaders(ctx, client, blockHeadersFile); err != nil {
-						m.Client().Logger().Error(ctx, err.Error())
-					} else {
-						m.Client().Logger().Info(ctx, "successfully imported all block headers into database")
-					}
+		ctx := context.Background()
+		// check whether we have block header 0, then we do not import
+		blockHeader0, err := getBlockHeaderByHeight(ctx, 0, m.Client().DefaultModelOptions()...)
+		if err != nil {
+			// stop execution if block headers import is not successful
+			// the block headers state can be messed up if they are not imported, or half imported
+			panic(err.Error())
+		} else {
+			if blockHeader0 == nil {
+				// import block headers in the background
+				m.Client().Logger().Info(ctx, "Importing block headers into database")
+				err = m.importBlockHeaders(ctx, client, blockHeadersFile)
+				if err != nil {
+					// stop execution if block headers import is not successful
+					// the block headers state can be messed up if they are not imported, or half imported
+					panic(err.Error())
+				} else {
+					m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
 				}
 			}
-		}()
+		}
 	}
 
 	return nil

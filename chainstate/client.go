@@ -24,9 +24,9 @@ type (
 		config          *syncConfig      // Configuration for broadcasting and other chain-state actions
 		debug           bool             // For extra logs and additional debug information
 		logger          logger.Interface // Internal logger interface
+		monitor         MonitorService   // Monitor service
 		newRelicEnabled bool             // If NewRelic is enabled (parent application)
 		userAgent       string           // Custom user agent for outgoing HTTP Requests
-		monitor         MonitorService
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -112,6 +112,9 @@ func (c *Client) Close(ctx context.Context) {
 		if c.options.config.nowNodes != nil {
 			c.options.config.nowNodes = nil
 		}
+		/*if c.options.monitor != nil {
+			c.options.monitor.Disconnected()
+		}*/
 	}
 }
 
@@ -154,9 +157,6 @@ func (c *Client) Minercraft() minercraft.ClientInterface {
 
 // Monitor will return the Monitor client
 func (c *Client) Monitor() MonitorService {
-	if c.options.monitor == nil {
-		return nil
-	}
 	return c.options.monitor
 }
 

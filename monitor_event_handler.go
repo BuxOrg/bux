@@ -229,7 +229,7 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 	}
 }
 
-// OnPublish ???
+// OnPublish on publish event
 func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
 
 	channelName := subscription.Channel()
@@ -292,35 +292,35 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 	}
 }
 
-// OnServerSubscribe ???
+// OnServerSubscribe on server subscribe event
 func (h *MonitorEventHandler) OnServerSubscribe(_ *centrifuge.Client, e centrifuge.ServerSubscribeEvent) {
 	if h.debug {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnServerSubscribe: %v", e))
 	}
 }
 
-// OnServerUnsubscribe ???
+// OnServerUnsubscribe on the unsubscribe event
 func (h *MonitorEventHandler) OnServerUnsubscribe(_ *centrifuge.Client, e centrifuge.ServerUnsubscribeEvent) {
 	if h.debug {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnServerUnsubscribe: %v", e))
 	}
 }
 
-// OnSubscribeSuccess ???
+// OnSubscribeSuccess on subscribe success
 func (h *MonitorEventHandler) OnSubscribeSuccess(_ *centrifuge.Subscription, e centrifuge.SubscribeSuccessEvent) {
 	if h.debug {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnSubscribeSuccess: %v", e))
 	}
 }
 
-// OnSubscribeError ???
+// OnSubscribeError is for an error
 func (h *MonitorEventHandler) OnSubscribeError(_ *centrifuge.Subscription, e centrifuge.SubscribeErrorEvent) {
 	if h.debug {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnSubscribeError: %v", e))
 	}
 }
 
-// OnUnsubscribe ???
+// OnUnsubscribe will unsubscribe
 func (h *MonitorEventHandler) OnUnsubscribe(_ *centrifuge.Subscription, e centrifuge.UnsubscribeEvent) {
 	if h.debug {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %v", e))
@@ -337,7 +337,7 @@ func (h *MonitorEventHandler) OnServerLeave(_ *centrifuge.Client, e centrifuge.S
 	h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] Left server: %v", e))
 }
 
-// OnServerPublish ???
+// OnServerPublish on server publish event
 func (h *MonitorEventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
 	h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] Server publish to channel %s with data %v", e.Channel, string(e.Data)))
 	// todo make this configurable

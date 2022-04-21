@@ -89,6 +89,7 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 
 // loadMonitor will load the Monitor
 func (c *Client) loadMonitor(ctx context.Context) (err error) {
+
 	// Load monitor if set by the user
 	monitor := c.options.chainstate.Monitor()
 	if monitor == nil {
@@ -96,14 +97,12 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 	}
 	handler := NewMonitorHandler(ctx, c, monitor)
 	if c.options.chainstate.Monitor().LoadMonitoredDestinations() {
-		err = c.loadMonitoredDestinations(ctx, monitor)
-		if err != nil {
+		if err = c.loadMonitoredDestinations(ctx, monitor); err != nil {
 			return
 		}
 	}
 
-	err = monitor.Monitor(&handler)
-	return
+	return monitor.Monitor(&handler)
 }
 
 // runModelMigrations will run the model Migrate() method for all models

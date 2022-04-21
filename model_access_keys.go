@@ -70,7 +70,7 @@ func GetAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 }
 
 // GetAccessKeys will get all the access keys that match the metadata search
-func GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts ...ModelOps) ([]*AccessKey, error) {
+func GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
 
 	// Construct an empty model
 	var models []AccessKey
@@ -85,7 +85,7 @@ func GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, opts 
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, 0, 0, "", "", defaultDatabaseReadTimeout,
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

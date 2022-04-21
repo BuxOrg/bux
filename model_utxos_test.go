@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -116,8 +117,7 @@ func TestUtxo_getUtxosByXpubID(t *testing.T) {
 
 		utxos, err := getUtxosByXpubID(
 			ctx, testXPubID,
-			0, 0,
-			"", "",
+			nil,
 			client.DefaultModelOptions()...,
 		)
 		assert.NoError(t, err)
@@ -131,8 +131,7 @@ func TestUtxo_getUtxosByXpubID(t *testing.T) {
 
 		utxos, err := getUtxosByXpubID(
 			ctx, testXPubID,
-			0, 0,
-			"", "",
+			nil,
 			client.DefaultModelOptions()...,
 		)
 		assert.NoError(t, err)
@@ -292,28 +291,28 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 
 		opts := client.DefaultModelOptions()
 
-		utxos, err := GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 0, 0, nil, opts...)
+		utxos, err := GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 5)
 
 		_, err = ReserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, opts...)
 		require.NoError(t, err)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 0, 0, nil, opts...)
+		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 3)
 
 		_, err = ReserveUtxos(ctx, testXPubID, testDraftID3, 1000, 0.5, nil, opts...)
 		require.NoError(t, err)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 0, 0, nil, opts...)
+		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 
 		err = UnReserveUtxos(ctx, testXPubID, testDraftID2, opts...)
 		require.NoError(t, err)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 0, 0, nil, opts...)
+		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 4)
 	})
@@ -325,19 +324,23 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 
 		opts := client.DefaultModelOptions()
 
-		utxos, err := GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 1, 2, nil, opts...)
+		queryParams := &datastore.QueryParams{Page: 1, PageSize: 2}
+		utxos, err := GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 2, 2, nil, opts...)
+		queryParams = &datastore.QueryParams{Page: 2, PageSize: 2}
+		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 3, 2, nil, opts...)
+		queryParams = &datastore.QueryParams{Page: 3, PageSize: 2}
+		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 1)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, 4, 2, nil, opts...)
+		queryParams = &datastore.QueryParams{Page: 4, PageSize: 2}
+		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 0)
 	})

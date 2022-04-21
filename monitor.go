@@ -21,8 +21,16 @@ func (c *Client) loadMonitoredDestinations(ctx context.Context, monitor chainsta
 			"$gt": time.Now().Add(time.Duration(-24*monitor.GetMonitorDays()) * time.Hour),
 		},
 	}
+
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      monitor.GetMaxNumberOfDestinations(),
+		OrderByField:  "monitor",
+		SortDirection: "desc",
+	}
+
 	var destinations []*destinationMonitor
-	err := c.Datastore().GetModels(ctx, &[]*Destination{}, conditions, monitor.GetMaxNumberOfDestinations(), 0, "", "", &destinations, 30*time.Second)
+	err := c.Datastore().GetModels(ctx, &[]*Destination{}, conditions, queryParams, &destinations, 30*time.Second)
 	if err != nil && !errors.Is(err, datastore.ErrNoResults) {
 		return err
 	}

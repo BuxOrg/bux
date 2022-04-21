@@ -59,7 +59,7 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 }
 
 // getTransactionsToBroadcast will get the sync transactions to broadcast
-func getTransactionsToBroadcast(ctx context.Context, pageSize, page int,
+func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps) ([]*SyncTransaction, error) {
 
 	// Get the records by status
@@ -68,7 +68,7 @@ func getTransactionsToBroadcast(ctx context.Context, pageSize, page int,
 		map[string]interface{}{
 			broadcastStatusField: SyncStatusReady.String(),
 		},
-		pageSize, page, opts...,
+		queryParams, opts...,
 	)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func getTransactionsToBroadcast(ctx context.Context, pageSize, page int,
 }
 
 // getTransactionsToSync will get the sync transactions to sync
-func getTransactionsToSync(ctx context.Context, pageSize, page int,
+func getTransactionsToSync(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps) ([]*SyncTransaction, error) {
 
 	// Get the records by status
@@ -86,7 +86,7 @@ func getTransactionsToSync(ctx context.Context, pageSize, page int,
 		map[string]interface{}{
 			syncStatusField: SyncStatusReady.String(),
 		},
-		pageSize, page, opts...,
+		queryParams, opts...,
 	)
 	if err != nil {
 		return nil, err
@@ -95,14 +95,20 @@ func getTransactionsToSync(ctx context.Context, pageSize, page int,
 }
 
 // getTransactionsToSync will get the sync transactions to sync
-func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]interface{}, pageSize, page int,
+func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]interface{}, queryParams *datastore.QueryParams,
 	opts ...ModelOps) ([]*SyncTransaction, error) {
+
+	if queryParams == nil {
+		queryParams = &datastore.QueryParams{}
+	}
+	queryParams.OrderByField = idField
+	queryParams.SortDirection = datastore.SortAsc
 
 	// Get the records
 	var models []SyncTransaction
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, pageSize, page, idField, datastore.SortAsc, defaultDatabaseReadTimeout,
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
@@ -232,9 +238,11 @@ func (m *SyncTransaction) Migrate(client datastore.ClientInterface) error {
 // processSyncTransactions will process sync transaction records
 func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
 
+	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+
 	// Get x records
 	records, err := getTransactionsToSync(
-		ctx, maxTransactions, 1, opts...,
+		ctx, queryParams, opts...,
 	)
 	if err != nil {
 		return err
@@ -257,9 +265,11 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 // processBroadcastTransactions will process sync transaction records
 func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
 
+	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+
 	// Get x records
 	records, err := getTransactionsToBroadcast(
-		ctx, maxTransactions, 1, opts...,
+		ctx, queryParams, opts...,
 	)
 	if err != nil {
 		return err

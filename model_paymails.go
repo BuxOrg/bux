@@ -78,7 +78,7 @@ func getPaymail(ctx context.Context, address string, opts ...ModelOps) (*Paymail
 
 // getPaymails will get all the paymails with the given conditions
 func getPaymails(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	pageSize, page int, opts ...ModelOps) ([]*PaymailAddress, error) {
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error) {
 
 	var models []PaymailAddress
 	dbConditions := map[string]interface{}{}
@@ -99,7 +99,7 @@ func getPaymails(ctx context.Context, metadata *Metadata, conditions *map[string
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, dbConditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
+		&models, dbConditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

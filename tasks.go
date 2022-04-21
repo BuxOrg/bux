@@ -21,10 +21,17 @@ func TaskCleanupDraftTransactions(ctx context.Context, logClient logger.Interfac
 		// todo: add DB condition for date "expires_at": map[string]interface{}{"$lte": time.Now()},
 	}
 
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      20,
+		OrderByField:  idField,
+		SortDirection: datastore.SortAsc,
+	}
+
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, 20, 1, idField, datastore.SortAsc, defaultDatabaseReadTimeout,
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil

@@ -135,7 +135,7 @@ func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 	t.Run("tx not found", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
-		transactions, err := getTransactionsByXpubID(ctx, testXPub, nil, nil, 0, 0, client.DefaultModelOptions()...)
+		transactions, err := getTransactionsByXpubID(ctx, testXPub, nil, nil, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Nil(t, transactions)
 	})
@@ -148,7 +148,7 @@ func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 		txErr := tx.Save(ctx)
 		require.NoError(t, txErr)
 
-		transactions, err := getTransactionsByXpubID(ctx, testXPubID, nil, nil, 0, 0, opts...)
+		transactions, err := getTransactionsByXpubID(ctx, testXPubID, nil, nil, nil, opts...)
 		require.NoError(t, err)
 		require.NotNil(t, transactions)
 		require.Len(t, transactions, 1)

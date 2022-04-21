@@ -27,7 +27,7 @@ type Destination struct {
 	Num           uint32         `json:"num" toml:"num" yaml:"num" gorm:"<-:create;type:int;comment:This is the chain/(num) location of the address related to the xPub" bson:"num"`
 	Address       string         `json:"address" toml:"address" yaml:"address" gorm:"<-:create;type:varchar(35);index;comment:This is the BitCoin address" bson:"address"`
 	DraftID       string         `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-:create;type:varchar(64);index;comment:This is the related draft id (if internal tx)" bson:"draft_id,omitempty"`
-	Monitor       utils.NullTime `json:"monitor" toml:"monitor" yaml:"monitor" gorm:";comment:When this address was last used for an external transaction, for monitoring" bson:"monitor,omitempty"`
+	Monitor       utils.NullTime `json:"monitor" toml:"monitor" yaml:"monitor" gorm:";index;comment:When this address was last used for an external transaction, for monitoring" bson:"monitor,omitempty"`
 }
 
 // newDestination will start a new Destination model for a locking script
@@ -144,7 +144,7 @@ func getDestinationByLockingScript(ctx context.Context, lockingScript string, op
 
 // getDestinationsByXpubID will get the destination(s) by the given xPubID
 func getDestinationsByXpubID(ctx context.Context, xPubID string, usingMetadata *Metadata,
-	pageSize, page int, opts ...ModelOps) ([]*Destination, error) {
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {
 
 	// Construct an empty model
 	var models []Destination
@@ -159,7 +159,7 @@ func getDestinationsByXpubID(ctx context.Context, xPubID string, usingMetadata *
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

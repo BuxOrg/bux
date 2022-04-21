@@ -155,7 +155,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			var getDestinations []*Destination
 			getDestinations, err = tc.client.GetDestinations(
-				tc.ctx, xPubID, nil,
+				tc.ctx, xPubID, nil, nil,
 			)
 			require.NoError(t, err)
 			require.NotNil(t, getDestinations)
@@ -185,7 +185,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 			// use the wrong xpub
 			var getDestinations []*Destination
 			getDestinations, err = tc.client.GetDestinations(
-				tc.ctx, testXPubID, nil,
+				tc.ctx, testXPubID, nil, nil,
 			)
 			require.NoError(t, err)
 			assert.Equal(t, 0, len(getDestinations))

@@ -179,7 +179,7 @@ func (c *Client) GetModel(
 
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
-		return c.getWithMongo(ctx, model, conditions, nil)
+		return c.getWithMongo(ctx, model, conditions, nil, nil)
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
@@ -206,30 +206,38 @@ func (c *Client) GetModels(
 	ctx context.Context,
 	models interface{},
 	conditions map[string]interface{},
-	pageSize, page int,
-	orderByField, sortDirection string,
+	queryParams *QueryParams,
 	fieldResults interface{},
 	timeout time.Duration,
 ) error {
 
+	if queryParams == nil {
+		// init a new empty object for the default queryParams
+		queryParams = &QueryParams{}
+	}
+	if queryParams.OrderByField == "id" {
+		queryParams.OrderByField = "_id" // use Mongo _id instead of default id field
+	}
+	// Set default page size
+	if queryParams.Page > 0 && queryParams.PageSize < 1 {
+		queryParams.PageSize = defaultPageSize
+	}
+
+	// lower case the sort direction (asc / desc)
+	queryParams.SortDirection = strings.ToLower(queryParams.SortDirection)
+
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
-		// todo: add page/size for mongo
-		return c.getWithMongo(ctx, models, conditions, fieldResults)
+		return c.getWithMongo(ctx, models, conditions, fieldResults, queryParams)
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
-	return c.find(ctx, models, conditions, pageSize, page, orderByField, sortDirection, fieldResults, timeout)
+	return c.find(ctx, models, conditions, queryParams, fieldResults, timeout)
 }
 
 // find will get records and return
 func (c *Client) find(ctx context.Context, result interface{}, conditions map[string]interface{},
-	pageSize, page int, orderByField, sortDirection string, fieldResults interface{}, timeout time.Duration) error {
-
-	// Set default page size
-	if page > 0 && pageSize < 1 {
-		pageSize = defaultPageSize
-	}
+	queryParams *QueryParams, fieldResults interface{}, timeout time.Duration) error {
 
 	// Find the type
 	if reflect.TypeOf(result).Elem().Kind() != reflect.Slice {
@@ -246,20 +254,20 @@ func (c *Client) find(ctx context.Context, result interface{}, conditions map[st
 	tx := ctxDB.Model(result)
 
 	// Create the offset
-	offset := (page - 1) * pageSize
+	offset := (queryParams.Page - 1) * queryParams.PageSize
 
 	// Use the limit and offset
-	if page > 0 && pageSize > 0 {
-		tx = tx.Limit(pageSize).Offset(offset)
+	if queryParams.Page > 0 && queryParams.PageSize > 0 {
+		tx = tx.Limit(queryParams.PageSize).Offset(offset)
 	}
 
 	// Use an order field/sort
-	if len(orderByField) > 0 {
+	if len(queryParams.OrderByField) > 0 {
 		tx = tx.Order(clause.OrderByColumn{
 			Column: clause.Column{
-				Name: orderByField,
+				Name: queryParams.OrderByField,
 			},
-			Desc: strings.ToLower(sortDirection) == SortDesc,
+			Desc: strings.ToLower(queryParams.SortDirection) == SortDesc,
 		})
 	}
 

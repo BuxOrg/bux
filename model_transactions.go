@@ -160,7 +160,7 @@ func (m *Transaction) setXPubID() {
 // getTransactionsByXpubID will get all the models for a given xpub ID
 func getTransactionsByXpubID(ctx context.Context, xPubID string,
 	metadata *Metadata, conditions *map[string]interface{},
-	pageSize, page int, opts ...ModelOps) ([]*Transaction, error) {
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
 
 	dbConditions := map[string]interface{}{
 		"$or": []map[string]interface{}{{
@@ -226,19 +226,19 @@ func getTransactionsByXpubID(ctx context.Context, xPubID string,
 		dbConditions["$and"] = and
 	}
 
-	return _getTransactions(ctx, dbConditions, xPubID, page, pageSize, opts...)
+	return _getTransactions(ctx, dbConditions, xPubID, queryParams, opts...)
 }
 
 // _getTransactions get all transactions for the given conditions
 // NOTE: this function should only be used internally, it allows to query the whole transaction table
-func _getTransactions(ctx context.Context, conditions map[string]interface{}, xPubID string, page, pageSize int, opts ...ModelOps) ([]*Transaction, error) {
+func _getTransactions(ctx context.Context, conditions map[string]interface{}, xPubID string, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
 	var models []Transaction
 	if err := getModels(
 		ctx, NewBaseModel(
 			ModelNameEmpty, opts...).Client().Datastore(),
 		&models, conditions,
-		pageSize, page,
-		"", "", defaultDatabaseReadTimeout,
+		queryParams,
+		defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

@@ -16,8 +16,7 @@ func (c *Client) GetUtxos(ctx context.Context, xPubKey string) ([]*Utxo, error) 
 	// todo: add params for: page size, page, orderByField, sortDirection (right now it is unlimited)
 	utxos, err := getUtxosByXpubID(
 		ctx, utils.Hash(xPubKey),
-		0, 0,
-		"", "",
+		nil,
 		c.DefaultModelOptions()...,
 	)
 	if err != nil {

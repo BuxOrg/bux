@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 )
 
@@ -102,15 +103,15 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 // GetDestinations will get destinations based on an xPub
 //
 // metadataConditions are the search criteria used to find destinations
-func (c *Client) GetDestinations(ctx context.Context, xPubID string, metadataConditions *Metadata) ([]*Destination, error) {
+func (c *Client) GetDestinations(ctx context.Context, xPubID string, metadataConditions *Metadata,
+	queryParams *datastore.QueryParams) ([]*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
 	// Get the destinations
-	// todo: add params for: page size and page (right now it is unlimited)
 	destinations, err := getDestinationsByXpubID(
-		ctx, xPubID, metadataConditions, 0, 0, c.DefaultModelOptions()...,
+		ctx, xPubID, metadataConditions, queryParams, c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err

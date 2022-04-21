@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 )
 
@@ -26,15 +27,14 @@ func (c *Client) GetPaymailAddress(ctx context.Context, address string, opts ...
 
 // GetPaymailAddresses will get all the paymail addresses from the Datastore
 func (c *Client) GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, pageSize, page int) ([]*PaymailAddress, error) {
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
 
 	// Get the paymail address
-	// todo: add params for: page size and page (right now it is unlimited)
 	paymailAddresses, err := getPaymails(
-		ctx, metadataConditions, conditions, pageSize, page,
+		ctx, metadataConditions, conditions, queryParams,
 		c.DefaultModelOptions()...,
 	)
 	if err != nil {
@@ -45,8 +45,8 @@ func (c *Client) GetPaymailAddresses(ctx context.Context, metadataConditions *Me
 }
 
 // GetPaymailAddressesByXPubID will get all the paymail addresses for an xPubID from the Datastore
-func (c *Client) GetPaymailAddressesByXPubID(ctx context.Context, xPubID string,
-	metadataConditions *Metadata, conditions *map[string]interface{}, pageSize, page int) ([]*PaymailAddress, error) {
+func (c *Client) GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
@@ -58,9 +58,8 @@ func (c *Client) GetPaymailAddressesByXPubID(ctx context.Context, xPubID string,
 	(*conditions)["xpub_id"] = xPubID
 
 	// Get the paymail address
-	// todo: add params for: page size and page (right now it is unlimited)
 	paymailAddresses, err := getPaymails(
-		ctx, metadataConditions, conditions, pageSize, page,
+		ctx, metadataConditions, conditions, queryParams,
 		c.DefaultModelOptions()...,
 	)
 	if err != nil {

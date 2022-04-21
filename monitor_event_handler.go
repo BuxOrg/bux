@@ -169,7 +169,7 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 			}
 		}
 
-		time.Sleep(30 * time.Second)
+		time.Sleep(defaultSleepForNewBlockHeaders)
 	}
 }
 

@@ -61,8 +61,8 @@ func (m *BlockHeader) GetModelTableName() string {
 	return tableBlockHeaders
 }
 
-// GetUnsyncedBlockHeaders will return all block headers that have not been marked as synced
-func GetUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHeader, error) {
+// getUnsyncedBlockHeaders will return all block headers that have not been marked as synced
+func getUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHeader, error) {
 
 	// Construct an empty model
 	var models []BlockHeader
@@ -91,8 +91,8 @@ func GetUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHea
 	return blockHeaders, nil
 }
 
-// GetLastBlockHeader will return the last block header in the database
-func GetLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, error) {
+// getLastBlockHeader will return the last block header in the database
+func getLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, error) {
 
 	// Construct an empty model
 	var model []BlockHeader

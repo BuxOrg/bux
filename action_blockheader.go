@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/libsv/go-bc"
 )
@@ -15,7 +16,7 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.Block
 	opts ...ModelOps) (*BlockHeader, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "record_blockheader")
+	ctx = c.GetOrStartTxn(ctx, "record_block_header")
 
 	// Create the model & set the default options (gives options from client->model)
 	newOpts := c.DefaultModelOptions(append(opts, New())...)
@@ -29,7 +30,7 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, bh bc.Block
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, "action-record-block-header-"+id, c.Cachestore(),
+		ctx, fmt.Sprintf(lockKeyRecordBlockHeader, id), c.Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

@@ -203,6 +203,9 @@ func (c *Client) getWithMongo(
 			opts = append(opts, options.Find().SetLimit(int64(queryParams.PageSize)).SetSkip(int64(queryParams.PageSize*(queryParams.Page-1))))
 		}
 
+		if queryParams.OrderByField == "id" {
+			queryParams.OrderByField = "_id" // use Mongo _id instead of default id field
+		}
 		if queryParams.OrderByField != "" {
 			sortOrder := 1
 			if queryParams.SortDirection == "desc" {

@@ -215,9 +215,6 @@ func (c *Client) GetModels(
 		// init a new empty object for the default queryParams
 		queryParams = &QueryParams{}
 	}
-	if queryParams.OrderByField == "id" {
-		queryParams.OrderByField = "_id" // use Mongo _id instead of default id field
-	}
 	// Set default page size
 	if queryParams.Page > 0 && queryParams.PageSize < 1 {
 		queryParams.PageSize = defaultPageSize

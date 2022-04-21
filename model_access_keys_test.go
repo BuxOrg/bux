@@ -46,7 +46,7 @@ func Test_newAccessKey(t *testing.T) {
 		require.NoError(t, err)
 
 		var accessKey *AccessKey
-		accessKey, err = GetAccessKey(ctx, id, client.DefaultModelOptions()...)
+		accessKey, err = getAccessKey(ctx, id, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Equal(t, id, accessKey.ID)
 		assert.Equal(t, testXPubID, accessKey.XpubID)
@@ -66,7 +66,7 @@ func Test_newAccessKey(t *testing.T) {
 		require.NoError(t, err)
 
 		var accessKey *AccessKey
-		accessKey, err = GetAccessKey(ctx, id, client.DefaultModelOptions()...)
+		accessKey, err = getAccessKey(ctx, id, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Equal(t, id, accessKey.ID)
 		assert.False(t, accessKey.RevokedAt.Valid)
@@ -78,19 +78,19 @@ func Test_newAccessKey(t *testing.T) {
 		require.NoError(t, err)
 
 		var revokedKey *AccessKey
-		revokedKey, err = GetAccessKey(ctx, id, client.DefaultModelOptions()...)
+		revokedKey, err = getAccessKey(ctx, id, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Equal(t, id, revokedKey.ID)
 		assert.True(t, revokedKey.RevokedAt.Valid)
 	})
 }
 
-// TestAccessKey_GetAccessKey will test the method GetAccessKey()
+// TestAccessKey_GetAccessKey will test the method getAccessKey()
 func TestAccessKey_GetAccessKey(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
-		accessKey, err := GetAccessKey(ctx, testXPubID, client.DefaultModelOptions()...)
+		accessKey, err := getAccessKey(ctx, testXPubID, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Nil(t, accessKey)
 	})
@@ -104,7 +104,7 @@ func TestAccessKey_GetAccessKey(t *testing.T) {
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak.Key)
 
-		accessKey, err := GetAccessKey(ctx, ak.ID, client.DefaultModelOptions()...)
+		accessKey, err := getAccessKey(ctx, ak.ID, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.NotNil(t, accessKey)
 		assert.Equal(t, ak.ID, accessKey.ID)
@@ -113,12 +113,12 @@ func TestAccessKey_GetAccessKey(t *testing.T) {
 	})
 }
 
-// TestAccessKey_GetAccessKeys will test the method GetAccessKeys()
+// TestAccessKey_GetAccessKeys will test the method getAccessKeys()
 func TestAccessKey_GetAccessKeys(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
-		accessKey, err := GetAccessKeys(ctx, testXPubID, nil, nil, nil, client.DefaultModelOptions()...)
+		accessKey, err := getAccessKeys(ctx, testXPubID, nil, nil, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Nil(t, accessKey)
 	})
@@ -137,7 +137,7 @@ func TestAccessKey_GetAccessKeys(t *testing.T) {
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak2.Key)
 
-		accessKeys, err := GetAccessKeys(ctx, testXPubID, nil, nil, nil, client.DefaultModelOptions()...)
+		accessKeys, err := getAccessKeys(ctx, testXPubID, nil, nil, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, accessKeys, 2)
 		assert.Equal(t, ak.ID, accessKeys[0].ID)
@@ -163,7 +163,7 @@ func TestAccessKey_GetAccessKeys(t *testing.T) {
 		assert.NotEqual(t, "", ak2.Key)
 
 		metadata := &Metadata{"test-key": "test-value-2"}
-		accessKeys, err := GetAccessKeys(ctx, testXPubID, metadata, nil, nil, client.DefaultModelOptions()...)
+		accessKeys, err := getAccessKeys(ctx, testXPubID, metadata, nil, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, accessKeys, 1)
 		assert.Equal(t, ak2.ID, accessKeys[0].ID)

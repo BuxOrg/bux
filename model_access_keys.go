@@ -50,8 +50,8 @@ func newAccessKey(xPubID string, opts ...ModelOps) *AccessKey {
 	}
 }
 
-// GetAccessKey will get the model with a given ID
-func GetAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey, error) {
+// getAccessKey will get the model with a given ID
+func getAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey, error) {
 
 	// Construct an empty tx
 	key := &AccessKey{
@@ -69,8 +69,8 @@ func GetAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 	return key, nil
 }
 
-// GetAccessKeys will get all the access keys that match the metadata search
-func GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+// getAccessKeys will get all the access keys that match the metadata search
+func getAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
 
 	// Construct an empty model

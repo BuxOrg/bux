@@ -21,18 +21,18 @@ func TestModelName_String(t *testing.T) {
 	t.Parallel()
 
 	t.Run("all model names", func(t *testing.T) {
+		assert.Equal(t, "block_header", ModelBlockHeader.String())
 		assert.Equal(t, "destination", ModelDestination.String())
 		assert.Equal(t, "empty", ModelNameEmpty.String())
 		assert.Equal(t, "incoming_transaction", ModelIncomingTransaction.String())
 		assert.Equal(t, "metadata", ModelMetadata.String())
 		assert.Equal(t, "paymail_address", ModelPaymailAddress.String())
+		assert.Equal(t, "paymail_address", ModelPaymailAddress.String())
 		assert.Equal(t, "sync_transaction", ModelSyncTransaction.String())
 		assert.Equal(t, "transaction", ModelTransaction.String())
 		assert.Equal(t, "utxo", ModelUtxo.String())
 		assert.Equal(t, "xpub", ModelXPub.String())
-		assert.Equal(t, "paymail_address", ModelPaymailAddress.String())
-		assert.Equal(t, "block_header", ModelBlockHeader.String())
-		assert.Len(t, AllModelNames, 13)
+		assert.Len(t, AllModelNames, 11)
 	})
 }
 

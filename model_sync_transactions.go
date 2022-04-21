@@ -186,7 +186,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 		Name:       syncTask,
 		RetryLimit: 1,
 		Handler: func(client ClientInterface) error {
-			if taskErr := TaskSyncTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
+			if taskErr := taskSyncTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+syncTask+" task: "+taskErr.Error())
 			}
 			return nil
@@ -213,7 +213,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 		Name:       broadcastTask,
 		RetryLimit: 1,
 		Handler: func(client ClientInterface) error {
-			if taskErr := TaskBroadcastTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
+			if taskErr := taskBroadcastTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+broadcastTask+" task: "+taskErr.Error())
 			}
 			return nil

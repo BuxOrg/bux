@@ -157,7 +157,7 @@ func TestUtxo_UnReserveUtxos(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		createTestUtxos(ctx, client)
-		utxos, err := ReserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, client.DefaultModelOptions()...)
+		utxos, err := reserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 		for _, utxo := range utxos {
@@ -165,7 +165,7 @@ func TestUtxo_UnReserveUtxos(t *testing.T) {
 			assert.True(t, utxo.ReservedAt.Valid)
 		}
 
-		err = UnReserveUtxos(ctx, testXPubID, testDraftID2, client.DefaultModelOptions()...)
+		err = unReserveUtxos(ctx, testXPubID, testDraftID2, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		for _, utxo := range utxos {
 			var u *Utxo
@@ -186,7 +186,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 		defer deferMe()
 		createTestUtxos(ctx, client)
 
-		utxos, err := ReserveUtxos(ctx, testXPubID, testDraftID2, 1000, 0.5, nil, client.DefaultModelOptions()...)
+		utxos, err := reserveUtxos(ctx, testXPubID, testDraftID2, 1000, 0.5, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 1)
 		assert.Equal(t, testDraftID2, utxos[0].DraftID.String)
@@ -198,7 +198,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 		defer deferMe()
 		createTestUtxos(ctx, client)
 
-		utxos, err := ReserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, client.DefaultModelOptions()...)
+		utxos, err := reserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 		assert.Equal(t, testDraftID2, utxos[0].DraftID.String)
@@ -212,7 +212,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 		defer deferMe()
 		createTestUtxos(ctx, client)
 
-		_, err := ReserveUtxos(ctx, testXPubID, testDraftID2, 20000, 0.5, nil, client.DefaultModelOptions()...)
+		_, err := reserveUtxos(ctx, testXPubID, testDraftID2, 20000, 0.5, nil, client.DefaultModelOptions()...)
 		require.Error(t, err, ErrNotEnoughUtxos)
 	})
 
@@ -225,7 +225,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 			TransactionID: testTxID,
 			OutputIndex:   16,
 		}}
-		utxos, err := ReserveUtxos(ctx, testXPubID, testDraftID2, 1000, 0.5, fromUtxos, client.DefaultModelOptions()...)
+		utxos, err := reserveUtxos(ctx, testXPubID, testDraftID2, 1000, 0.5, fromUtxos, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 1)
 		assert.Equal(t, testDraftID2, utxos[0].DraftID.String)
@@ -246,7 +246,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 			TransactionID: testTxID,
 			OutputIndex:   16,
 		}}
-		utxos, err := ReserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, fromUtxos, client.DefaultModelOptions()...)
+		utxos, err := reserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, fromUtxos, client.DefaultModelOptions()...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 		assert.Equal(t, testDraftID2, utxos[0].DraftID.String)
@@ -269,7 +269,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 			TransactionID: testTxID,
 			OutputIndex:   16,
 		}}
-		_, err = ReserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, fromUtxos, client.DefaultModelOptions()...)
+		_, err = reserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, fromUtxos, client.DefaultModelOptions()...)
 		require.Error(t, err, ErrNotEnoughUtxos)
 	})
 
@@ -280,7 +280,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 		require.NoError(t, err)
 
 		var utxos []*Utxo
-		utxos, err = ReserveUtxos(ctx, testXPubID, testDraftID2, 4000, 0.5, nil, client.DefaultModelOptions(WithPageSize(2))...)
+		utxos, err = reserveUtxos(ctx, testXPubID, testDraftID2, 4000, 0.5, nil, client.DefaultModelOptions(WithPageSize(2))...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 4)
 	})
@@ -295,28 +295,28 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 
 		opts := client.DefaultModelOptions()
 
-		utxos, err := GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
+		utxos, err := getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 5)
 
-		_, err = ReserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, opts...)
+		_, err = reserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, opts...)
 		require.NoError(t, err)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
+		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 3)
 
-		_, err = ReserveUtxos(ctx, testXPubID, testDraftID3, 1000, 0.5, nil, opts...)
+		_, err = reserveUtxos(ctx, testXPubID, testDraftID3, 1000, 0.5, nil, opts...)
 		require.NoError(t, err)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
+		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 
-		err = UnReserveUtxos(ctx, testXPubID, testDraftID2, opts...)
+		err = unReserveUtxos(ctx, testXPubID, testDraftID2, opts...)
 		require.NoError(t, err)
 
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
+		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 4)
 	})
@@ -329,22 +329,22 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 		opts := client.DefaultModelOptions()
 
 		queryParams := &datastore.QueryParams{Page: 1, PageSize: 2}
-		utxos, err := GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
+		utxos, err := getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 
 		queryParams = &datastore.QueryParams{Page: 2, PageSize: 2}
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
+		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
 
 		queryParams = &datastore.QueryParams{Page: 3, PageSize: 2}
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
+		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 1)
 
 		queryParams = &datastore.QueryParams{Page: 4, PageSize: 2}
-		utxos, err = GetSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
+		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, queryParams, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 0)
 	})

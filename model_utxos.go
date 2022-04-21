@@ -51,8 +51,8 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 	}
 }
 
-// GetSpendableUtxos Get all spendable utxos by page / pageSize
-func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams,
+// getSpendableUtxos Get all spendable utxos by page / pageSize
+func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, // nolint:unparam // this param will be used
 	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Construct the conditions and results
@@ -98,8 +98,8 @@ func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 	return utxos, nil
 }
 
-// UnReserveUtxos remove the reservation on the utxos for the given draft ID
-func UnReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOps) error {
+// unReserveUtxos remove the reservation on the utxos for the given draft ID
+func unReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOps) error {
 	var models []Utxo
 	conditions := map[string]interface{}{
 		xPubIDField:  xPubID,
@@ -131,8 +131,8 @@ func UnReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOp
 	return nil
 }
 
-// ReserveUtxos reserve utxos for the given draft ID and amount
-func ReserveUtxos(ctx context.Context, xPubID, draftID string,
+// reserveUtxos reserve utxos for the given draft ID and amount
+func reserveUtxos(ctx context.Context, xPubID, draftID string,
 	satoshis uint64, feePerByte float64, fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Create base model
@@ -165,7 +165,7 @@ func ReserveUtxos(ctx context.Context, xPubID, draftID string,
 reserveUtxoLoop:
 	for {
 		var freeUtxos []*Utxo
-		if freeUtxos, err = GetSpendableUtxos(
+		if freeUtxos, err = getSpendableUtxos(
 			ctx, xPubID, utils.ScriptTypePubKeyHash, queryParams, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
 		); err != nil {
 			return nil, err
@@ -213,7 +213,7 @@ reserveUtxoLoop:
 	}
 
 	if reservedSatoshis < satoshis {
-		if err = UnReserveUtxos(
+		if err = unReserveUtxos(
 			ctx, xPubID, draftID, m.GetOptions(false)...,
 		); err != nil {
 			return nil, errors.Wrap(err, ErrNotEnoughUtxos.Error())

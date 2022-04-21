@@ -47,7 +47,7 @@ func (c *Client) AuthenticateRequest(ctx context.Context, req *http.Request, adm
 	} else if authAccessKey != "" {
 		xPubOrAccessKey = authAccessKey
 
-		accessKey, err := GetAccessKey(ctx, utils.Hash(authAccessKey), c.DefaultModelOptions()...)
+		accessKey, err := getAccessKey(ctx, utils.Hash(authAccessKey), c.DefaultModelOptions()...)
 		if err != nil {
 			return req, err
 		}
@@ -185,7 +185,7 @@ func verifyAccessKey(ctx context.Context, key string, auth *AuthPayload, opts ..
 
 	// Get access key from DB
 	// todo: add caching in the future, faster than DB
-	accessKey, err := GetAccessKey(ctx, utils.Hash(key), opts...)
+	accessKey, err := getAccessKey(ctx, utils.Hash(key), opts...)
 	if err != nil {
 		return err
 	} else if accessKey == nil {

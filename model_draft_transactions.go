@@ -106,7 +106,7 @@ func (m *DraftTransaction) Save(ctx context.Context) (err error) {
 
 		// todo: run in a go routine?
 		// un-reserve the utxos
-		if utxoErr := UnReserveUtxos(
+		if utxoErr := unReserveUtxos(
 			ctx, m.XpubID, m.ID, m.GetOptions(false)...,
 		); utxoErr != nil {
 			err = errors.Wrap(err, utxoErr.Error())
@@ -193,7 +193,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 		var spendableUtxos []*Utxo
 		// todo should all utxos be sent to the SendAllTo address, not only the p2pkhs?
-		if spendableUtxos, err = GetSpendableUtxos(
+		if spendableUtxos, err = getSpendableUtxos(
 			ctx, m.XpubID, utils.ScriptTypePubKeyHash, nil, m.Configuration.FromUtxos, opts...,
 		); err != nil {
 			return err
@@ -240,7 +240,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		feePerByte := float64(m.Configuration.FeeUnit.Satoshis / m.Configuration.FeeUnit.Bytes)
 
 		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit) + dustLimit
-		if reservedUtxos, err = ReserveUtxos(
+		if reservedUtxos, err = reserveUtxos(
 			ctx, m.XpubID, m.ID, reserveSatoshis, feePerByte, m.Configuration.FromUtxos, opts...,
 		); err != nil {
 			return
@@ -668,7 +668,7 @@ func (m *DraftTransaction) RegisterTasks() error {
 		Name:       cleanUpTask,
 		RetryLimit: 1,
 		Handler: func(client ClientInterface) error {
-			if taskErr := TaskCleanupDraftTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
+			if taskErr := taskCleanupDraftTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+cleanUpTask+" task: "+taskErr.Error())
 			}
 			return nil

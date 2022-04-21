@@ -22,34 +22,9 @@ func Get(
 		timeout = defaultDatabaseReadTimeout
 	}
 
-	// Only use the cache if we are not bypassing...
-	// if !bypassCache {
-
-	// Do we have cache enabled on the model?
-	// c := model.Client().Cachestore()
-	// if c != nil {
-
-	// todo: this does not work correctly, needs to use certain conditions
-	// IE: if we are looking up an xPub by ID, check cache using that condition
 	/*
-		// Get the model from the cache
-		if err := c.GetModel(
-			ctx, fmt.Sprintf("%s-id-%s", model.GetModelName(), model.GetID()), model,
-		); err != nil {
-
-			// Only a REAL error will halt this request
-			if !errors.Is(err, Cachestore.ErrKeyNotFound) {
-				return err
-			}
-
-			// @mrz: This will continue gracefully if the record is not found
-
-		} else { // No error means we got a result back!
-			return nil
-		}
+		// todo: add cache support here for basic model lookups
 	*/
-	// }
-	// }
 
 	// Attempt to Get the model (by model fields & given conditions)
 	return model.Client().Datastore().GetModel(ctx, model, conditions, timeout)

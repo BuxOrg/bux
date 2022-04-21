@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/notifications"
@@ -150,19 +151,34 @@ func (m *Model) AfterCreated(_ context.Context) error {
 	return nil
 }
 
-// Notify about an event on the model
-func Notify(eventType notifications.EventType, model interface{}) {
+// incrementField will increment the given field atomically in the datastore
+func incrementField(ctx context.Context, model ModelInterface, fieldName string,
+	increment int64) (int64, error) {
+
+	// Debug log
+	model.DebugLog(fmt.Sprintf("increment model %s field ... %s %d", model.Name(), fieldName, increment))
+
+	// Increment
+	return model.Client().Datastore().IncrementModel(ctx, model, fieldName, increment)
+}
+
+// notify about an event on the model
+func notify(eventType notifications.EventType, model interface{}) {
+
 	// run the notifications in a separate goroutine since there could be significant network delay
 	// communicating with a notification provider
 
 	go func() {
 		m := model.(ModelInterface)
-		client := m.Client()
-		if client != nil {
+		if client := m.Client(); client != nil {
 			if n := client.Notifications(); n != nil {
-				ctx := context.Background()
-				if err := n.Notify(ctx, m.GetModelName(), eventType, model, m.GetID()); err != nil {
-					client.Logger().Error(context.Background(), "failed notifying about "+string(eventType)+" on "+m.GetID()+": "+err.Error())
+				if err := n.Notify(
+					context.Background(), m.GetModelName(), eventType, model, m.GetID(),
+				); err != nil {
+					client.Logger().Error(
+						context.Background(),
+						"failed notifying about "+string(eventType)+" on "+m.GetID()+": "+err.Error(),
+					)
 				}
 			}
 		}

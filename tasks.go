@@ -9,8 +9,8 @@ import (
 	"github.com/BuxOrg/bux/logger"
 )
 
-// TaskCleanupDraftTransactions will clean up all old expired draft transactions
-func TaskCleanupDraftTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+// taskCleanupDraftTransactions will clean up all old expired draft transactions
+func taskCleanupDraftTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running cleanup draft transactions task...")
 
@@ -55,8 +55,8 @@ func TaskCleanupDraftTransactions(ctx context.Context, logClient logger.Interfac
 	return nil
 }
 
-// TaskProcessIncomingTransactions will process any incoming transactions found
-func TaskProcessIncomingTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+// taskProcessIncomingTransactions will process any incoming transactions found
+func taskProcessIncomingTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running process incoming transaction(s) task...")
 
@@ -67,8 +67,8 @@ func TaskProcessIncomingTransactions(ctx context.Context, logClient logger.Inter
 	return err
 }
 
-// TaskBroadcastTransactions will broadcast any transactions
-func TaskBroadcastTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+// taskBroadcastTransactions will broadcast any transactions
+func taskBroadcastTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running broadcast transaction(s) task...")
 
@@ -79,8 +79,8 @@ func TaskBroadcastTransactions(ctx context.Context, logClient logger.Interface, 
 	return err
 }
 
-// TaskSyncTransactions will sync any transactions
-func TaskSyncTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+// taskSyncTransactions will sync any transactions
+func taskSyncTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running sync transaction(s) task...")
 

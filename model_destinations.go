@@ -231,7 +231,7 @@ func (m *Destination) AfterCreated(_ context.Context) error {
 		}
 	}
 
-	Notify(notifications.EventTypeCreate, m)
+	notify(notifications.EventTypeCreate, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
@@ -277,7 +277,7 @@ func (m *Destination) Migrate(client datastore.ClientInterface) error {
 func (m *Destination) AfterUpdated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
 
-	Notify(notifications.EventTypeUpdate, m)
+	notify(notifications.EventTypeUpdate, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
 	return nil
@@ -287,7 +287,7 @@ func (m *Destination) AfterUpdated(_ context.Context) error {
 func (m *Destination) AfterDeleted(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
 
-	Notify(notifications.EventTypeDelete, m)
+	notify(notifications.EventTypeDelete, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
 	return nil

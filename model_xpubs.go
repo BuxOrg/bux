@@ -131,7 +131,7 @@ func (m *Xpub) getNewDestination(ctx context.Context, chain uint32, destinationT
 
 // IncrementBalance will atomically update the balance of the xPub
 func (m *Xpub) IncrementBalance(ctx context.Context, balanceIncrement int64) error {
-	newBalance, err := IncrementField(ctx, m, currentBalanceField, balanceIncrement)
+	newBalance, err := incrementField(ctx, m, currentBalanceField, balanceIncrement)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (m *Xpub) IncrementNextNum(ctx context.Context, chain uint32) (uint32, erro
 
 	// Try to increment the field
 	incrementXPub := newXpubUsingID(m.ID, m.GetOptions(false)...)
-	if newNum, err = IncrementField(
+	if newNum, err = incrementField(
 		ctx, incrementXPub, fieldName, 1,
 	); err != nil {
 		return 0, err

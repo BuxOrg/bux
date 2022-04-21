@@ -201,7 +201,7 @@ func (m *IncomingTransaction) RegisterTasks() error {
 		Name:       processTask,
 		RetryLimit: 1,
 		Handler: func(client ClientInterface) error {
-			if taskErr := TaskProcessIncomingTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
+			if taskErr := taskProcessIncomingTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
 				client.Logger().Error(ctx, "error running "+processTask+" task: "+taskErr.Error())
 			}
 			return nil

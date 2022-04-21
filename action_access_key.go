@@ -54,7 +54,7 @@ func (c *Client) GetAccessKey(ctx context.Context, xPubID, id string) (*AccessKe
 	ctx = c.GetOrStartTxn(ctx, "get_access_key")
 
 	// Get the access key
-	accessKey, err := GetAccessKey(
+	accessKey, err := getAccessKey(
 		ctx, id,
 		c.DefaultModelOptions()...,
 	)
@@ -83,7 +83,7 @@ func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadataCondi
 	ctx = c.GetOrStartTxn(ctx, "get_access_keys")
 
 	// Get the access key
-	accessKeys, err := GetAccessKeys(
+	accessKeys, err := getAccessKeys(
 		ctx,
 		xPubID,
 		metadataConditions,
@@ -127,7 +127,7 @@ func (c *Client) RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opt
 	}
 
 	var accessKey *AccessKey
-	if accessKey, err = GetAccessKey(
+	if accessKey, err = getAccessKey(
 		ctx, id, c.DefaultModelOptions(opts...)...,
 	); err != nil {
 		return nil, err

@@ -53,8 +53,8 @@ func newPaymail(paymailAddress string, opts ...ModelOps) *PaymailAddress {
 	return p
 }
 
-// getPaymail will get the paymail with the given conditions
-func getPaymail(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error) {
+// getPaymailAddress will get the paymail with the given conditions
+func getPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error) {
 
 	// Get the record
 	paymailAddress := newPaymail(address, opts...)
@@ -65,7 +65,7 @@ func getPaymail(ctx context.Context, address string, opts ...ModelOps) (*Paymail
 	}
 
 	if err := Get(
-		ctx, paymailAddress, conditions, false, defaultDatabaseReadTimeout,
+		ctx, paymailAddress, conditions, false, defaultDatabaseReadTimeout, false,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
@@ -76,8 +76,8 @@ func getPaymail(ctx context.Context, address string, opts ...ModelOps) (*Paymail
 	return paymailAddress, nil
 }
 
-// getPaymails will get all the paymails with the given conditions
-func getPaymails(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+// getPaymailAddresses will get all the paymail addresses with the given conditions
+func getPaymailAddresses(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error) {
 
 	var models []PaymailAddress
@@ -117,8 +117,8 @@ func getPaymails(ctx context.Context, metadata *Metadata, conditions *map[string
 	return destinations, nil
 }
 
-// getPaymailByID will get the paymail with the given ID
-func getPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailAddress, error) {
+// getPaymailAddressByID will get the paymail with the given ID
+func getPaymailAddressByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailAddress, error) {
 
 	// Get the record
 	paymailAddress := &PaymailAddress{
@@ -126,7 +126,7 @@ func getPaymailByID(ctx context.Context, id string, opts ...ModelOps) (*PaymailA
 		Model: *NewBaseModel(ModelPaymailAddress, opts...),
 	}
 	if err := Get(
-		ctx, paymailAddress, nil, false, defaultDatabaseReadTimeout,
+		ctx, paymailAddress, nil, false, defaultDatabaseReadTimeout, false,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

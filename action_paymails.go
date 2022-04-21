@@ -15,7 +15,7 @@ func (c *Client) GetPaymailAddress(ctx context.Context, address string, opts ...
 	ctx = c.GetOrStartTxn(ctx, "get_paymail_address")
 
 	// Get the paymail address
-	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
+	paymailAddress, err := getPaymailAddress(ctx, address, append(opts, c.DefaultModelOptions()...)...)
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {
@@ -33,7 +33,7 @@ func (c *Client) GetPaymailAddresses(ctx context.Context, metadataConditions *Me
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
 
 	// Get the paymail address
-	paymailAddresses, err := getPaymails(
+	paymailAddresses, err := getPaymailAddresses(
 		ctx, metadataConditions, conditions, queryParams,
 		c.DefaultModelOptions()...,
 	)
@@ -58,7 +58,7 @@ func (c *Client) GetPaymailAddressesByXPubID(ctx context.Context, xPubID string,
 	(*conditions)["xpub_id"] = xPubID
 
 	// Get the paymail address
-	paymailAddresses, err := getPaymails(
+	paymailAddresses, err := getPaymailAddresses(
 		ctx, metadataConditions, conditions, queryParams,
 		c.DefaultModelOptions()...,
 	)
@@ -104,7 +104,7 @@ func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts 
 	ctx = c.GetOrStartTxn(ctx, "delete_paymail_address")
 
 	// Get the paymail address
-	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
+	paymailAddress, err := getPaymailAddress(ctx, address, append(opts, c.DefaultModelOptions()...)...)
 	if err != nil {
 		return err
 	} else if paymailAddress == nil {
@@ -136,7 +136,7 @@ func (c *Client) UpdatePaymailAddressMetadata(ctx context.Context, address strin
 	ctx = c.GetOrStartTxn(ctx, "update_paymail_address_metadata")
 
 	// Get the paymail address
-	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
+	paymailAddress, err := getPaymailAddress(ctx, address, append(opts, c.DefaultModelOptions()...)...)
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {
@@ -162,7 +162,7 @@ func (c *Client) UpdatePaymailAddress(ctx context.Context, address, publicName, 
 	ctx = c.GetOrStartTxn(ctx, "update_paymail_address")
 
 	// Get the paymail address
-	paymailAddress, err := getPaymail(ctx, address, append(opts, c.DefaultModelOptions()...)...)
+	paymailAddress, err := getPaymailAddress(ctx, address, append(opts, c.DefaultModelOptions()...)...)
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {

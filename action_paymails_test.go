@@ -42,7 +42,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			assert.Equal(t, externalXPubID, paymailAddress.ExternalXpubKey)
 
 			var p2 *PaymailAddress
-			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.NotNil(t, p2)
 
@@ -88,12 +88,12 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 			require.NoError(t, err)
 
 			var p2 *PaymailAddress
-			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.Nil(t, p2)
 
 			var p3 *PaymailAddress
-			p3, err = getPaymailByID(tc.ctx, paymailAddress.ID, tc.client.DefaultModelOptions()...)
+			p3, err = getPaymailAddressByID(tc.ctx, paymailAddress.ID, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.NotNil(t, p3)
 			require.Equal(t, testPaymail, p3.Alias)
@@ -138,7 +138,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 			assert.Equal(t, "new-value-2", paymailAddress.Metadata["test-key-new-2"])
 
 			var p2 *PaymailAddress
-			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.NotNil(t, p2)
 			assert.Len(t, paymailAddress.Metadata, 2)
@@ -167,7 +167,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddress() {
 			assert.Equal(t, testAvatar2, paymailAddress.Avatar)
 
 			var p2 *PaymailAddress
-			p2, err = getPaymail(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
 			require.NoError(t, err)
 			require.NotNil(t, p2)
 			assert.Equal(t, testPublicName+"2", p2.PublicName)

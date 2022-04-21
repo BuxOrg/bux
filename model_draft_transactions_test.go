@@ -266,9 +266,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, testXPubID, draftTransaction.Configuration.ChangeDestinations[0].XpubID)
 		assert.Equal(t, draftTransaction.ID, draftTransaction.Configuration.ChangeDestinations[0].DraftID)
-		assert.Equal(t, uint64(98903), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Equal(t, uint64(98920), draftTransaction.Configuration.ChangeSatoshis)
 
-		assert.Equal(t, uint64(97), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(114), draftTransaction.Configuration.Fee)
 		assert.Equal(t, defaultFee, draftTransaction.Configuration.FeeUnit)
 
 		assert.Equal(t, 1, len(draftTransaction.Configuration.Inputs))
@@ -277,7 +277,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, 2, len(draftTransaction.Configuration.Outputs))
 		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(98903), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98920), draftTransaction.Configuration.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.ChangeDestinations[0].LockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
 		var btTx *bt.Tx
@@ -292,7 +292,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(1000), btTx.Outputs[0].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[0].Scripts[0].Script, btTx.Outputs[0].LockingScript.String())
 
-		assert.Equal(t, uint64(98903), btTx.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98920), btTx.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[1].Scripts[0].Script, btTx.Outputs[1].LockingScript.String())
 
 		var gUtxo *Utxo
@@ -337,6 +337,48 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
 		assert.Equal(t, uint64(99903), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+	})
+
+	t.Run("fee calculation - MAP", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		destination := newDestination(testXPubID, testLockingScript,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 1000,
+			}, {
+				OpReturn: &OpReturn{
+					Map: &MapProtocol{
+						App: "tonicpow_staging",
+						Keys: map[string]interface{}{
+							"offer_config_id":  "336",
+							"offer_session_id": "4f06c11358e6586e67c77467c252a8be9187211f704de2627e4824945f31f07e",
+						},
+						Type: "offer_clicks",
+					},
+				},
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		fee := draftTransaction.Configuration.Fee
+		calculateFee := draftTransaction.estimateFee(draftTransaction.Configuration.FeeUnit, 0)
+		assert.Equal(t, fee, calculateFee)
 	})
 
 	t.Run("send to all - multiple utxos", func(t *testing.T) {
@@ -483,7 +525,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
-		assert.Equal(t, uint64(1184), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(1201), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 3)
 
@@ -503,6 +545,8 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].Scripts[0].Address)
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
+
+		assert.Equal(t, uint64(97269), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 }
 
@@ -885,48 +929,70 @@ func createDraftTransactionFromHex(hex string, inInfo []interface{}) (*DraftTran
 }
 
 func TestDraftTransaction_estimateFees(t *testing.T) {
-	jsonFile, err := os.Open("./tests/model_draft_transactions_test.json")
-	require.NoError(t, err)
-	defer func() {
-		_ = jsonFile.Close()
-	}()
+	t.Run("json data", func(t *testing.T) {
+		jsonFile, err := os.Open("./tests/model_draft_transactions_test.json")
+		require.NoError(t, err)
+		defer func() {
+			_ = jsonFile.Close()
+		}()
 
-	byteValue, bErr := ioutil.ReadAll(jsonFile)
-	require.NoError(t, bErr)
+		byteValue, bErr := ioutil.ReadAll(jsonFile)
+		require.NoError(t, bErr)
 
-	var testData map[string]interface{}
-	err = json.Unmarshal(byteValue, &testData)
-	require.NoError(t, err)
+		var testData map[string]interface{}
+		err = json.Unmarshal(byteValue, &testData)
+		require.NoError(t, err)
 
-	feeUnit := utils.FeeUnit{
-		Satoshis: 1,
-		Bytes:    2,
-	}
-
-	for _, inTx := range testData["rawTransactions"].([]interface{}) {
-		in := inTx.(map[string]interface{})
-		txID := in["txId"].(string)
-		draftTransaction, tx, err2 := createDraftTransactionFromHex(in["hex"].(string), in["inputs"].([]interface{}))
-		require.NoError(t, err2)
-		assert.Equal(t, txID, tx.TxID())
-		assert.IsType(t, DraftTransaction{}, *draftTransaction)
-		assert.IsType(t, bt.Tx{}, *tx)
-
-		realFee := uint64(0)
-		for _, input := range in["inputs"].([]interface{}) {
-			i := input.(map[string]interface{})
-			realFee += uint64(i["satoshis"].(float64))
-		}
-		for _, output := range tx.Outputs {
-			realFee -= output.Satoshis
+		feeUnit := utils.FeeUnit{
+			Satoshis: 1,
+			Bytes:    2,
 		}
 
-		realSize := uint64(float64(len(in["hex"].(string))) / 2)
-		sizeEstimate := draftTransaction.estimateSize()
-		feeEstimate := draftTransaction.estimateFee(&feeUnit)
-		assert.Greater(t, sizeEstimate, realSize)
-		assert.Greater(t, feeEstimate, realFee)
-	}
+		for _, inTx := range testData["rawTransactions"].([]interface{}) {
+			in := inTx.(map[string]interface{})
+			txID := in["txId"].(string)
+			draftTransaction, tx, err2 := createDraftTransactionFromHex(in["hex"].(string), in["inputs"].([]interface{}))
+			require.NoError(t, err2)
+			assert.Equal(t, txID, tx.TxID())
+			assert.IsType(t, DraftTransaction{}, *draftTransaction)
+			assert.IsType(t, bt.Tx{}, *tx)
+
+			realFee := uint64(0)
+			for _, input := range in["inputs"].([]interface{}) {
+				i := input.(map[string]interface{})
+				realFee += uint64(i["satoshis"].(float64))
+			}
+			for _, output := range tx.Outputs {
+				realFee -= output.Satoshis
+			}
+
+			realSize := uint64(float64(len(in["hex"].(string))) / 2)
+			sizeEstimate := draftTransaction.estimateSize()
+			feeEstimate := draftTransaction.estimateFee(&feeUnit, 0)
+			assert.Greater(t, sizeEstimate, realSize)
+			assert.Greater(t, feeEstimate, realFee)
+		}
+	})
+
+	t.Run("json data - low fee", func(t *testing.T) {
+		jsonFile, err := os.Open("./tests/model_draft_transaction_low_fee.json")
+		require.NoError(t, err)
+		defer func() {
+			_ = jsonFile.Close()
+		}()
+		byteValue, bErr := ioutil.ReadAll(jsonFile)
+		require.NoError(t, bErr)
+
+		var testData TransactionConfig
+		err = json.Unmarshal(byteValue, &testData)
+		require.NoError(t, err)
+
+		draft := &DraftTransaction{Configuration: testData}
+		assert.IsType(t, DraftTransaction{}, *draft)
+
+		fee := draft.estimateFee(draft.Configuration.FeeUnit, 0)
+		assert.Equal(t, uint64(227), fee)
+	})
 }
 
 // TestDraftTransaction_RegisterTasks will test the method RegisterTasks()

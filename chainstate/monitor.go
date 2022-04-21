@@ -12,7 +12,8 @@ import (
 
 // Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
 type Monitor struct {
-	centrifugeServer             string
+	authToken                    string
+	buxAgentURL                  string
 	chainstateOptions            *clientOptions
 	client                       MonitorClient
 	connected                    bool
@@ -27,32 +28,31 @@ type Monitor struct {
 	processMempoolOnConnect      bool
 	processor                    MonitorProcessor
 	saveTransactionsDestinations bool
-	token                        string
 }
 
 // MonitorOptions options for starting this monitorConfig
 type MonitorOptions struct {
-	CentrifugeServer            string
-	Debug                       bool
-	FalsePositiveRate           float64
-	LoadMonitoredDestinations   bool
-	MaxNumberOfDestinations     int
-	MonitorDays                 int
-	ProcessMempoolOnConnect     bool
-	ProcessorType               string
-	SaveTransactionDestinations bool
-	Token                       string
+	AuthToken                   string  `json:"token"`
+	BuxAgentURL                 string  `json:"bux_agent_url"`
+	Debug                       bool    `json:"debug"`
+	FalsePositiveRate           float64 `json:"false_positive_rate"`
+	LoadMonitoredDestinations   bool    `json:"load_monitored_destinations"`
+	MaxNumberOfDestinations     int     `json:"max_number_of_destinations"`
+	MonitorDays                 int     `json:"monitor_days"`
+	ProcessMempoolOnConnect     bool    `json:"process_mempool_on_connect"`
+	ProcessorType               string  `json:"processor_type"`
+	SaveTransactionDestinations bool    `json:"save_transaction_destinations"`
 }
 
 func (o *MonitorOptions) checkDefaults() {
-	if o.MonitorDays == 0 {
-		o.MonitorDays = 7
+	if o.MonitorDays <= 0 {
+		o.MonitorDays = defaultMonitorDays
 	}
-	if o.FalsePositiveRate == 0 {
-		o.FalsePositiveRate = 0.01
+	if o.FalsePositiveRate <= 0 {
+		o.FalsePositiveRate = defaultFalsePositiveRate
 	}
-	if o.MaxNumberOfDestinations == 0 {
-		o.MaxNumberOfDestinations = 100000
+	if o.MaxNumberOfDestinations <= 0 {
+		o.MaxNumberOfDestinations = defaultMaxNumberOfDestinations
 	}
 }
 
@@ -60,24 +60,25 @@ func (o *MonitorOptions) checkDefaults() {
 func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 	options.checkDefaults()
 	monitor = &Monitor{
-		centrifugeServer:             options.CentrifugeServer,
+		authToken:                    options.AuthToken,
+		buxAgentURL:                  options.BuxAgentURL,
 		debug:                        options.Debug,
 		falsePositiveRate:            options.FalsePositiveRate,
 		maxNumberOfDestinations:      options.MaxNumberOfDestinations,
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
-		token:                        options.Token,
 	}
+
 	// Set logger if not set
 	if monitor.logger == nil {
 		monitor.logger = logger.NewLogger(true)
 	}
 
 	switch monitor.filterType {
-	case "regex":
+	case filterRegex:
 		monitor.processor = NewRegexProcessor()
-	case "bloom":
+	case filterBloom:
 	default:
 		monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
 	}
@@ -143,10 +144,10 @@ func (m *Monitor) Monitor(handler MonitorHandler) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
-		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Connecting to server: %s", m.centrifugeServer))
-		m.client = newCentrifugeClient(m.centrifugeServer, handler)
-		if m.token != "" {
-			m.client.SetToken(m.token)
+		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Connecting to server: %s", m.buxAgentURL))
+		m.client = newCentrifugeClient(m.buxAgentURL, handler)
+		if m.authToken != "" {
+			m.client.SetToken(m.authToken)
 		}
 	}
 

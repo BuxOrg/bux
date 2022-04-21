@@ -4,9 +4,14 @@ import "time"
 
 // Chainstate configuration defaults
 const (
-	defaultBroadcastTimeOut      = 15 * time.Second
-	defaultQueryTimeOut          = 15 * time.Second
-	whatsOnChainRateLimitWithKey = 20
+	defaultBroadcastTimeOut        = 15 * time.Second
+	defaultFalsePositiveRate       = 0.01
+	defaultMaxNumberOfDestinations = 100000
+	defaultMonitorDays             = 7
+	defaultQueryTimeOut            = 15 * time.Second
+	filterBloom                    = "bloom"
+	filterRegex                    = "regex"
+	whatsOnChainRateLimitWithKey   = 20
 )
 
 // Internal network names

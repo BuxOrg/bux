@@ -143,23 +143,26 @@ func getDestinationByLockingScript(ctx context.Context, lockingScript string, op
 }
 
 // getDestinationsByXpubID will get the destination(s) by the given xPubID
-func getDestinationsByXpubID(ctx context.Context, xPubID string, usingMetadata *Metadata,
+func getDestinationsByXpubID(ctx context.Context, xPubID string, usingMetadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {
 
 	// Construct an empty model
 	var models []Destination
-	conditions := map[string]interface{}{
-		xPubIDField: xPubID,
+
+	var dbConditions = map[string]interface{}{}
+	if conditions != nil {
+		dbConditions = *conditions
 	}
+	dbConditions[xPubIDField] = xPubID
 
 	if usingMetadata != nil {
-		conditions[metadataField] = usingMetadata
+		dbConditions[metadataField] = usingMetadata
 	}
 
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, queryParams, defaultDatabaseReadTimeout,
+		&models, dbConditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

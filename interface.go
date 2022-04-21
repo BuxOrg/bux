@@ -46,7 +46,7 @@ type DestinationService interface {
 	GetDestinationByID(ctx context.Context, xPubID, id string) (*Destination, error)
 	GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error)
 	GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error)
-	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata, queryParams *datastore.QueryParams) ([]*Destination, error)
+	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Destination, error)
 	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,

@@ -104,14 +104,14 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 //
 // metadataConditions are the search criteria used to find destinations
 func (c *Client) GetDestinations(ctx context.Context, xPubID string, metadataConditions *Metadata,
-	queryParams *datastore.QueryParams) ([]*Destination, error) {
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
 	// Get the destinations
 	destinations, err := getDestinationsByXpubID(
-		ctx, xPubID, metadataConditions, queryParams, c.DefaultModelOptions()...,
+		ctx, xPubID, metadataConditions, conditions, queryParams, c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err

@@ -235,7 +235,7 @@ func newUtxoFromTxID(txID string, index uint32, opts ...ModelOps) *Utxo {
 	}
 }
 
-// getUtxosByXpubID
+// getUtxosByXpubID will return utxos by a given xPub ID
 func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
 
@@ -252,7 +252,7 @@ func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, co
 	return getUtxosByConditions(ctx, dbConditions, queryParams, opts...)
 }
 
-// getUtxosByDraftID
+// getUtxosByDraftID will return the utxos by a given draft id
 func getUtxosByDraftID(ctx context.Context, draftID string,
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
 
@@ -262,6 +262,7 @@ func getUtxosByDraftID(ctx context.Context, draftID string,
 	return getUtxosByConditions(ctx, conditions, queryParams, opts...)
 }
 
+// getUtxosByConditions will get utxos by given conditions
 func getUtxosByConditions(ctx context.Context, conditions map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
 
@@ -299,7 +300,7 @@ func getUtxo(ctx context.Context, txID string, index uint32, opts ...ModelOps) (
 	}
 
 	// Get the records
-	if err := Get(ctx, utxo, conditions, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, utxo, conditions, true, defaultDatabaseReadTimeout, true); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

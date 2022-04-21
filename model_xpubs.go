@@ -47,7 +47,7 @@ func getXpub(ctx context.Context, key string, opts ...ModelOps) (*Xpub, error) {
 	// Get the record
 	xPub := newXpub(key, opts...)
 	if err := Get(
-		ctx, xPub, nil, false, defaultDatabaseReadTimeout,
+		ctx, xPub, nil, false, defaultDatabaseReadTimeout, false,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
@@ -69,6 +69,7 @@ func getXpubByID(ctx context.Context, xPubID string, opts ...ModelOps) (*Xpub, e
 		nil,
 		false,
 		defaultDatabaseReadTimeout,
+		false,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

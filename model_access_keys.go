@@ -60,7 +60,7 @@ func getAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 	key.enrich(ModelAccessKey, opts...)
 
 	// Get the record
-	if err := Get(ctx, key, nil, false, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, key, nil, false, defaultDatabaseReadTimeout, false); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

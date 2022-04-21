@@ -93,7 +93,7 @@ func getDestinationByID(ctx context.Context, id string, opts ...ModelOps) (*Dest
 	}
 
 	// Get the record
-	if err := Get(ctx, destination, nil, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, destination, nil, true, defaultDatabaseReadTimeout, false); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}
@@ -115,7 +115,7 @@ func getDestinationByAddress(ctx context.Context, address string, opts ...ModelO
 	}
 
 	// Get the record
-	if err := Get(ctx, destination, conditions, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, destination, conditions, true, defaultDatabaseReadTimeout, false); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}
@@ -132,7 +132,7 @@ func getDestinationByLockingScript(ctx context.Context, lockingScript string, op
 	destination := newDestination("", lockingScript, opts...)
 
 	// Get the record
-	if err := Get(ctx, destination, nil, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, destination, nil, true, defaultDatabaseReadTimeout, false); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

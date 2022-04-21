@@ -162,7 +162,7 @@ func getBlockHeaderByHeight(ctx context.Context, height uint32, opts ...ModelOps
 	}
 
 	// Get the record
-	if err := Get(ctx, blockHeader, conditions, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, blockHeader, conditions, true, defaultDatabaseReadTimeout, false); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

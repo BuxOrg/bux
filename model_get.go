@@ -16,6 +16,7 @@ func Get(
 	conditions map[string]interface{},
 	_ bool,
 	timeout time.Duration,
+	forceWriteDB bool,
 ) error {
 
 	if timeout == 0 {
@@ -27,7 +28,7 @@ func Get(
 	*/
 
 	// Attempt to Get the model (by model fields & given conditions)
-	return model.Client().Datastore().GetModel(ctx, model, conditions, timeout)
+	return model.Client().Datastore().GetModel(ctx, model, conditions, timeout, forceWriteDB)
 }
 
 // getModels will retrieve model(s) from the Cachestore or Datastore using the provided conditions

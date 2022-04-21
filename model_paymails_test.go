@@ -61,7 +61,7 @@ func TestNewPaymail(t *testing.T) {
 			aliasField:  p.Alias,
 			domainField: p.Domain,
 		}
-		err = Get(ctx, p2, conditions, false, 0)
+		err = Get(ctx, p2, conditions, false, 0, false)
 		require.NoError(t, err)
 
 		var identityKey *bip32.ExtendedKey

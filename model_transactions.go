@@ -140,7 +140,7 @@ func getTransactionByID(ctx context.Context, xPubID, txID string, opts ...ModelO
 	tx.xPubID = xPubID
 
 	// Get the record
-	if err := Get(ctx, tx, nil, false, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, tx, nil, false, defaultDatabaseReadTimeout, false); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}

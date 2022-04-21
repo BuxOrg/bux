@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
+	"gorm.io/plugin/dbresolver"
 )
 
 // SaveModel will take care of creating or updating a model (primary key based) (abstracting the database)
@@ -175,6 +176,7 @@ func (c *Client) GetModel(
 	model interface{},
 	conditions map[string]interface{},
 	timeout time.Duration,
+	forceWriteDB bool,
 ) error {
 
 	// Switch on the datastore engines
@@ -191,8 +193,16 @@ func (c *Client) GetModel(
 	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.loggerDB)
 	defer cancel()
 
-	// Check for errors or no records found
-	tx := ctxDB.Select("*")
+	// Get the model data using a select
+	// todo: optimize by specific fields
+	var tx *gorm.DB
+	if forceWriteDB { // Use the "write" database for this query
+		tx = ctxDB.Clauses(dbresolver.Write).Select("*")
+	} else { // Use a replica if found
+		tx = ctxDB.Select("*")
+	}
+
+	// Add conditions
 	if len(conditions) > 0 {
 		gtx := gormWhere{tx: tx}
 		return checkResult(BuxWhere(&gtx, conditions, c.Engine()).(*gorm.DB).Find(model))

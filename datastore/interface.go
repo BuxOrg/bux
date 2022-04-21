@@ -13,7 +13,7 @@ type StorageService interface {
 	AutoMigrateDatabase(ctx context.Context, models ...interface{}) error
 	CreateInBatches(ctx context.Context, models interface{}, batchSize int) error
 	Execute(query string) *gorm.DB
-	GetModel(ctx context.Context, model interface{}, conditions map[string]interface{}, timeout time.Duration) error
+	GetModel(ctx context.Context, model interface{}, conditions map[string]interface{}, timeout time.Duration, forceWriteDB bool) error
 	GetModels(ctx context.Context, models interface{}, conditions map[string]interface{}, queryParams *QueryParams,
 		fieldResults interface{}, timeout time.Duration) error
 	HasMigratedModel(modelType string) bool

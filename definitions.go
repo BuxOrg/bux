@@ -25,6 +25,7 @@ const (
 // All the base models
 const (
 	ModelAccessKey           ModelName = "access_key"
+	ModelBlockHeader         ModelName = "block_header"
 	ModelDestination         ModelName = "destination"
 	ModelDraftTransaction    ModelName = "draft_transaction"
 	ModelIncomingTransaction ModelName = "incoming_transaction"
@@ -33,7 +34,6 @@ const (
 	ModelPaymailAddress      ModelName = "paymail_address"
 	ModelSyncTransaction     ModelName = "sync_transaction"
 	ModelTransaction         ModelName = "transaction"
-	ModelBlockHeader         ModelName = "block_header"
 	ModelUtxo                ModelName = "utxo"
 	ModelXPub                ModelName = "xpub"
 )
@@ -43,17 +43,15 @@ var (
 	AllModelNames = []ModelName{
 		ModelAccessKey,
 		ModelBlockHeader,
-		ModelBlockHeader,
 		ModelDestination,
 		ModelIncomingTransaction,
 		ModelMetadata,
+		ModelPaymailAddress,
 		ModelPaymailAddress,
 		ModelSyncTransaction,
 		ModelTransaction,
 		ModelUtxo,
 		ModelXPub,
-		ModelPaymailAddress,
-		ModelBlockHeader,
 	}
 )
 

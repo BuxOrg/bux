@@ -76,7 +76,8 @@ func (c *Client) GetAccessKey(ctx context.Context, xPubID, id string) (*AccessKe
 // GetAccessKeys will get all existing access keys from the Datastore
 //
 // metadataConditions is the metadata to match to the access keys being returned
-func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadataConditions *Metadata, opts ...ModelOps) ([]*AccessKey, error) {
+func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_access_keys")
@@ -86,6 +87,8 @@ func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadataCondi
 		ctx,
 		xPubID,
 		metadataConditions,
+		conditions,
+		queryParams,
 		c.DefaultModelOptions(opts...)...,
 	)
 	if err != nil {

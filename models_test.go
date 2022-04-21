@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/stretchr/testify/assert"
@@ -149,15 +150,13 @@ func (ts *EmbeddedDBTestSuite) TestModels_GetModels() {
 			defer tc.Close(tc.ctx)
 			ts.createXpubModels(tc, t, numberOfModels)
 
+			queryParams := &datastore.QueryParams{Page: 0, PageSize: 10}
 			var models []*Xpub
 			err := tc.client.Datastore().GetModels(
 				tc.ctx,
 				&models,
 				nil,
-				10,
-				0,
-				"",
-				"",
+				queryParams,
 				nil,
 				30*time.Second,
 			)
@@ -173,16 +172,14 @@ func (ts *EmbeddedDBTestSuite) TestModels_GetModels() {
 			defer tc.Close(tc.ctx)
 			ts.createXpubModels(tc, t, numberOfModels)
 
+			queryParams := &datastore.QueryParams{Page: 0, PageSize: 10}
 			var models []*Xpub
 			var results []*xPubFieldsTest
 			err := tc.client.Datastore().GetModels(
 				tc.ctx,
 				&models,
 				nil,
-				10,
-				0,
-				"",
-				"",
+				queryParams,
 				&results,
 				30*time.Second,
 			)

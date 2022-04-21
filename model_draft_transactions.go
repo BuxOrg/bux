@@ -194,7 +194,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		var spendableUtxos []*Utxo
 		// todo should all utxos be sent to the SendAllTo address, not only the p2pkhs?
 		if spendableUtxos, err = GetSpendableUtxos(
-			ctx, m.XpubID, utils.ScriptTypePubKeyHash, 0, 0, m.Configuration.FromUtxos, opts...,
+			ctx, m.XpubID, utils.ScriptTypePubKeyHash, nil, m.Configuration.FromUtxos, opts...,
 		); err != nil {
 			return err
 		}
@@ -629,8 +629,7 @@ func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
 	if m.Status == DraftStatusCanceled || m.Status == DraftStatusExpired {
 		utxos, err := getUtxosByDraftID(
 			ctx, m.ID,
-			0, 0,
-			"", "",
+			nil,
 			m.GetOptions(false)...,
 		)
 		if err != nil {

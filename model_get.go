@@ -63,10 +63,9 @@ func getModels(
 	datastore datastore.ClientInterface,
 	models interface{},
 	conditions map[string]interface{},
-	pageSize, page int,
-	orderByField, sortDirection string,
+	queryParams *datastore.QueryParams,
 	timeout time.Duration,
 ) error {
 	// Attempt to Get the model (by model fields & given conditions)
-	return datastore.GetModels(ctx, models, conditions, pageSize, page, orderByField, sortDirection, nil, timeout)
+	return datastore.GetModels(ctx, models, conditions, queryParams, nil, timeout)
 }

@@ -3,21 +3,24 @@ package bux
 import (
 	"context"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 )
 
 // GetUtxos will get utxos based on an xPub
-func (c *Client) GetUtxos(ctx context.Context, xPubKey string) ([]*Utxo, error) {
+func (c *Client) GetUtxos(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams) ([]*Utxo, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_utxos")
 
 	// Get the utxos
-	// todo: add params for: page size, page, orderByField, sortDirection (right now it is unlimited)
 	utxos, err := getUtxosByXpubID(
-		ctx, utils.Hash(xPubKey),
-		0, 0,
-		"", "",
+		ctx,
+		xPubID,
+		metadata,
+		conditions,
+		queryParams,
 		c.DefaultModelOptions()...,
 	)
 	if err != nil {

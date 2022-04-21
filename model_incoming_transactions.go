@@ -49,7 +49,7 @@ func newIncomingTransaction(txID, hex string, opts ...ModelOps) (tx *IncomingTra
 }
 
 // getIncomingTransactionsToProcess will get the incoming transactions to process
-func getIncomingTransactionsToProcess(ctx context.Context, pageSize, page int,
+func getIncomingTransactionsToProcess(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps) ([]*IncomingTransaction, error) {
 
 	// Construct an empty model
@@ -58,10 +58,19 @@ func getIncomingTransactionsToProcess(ctx context.Context, pageSize, page int,
 		statusField: statusReady,
 	}
 
+	if queryParams == nil {
+		queryParams = &datastore.QueryParams{
+			Page:     0,
+			PageSize: 0,
+		}
+	}
+	queryParams.OrderByField = idField
+	queryParams.SortDirection = datastore.SortAsc
+
 	// Get the record
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, pageSize, page, idField, datastore.SortAsc, defaultDatabaseReadTimeout,
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
@@ -212,9 +221,11 @@ func (m *IncomingTransaction) RegisterTasks() error {
 // processIncomingTransactions will process incoming transaction records
 func processIncomingTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
 
+	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+
 	// Get x records:
 	records, err := getIncomingTransactionsToProcess(
-		ctx, maxTransactions, 1, opts...,
+		ctx, queryParams, opts...,
 	)
 	if err != nil {
 		return err

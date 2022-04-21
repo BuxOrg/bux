@@ -52,7 +52,7 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 }
 
 // GetSpendableUtxos Get all spendable utxos by page / pageSize
-func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, page, pageSize int,
+func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams,
 	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Construct the conditions and results
@@ -79,7 +79,7 @@ func GetSpendableUtxos(ctx context.Context, xPubID, utxoType string, page, pageS
 		// Get the records
 		if err := getModels(
 			ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-			&models, conditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
+			&models, conditions, queryParams, defaultDatabaseReadTimeout,
 		); err != nil {
 			if errors.Is(err, datastore.ErrNoResults) {
 				return nil, nil
@@ -109,7 +109,7 @@ func UnReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOp
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, 0, 0, "", "", defaultDatabaseReadTimeout,
+		&models, conditions, nil, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil
@@ -151,23 +151,22 @@ func ReserveUtxos(ctx context.Context, xPubID, draftID string,
 	utxos := new([]*Utxo)
 	feeNeeded := uint64(0)
 	reservedSatoshis := uint64(0)
-	page := 1
-	pageSize := m.pageSize
-	if pageSize == 0 {
-		pageSize = defaultPageSize
-	}
 
-	// get all utxos, if we are getting from given utxos
-	if fromUtxos != nil {
-		page = 0
-		pageSize = 0
+	queryParams := &datastore.QueryParams{}
+	if fromUtxos == nil {
+		// if we are not getting all utxos, paginate the retreival
+		queryParams.Page = 1
+		queryParams.PageSize = m.pageSize
+		if queryParams.PageSize == 0 {
+			queryParams.PageSize = defaultPageSize
+		}
 	}
 
 reserveUtxoLoop:
 	for {
 		var freeUtxos []*Utxo
 		if freeUtxos, err = GetSpendableUtxos(
-			ctx, xPubID, utils.ScriptTypePubKeyHash, page, pageSize, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
+			ctx, xPubID, utils.ScriptTypePubKeyHash, queryParams, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
 		); err != nil {
 			return nil, err
 		}
@@ -207,7 +206,7 @@ reserveUtxoLoop:
 			}
 		}
 
-		if pageSize == 0 {
+		if queryParams.PageSize == 0 {
 			// break the loop if we are not paginating
 			break reserveUtxoLoop
 		}
@@ -237,30 +236,40 @@ func newUtxoFromTxID(txID string, index uint32, opts ...ModelOps) *Utxo {
 }
 
 // getUtxosByXpubID
-func getUtxosByXpubID(ctx context.Context, xpubID string, pageSize, page int, orderByField,
-	sortDirection string, opts ...ModelOps) ([]*Utxo, error) {
-	conditions := map[string]interface{}{
-		xPubIDField: xpubID,
+func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
+
+	var dbConditions = map[string]interface{}{}
+	if conditions != nil {
+		dbConditions = *conditions
 	}
-	return getUtxosByConditions(ctx, conditions, pageSize, page, orderByField, sortDirection, opts...)
+	dbConditions[xPubIDField] = xPubID
+
+	if metadata != nil {
+		dbConditions[metadataField] = metadata
+	}
+
+	return getUtxosByConditions(ctx, dbConditions, queryParams, opts...)
 }
 
 // getUtxosByDraftID
-func getUtxosByDraftID(ctx context.Context, draftID string, pageSize, page int,
-	orderByField, sortDirection string, opts ...ModelOps) ([]*Utxo, error) {
+func getUtxosByDraftID(ctx context.Context, draftID string,
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
+
 	conditions := map[string]interface{}{
 		draftIDField: draftID,
 	}
-	return getUtxosByConditions(ctx, conditions, pageSize, page, orderByField, sortDirection, opts...)
+	return getUtxosByConditions(ctx, conditions, queryParams, opts...)
 }
 
-func getUtxosByConditions(ctx context.Context, conditions map[string]interface{}, pageSize,
-	page int, orderByField, sortDirection string, opts ...ModelOps) ([]*Utxo, error) {
+func getUtxosByConditions(ctx context.Context, conditions map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
+
 	var models []Utxo
 	if err := getModels(
 		ctx, NewBaseModel(
 			ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, pageSize, page, orderByField, sortDirection, databaseLongReadTimeout,
+		&models, conditions, queryParams, databaseLongReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

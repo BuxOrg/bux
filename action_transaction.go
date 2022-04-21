@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 )
 
@@ -193,15 +194,15 @@ func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Tran
 // metadataConditions is added to the request for searching
 // conditions is added the request for searching
 func (c *Client) GetTransactions(ctx context.Context, xPubID string, metadataConditions *Metadata,
-	conditions *map[string]interface{}) ([]*Transaction, error) {
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Transaction, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
 
 	// Get the transaction by ID
-	// todo: add params for: page size and page (right now it is unlimited)
+	// todo: add queryParams for: page size and page (right now it is unlimited)
 	transactions, err := getTransactionsByXpubID(
-		ctx, xPubID, metadataConditions, conditions, 0, 0,
+		ctx, xPubID, metadataConditions, conditions, queryParams,
 		c.DefaultModelOptions()...,
 	)
 	if err != nil {

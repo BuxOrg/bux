@@ -169,6 +169,7 @@ func (c *Client) getWithMongo(
 	models interface{},
 	conditions map[string]interface{},
 	fieldResult interface{},
+	queryParams *QueryParams,
 ) error {
 	queryConditions := getMongoQueryConditions(models, conditions)
 	collectionName := utils.GetModelTableName(models)
@@ -196,6 +197,21 @@ func (c *Client) getWithMongo(
 				projection = append(projection, bson.E{Key: field, Value: 1})
 			}
 			opts = append(opts, options.Find().SetProjection(projection))
+		}
+
+		if queryParams.Page > 0 {
+			opts = append(opts, options.Find().SetLimit(int64(queryParams.PageSize)).SetSkip(int64(queryParams.PageSize*(queryParams.Page-1))))
+		}
+
+		if queryParams.OrderByField == "id" {
+			queryParams.OrderByField = "_id" // use Mongo _id instead of default id field
+		}
+		if queryParams.OrderByField != "" {
+			sortOrder := 1
+			if queryParams.SortDirection == "desc" {
+				sortOrder = -1
+			}
+			opts = append(opts, options.Find().SetSort(bson.D{{Key: queryParams.OrderByField, Value: sortOrder}}))
 		}
 
 		cursor, err := collection.Find(ctx, queryConditions, opts...)
@@ -340,8 +356,15 @@ func getMongoQueryConditions(
 
 func processMongoConditions(conditions *map[string]interface{}) {
 
+	// transform the id field to mongo _id field
+	_, ok := (*conditions)["id"]
+	if ok {
+		(*conditions)["_id"] = (*conditions)["id"]
+		delete(*conditions, "id")
+	}
+
 	// transform the map of metadata to key / value query
-	_, ok := (*conditions)["metadata"]
+	_, ok = (*conditions)["metadata"]
 	if ok {
 		processMetadataConditions(conditions)
 	}

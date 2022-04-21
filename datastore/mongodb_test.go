@@ -109,6 +109,29 @@ func TestClient_getMongoQueryConditions(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"_id": "identifier"}, queryConditions)
 	})
 
+	t.Run("embedded ID", func(t *testing.T) {
+		condition := map[string]interface{}{
+			"$and": []map[string]interface{}{{
+				"metadata": map[string]interface{}{
+					"test-key": "test-value",
+				},
+			}, {
+				"id": "identifier",
+			}},
+		}
+		expected := map[string]interface{}{
+			"$and": []map[string]interface{}{{
+				"$and": []map[string]interface{}{{
+					"metadata.k": "test-key", "metadata.v": "test-value",
+				}},
+			}, {
+				"_id": "identifier",
+			}},
+		}
+		queryConditions := getMongoQueryConditions(mockModel{}, condition)
+		assert.Equal(t, expected, queryConditions)
+	})
+
 	t.Run("metadata", func(t *testing.T) {
 		condition := map[string]interface{}{
 			"metadata": map[string]interface{}{

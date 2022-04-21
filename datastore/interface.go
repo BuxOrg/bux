@@ -14,8 +14,8 @@ type StorageService interface {
 	CreateInBatches(ctx context.Context, models interface{}, batchSize int) error
 	Execute(query string) *gorm.DB
 	GetModel(ctx context.Context, model interface{}, conditions map[string]interface{}, timeout time.Duration) error
-	GetModels(ctx context.Context, models interface{}, conditions map[string]interface{}, pageSize, page int,
-		orderByField, sortDirection string, fieldResults interface{}, timeout time.Duration) error
+	GetModels(ctx context.Context, models interface{}, conditions map[string]interface{}, queryParams *QueryParams,
+		fieldResults interface{}, timeout time.Duration) error
 	HasMigratedModel(modelType string) bool
 	IncrementModel(ctx context.Context, model interface{},
 		fieldName string, increment int64) (newValue int64, err error)

@@ -19,7 +19,7 @@ import (
 // AccessKeyService is the access key actions
 type AccessKeyService interface {
 	GetAccessKey(ctx context.Context, xPubID, pubAccessKey string) (*AccessKey, error)
-	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error)
+	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error)
 	NewAccessKey(ctx context.Context, rawXpubKey string, opts ...ModelOps) (*AccessKey, error)
 	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
 }
@@ -59,7 +59,7 @@ type DestinationService interface {
 // UTXOService is the utxo actions
 type UTXOService interface {
 	GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex uint32) (*Utxo, error)
-	GetUtxos(ctx context.Context, xPubKey string) ([]*Utxo, error)
+	GetUtxos(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Utxo, error)
 }
 
 // XPubService is the xPub actions

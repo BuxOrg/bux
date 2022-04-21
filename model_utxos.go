@@ -236,13 +236,20 @@ func newUtxoFromTxID(txID string, index uint32, opts ...ModelOps) *Utxo {
 }
 
 // getUtxosByXpubID
-func getUtxosByXpubID(ctx context.Context, xpubID string,
+func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
 
-	conditions := map[string]interface{}{
-		xPubIDField: xpubID,
+	var dbConditions = map[string]interface{}{}
+	if conditions != nil {
+		dbConditions = *conditions
 	}
-	return getUtxosByConditions(ctx, conditions, queryParams, opts...)
+	dbConditions[xPubIDField] = xPubID
+
+	if metadata != nil {
+		dbConditions[metadataField] = metadata
+	}
+
+	return getUtxosByConditions(ctx, dbConditions, queryParams, opts...)
 }
 
 // getUtxosByDraftID

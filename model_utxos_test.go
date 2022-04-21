@@ -118,6 +118,8 @@ func TestUtxo_getUtxosByXpubID(t *testing.T) {
 		utxos, err := getUtxosByXpubID(
 			ctx, testXPubID,
 			nil,
+			nil,
+			nil,
 			client.DefaultModelOptions()...,
 		)
 		assert.NoError(t, err)
@@ -131,6 +133,8 @@ func TestUtxo_getUtxosByXpubID(t *testing.T) {
 
 		utxos, err := getUtxosByXpubID(
 			ctx, testXPubID,
+			nil,
+			nil,
 			nil,
 			client.DefaultModelOptions()...,
 		)

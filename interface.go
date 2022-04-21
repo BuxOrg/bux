@@ -19,7 +19,8 @@ import (
 // AccessKeyService is the access key actions
 type AccessKeyService interface {
 	GetAccessKey(ctx context.Context, xPubID, pubAccessKey string) (*AccessKey, error)
-	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error)
+	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error)
 	NewAccessKey(ctx context.Context, rawXpubKey string, opts ...ModelOps) (*AccessKey, error)
 	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
 }
@@ -27,7 +28,8 @@ type AccessKeyService interface {
 // TransactionService is the transaction actions
 type TransactionService interface {
 	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
-	GetTransactions(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Transaction, error)
+	GetTransactions(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams) ([]*Transaction, error)
 	NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
@@ -46,7 +48,8 @@ type DestinationService interface {
 	GetDestinationByID(ctx context.Context, xPubID, id string) (*Destination, error)
 	GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error)
 	GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error)
-	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Destination, error)
+	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams) ([]*Destination, error)
 	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
@@ -59,7 +62,8 @@ type DestinationService interface {
 // UTXOService is the utxo actions
 type UTXOService interface {
 	GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex uint32) (*Utxo, error)
-	GetUtxos(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Utxo, error)
+	GetUtxos(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams) ([]*Utxo, error)
 }
 
 // XPubService is the xPub actions
@@ -74,8 +78,10 @@ type XPubService interface {
 // PaymailService is the paymail actions
 type PaymailService interface {
 	GetPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error)
-	GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
-	GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
+	GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
+	GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
+		conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
 	NewPaymailAddress(ctx context.Context, key, address, publicName, avatar string, opts ...ModelOps) (*PaymailAddress, error)
 	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
 	UpdatePaymailAddress(ctx context.Context, address, publicName, avatar string,
@@ -112,7 +118,8 @@ type ClientInterface interface {
 	UTXOService
 	XPubService
 	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
-	AuthenticateRequest(ctx context.Context, req *http.Request, adminXPubs []string, adminRequired, requireSigning, signingDisabled bool) (*http.Request, error)
+	AuthenticateRequest(ctx context.Context, req *http.Request, adminXPubs []string,
+		adminRequired, requireSigning, signingDisabled bool) (*http.Request, error)
 	Close(ctx context.Context) error
 	Debug(on bool)
 	DefaultModelOptions(opts ...ModelOps) []ModelOps

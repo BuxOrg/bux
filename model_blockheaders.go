@@ -146,12 +146,11 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 			} else {
 				if blockHeader0 == nil {
 					// import block headers in the background
-					m.Client().Logger().Info(ctx, "Importing block headers into database")
-					err = m.importBlockHeaders(ctx, client, blockHeadersFile)
-					if err != nil {
+					m.Client().Logger().Info(ctx, "importing block headers into database")
+					if err = m.importBlockHeaders(ctx, client, blockHeadersFile); err != nil {
 						m.Client().Logger().Error(ctx, err.Error())
 					} else {
-						m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
+						m.Client().Logger().Info(ctx, "successfully imported all block headers into database")
 					}
 				}
 			}
@@ -161,21 +160,23 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 	return nil
 }
 
-func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.ClientInterface, blockHeadersFile string) error {
+// importBlockHeaders will import the block headers from a file
+func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.ClientInterface,
+	blockHeadersFile string) error {
 
 	file, err := ioutil.TempFile("", "blocks_bux.tsv")
 	if err != nil {
 		return err
 	}
 	defer func() {
-		err = os.Remove(file.Name())
-		if err != nil {
+		if err = os.Remove(file.Name()); err != nil {
 			m.Client().Logger().Error(ctx, err.Error())
 		}
 	}()
 
-	err = utils.DownloadAndUnzipFile(ctx, m.Client().HTTPClient(), file, blockHeadersFile)
-	if err != nil {
+	if err = utils.DownloadAndUnzipFile(
+		ctx, m.Client().HTTPClient(), file, blockHeadersFile,
+	); err != nil {
 		return err
 	}
 
@@ -200,8 +201,7 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 
 		if count%batchSize == 0 {
 			// insert in batches of batchSize
-			err = client.CreateInBatches(ctx, models, batchSize)
-			if err != nil {
+			if err = client.CreateInBatches(ctx, models, batchSize); err != nil {
 				return err
 			}
 			// reset models
@@ -211,104 +211,96 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 	}
 
 	// accumulate the models into a slice
-	err = m.importCSVFile(ctx, blockFile, readModel)
-	if errors.Is(err, io.EOF) {
+	if err = m.importCSVFile(ctx, blockFile, readModel); errors.Is(err, io.EOF) {
 		if count%batchSize != 0 {
 			// remaining batch
 			return client.CreateInBatches(ctx, models, batchSize)
 		}
 		return nil
-	} else if err != nil {
-		return err
 	}
-
-	return nil
+	return err
 }
 
-func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string, readModel func(model *BlockHeader) error) error {
+// importCSVFile will import the block headers from a given CSV file
+func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string,
+	readModel func(model *BlockHeader) error) error {
+
 	CSVFile, err := os.Open(blockFile) //nolint:gosec // file only added by administrator via config
 	if err != nil {
 		return err
 	}
 	defer func() {
-		err = CSVFile.Close()
-		if err != nil {
+		if err = CSVFile.Close(); err != nil {
 			m.Client().Logger().Error(ctx, err.Error())
 		}
 	}()
 
 	reader := csv.NewReader(CSVFile)
 	reader.Comma = '\t'             // It's a tab-delimited file
-	reader.LazyQuotes = true        // Some fields are like \t"F" ST.\t
 	reader.FieldsPerRecord = 0      // -1 is variable #, 0 is [0]th line's #
+	reader.LazyQuotes = true        // Some fields are like \t"F" ST.\t
 	reader.TrimLeadingSpace = false // Keep the fields' whitespace how it is
 
 	// read first line - HEADER
-	_, err = reader.Read()
-	if err != nil {
+	if _, err = reader.Read(); err != nil {
 		return err
 	}
 
+	// Read all rows
 	for {
 		var row []string
-		row, err = reader.Read()
-		if err != nil {
+		if row, err = reader.Read(); err != nil {
 			return err
 		}
 
 		var parsedInt uint64
-
-		parsedInt, err = strconv.ParseUint(row[1], 10, 32)
-		if err != nil {
+		if parsedInt, err = strconv.ParseUint(row[1], 10, 32); err != nil {
 			return err
 		}
+
 		height := uint32(parsedInt)
 
-		parsedInt, err = strconv.ParseUint(row[3], 10, 32)
-		if err != nil {
+		if parsedInt, err = strconv.ParseUint(row[3], 10, 32); err != nil {
 			return err
 		}
+
 		nonce := uint32(parsedInt)
 
-		parsedInt, err = strconv.ParseUint(row[4], 10, 32)
-		if err != nil {
+		if parsedInt, err = strconv.ParseUint(row[4], 10, 32); err != nil {
 			return err
 		}
 		ver := uint32(parsedInt)
-		parsedInt, err = strconv.ParseUint(row[7], 10, 32)
-		if err != nil {
+		if parsedInt, err = strconv.ParseUint(row[7], 10, 32); err != nil {
 			return err
 		}
 		bits := parsedInt
 
 		var timeField time.Time
-		timeField, err = time.Parse("2006-01-02 15:04:05", row[2])
-		if err != nil {
+		if timeField, err = time.Parse("2006-01-02 15:04:05", row[2]); err != nil {
 			return err
 		}
 
 		var syncedTime time.Time
-		syncedTime, err = time.Parse("2006-01-02 15:04:05", row[8])
-		if err != nil {
+		if syncedTime, err = time.Parse("2006-01-02 15:04:05", row[8]); err != nil {
 			return err
 		}
 
+		// todo: use a function like newBlockHeader? vs making a struct
 		model := &BlockHeader{
-			ID:                row[0],
-			Height:            height,
-			Time:              uint32(timeField.Unix()),
-			Nonce:             nonce,
-			Version:           ver,
-			HashPreviousBlock: row[5],
-			HashMerkleRoot:    row[6],
 			Bits:              strconv.FormatUint(bits, 16),
+			HashMerkleRoot:    row[6],
+			HashPreviousBlock: row[5],
+			Height:            height,
+			ID:                row[0],
+			Nonce:             nonce,
 			Synced:            utils.NullTime{NullTime: sql.NullTime{Valid: true, Time: syncedTime}},
+			Time:              uint32(timeField.Unix()),
+			Version:           ver,
 		}
 		model.Model.CreatedAt = time.Now()
 
 		// call the readModel callback function to add the model to the database
-		err = readModel(model)
-		if err != nil {
+		if err = readModel(model); err != nil {
 			return err
 		}
 	}

@@ -121,7 +121,7 @@ func TestBloomProcessor(t *testing.T) {
 			m := &BloomProcessor{
 				filters: map[string]*BloomProcessorFilter{
 					tt.fields.filterType: {
-						filter: tt.fields.filter,
+						Filter: tt.fields.filter,
 						regex:  utils.P2PKHSubstringRegexp,
 					},
 				},
@@ -134,8 +134,8 @@ func TestBloomProcessor(t *testing.T) {
 				},
 			}
 			var tx string
-			tx, err = m.FilterMempoolPublishEvent(event)
-			assert.NoError(t, err, "%s - mempool filter unexpectedly failed", tt.name)
+			tx, err = m.FilterTransactionPublishEvent(event.Data)
+			assert.NoError(t, err, "%s - mempool Filter unexpectedly failed", tt.name)
 			if tt.args.passes {
 				assert.NotEqualf(t, tx, "", "%s - expected tx to pass processor and didn't", tt.name)
 			} else {
@@ -175,7 +175,7 @@ func BenchmarkBloomProcessor(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		tx, _ := m.FilterMempoolPublishEvent(getEvent(i))
+		tx, _ := m.FilterTransactionPublishEvent(getEvent(i).Data)
 		txResult = append(txResult, len(tx))
 	}
 }
@@ -232,7 +232,7 @@ func TestBloomProcessor_FilterMempoolTx(t *testing.T) {
 			require.NoError(t, err)
 
 			var got string
-			got, err = p.FilterMempoolTx(tt.args.txHex)
+			got, err = p.FilterTransaction(tt.args.txHex)
 			if !tt.wantErr(t, err, fmt.Sprintf("FilterMempoolTx(%v)", tt.args.txHex)) {
 				return
 			}

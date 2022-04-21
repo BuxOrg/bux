@@ -226,6 +226,7 @@ func (c *Client) GetModels(
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
 		return c.getWithMongo(ctx, models, conditions, fieldResults, queryParams)
+		// todo: add page/size for mongo
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}

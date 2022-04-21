@@ -245,7 +245,7 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 							m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool tx: %s\n", tx.TxID))
 						}
 						var txHex string
-						txHex, err = m.processor.FilterMempoolTx(tx.Hex) // todo off
+						txHex, err = m.processor.FilterTransaction(tx.Hex) // todo off
 						if err != nil {
 							m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx %s: %s\n", tx.TxID, err.Error()))
 							continue

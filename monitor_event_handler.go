@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/centrifugal/centrifuge-go"
@@ -23,6 +26,47 @@ type MonitorEventHandler struct {
 	limit     *limiter.ConcurrencyLimiter
 }
 
+type blockSubscriptionHandler struct {
+	debug     bool
+	logger    chainstate.Logger
+	monitor   chainstate.MonitorService
+	buxClient ClientInterface
+	ctx       context.Context
+	wg        sync.WaitGroup
+}
+
+func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
+
+	channelName := subscription.Channel()
+	if strings.HasPrefix(channelName, "block:sync:") {
+		// block subscription
+		tx, err := b.monitor.Processor().FilterTransactionPublishEvent(e.Data)
+		if err != nil {
+			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] Error processing block data: %s", err.Error()))
+		}
+
+		if tx == "" {
+			return
+		}
+		_, err = b.buxClient.RecordMonitoredTransaction(b.ctx, tx)
+		if err != nil {
+			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+			return
+		}
+
+		if b.debug {
+			b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
+		}
+	}
+}
+
+func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, _ centrifuge.UnsubscribeEvent) {
+
+	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %s", subscription.Channel()))
+	// close wait group
+	b.wg.Done()
+}
+
 // NewMonitorHandler create a new monitor handler
 func NewMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor chainstate.MonitorService) MonitorEventHandler {
 	return MonitorEventHandler{
@@ -36,8 +80,20 @@ func NewMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor c
 }
 
 // OnConnect event when connected
-func (h *MonitorEventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.ConnectEvent) {
+func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.ConnectEvent) {
 	h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] Connected to server: %s", e.ClientID))
+
+	agentClient := &chainstate.AgentClient{
+		Client: client,
+	}
+	filters := h.monitor.Processor().GetFilters()
+	for regex, bloomFilter := range filters {
+		_, err := agentClient.SetFilter(regex, bloomFilter)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
+		}
+	}
+
 	if h.monitor.GetProcessMempoolOnConnect() {
 		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
 		go func() {
@@ -47,7 +103,98 @@ func (h *MonitorEventHandler) OnConnect(_ *centrifuge.Client, e centrifuge.Conne
 			}
 		}()
 	}
+
+	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCK HEADERS")
+	err := h.ProcessBlockHeaders(h.ctx, client)
+	if err != nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
+	}
+
+	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCKS")
+	go func() {
+		err := h.ProcessBlocks(h.ctx, client)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing blocks: %s", err.Error()))
+		}
+	}()
+
 	h.monitor.Connected()
+}
+
+// ProcessBlocks processes all transactions in blocks that have not yet been synced
+func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrifuge.Client) error {
+
+	for {
+		// get all block headers that have not been marked as synced
+		blockHeaders, err := h.buxClient.GetUnsyncedBlockHeaders(ctx)
+		if err != nil {
+			h.logger.Error(h.ctx, err.Error())
+		} else {
+			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] processing block headers: %d", len(blockHeaders)))
+			for _, blockHeader := range blockHeaders {
+				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Processing block %d: %s", blockHeader.Height, blockHeader.ID))
+				handler := &blockSubscriptionHandler{
+					debug:     h.debug,
+					logger:    h.logger,
+					monitor:   h.monitor,
+					buxClient: h.buxClient,
+					ctx:       context.Background(),
+				}
+				handler.wg.Add(1)
+
+				var subscription *centrifuge.Subscription
+				subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
+				if err != nil {
+					h.logger.Error(h.ctx, err.Error())
+				} else {
+					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
+					subscription.OnPublish(handler)
+					subscription.OnUnsubscribe(handler)
+					err = subscription.Subscribe()
+					if err != nil {
+						h.logger.Error(h.ctx, err.Error())
+					} else {
+						h.logger.Info(ctx, "[MONITOR] Waiting for waitgroup to finish")
+						handler.wg.Wait()
+
+						// save that block header has been synced
+						blockHeader.Synced.Valid = true
+						blockHeader.Synced.Time = time.Now()
+						err = blockHeader.Save(ctx)
+						if err != nil {
+							h.logger.Error(h.ctx, err.Error())
+						}
+					}
+				}
+			}
+		}
+
+		time.Sleep(defaultSleepForNewBlockHeaders)
+	}
+}
+
+// ProcessBlockHeaders processes all missing block headers
+func (h *MonitorEventHandler) ProcessBlockHeaders(ctx context.Context, client *centrifuge.Client) error {
+
+	lastBlockHeader, err := h.buxClient.GetLastBlockHeader(ctx)
+	if err != nil {
+		h.logger.Error(h.ctx, err.Error())
+	} else {
+		var subscription *centrifuge.Subscription
+		subscription, err = client.NewSubscription("block:headers:history:" + fmt.Sprint(lastBlockHeader.Height))
+		if err != nil {
+			h.logger.Error(h.ctx, err.Error())
+		} else {
+			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block header subscription: %v", subscription))
+			subscription.OnPublish(h)
+			err = subscription.Subscribe()
+			if err != nil {
+				h.logger.Error(h.ctx, err.Error())
+			}
+		}
+	}
+
+	return nil
 }
 
 // OnError on error event
@@ -90,9 +237,64 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 }
 
 // OnPublish ???
-func (h *MonitorEventHandler) OnPublish(_ *centrifuge.Subscription, e centrifuge.PublishEvent) {
-	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e))
+func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
+
+	channelName := subscription.Channel()
+	if strings.HasPrefix(channelName, "block:sync:") {
+		// block subscription
+		tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx: %v", err))
+			return
+		}
+
+		if tx == "" {
+			return
+		}
+		_, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+			return
+		}
+
+		if h.debug {
+			h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
+		}
+	} else if strings.HasPrefix(channelName, "block:headers:history:") {
+		bi := whatsonchain.BlockInfo{}
+		err := json.Unmarshal(e.Data, &bi)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
+		}
+
+		var existingBlock *BlockHeader
+		existingBlock, err = h.buxClient.GetBlockHeaderByHeight(h.ctx, uint32(bi.Height))
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR getting block header by height: %v", err))
+		}
+		if existingBlock == nil {
+			if err != nil {
+				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
+				return
+			}
+			bh := bc.BlockHeader{
+				HashPrevBlock:  []byte(bi.PreviousBlockHash),
+				HashMerkleRoot: []byte(bi.MerkleRoot),
+				Nonce:          uint32(bi.Nonce),
+				Version:        uint32(bi.Version),
+				Time:           uint32(bi.Time),
+				Bits:           []byte(bi.Bits),
+			}
+			_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, uint32(bi.Height), bh)
+			if err != nil {
+				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording block header: %v", err))
+				return
+			}
+		}
+	} else {
+		if h.debug {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e.Data))
+		}
 	}
 }
 
@@ -150,7 +352,7 @@ func (h *MonitorEventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge
 }
 
 func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
-	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
+	tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
 	if err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] failed to process server event: %v", err))
 		return
@@ -176,7 +378,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 	}
 }
 
-func (h *MonitorEventHandler) processBlockHeaderPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Client, e centrifuge.ServerPublishEvent) {
 	bi := whatsonchain.BlockInfo{}
 	err := json.Unmarshal(e.Data, &bi)
 	if err != nil {
@@ -191,7 +393,24 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(_ *centrifuge.Client, e 
 		Time:           uint32(bi.Time),
 		Bits:           []byte(bi.Bits),
 	}
-	_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, bh)
+
+	height := uint32(bi.Height)
+	var previousBlockHeader *BlockHeader
+	previousBlockHeader, err = getBlockHeaderByHeight(h.ctx, height-1, h.buxClient.DefaultModelOptions()...)
+	if err != nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR retreiving previous block header: %v", err))
+		return
+	}
+	if previousBlockHeader == nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR Previous block header not found: %d", height-1))
+		err = h.ProcessBlockHeaders(h.ctx, client)
+		if err != nil {
+			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
+		}
+		return
+	}
+
+	_, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, height, bh)
 	if err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording block header: %v", err))
 		return
@@ -208,30 +427,6 @@ func (h *MonitorEventHandler) onServerPublishLinear(c *centrifuge.Client, e cent
 		h.processMempoolPublish(c, e)
 	case "block:headers":
 		h.processBlockHeaderPublish(c, e)
-	}
-	tx, err := h.monitor.Processor().FilterMempoolPublishEvent(e)
-	if err != nil {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] failed to process server event: %v", err))
-		return
-	}
-
-	if h.monitor.SaveDestinations() {
-		// Process transaction and save outputs
-		// todo replace printf
-		fmt.Printf("Should save the destination here...\n")
-	}
-
-	if tx == "" {
-		return
-	}
-	_, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx)
-	if err != nil {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
-		return
-	}
-
-	if h.debug {
-		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
 	}
 }
 

@@ -82,8 +82,10 @@ type MonitorHandler interface {
 type MonitorProcessor interface {
 	Add(regexString, item string) error
 	Debug(bool)
-	FilterMempoolPublishEvent(event centrifuge.ServerPublishEvent) (string, error)
-	FilterMempoolTx(txHex string) (string, error)
+	FilterTransactionPublishEvent(eData []byte) (string, error)
+	FilterTransaction(txHex string) (string, error)
+	GetFilters() map[string]*BloomProcessorFilter
+	SetFilter(regex string, filter []byte) error
 	GetHash() string
 	IsDebug() bool
 	Logger() Logger

@@ -37,12 +37,13 @@ type BlockHeader struct {
 }
 
 // newBlockHeader will start a new block header model
-func newBlockHeader(hash string, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
+func newBlockHeader(hash string, height uint32, blockHeader bc.BlockHeader, opts ...ModelOps) (bh *BlockHeader) {
 
 	// Create a new model
 	bh = &BlockHeader{
-		ID:    hash,
-		Model: *NewBaseModel(ModelBlockHeader, opts...),
+		ID:     hash,
+		Height: height,
+		Model:  *NewBaseModel(ModelBlockHeader, opts...),
 	}
 
 	// Set header info
@@ -58,6 +59,69 @@ func (m *BlockHeader) GetModelName() string {
 // GetModelTableName will get the db table name of the current model
 func (m *BlockHeader) GetModelTableName() string {
 	return tableBlockHeaders
+}
+
+// getUnsyncedBlockHeaders will return all block headers that have not been marked as synced
+func getUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHeader, error) {
+
+	// Construct an empty model
+	var models []BlockHeader
+	conditions := map[string]interface{}{
+		"synced": nil,
+	}
+
+	// Get the records
+	if err := getModels(
+		ctx, NewBaseModel(ModelBlockHeader, opts...).Client().Datastore(),
+		&models, conditions, nil, defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Loop and enrich
+	blockHeaders := make([]*BlockHeader, 0)
+	for index := range models {
+		models[index].enrich(ModelBlockHeader, opts...)
+		blockHeaders = append(blockHeaders, &models[index])
+	}
+
+	return blockHeaders, nil
+}
+
+// getLastBlockHeader will return the last block header in the database
+func getLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, error) {
+
+	// Construct an empty model
+	var model []BlockHeader
+
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      1,
+		OrderByField:  "height",
+		SortDirection: "desc",
+	}
+
+	// Get the records
+	if err := getModels(
+		ctx, NewBaseModel(ModelBlockHeader, opts...).Client().Datastore(),
+		&model, nil, queryParams, defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if len(model) == 1 {
+		blockHeader := model[0]
+		blockHeader.enrich(ModelBlockHeader, opts...)
+		return &blockHeader, nil
+	}
+
+	return nil, nil
 }
 
 // Save will Save the model into the Datastore
@@ -90,12 +154,15 @@ func getBlockHeaderByHeight(ctx context.Context, height uint32, opts ...ModelOps
 
 	// Construct an empty model
 	blockHeader := &BlockHeader{
-		Height: height,
-		Model:  *NewBaseModel(ModelDestination, opts...),
+		Model: *NewBaseModel(ModelDestination, opts...),
+	}
+
+	conditions := map[string]interface{}{
+		"height": height,
 	}
 
 	// Get the record
-	if err := Get(ctx, blockHeader, nil, true, defaultDatabaseReadTimeout); err != nil {
+	if err := Get(ctx, blockHeader, conditions, true, defaultDatabaseReadTimeout); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
 		}
@@ -137,24 +204,27 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 	// import all previous block headers from file
 	blockHeadersFile := m.Client().ImportBlockHeadersFromURL()
 	if blockHeadersFile != "" {
-		go func() {
-			ctx := context.Background()
-			// check whether we have block header 0, then we do not import again
-			blockHeader0, err := getBlockHeaderByHeight(ctx, 0, m.Client().DefaultModelOptions()...)
-			if err != nil {
-				m.Client().Logger().Error(ctx, err.Error())
-			} else {
-				if blockHeader0 == nil {
-					// import block headers in the background
-					m.Client().Logger().Info(ctx, "importing block headers into database")
-					if err = m.importBlockHeaders(ctx, client, blockHeadersFile); err != nil {
-						m.Client().Logger().Error(ctx, err.Error())
-					} else {
-						m.Client().Logger().Info(ctx, "successfully imported all block headers into database")
-					}
+		ctx := context.Background()
+		// check whether we have block header 0, then we do not import
+		blockHeader0, err := getBlockHeaderByHeight(ctx, 0, m.Client().DefaultModelOptions()...)
+		if err != nil {
+			// stop execution if block headers import is not successful
+			// the block headers state can be messed up if they are not imported, or half imported
+			panic(err.Error())
+		} else {
+			if blockHeader0 == nil {
+				// import block headers in the background
+				m.Client().Logger().Info(ctx, "Importing block headers into database")
+				err = m.importBlockHeaders(ctx, client, blockHeadersFile)
+				if err != nil {
+					// stop execution if block headers import is not successful
+					// the block headers state can be messed up if they are not imported, or half imported
+					panic(err.Error())
+				} else {
+					m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
 				}
 			}
-		}()
+		}
 	}
 
 	return nil

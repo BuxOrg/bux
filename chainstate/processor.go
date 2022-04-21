@@ -12,7 +12,7 @@ import (
 	boom "github.com/tylertreat/BoomFilters"
 )
 
-// BloomProcessor bloom Filter processor
+// BloomProcessor bloom filter processor
 type BloomProcessor struct {
 	debug             bool
 	falsePositiveRate float64
@@ -56,7 +56,7 @@ func (p *BloomProcessor) Logger() Logger {
 	return p.logger
 }
 
-// GetHash get the hash of the current Filter
+// GetHash get the hash of the current filter
 func (p *BloomProcessor) GetHash() string {
 	h := sha256.New()
 	for _, f := range p.filters {
@@ -94,10 +94,10 @@ func (p *BloomProcessor) SetFilter(regex string, filter []byte) error {
 	return nil
 }
 
-// Add a new item to the bloom Filter
+// Add a new item to the bloom filter
 func (p *BloomProcessor) Add(regexString, item string) error {
 
-	// check whether this regex Filter already exists, otherwise initialize it
+	// check whether this regex filter already exists, otherwise initialize it
 	if p.filters[regexString] == nil {
 		r, err := regexp.Compile(regexString)
 		if err != nil {
@@ -113,7 +113,7 @@ func (p *BloomProcessor) Add(regexString, item string) error {
 	return nil
 }
 
-// Test checks whether the item is in the bloom Filter
+// Test checks whether the item is in the bloom filter
 func (p *BloomProcessor) Test(regexString, item string) bool {
 	if p.filters[regexString] == nil {
 		return false
@@ -121,7 +121,7 @@ func (p *BloomProcessor) Test(regexString, item string) bool {
 	return p.filters[regexString].Filter.Test([]byte(item))
 }
 
-// Reload the bloom Filter from the DB
+// Reload the bloom filter from the DB
 func (p *BloomProcessor) Reload(regexString string, items []string) (err error) {
 	for _, item := range items {
 		if err = p.Add(regexString, item); err != nil {
@@ -132,7 +132,7 @@ func (p *BloomProcessor) Reload(regexString string, items []string) (err error) 
 	return
 }
 
-// FilterTransactionPublishEvent check whether a Filter matches a tx event
+// FilterTransactionPublishEvent check whether a filter matches a tx event
 func (p *BloomProcessor) FilterTransactionPublishEvent(eData []byte) (string, error) {
 	transaction := whatsonchain.TxInfo{}
 	_ = json.Unmarshal(eData, &transaction) // todo: missing error check
@@ -153,7 +153,7 @@ func (p *BloomProcessor) FilterTransactionPublishEvent(eData []byte) (string, er
 	return "", nil
 }
 
-// FilterTransaction check whether a Filter matches a tx event
+// FilterTransaction check whether a filter matches a tx event
 func (p *BloomProcessor) FilterTransaction(txHex string) (string, error) {
 
 	for _, f := range p.filters {
@@ -170,7 +170,7 @@ func (p *BloomProcessor) FilterTransaction(txHex string) (string, error) {
 
 // RegexProcessor simple regex processor
 // This processor just uses regex checks to see if a raw hex string exists in a tx
-// This is bound to have some false positives but is somewhat performant when Filter set is small
+// This is bound to have some false positives but is somewhat performant when filter set is small
 type RegexProcessor struct {
 	debug  bool
 	filter []string
@@ -230,7 +230,7 @@ func (p *RegexProcessor) Reload(_ string, items []string) (err error) {
 	return
 }
 
-// FilterTransactionPublishEvent check whether a Filter matches a tx event
+// FilterTransactionPublishEvent check whether a filter matches a tx event
 func (p *RegexProcessor) FilterTransactionPublishEvent(eData []byte) (string, error) {
 	transaction := whatsonchain.TxInfo{}
 	if err := json.Unmarshal(eData, &transaction); err != nil {
@@ -250,7 +250,7 @@ func (p *RegexProcessor) FilterTransaction(hex string) (string, error) {
 	return "", nil
 }
 
-// GetHash get the hash of the Filter
+// GetHash get the hash of the filter
 func (p *RegexProcessor) GetHash() string {
 	return ""
 }

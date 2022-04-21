@@ -10,7 +10,7 @@ import (
 	"github.com/mrz1836/go-whatsonchain"
 )
 
-// Monitor starts a new monitorConfig to monitorConfig and Filter transactions from a source
+// Monitor starts a new monitorConfig to monitorConfig and filter transactions from a source
 type Monitor struct {
 	centrifugeServer             string
 	chainstateOptions            *clientOptions
@@ -56,7 +56,7 @@ func (o *MonitorOptions) checkDefaults() {
 	}
 }
 
-// NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom Filter
+// NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
 func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 	options.checkDefaults()
 	monitor = &Monitor{
@@ -122,7 +122,7 @@ func (m *Monitor) GetProcessMempoolOnConnect() bool {
 	return m.processMempoolOnConnect
 }
 
-// SaveDestinations gets whether we should save destinations from transactions that pass monitor Filter
+// SaveDestinations gets whether we should save destinations from transactions that pass monitor filter
 func (m *Monitor) SaveDestinations() bool {
 	return m.saveTransactionsDestinations
 }

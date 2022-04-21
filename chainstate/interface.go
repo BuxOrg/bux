@@ -78,7 +78,7 @@ type MonitorHandler interface {
 	GetWhatsOnChain() whatsonchain.ClientInterface
 }
 
-// MonitorProcessor struct that defines interface to all Filter processors
+// MonitorProcessor struct that defines interface to all filter processors
 type MonitorProcessor interface {
 	Add(regexString, item string) error
 	Debug(bool)

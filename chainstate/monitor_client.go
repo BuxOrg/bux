@@ -9,10 +9,10 @@ import (
 	"github.com/mrz1836/go-whatsonchain"
 )
 
-// AddFilterMessage defines a new Filter to be published from the client
+// AddFilterMessage defines a new filter to be published from the client
 // todo Just rely on the agent for this data type
 type AddFilterMessage struct {
-	Filter    string `json:"Filter"`
+	Filter    string `json:"filter"`
 	Hash      string `json:"hash"`
 	Regex     string `json:"regex"`
 	Timestamp int64  `json:"timestamp"`
@@ -20,7 +20,7 @@ type AddFilterMessage struct {
 
 // SetFilterMessage defines a new filter message with a list of filters
 type SetFilterMessage struct {
-	Filter    []byte `json:"Filter"`
+	Filter    []byte `json:"filter"`
 	Hash      string `json:"hash"`
 	Regex     string `json:"regex"`
 	Timestamp int64  `json:"timestamp"`
@@ -47,7 +47,7 @@ func (a *AgentClient) SetToken(token string) {
 	a.Client.SetToken(token)
 }
 
-// AddFilter adds a new Filter to the agent
+// AddFilter adds a new filter to the agent
 func (a *AgentClient) AddFilter(regex, item string) (centrifuge.PublishResult, error) {
 	msg := AddFilterMessage{
 		Regex:     regex,
@@ -61,7 +61,7 @@ func (a *AgentClient) AddFilter(regex, item string) (centrifuge.PublishResult, e
 	return a.Client.Publish("add_filter", data)
 }
 
-// SetFilter (re)sets a Filter to the agent
+// SetFilter (re)sets a filter to the agent
 func (a *AgentClient) SetFilter(regex string, bloomFilter *BloomProcessorFilter) (centrifuge.PublishResult, error) {
 	filter := new(bytes.Buffer)
 	_, err := bloomFilter.Filter.WriteTo(filter)

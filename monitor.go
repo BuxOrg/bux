@@ -30,12 +30,14 @@ func (c *Client) loadMonitoredDestinations(ctx context.Context, monitor chainsta
 	}
 
 	var destinations []*destinationMonitor
-	err := c.Datastore().GetModels(ctx, &[]*Destination{}, conditions, queryParams, &destinations, 30*time.Second)
-	if err != nil && !errors.Is(err, datastore.ErrNoResults) {
+	if err := c.Datastore().GetModels(
+		ctx, &[]*Destination{}, conditions, queryParams, &destinations, defaultDatabaseReadTimeout,
+	); err != nil && !errors.Is(err, datastore.ErrNoResults) {
 		return err
 	}
 
 	for _, model := range destinations {
+		// todo: skipping the error check?
 		_ = monitor.Processor().Add(utils.P2PKHRegexpString, model.LockingScript)
 	}
 

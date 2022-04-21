@@ -70,13 +70,10 @@ func GetUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHea
 		"synced": nil,
 	}
 
-	pageSize := 0
-	page := 0
-
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelBlockHeader, opts...).Client().Datastore(),
-		&models, conditions, pageSize, page, "", "", defaultDatabaseReadTimeout,
+		&models, conditions, nil, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
@@ -100,10 +97,17 @@ func GetLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, er
 	// Construct an empty model
 	var model []BlockHeader
 
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      1,
+		OrderByField:  "height",
+		SortDirection: "desc",
+	}
+
 	// Get the records
 	if err := getModels(
 		ctx, NewBaseModel(ModelBlockHeader, opts...).Client().Datastore(),
-		&model, nil, 1, 1, "height", "desc", defaultDatabaseReadTimeout,
+		&model, nil, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

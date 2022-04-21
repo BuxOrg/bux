@@ -329,6 +329,11 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		StatusMessage: message,
 	})
 
+	// Update sync status to be ready now
+	if syncTx.SyncStatus == SyncStatusPending {
+		syncTx.SyncStatus = SyncStatusReady
+	}
+
 	// Update (or delete?) the sync transaction record
 	if err = syncTx.Save(ctx); err != nil {
 		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, err.Error())

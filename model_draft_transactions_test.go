@@ -266,7 +266,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, testXPubID, draftTransaction.Configuration.ChangeDestinations[0].XpubID)
 		assert.Equal(t, draftTransaction.ID, draftTransaction.Configuration.ChangeDestinations[0].DraftID)
-		assert.Equal(t, uint64(98920), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Equal(t, uint64(98886), draftTransaction.Configuration.ChangeSatoshis)
 
 		assert.Equal(t, uint64(114), draftTransaction.Configuration.Fee)
 		assert.Equal(t, defaultFee, draftTransaction.Configuration.FeeUnit)
@@ -277,7 +277,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, 2, len(draftTransaction.Configuration.Outputs))
 		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(98920), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98886), draftTransaction.Configuration.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.ChangeDestinations[0].LockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
 		var btTx *bt.Tx
@@ -292,7 +292,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(1000), btTx.Outputs[0].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[0].Scripts[0].Script, btTx.Outputs[0].LockingScript.String())
 
-		assert.Equal(t, uint64(98920), btTx.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98886), btTx.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[1].Scripts[0].Script, btTx.Outputs[1].LockingScript.String())
 
 		var gUtxo *Utxo
@@ -612,7 +612,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
-		assert.Equal(t, uint64(97269), draftTransaction.Configuration.Outputs[2].Satoshis)
+		assert.Equal(t, uint64(97235), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 }
 

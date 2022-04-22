@@ -146,11 +146,12 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
 					subscription.OnPublish(handler)
 					subscription.OnUnsubscribe(handler)
+					handler.wg.Wait()
 					if err = subscription.Subscribe(); err != nil {
 						h.logger.Error(h.ctx, err.Error())
+						handler.wg.Done()
 					} else {
 						h.logger.Info(ctx, "[MONITOR] Waiting for wait group to finish")
-						handler.wg.Wait()
 
 						// save that block header has been synced
 						blockHeader.Synced.Valid = true

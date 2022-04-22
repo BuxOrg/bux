@@ -288,9 +288,9 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		if satoshisChange > 0 {
 			// we are adding an extra output and need to add that fee as well
 			newFee := m.estimateFee(m.Configuration.FeeUnit, changeOutputSize)
-			feeChange := m.Configuration.Fee - newFee
+			satoshisChange -= newFee - fee
 			if err = m.setChangeDestination(
-				ctx, satoshisChange-feeChange,
+				ctx, satoshisChange,
 			); err != nil {
 				return
 			}
@@ -468,9 +468,10 @@ func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisCha
 		m.Configuration.Outputs = append(m.Configuration.Outputs, &TransactionOutput{
 			To: destination.Address,
 			Scripts: []*ScriptOutput{{
-				Address:  destination.Address,
-				Satoshis: changeSatoshis[destination.LockingScript],
-				Script:   destination.LockingScript,
+				Address:    destination.Address,
+				Satoshis:   changeSatoshis[destination.LockingScript],
+				Script:     destination.LockingScript,
+				ScriptType: utils.ScriptTypePubKeyHash,
 			}},
 			Satoshis: changeSatoshis[destination.LockingScript],
 		})

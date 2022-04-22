@@ -266,7 +266,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, testXPubID, draftTransaction.Configuration.ChangeDestinations[0].XpubID)
 		assert.Equal(t, draftTransaction.ID, draftTransaction.Configuration.ChangeDestinations[0].DraftID)
-		assert.Equal(t, uint64(98920), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Equal(t, uint64(98886), draftTransaction.Configuration.ChangeSatoshis)
 
 		assert.Equal(t, uint64(114), draftTransaction.Configuration.Fee)
 		assert.Equal(t, defaultFee, draftTransaction.Configuration.FeeUnit)
@@ -277,7 +277,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, 2, len(draftTransaction.Configuration.Outputs))
 		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(98920), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98886), draftTransaction.Configuration.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.ChangeDestinations[0].LockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
 		var btTx *bt.Tx
@@ -292,7 +292,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(1000), btTx.Outputs[0].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[0].Scripts[0].Script, btTx.Outputs[0].LockingScript.String())
 
-		assert.Equal(t, uint64(98920), btTx.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98886), btTx.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[1].Scripts[0].Script, btTx.Outputs[1].LockingScript.String())
 
 		var gUtxo *Utxo
@@ -379,6 +379,72 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		fee := draftTransaction.Configuration.Fee
 		calculateFee := draftTransaction.estimateFee(draftTransaction.Configuration.FeeUnit, 0)
 		assert.Equal(t, fee, calculateFee)
+		txFee := uint64(0)
+		for _, input := range draftTransaction.Configuration.Inputs {
+			txFee += input.Satoshis
+		}
+		for _, output := range draftTransaction.Configuration.Outputs {
+			txFee -= output.Satoshis
+		}
+		assert.Equal(t, fee, txFee)
+	})
+
+	t.Run("fee calculation - MAP 2", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		destination := newDestination(testXPubID, testLockingScript,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 11239,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 1, 251725,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 12166,
+			}, {
+				To:       testExternalAddress,
+				Satoshis: 1217,
+			}, {
+				OpReturn: &OpReturn{
+					Map: &MapProtocol{
+						App: "tonicpow_staging",
+						Keys: map[string]interface{}{
+							"offer_conversion_config_id": "79e650cf5e76938f1e96ea0086f1707fe2f28da39f2460bb2626b738d0958fe4",
+							"offer_session_id":           "4f06c11358e6586e67c77467c252a8be9187211f704de2627e4824945f31f07e",
+						},
+						Type: "offer_conversion",
+					},
+				},
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		fee := draftTransaction.Configuration.Fee
+		calculateFee := draftTransaction.estimateFee(draftTransaction.Configuration.FeeUnit, 0)
+		assert.Equal(t, fee, calculateFee)
+		txFee := uint64(0)
+		for _, input := range draftTransaction.Configuration.Inputs {
+			txFee += input.Satoshis
+		}
+		for _, output := range draftTransaction.Configuration.Outputs {
+			txFee -= output.Satoshis
+		}
+		assert.Equal(t, fee, txFee)
 	})
 
 	t.Run("send to all - multiple utxos", func(t *testing.T) {
@@ -546,7 +612,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
-		assert.Equal(t, uint64(97269), draftTransaction.Configuration.Outputs[2].Satoshis)
+		assert.Equal(t, uint64(97235), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 }
 
@@ -972,26 +1038,6 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 			assert.Greater(t, sizeEstimate, realSize)
 			assert.Greater(t, feeEstimate, realFee)
 		}
-	})
-
-	t.Run("json data - low fee", func(t *testing.T) {
-		jsonFile, err := os.Open("./tests/model_draft_transaction_low_fee.json")
-		require.NoError(t, err)
-		defer func() {
-			_ = jsonFile.Close()
-		}()
-		byteValue, bErr := ioutil.ReadAll(jsonFile)
-		require.NoError(t, bErr)
-
-		var testData TransactionConfig
-		err = json.Unmarshal(byteValue, &testData)
-		require.NoError(t, err)
-
-		draft := &DraftTransaction{Configuration: testData}
-		assert.IsType(t, DraftTransaction{}, *draft)
-
-		fee := draft.estimateFee(draft.Configuration.FeeUnit, 0)
-		assert.Equal(t, uint64(227), fee)
 	})
 }
 

@@ -239,7 +239,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		var reservedUtxos []*Utxo
 		feePerByte := float64(m.Configuration.FeeUnit.Satoshis / m.Configuration.FeeUnit.Bytes)
 
-		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit) + dustLimit
+		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit, 0) + dustLimit
 		if reservedUtxos, err = reserveUtxos(
 			ctx, m.XpubID, m.ID, reserveSatoshis, feePerByte, m.Configuration.FromUtxos, opts...,
 		); err != nil {
@@ -268,7 +268,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	}
 
 	// Estimate the fee for the transaction
-	fee := m.estimateFee(m.Configuration.FeeUnit)
+	fee := m.estimateFee(m.Configuration.FeeUnit, 0)
 	if m.Configuration.SendAllTo != "" {
 		if m.Configuration.Outputs[0].Satoshis <= dustLimit {
 			return ErrOutputValueTooLow
@@ -286,11 +286,15 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		satoshisChange := satoshisReserved - satoshisNeeded - fee
 		m.Configuration.Fee = fee
 		if satoshisChange > 0 {
+			// we are adding an extra output and need to add that fee as well
+			newFee := m.estimateFee(m.Configuration.FeeUnit, changeOutputSize)
+			feeChange := m.Configuration.Fee - newFee
 			if err = m.setChangeDestination(
-				ctx, satoshisChange,
+				ctx, satoshisChange-feeChange,
 			); err != nil {
 				return
 			}
+			m.Configuration.Fee = newFee
 		}
 	}
 
@@ -373,8 +377,8 @@ func (m *DraftTransaction) estimateSize() uint64 {
 }
 
 // estimateFee will loop the inputs and outputs and estimate the required fee
-func (m *DraftTransaction) estimateFee(unit *utils.FeeUnit) uint64 {
-	size := m.estimateSize()
+func (m *DraftTransaction) estimateFee(unit *utils.FeeUnit, addToSize uint64) uint64 {
+	size := m.estimateSize() + addToSize
 	return uint64(math.Ceil(float64(size) * (float64(unit.Satoshis) / float64(unit.Bytes))))
 }
 

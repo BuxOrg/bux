@@ -18,6 +18,7 @@ const (
 	defaultUserAgent               = "bux: " + version // Default user agent
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
 	dustLimit                      = uint64(546)       // Dust limit
+	changeOutputSize               = uint64(35)        // Average size in bytes of a change output
 	mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
 	version                        = "v0.2.9"          // bux version

@@ -11,7 +11,6 @@ import (
 	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-paymail"
 )
@@ -128,7 +127,6 @@ type ClientInterface interface {
 	DefaultModelOptions(opts ...ModelOps) []ModelOps
 	DefaultSyncConfig() *SyncConfig
 	EnableNewRelic()
-	GetFeeUnit(_ context.Context, _ string) *utils.FeeUnit
 	GetOrStartTxn(ctx context.Context, name string) context.Context
 	GetPaymailConfig() *PaymailServerOptions
 	GetTaskPeriod(name string) time.Duration

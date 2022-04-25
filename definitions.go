@@ -2,8 +2,6 @@ package bux
 
 import (
 	"time"
-
-	"github.com/BuxOrg/bux/utils"
 )
 
 // Defaults for engine functionality
@@ -21,7 +19,7 @@ const (
 	changeOutputSize               = uint64(35)        // Average size in bytes of a change output
 	mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                        = "v0.2.11"         // bux version
+	version                        = "v0.2.12"         // bux version
 )
 
 // All the base models
@@ -123,11 +121,6 @@ const (
 )
 
 var (
-	// defaultFee is used when a fee is not provided the draft transaction
-	defaultFee = &utils.FeeUnit{
-		Satoshis: 1,
-		Bytes:    2,
-	}
 
 	// BaseModels is the list of models for loading the engine and AutoMigration (defaults)
 	BaseModels = []interface{}{

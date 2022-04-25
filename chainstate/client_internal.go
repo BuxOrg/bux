@@ -52,10 +52,14 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 
 	// No client?
 	if c.Minercraft() == nil {
+		var optionalMiners []*minercraft.Miner
+		for i := range c.options.config.mAPI.miners {
+			optionalMiners = append(optionalMiners, c.options.config.mAPI.miners[i].Miner)
+		}
 		c.options.config.minercraft, err = minercraft.NewClient(
 			c.defaultMinercraftOptions(),
 			c.HTTPClient(),
-			c.options.config.mAPI.miners,
+			optionalMiners,
 		)
 	}
 
@@ -69,7 +73,8 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 		return ErrMissingQueryMiners
 	}
 
-	return
+	// Load the quote fees
+	return c.RefreshFeeQuotes(ctx)
 }
 
 // startWhatsOnChain will start WhatsOnChain (if no custom client is found)

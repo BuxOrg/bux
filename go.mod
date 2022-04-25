@@ -34,7 +34,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.7.1
 	github.com/tidwall/gjson v1.14.1
-	github.com/tonicpow/go-minercraft v0.7.1
+	github.com/tonicpow/go-minercraft v0.7.2
 	github.com/tonicpow/go-paymail v0.7.5
 	github.com/tryvium-travels/memongo v0.5.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
@@ -55,7 +55,7 @@ require (
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
 	github.com/bsm/redislock v0.7.2 // indirect
 	github.com/capnm/sysinfo v0.0.0-20130621111458-5909a53897f3 // indirect
-	github.com/centrifugal/protocol v0.8.5 // indirect
+	github.com/centrifugal/protocol v0.8.6 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/d4l3k/messagediff v1.2.1 // indirect
@@ -98,7 +98,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/miekg/dns v1.1.48 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
-	github.com/mrz1836/go-api-router v0.4.12 // indirect
+	github.com/mrz1836/go-api-router v0.4.13 // indirect
 	github.com/mrz1836/go-parameters v0.2.8 // indirect
 	github.com/mrz1836/go-sanitize v1.1.5 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect

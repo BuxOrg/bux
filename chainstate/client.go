@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/BuxOrg/bux/logger"
@@ -54,9 +55,9 @@ type (
 
 	// Miner is the internal chainstate miner (wraps Minercraft miner with more information)
 	Miner struct {
-		FeeLastChecked time.Time         // Last time the fee was checked via mAPI
-		FeeUnit        *utils.FeeUnit    // The fee unit returned from Policy request
-		Miner          *minercraft.Miner // The minercraft miner
+		FeeLastChecked time.Time         `json:"fee_last_checked"` // Last time the fee was checked via mAPI
+		FeeUnit        *utils.FeeUnit    `json:"fee_unit"`         // The fee unit returned from Policy request
+		Miner          *minercraft.Miner `json:"miner"`            // The minercraft miner
 	}
 )
 
@@ -222,6 +223,9 @@ func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
 
 		// Get the fee and set the fee
 		fee := quote.Quote.GetFee(minercraft.FeeTypeData) // todo: data for now, since it usually is more expensive (if different)
+		if fee == nil {
+			return errors.New("fee is missing from miner response")
+		}
 		c.options.config.mAPI.broadcastMiners[i].FeeUnit = &utils.FeeUnit{
 			Satoshis: fee.MiningFee.Satoshis,
 			Bytes:    fee.MiningFee.Bytes,

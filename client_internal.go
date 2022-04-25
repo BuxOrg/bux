@@ -102,7 +102,7 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 		}
 	}
 
-	return monitor.Monitor(&handler)
+	return monitor.Start(&handler)
 }
 
 // runModelMigrations will run the model Migrate() method for all models

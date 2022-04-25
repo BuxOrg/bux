@@ -115,6 +115,6 @@ type MonitorService interface {
 	Add(regexpString string, item string) error
 	Processor() MonitorProcessor
 	ProcessMempool(ctx context.Context) error
-	Monitor(handler MonitorHandler) error
-	PauseMonitor() error
+	Start(handler MonitorHandler) error
+	Stop() error
 }

@@ -1,11 +1,16 @@
 package chainstate
 
-import "time"
+import (
+	"time"
+
+	"github.com/BuxOrg/bux/utils"
+)
 
 // Chainstate configuration defaults
 const (
 	defaultBroadcastTimeOut        = 15 * time.Second
 	defaultFalsePositiveRate       = 0.01
+	defaultFeeLastCheckIgnore      = 2 * time.Minute
 	defaultMaxNumberOfDestinations = 100000
 	defaultMonitorDays             = 7
 	defaultQueryTimeOut            = 15 * time.Second
@@ -43,3 +48,12 @@ type TransactionInfo struct {
 	MinerID       string `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
 	Provider      string `json:"provider,omitempty"`      // Provider is our internal source
 }
+
+var (
+	// DefaultFee is used when a fee has not been set by the user
+	// This default is currently accepted by all BitcoinSV miners (500/1000) (4.25.22)
+	DefaultFee = &utils.FeeUnit{
+		Satoshis: 1,
+		Bytes:    2,
+	}
+)

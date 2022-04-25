@@ -9,7 +9,6 @@ import (
 	"github.com/BuxOrg/bux/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tonicpow/go-minercraft"
 )
 
 // TestWithNewRelic will test the method WithNewRelic()
@@ -299,8 +298,8 @@ func TestWithBroadcastMiners(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{mAPI: &mAPIConfig{}},
 		}
-		miners := []*minercraft.Miner{minerTaal}
-		opt := WithBroadcastMiners([]*minercraft.Miner{minerTaal})
+		miners := []*Miner{{Miner: minerTaal}}
+		opt := WithBroadcastMiners(miners)
 		opt(options)
 		assert.Equal(t, miners, options.config.mAPI.broadcastMiners)
 	})
@@ -328,8 +327,8 @@ func TestWithQueryMiners(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{mAPI: &mAPIConfig{}},
 		}
-		miners := []*minercraft.Miner{minerTaal}
-		opt := WithQueryMiners([]*minercraft.Miner{minerTaal})
+		miners := []*Miner{{Miner: minerTaal}}
+		opt := WithQueryMiners(miners)
 		opt(options)
 		assert.Equal(t, miners, options.config.mAPI.queryMiners)
 	})
@@ -357,8 +356,8 @@ func TestWithCustomMiners(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{mAPI: &mAPIConfig{}},
 		}
-		miners := []*minercraft.Miner{minerTaal}
-		opt := WithCustomMiners([]*minercraft.Miner{minerTaal})
+		miners := []*Miner{{Miner: minerTaal}}
+		opt := WithCustomMiners(miners)
 		opt(options)
 		assert.Equal(t, miners, options.config.mAPI.miners)
 	})

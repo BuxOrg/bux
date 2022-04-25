@@ -73,7 +73,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 				// Broadcast using mAPI
 				err := broadcastMAPI(
 					ctxWithCancel, c, c.Minercraft(),
-					c.options.config.mAPI.broadcastMiners[index], id, hex,
+					c.options.config.mAPI.broadcastMiners[index].Miner, id, hex,
 				)
 				if err == nil { // Success response!
 					return nil
@@ -88,7 +88,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 				}
 
 				// Provider error?
-				c.DebugLog("broadcast error: " + err.Error() + " from provider: " + c.options.config.mAPI.broadcastMiners[index].Name)
+				c.DebugLog("broadcast error: " + err.Error() + " from provider: " + c.options.config.mAPI.broadcastMiners[index].Miner.Name)
 			}
 		}
 	}

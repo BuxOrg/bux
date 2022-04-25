@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
@@ -43,28 +44,37 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 	// Random GUID
 	id, _ := utils.RandomHex(32)
 
-	// Set the fee (if not found)
-	if config.FeeUnit == nil {
-		config.FeeUnit = defaultFee
-	}
-
 	// Set the expires time (default)
 	expiresAt := time.Now().UTC().Add(defaultDraftTxExpiresIn)
 	if config.ExpiresIn > 0 {
 		expiresAt = time.Now().UTC().Add(config.ExpiresIn)
 	}
 
-	return &DraftTransaction{
-		TransactionBase: TransactionBase{ID: id},
+	// Start the model
+	draft := &DraftTransaction{
 		Configuration:   *config,
 		ExpiresAt:       expiresAt,
+		Status:          DraftStatusDraft,
+		TransactionBase: TransactionBase{ID: id},
+		XpubID:          utils.Hash(rawXpubKey),
 		Model: *NewBaseModel(
 			ModelDraftTransaction,
 			append(opts, WithXPub(rawXpubKey))...,
 		),
-		Status: DraftStatusDraft,
-		XpubID: utils.Hash(rawXpubKey),
 	}
+
+	// Set the fee (if not found) (if chainstate is loaded, use the first miner)
+	if config.FeeUnit == nil {
+		if c := draft.Client(); c != nil {
+			if miners := c.Chainstate().BroadcastMiners(); len(miners) > 0 {
+				draft.Configuration.FeeUnit = miners[0].FeeUnit
+				return draft
+			}
+		}
+		draft.Configuration.FeeUnit = chainstate.DefaultFee
+	}
+
+	return draft
 }
 
 // getDraftTransactionID will get the draft transaction with the given conditions
@@ -261,7 +271,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		}
 	}
 
-	// start a new transaction from the reservedUtxos
+	// Start a new transaction from the reservedUtxos
 	tx := bt.NewTx()
 	if err = tx.FromUTXOs(*inputUtxos...); err != nil {
 		return
@@ -309,6 +319,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	return
 }
 
+// addIncludeUtxos will add the included utxos
 func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
 	// Whatever utxos are selected, the IncludeUtxos should be added to the transaction
 	// This can be used to add for instance tokens where fees need to be paid from other utxos

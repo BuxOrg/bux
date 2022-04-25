@@ -30,7 +30,7 @@ func (c *chainStateBase) QueryTransactionFastest(context.Context, string, chains
 	return nil, nil
 }
 
-func (c *chainStateBase) BroadcastMiners() []*minercraft.Miner {
+func (c *chainStateBase) BroadcastMiners() []*chainstate.Miner {
 	return nil
 }
 
@@ -64,7 +64,7 @@ func (c *chainStateBase) NowNodes() nownodes.ClientInterface {
 	return nil
 }
 
-func (c *chainStateBase) Miners() []*minercraft.Miner {
+func (c *chainStateBase) Miners() []*chainstate.Miner {
 	return nil
 }
 
@@ -72,7 +72,7 @@ func (c *chainStateBase) Network() chainstate.Network {
 	return chainstate.MainNet
 }
 
-func (c *chainStateBase) QueryMiners() []*minercraft.Miner {
+func (c *chainStateBase) QueryMiners() []*chainstate.Miner {
 	return nil
 }
 
@@ -81,6 +81,10 @@ func (c *chainStateBase) QueryTimeout() time.Duration {
 }
 
 func (c *chainStateBase) WhatsOnChain() whatsonchain.ClientInterface {
+	return nil
+}
+
+func (c *chainStateBase) RefreshFeeQuotes(ctx context.Context) error {
 	return nil
 }
 

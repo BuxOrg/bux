@@ -25,7 +25,7 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 		for index := range c.options.config.mAPI.queryMiners {
 			if c.options.config.mAPI.queryMiners[index] != nil {
 				if res, err := queryMAPI(
-					ctxWithCancel, c, c.Minercraft(), c.options.config.mAPI.queryMiners[index], id,
+					ctxWithCancel, c, c.Minercraft(), c.options.config.mAPI.queryMiners[index].Miner, id,
 				); err == nil && checkRequirement(requiredIn, id, res) {
 					return res
 				}
@@ -91,7 +91,7 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 				); err == nil && checkRequirement(requiredIn, id, res) {
 					resultsChannel <- res
 				}
-			}(ctxWithCancel, c, &wg, c.options.config.mAPI.queryMiners[index], id, requiredIn)
+			}(ctxWithCancel, c, &wg, c.options.config.mAPI.queryMiners[index].Miner, id, requiredIn)
 		}
 	}
 

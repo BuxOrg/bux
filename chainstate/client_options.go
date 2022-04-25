@@ -46,17 +46,28 @@ func defaultClientOptions() *clientOptions {
 }
 
 // defaultMiners will return the miners for default configuration
-func defaultMiners() (broadcastMiners []*minercraft.Miner, queryMiners []*minercraft.Miner) {
+func defaultMiners() (broadcastMiners []*Miner, queryMiners []*Miner) {
 
 	// Set the broadcast miners
-	broadcastMiners, _ = minercraft.DefaultMiners()
+	miners, _ := minercraft.DefaultMiners()
 
 	// Loop and add (only miners that support ALL TX QUERY)
-	for index, miner := range broadcastMiners {
-		// minercraft.MinerGorillaPool, (does not have -t index enabled)
-		// minercraft.MinerMatterpool, (does not have -t index enabled)
+	for index, miner := range miners {
+		broadcastMiners = append(broadcastMiners, &Miner{
+			FeeLastChecked: time.Now().UTC(),
+			FeeUnit:        DefaultFee,
+			Miner:          miners[index],
+		})
+
+		// Only miners that support querying
 		if miner.Name == minercraft.MinerTaal || miner.Name == minercraft.MinerMempool {
-			queryMiners = append(queryMiners, broadcastMiners[index])
+			// minercraft.MinerGorillaPool, (does not have -t index enabled - 4.25.22)
+			// minercraft.MinerMatterpool, (does not have -t index enabled - 4.25.22)
+			queryMiners = append(queryMiners, &Miner{
+				// FeeLastChecked: time.Now().UTC(),
+				// FeeUnit:        DefaultFee,
+				Miner: miners[index],
+			})
 		}
 	}
 	return
@@ -160,7 +171,7 @@ func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
 }
 
 // WithBroadcastMiners will set a list of miners for broadcasting
-func WithBroadcastMiners(miners []*minercraft.Miner) ClientOps {
+func WithBroadcastMiners(miners []*Miner) ClientOps {
 	return func(c *clientOptions) {
 		if len(miners) > 0 {
 			c.config.mAPI.broadcastMiners = miners
@@ -169,7 +180,7 @@ func WithBroadcastMiners(miners []*minercraft.Miner) ClientOps {
 }
 
 // WithQueryMiners will set a list of miners for querying transactions
-func WithQueryMiners(miners []*minercraft.Miner) ClientOps {
+func WithQueryMiners(miners []*Miner) ClientOps {
 	return func(c *clientOptions) {
 		if len(miners) > 0 {
 			c.config.mAPI.queryMiners = miners
@@ -205,7 +216,7 @@ func WithNetwork(network Network) ClientOps {
 }
 
 // WithCustomMiners will overwrite the default list of miners in Minercraft
-func WithCustomMiners(miners []*minercraft.Miner) ClientOps {
+func WithCustomMiners(miners []*Miner) ClientOps {
 	return func(c *clientOptions) {
 		if c != nil && len(miners) > 0 {
 			c.config.mAPI.miners = miners

@@ -43,21 +43,27 @@ type ProviderServices interface {
 	WhatsOnChain() whatsonchain.ClientInterface
 }
 
+// MinercraftServices is the minercraft services interface
+type MinercraftServices interface {
+	BroadcastMiners() []*Miner
+	Miners() []*Miner
+	QueryMiners() []*Miner
+	RefreshFeeQuotes(ctx context.Context) error
+}
+
 // ClientInterface is the chainstate client interface
 type ClientInterface interface {
 	ChainService
 	ProviderServices
-	BroadcastMiners() []*minercraft.Miner
+	MinercraftServices
 	Close(ctx context.Context)
 	Debug(on bool)
 	DebugLog(text string)
 	HTTPClient() HTTPInterface
 	IsDebug() bool
 	IsNewRelicEnabled() bool
-	Miners() []*minercraft.Miner
 	Monitor() MonitorService
 	Network() Network
-	QueryMiners() []*minercraft.Miner
 	QueryTimeout() time.Duration
 }
 

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
@@ -50,6 +51,7 @@ func TestDraftTransaction_newDraftTransaction(t *testing.T) {
 		assert.WithinDurationf(t, expires, draftTx.ExpiresAt, 1*time.Second, "within 1 second")
 		assert.Equal(t, DraftStatusDraft, draftTx.Status)
 		assert.Equal(t, testXPubID, draftTx.XpubID)
+		assert.Equal(t, chainstate.DefaultFee, draftTx.Configuration.FeeUnit)
 	})
 }
 
@@ -269,7 +271,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(98886), draftTransaction.Configuration.ChangeSatoshis)
 
 		assert.Equal(t, uint64(114), draftTransaction.Configuration.Fee)
-		assert.Equal(t, defaultFee, draftTransaction.Configuration.FeeUnit)
+		assert.Equal(t, chainstate.DefaultFee, draftTransaction.Configuration.FeeUnit)
 
 		assert.Equal(t, 1, len(draftTransaction.Configuration.Inputs))
 		assert.Equal(t, testLockingScript, draftTransaction.Configuration.Inputs[0].ScriptPubKey)
@@ -986,7 +988,7 @@ func createDraftTransactionFromHex(hex string, inInfo []interface{}) (*DraftTran
 	draftConfig := &TransactionConfig{
 		ChangeDestinations: []*Destination{{}}, // set to not nil, otherwise will be overwritten when processing
 		Fee:                0,
-		FeeUnit:            defaultFee,
+		FeeUnit:            chainstate.DefaultFee,
 		Inputs:             inputs,
 		Outputs:            outputs,
 	}

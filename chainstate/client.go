@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/logger"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
@@ -46,9 +47,16 @@ type (
 
 	// mAPIConfig is specific for mAPI configuration
 	mAPIConfig struct {
-		broadcastMiners []*minercraft.Miner // List of loaded miners for broadcasting
-		miners          []*minercraft.Miner // Default list of miners (overrides Minercraft defaults)
-		queryMiners     []*minercraft.Miner // List of loaded miners for querying transactions
+		broadcastMiners []*Miner // List of loaded miners for broadcasting
+		miners          []*Miner // Default list of miners (overrides Minercraft defaults)
+		queryMiners     []*Miner // List of loaded miners for querying transactions
+	}
+
+	// Miner is the internal chainstate miner (wraps Minercraft miner with more information)
+	Miner struct {
+		FeeLastChecked time.Time         // Last time the fee was checked via mAPI
+		FeeUnit        *utils.FeeUnit    // The fee unit returned from Policy request
+		Miner          *minercraft.Miner // The minercraft miner
 	}
 )
 
@@ -181,16 +189,45 @@ func (c *Client) QueryTimeout() time.Duration {
 }
 
 // BroadcastMiners will return the broadcast miners
-func (c *Client) BroadcastMiners() []*minercraft.Miner {
+func (c *Client) BroadcastMiners() []*Miner {
 	return c.options.config.mAPI.broadcastMiners
 }
 
 // QueryMiners will return the query miners
-func (c *Client) QueryMiners() []*minercraft.Miner {
+func (c *Client) QueryMiners() []*Miner {
 	return c.options.config.mAPI.queryMiners
 }
 
 // Miners will return the miners (default or custom)
-func (c *Client) Miners() []*minercraft.Miner {
+func (c *Client) Miners() []*Miner {
 	return c.options.config.mAPI.miners
+}
+
+// RefreshFeeQuotes will update all fee quotes for all broadcasting miners in mAPI
+func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
+
+	// Loop all broadcast miners
+	for i := range c.options.config.mAPI.broadcastMiners {
+
+		// Skip if recently updated (quotes usually don't change that often)
+		if c.options.config.mAPI.broadcastMiners[i].FeeLastChecked.After(time.Now().UTC().Add(-defaultFeeLastCheckIgnore)) {
+			continue
+		}
+
+		// Get the policy quote using the miner
+		quote, err := c.Minercraft().PolicyQuote(ctx, c.options.config.mAPI.broadcastMiners[i].Miner)
+		if err != nil {
+			return err
+		}
+
+		// Get the fee and set the fee
+		fee := quote.Quote.GetFee(minercraft.FeeTypeData) // todo: data for now, since it usually is more expensive (if different)
+		c.options.config.mAPI.broadcastMiners[i].FeeUnit = &utils.FeeUnit{
+			Satoshis: fee.MiningFee.Satoshis,
+			Bytes:    fee.MiningFee.Bytes,
+		}
+		c.options.config.mAPI.broadcastMiners[i].FeeLastChecked = time.Now().UTC()
+	}
+
+	return nil
 }

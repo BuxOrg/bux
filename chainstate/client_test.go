@@ -190,11 +190,13 @@ func TestNewClient(t *testing.T) {
 	})
 
 	t.Run("custom miners for default", func(t *testing.T) {
-		miners := []*minercraft.Miner{{
-			MinerID: "test-miner-id",
-			Name:    "test-miner-name",
-			Token:   "test-miner-token",
-			URL:     "https://domain.com",
+		miners := []*Miner{{
+			Miner: &minercraft.Miner{
+				MinerID: "test-miner-id",
+				Name:    "test-miner-name",
+				Token:   "test-miner-token",
+				URL:     "https://domain.com",
+			},
 		}}
 		c, err := NewClient(
 			context.Background(),

@@ -577,6 +577,24 @@ func WithChainstateOptions(broadcasting, syncOnChain bool) ClientOps {
 	}
 }
 
+// WithBroadcastMiners will set a list of miners for broadcasting
+func WithBroadcastMiners(miners []*chainstate.Miner) ClientOps {
+	return func(c *clientOptions) {
+		if len(miners) > 0 {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastMiners(miners))
+		}
+	}
+}
+
+// WithQueryMiners will set a list of miners for querying transactions
+func WithQueryMiners(miners []*chainstate.Miner) ClientOps {
+	return func(c *clientOptions) {
+		if len(miners) > 0 {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithQueryMiners(miners))
+		}
+	}
+}
+
 // WithWhatsOnChainAPIKey will set the API key
 func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
 	return func(c *clientOptions) {
@@ -604,6 +622,24 @@ func WithMatterCloudAPIKey(apiKey string) ClientOps {
 	}
 }
 
+// WithMonitoring will create a new monitorConfig interface with the given options
+func WithMonitoring(ctx context.Context, monitorOptions *chainstate.MonitorOptions) ClientOps {
+	return func(c *clientOptions) {
+		if monitorOptions != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoring(ctx, monitorOptions))
+		}
+	}
+}
+
+// WithMonitoringInterface will set the interface to use for monitoring the blockchain
+func WithMonitoringInterface(monitor chainstate.MonitorService) ClientOps {
+	return func(c *clientOptions) {
+		if monitor != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoringInterface(monitor))
+		}
+	}
+}
+
 // -----------------------------------------------------------------
 // NOTIFICATIONS
 // -----------------------------------------------------------------
@@ -622,24 +658,6 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 	return func(c *clientOptions) {
 		if customNotifications != nil {
 			c.notifications.ClientInterface = customNotifications
-		}
-	}
-}
-
-// WithMonitoring will create a new monitorConfig interface with the given options
-func WithMonitoring(ctx context.Context, monitorOptions *chainstate.MonitorOptions) ClientOps {
-	return func(c *clientOptions) {
-		if monitorOptions != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoring(ctx, monitorOptions))
-		}
-	}
-}
-
-// WithMonitoringInterface will set the interface to use for monitoring the blockchain
-func WithMonitoringInterface(monitor chainstate.MonitorService) ClientOps {
-	return func(c *clientOptions) {
-		if monitor != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoringInterface(monitor))
 		}
 	}
 }

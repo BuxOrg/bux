@@ -144,12 +144,7 @@ func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *
 		return nil, err
 	}
 
-	// todo: this needs adjusting via Chainstate or mAPI
-	if config.FeeUnit == nil {
-		config.FeeUnit = c.GetFeeUnit(ctx, "miner")
-	}
-
-	// Create the model & set the default options (gives options from client->model)
+	// Create the draft tx model
 	draftTransaction := newDraftTransaction(
 		rawXpubKey, config,
 		c.DefaultModelOptions(append(opts, New())...)...,

@@ -145,11 +145,6 @@ func TestClient_Close(t *testing.T) {
 	// finish test
 }
 
-// TestClient_GetFeeUnit will test the method GetFeeUnit()
-func TestClient_GetFeeUnit(t *testing.T) {
-	// finish test
-}
-
 // TestClient_PaymailClient will test the method PaymailClient()
 func TestClient_PaymailClient(t *testing.T) {
 	t.Parallel()

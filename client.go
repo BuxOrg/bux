@@ -10,7 +10,6 @@ import (
 	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
@@ -351,13 +350,6 @@ func (c *Client) GetOrStartTxn(ctx context.Context, name string) context.Context
 		ctx = newrelic.NewContext(ctx, txn)
 	}
 	return ctx
-}
-
-// GetFeeUnit get the fee from a miner
-// todo: move into it's own Service / package
-func (c *Client) GetFeeUnit(_ context.Context, _ string) *utils.FeeUnit {
-	// todo: use a custom fee
-	return defaultFee
 }
 
 // GetTaskPeriod will return the period for a given task name

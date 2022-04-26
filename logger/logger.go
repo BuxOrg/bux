@@ -2,10 +2,13 @@ package logger
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	zlogger "github.com/mrz1836/go-logger"
+	"gorm.io/gorm"
+	"gorm.io/gorm/utils"
 )
 
 // Interface is a logger interface
@@ -31,6 +34,8 @@ const (
 	// Info info log level
 	Info
 )
+
+const slowThreshold = 5 * time.Second
 
 // NewLogger will return a basic logger interface
 func NewLogger(debugging bool) Interface {
@@ -81,25 +86,46 @@ func (l *basicLogger) Error(_ context.Context, message string, params ...interfa
 
 // Trace is for GORM and SQL tracing
 func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	if l.logLevel >= Silent {
+	if l.logLevel <= Silent {
 		return
 	}
-
 	elapsed := time.Since(begin)
-	sql, rows := fc()
-	level := zlogger.DEBUG
-
-	params := []zlogger.KeyValue{
-		// zlogger.MakeParameter("executing_file", utils.FileWithLineNum()),  // @mrz turned off for removing the gorm dependency
-		zlogger.MakeParameter("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
-		zlogger.MakeParameter("rows", rows),
-		zlogger.MakeParameter("sql", sql),
+	switch {
+	case err != nil && l.logLevel >= Error && (!errors.Is(err, gorm.ErrRecordNotFound)):
+		sql, rows := fc()
+		if rows == -1 {
+			zlogger.Data(4, zlogger.ERROR,
+				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql),
+			)
+		} else {
+			zlogger.Data(4, zlogger.ERROR,
+				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql),
+			)
+		}
+	case elapsed > slowThreshold && l.logLevel >= Warn:
+		sql, rows := fc()
+		slowLog := fmt.Sprintf("SLOW SQL >= %v", slowThreshold)
+		if rows == -1 {
+			zlogger.Data(4, zlogger.WARN,
+				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, "-", sql),
+			)
+		} else {
+			zlogger.Data(4, zlogger.WARN,
+				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql),
+			)
+		}
+	case l.logLevel == Info:
+		sql, rows := fc()
+		if rows == -1 {
+			zlogger.Data(4, zlogger.INFO,
+				fmt.Sprintf("%s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql),
+			)
+		} else {
+			zlogger.Data(4, zlogger.INFO,
+				fmt.Sprintf("%s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql),
+			)
+		}
 	}
-	if err != nil {
-		params = append(params, zlogger.MakeParameter("error_message", err.Error()))
-		level = zlogger.ERROR
-	}
-	zlogger.Data(4, level, "sql trace", params...)
 }
 
 // displayLog will display a log using logger

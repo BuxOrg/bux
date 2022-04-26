@@ -180,7 +180,7 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error) {
 
 	// Check that we have outputs
-	if len(m.Configuration.Outputs) == 0 && m.Configuration.SendAllTo == "" {
+	if len(m.Configuration.Outputs) == 0 && len(m.Configuration.SendAllTo) == 0 {
 		return ErrMissingTransactionOutputs
 	}
 

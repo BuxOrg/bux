@@ -13,13 +13,10 @@ import (
 
 func main() {
 
-	// Use a custom miner
-	minerTaal := &minercraft.Miner{
-		MinerID: "030d1fe5c1b560efe196ba40540ce9017c20daa9504c4c4cec6184fc702d9f274e",
-		Name:    "Taal",
-		URL:     "https://merchantapi.taal.com",
-		Token:   os.Getenv("BUX_TAAL_API_KEY"), // This is optional - for custom rates
-	}
+	// Create a custom miner (using your api key for custom rates)
+	miners, _ := minercraft.DefaultMiners()
+	minerTaal := minercraft.MinerByName(miners, minercraft.MinerTaal)
+	minerTaal.Token = os.Getenv("BUX_TAAL_API_KEY")
 
 	// Create the client
 	client, err := bux.NewClient(

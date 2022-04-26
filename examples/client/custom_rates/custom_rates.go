@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/BuxOrg/bux"
 	"github.com/BuxOrg/bux/chainstate"
@@ -13,17 +14,17 @@ import (
 
 func main() {
 
+	const testXPub = "xpub661MyMwAqRbcFrBJbKwBGCB7d3fr2SaAuXGM95BA62X41m6eW2ehRQGW4xLi9wkEXUGnQZYxVVj4PxXnyrLk7jdqvBAs1Qq9gf6ykMvjR7J"
+
 	// Create a custom miner (using your api key for custom rates)
-	minerTaal := &minercraft.Miner{
-		MinerID: "030d1fe5c1b560efe196ba40540ce9017c20daa9504c4c4cec6184fc702d9f274e",
-		Name:    "Taal",
-		URL:     "https://merchantapi.taal.com",
-		Token:   os.Getenv("BUX_TAAL_API_KEY"),
-	}
+	miners, _ := minercraft.DefaultMiners()
+	minerTaal := minercraft.MinerByName(miners, minercraft.MinerTaal)
+	minerTaal.Token = os.Getenv("BUX_TAAL_API_KEY")
 
 	// Create the client
 	client, err := bux.NewClient(
-		context.Background(), // Set context
+		context.Background(),                   // Set context
+		bux.WithAutoMigrate(bux.BaseModels...), // All models
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithBroadcastMiners([]*chainstate.Miner{{Miner: minerTaal}}),                       // This will auto-fetch a policy using the token (api key)
 	)
@@ -31,5 +32,33 @@ func main() {
 		log.Fatalln("error: " + err.Error())
 	}
 
-	log.Println("client loaded!", client.UserAgent())
+	// Get the miners
+	broadcastMiners := client.Chainstate().BroadcastMiners()
+	for _, miner := range broadcastMiners {
+		log.Println("miner", miner.Miner)
+		log.Println("fee", miner.FeeUnit)
+		log.Println("last_checked", miner.FeeLastChecked.String())
+	}
+
+	// Create an xPub
+	var xpub *bux.Xpub
+	if xpub, err = client.NewXpub(
+		context.Background(),
+		testXPub,
+	); err != nil {
+		log.Fatalln("error: " + err.Error())
+	}
+
+	// Create a draft transaction
+	var draft *bux.DraftTransaction
+	draft, err = client.NewTransaction(context.Background(), xpub.RawXpub(), &bux.TransactionConfig{
+		ExpiresIn: 10 * time.Second,
+		SendAllTo: "mrz@moneybutton.com",
+	})
+	if err != nil {
+		log.Fatalln("error: " + err.Error())
+	}
+
+	// Custom fee
+	log.Println("fee unit", draft.Configuration.FeeUnit)
 }

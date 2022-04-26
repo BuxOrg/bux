@@ -80,13 +80,13 @@ var ErrOutputValueNotRecognized = errors.New("output value is unrecognized")
 var ErrOutputValueTooLow = errors.New("output value is too low")
 
 // ErrOutputValueUnSpendable is when the satoshis output is set on an op_return and is un-spendable
-var ErrOutputValueUnSpendable = errors.New("output value un-spendable")
+// var ErrOutputValueUnSpendable = errors.New("output value un-spendable")
 
 // ErrPaymailAddressIsInvalid is when the paymail address is NOT alias@domain.com
 var ErrPaymailAddressIsInvalid = errors.New("paymail address is invalid")
 
 // ErrPaymailAddressAlreadyRegistered is when the paymail address is already registered to another xpub
-var ErrPaymailAddressAlreadyRegistered = errors.New("paymail address is already registered")
+// var ErrPaymailAddressAlreadyRegistered = errors.New("paymail address is already registered")
 
 // ErrUtxoNotReserved is when the utxo is not reserved, but a transaction tries to spend it
 var ErrUtxoNotReserved = errors.New("transaction utxo has not been reserved for spending")
@@ -179,7 +179,7 @@ var ErrMissingPaymailDomain = errors.New("missing domain in paymail")
 var ErrMissingPaymailExternalXPub = errors.New("missing external xPub in paymail")
 
 // ErrMissingPaymailIdentityXPub missing identity xPub in paymail
-var ErrMissingPaymailIdentityXPub = errors.New("missing identity xPub in paymail")
+// var ErrMissingPaymailIdentityXPub = errors.New("missing identity xPub in paymail")
 
 // ErrMissingPaymailXPubID missing xpub_id in paymail
 var ErrMissingPaymailXPubID = errors.New("missing xpub_id in paymail")

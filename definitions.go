@@ -15,6 +15,7 @@ const (
 	defaultDraftTxExpiresIn        = 30 * time.Second  // Default TTL for draft transactions
 	defaultHTTPTimeout             = 20 * time.Second  // Default timeout for HTTP requests
 	defaultOverheadSize            = uint64(10)        // 10 bytes is the default overhead in a transaction
+	defaultQueryTxTimeout          = 10 * time.Second  // Default timeout for syncing on-chain information
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
 	defaultUserAgent               = "bux: " + version // Default user agent
 	dustLimit                      = uint64(546)       // Dust limit

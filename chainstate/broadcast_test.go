@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tonicpow/go-minercraft"
 )
 
 func Test_doesErrorContain(t *testing.T) {
@@ -37,10 +38,11 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // Not Found
 			WithMatterCloud(&matterCloudTxNotFound{}),   // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.Equal(t, minercraft.MinerTaal, provider)
 	})
 
 	t.Run("broadcast - success (MatterCloud)", func(t *testing.T) {
@@ -51,10 +53,11 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),     // Not found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.Equal(t, providerMatterCloud, provider)
 	})
 
 	t.Run("broadcast - success (WhatsOnChain)", func(t *testing.T) {
@@ -65,10 +68,11 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			WithNowNodes(&nowNodesTxNotFound{}),       // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),   // Not found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.Equal(t, providerWhatsOnChain, provider)
 	})
 
 	t.Run("broadcast - success (NowNodes)", func(t *testing.T) {
@@ -79,10 +83,11 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			WithMatterCloud(&matterCloudTxNotFound{}),   // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),     // Not found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.Equal(t, providerNowNodes, provider)
 	})
 }
 
@@ -98,10 +103,11 @@ func TestClient_Broadcast_OnChain(t *testing.T) {
 			WithMatterCloud(&matterCloudTxNotFound{}),   // Not Found
 			WithNowNodes(&nowNodesTxNotFound{}),         // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), onChainExample1TxID, onChainExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 
 	t.Run("broadcast - tx already on-chain (MatterCloud)", func(t *testing.T) {
@@ -112,10 +118,11 @@ func TestClient_Broadcast_OnChain(t *testing.T) {
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // Not Found
 			WithNowNodes(&nowNodesTxNotFound{}),         // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), onChainExample1TxID, onChainExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 
 	t.Run("broadcast - tx already on-chain (WhatsOnChain)", func(t *testing.T) {
@@ -126,10 +133,11 @@ func TestClient_Broadcast_OnChain(t *testing.T) {
 			WithMinercraft(&minerCraftTxNotFound{}),   // Not found
 			WithNowNodes(&nowNodesTxNotFound{}),       // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), onChainExample1TxID, onChainExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 
 	t.Run("broadcast - tx already on-chain (NowNodes)", func(t *testing.T) {
@@ -140,10 +148,11 @@ func TestClient_Broadcast_OnChain(t *testing.T) {
 			WithMatterCloud(&matterCloudTxNotFound{}),   // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),     // Not found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), onChainExample1TxID, onChainExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 }
 
@@ -159,10 +168,11 @@ func TestClient_Broadcast_InMempool(t *testing.T) {
 			WithNowNodes(&nowNodesTxNotFound{}),         // Not Found
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), onChainExample1TxID, onChainExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 
 	t.Run("broadcast - in mempool (MatterCloud)", func(t *testing.T) {
@@ -173,10 +183,11 @@ func TestClient_Broadcast_InMempool(t *testing.T) {
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),     // Not found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 
 	t.Run("broadcast - in mempool (WhatsOnChain)", func(t *testing.T) {
@@ -187,10 +198,11 @@ func TestClient_Broadcast_InMempool(t *testing.T) {
 			WithNowNodes(&nowNodesTxNotFound{}),       // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),   // Not found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 
 	t.Run("broadcast - in mempool (NowNodes)", func(t *testing.T) {
@@ -201,10 +213,11 @@ func TestClient_Broadcast_InMempool(t *testing.T) {
 			WithMatterCloud(&matterCloudTxNotFound{}),   // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),     // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
+		assert.NotEmpty(t, provider)
 	})
 }
 
@@ -214,20 +227,22 @@ func TestClient_Broadcast(t *testing.T) {
 
 	t.Run("error - missing tx id", func(t *testing.T) {
 		c := NewTestClient(context.Background(), t)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), "", onChainExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrInvalidTransactionID)
+		assert.Empty(t, provider)
 	})
 
 	t.Run("error - missing tx hex", func(t *testing.T) {
 		c := NewTestClient(context.Background(), t)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), onChainExample1TxID, "", defaultBroadcastTimeOut,
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrInvalidTransactionHex)
+		assert.Empty(t, provider)
 	})
 
 	t.Run("broadcast - all providers fail", func(t *testing.T) {
@@ -238,17 +253,10 @@ func TestClient_Broadcast(t *testing.T) {
 			WithMatterCloud(&matterCloudTxNotFound{}),   // Not Found
 			WithMinercraft(&minerCraftTxNotFound{}),     // Not Found
 		)
-		err := c.Broadcast(
+		provider, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.Error(t, err)
-	})
-
-	t.Run("broadcast - bad tx - error mempool conflict?", func(t *testing.T) {
-
-	})
-
-	t.Run("broadcast - server errors", func(t *testing.T) {
-
+		assert.Equal(t, providerAll, provider)
 	})
 }

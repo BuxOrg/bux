@@ -16,8 +16,8 @@ import (
 type chainStateBase struct {
 }
 
-func (c *chainStateBase) Broadcast(context.Context, string, string, time.Duration) error {
-	return nil
+func (c *chainStateBase) Broadcast(context.Context, string, string, time.Duration) (string, error) {
+	return "", nil
 }
 
 func (c *chainStateBase) QueryTransaction(context.Context, string,
@@ -92,8 +92,8 @@ type chainStateEverythingInMempool struct {
 	chainStateBase
 }
 
-func (c *chainStateEverythingInMempool) Broadcast(context.Context, string, string, time.Duration) error {
-	return nil
+func (c *chainStateEverythingInMempool) Broadcast(context.Context, string, string, time.Duration) (string, error) {
+	return "", nil
 }
 
 func (c *chainStateEverythingInMempool) QueryTransaction(_ context.Context, id string,

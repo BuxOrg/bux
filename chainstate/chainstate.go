@@ -13,29 +13,22 @@ func (c *Client) MonitorBlockHeaders(ctx context.Context) error {
 	return nil
 }
 
-// Broadcast will attempt to broadcast a transaction
-func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) error {
+// Broadcast will attempt to broadcast a transaction using the given providers
+func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) (string, error) {
 
 	// Basic validation
 	if len(id) < 50 {
-		return ErrInvalidTransactionID
+		return "", ErrInvalidTransactionID
 	} else if len(txHex) <= 0 { // todo: validate the tx hex
-		return ErrInvalidTransactionHex
+		return "", ErrInvalidTransactionHex
 	}
 
-	// Added debugging
-	c.DebugLog("tx id: " + id)
-	c.DebugLog("txHex: " + txHex)
+	// Debug the id and hex
+	c.DebugLog("tx_id: " + id)
+	c.DebugLog("tx_hex: " + txHex)
 
-	// Broadcast!
-	err := c.broadcast(ctx, id, txHex, timeout)
-	if err != nil {
-		return err
-	}
-
-	// Check if in mempool?
-
-	return nil
+	// Broadcast or die
+	return c.broadcast(ctx, id, txHex, timeout)
 }
 
 // QueryTransaction will get the transaction info from all providers returning the "first" valid result

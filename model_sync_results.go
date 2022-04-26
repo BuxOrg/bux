@@ -10,19 +10,22 @@ import (
 
 // SyncResults is the results from all sync attempts (broadcast or sync)
 type SyncResults struct {
-	Attempts    []*SyncAttempt `json:"attempts"`     // Each attempt
-	LastMessage string         `json:"last_message"` // Last message (success or failure)
+	LastMessage string        `json:"last_message"` // Last message (success or failure)
+	Results     []*SyncResult `json:"results"`      // Each result of a sync task
 }
 
-// SyncAttempt is the complete attempt to sync (multiple providers and strategies)
-type SyncAttempt struct {
-	Action        string    `json:"action"`         // type: broadcast, sync etc
-	AttemptedAt   time.Time `json:"attempted_at"`   // Time it was attempted
-	StatusMessage string    `json:"status_message"` // Success or failure message
-	// Providers string `json:"providers"` // Provider used for attempt(s)
-	// StatusCode & response info
-	// Error message (if detected)
-	// Miner or provider info
+const (
+	syncActionBroadcast = "broadcast"
+	syncActionP2P       = "p2p"
+	syncActionSync      = "sync"
+)
+
+// SyncResult is the complete attempt/result to sync (multiple providers and strategies)
+type SyncResult struct {
+	Action        string    `json:"action"`             // type: broadcast, sync etc
+	ExecutedAt    time.Time `json:"executed_at"`        // Time it was executed
+	Provider      string    `json:"provider,omitempty"` // Provider used for attempt(s)
+	StatusMessage string    `json:"status_message"`     // Success or failure message
 }
 
 // Scan will scan the value into Struct, implements sql.Scanner interface

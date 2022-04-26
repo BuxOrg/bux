@@ -32,6 +32,7 @@ const (
 const (
 	mAPIFailure          = "failure"      // Minercraft result was a failure / error
 	mAPISuccess          = "success"      // Minercraft result was success (still could be an error)
+	providerAll          = "all"          // All providers
 	providerMatterCloud  = "mattercloud"  // Query & broadcast provider for MatterCloud
 	providerNowNodes     = "nownodes"     // Query & broadcast provider for NowNodes
 	providerWhatsOnChain = "whatsonchain" // Query & broadcast provider for WhatsOnChain

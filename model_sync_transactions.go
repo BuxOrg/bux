@@ -11,6 +11,7 @@ import (
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/tonicpow/go-paymail"
 )
 
 // SyncTransaction is an object representing the chain-state sync configuration and results for a given transaction
@@ -310,10 +311,11 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	}
 
 	// Broadcast
-	if err = syncTx.Client().Chainstate().Broadcast(
+	var provider string
+	if provider, err = syncTx.Client().Chainstate().Broadcast(
 		ctx, syncTx.ID, transaction.Hex, defaultBroadcastTimeout,
 	); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "broadcast error: "+err.Error())
+		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, provider, "broadcast error: "+err.Error())
 		return nil // nolint: nilerr // error is not needed
 	}
 
@@ -323,9 +325,10 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	// Update the sync status
 	syncTx.BroadcastStatus = SyncStatusComplete
 	syncTx.Results.LastMessage = message
-	syncTx.Results.Attempts = append(syncTx.Results.Attempts, &SyncAttempt{
-		Action:        "broadcast",
-		AttemptedAt:   time.Now().UTC(),
+	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
+		Action:        syncActionBroadcast,
+		ExecutedAt:    time.Now().UTC(),
+		Provider:      provider,
 		StatusMessage: message,
 	})
 
@@ -336,18 +339,19 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Update the sync transaction record
 	if err = syncTx.Save(ctx); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, err.Error())
+		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "internal", err.Error())
 		return err
 	}
 
 	// Notify any P2P paymail providers associated to the transaction
 	if len(transaction.DraftID) > 0 {
-		var attempts []*SyncAttempt
-		if attempts, err = notifyPaymailProviders(transaction); err != nil {
+		var results []*SyncResult
+		if results, err = notifyPaymailProviders(transaction); err != nil {
 			return err
 		}
-		if len(attempts) > 0 {
-			syncTx.Results.Attempts = append(syncTx.Results.Attempts, attempts...)
+		if len(results) > 0 {
+			syncTx.Results.Results = append(syncTx.Results.Results, results...)
+			syncTx.Results.LastMessage = fmt.Sprintf("notified %d paymail provider(s)", len(results))
 			if err = syncTx.Save(ctx); err != nil {
 				return err
 			}
@@ -373,10 +377,10 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 	// Find on-chain
 	var txInfo *chainstate.TransactionInfo
 	if txInfo, err = syncTx.Client().Chainstate().QueryTransactionFastest(
-		ctx, syncTx.ID, chainstate.RequiredOnChain, 10*time.Second,
+		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
 	); err != nil {
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusReady, "transaction not found on-chain")
+			bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusReady, "all", "transaction not found on-chain")
 			return nil
 		}
 		return err
@@ -399,22 +403,23 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 
 	// Save the transaction (should NOT error)
 	if err = transaction.Save(ctx); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, err.Error())
+		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "internal", err.Error())
 		return err
 	}
 
 	// Update the sync status
 	syncTx.SyncStatus = SyncStatusComplete
 	syncTx.Results.LastMessage = message
-	syncTx.Results.Attempts = append(syncTx.Results.Attempts, &SyncAttempt{
-		Action:        "sync",
-		AttemptedAt:   time.Now().UTC(),
+	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
+		Action:        syncActionSync,
+		ExecutedAt:    time.Now().UTC(),
+		Provider:      txInfo.Provider,
 		StatusMessage: message,
 	})
 
-	// Update (or delete?) the sync transaction record
+	// Update the sync transaction record
 	if err = syncTx.Save(ctx); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, err.Error())
+		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "internal", err.Error())
 		return err
 	}
 
@@ -423,7 +428,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 }
 
 // bailAndSaveSyncTransaction try to save the error message
-func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus, message string) {
+func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus, provider, message string) {
 	syncTx.SyncStatus = status
 	syncTx.LastAttempt = utils.NullTime{
 		NullTime: sql.NullTime{
@@ -432,16 +437,17 @@ func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, st
 		},
 	}
 	syncTx.Results.LastMessage = message
-	syncTx.Results.Attempts = append(syncTx.Results.Attempts, &SyncAttempt{
-		Action:        "sync",
-		AttemptedAt:   time.Now().UTC(),
+	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
+		Action:        syncActionSync,
+		ExecutedAt:    time.Now().UTC(),
+		Provider:      provider,
 		StatusMessage: message,
 	})
 	_ = syncTx.Save(ctx)
 }
 
 // notifyPaymailProviders will notify any associated Paymail providers
-func notifyPaymailProviders(transaction *Transaction) ([]*SyncAttempt, error) {
+func notifyPaymailProviders(transaction *Transaction) ([]*SyncResult, error) {
 
 	// First get the draft tx
 	draftTx, err := getDraftTransactionID(
@@ -455,11 +461,12 @@ func notifyPaymailProviders(transaction *Transaction) ([]*SyncAttempt, error) {
 	}
 
 	// Loop each output looking for paymail outputs
-	var attempts []*SyncAttempt
+	var attempts []*SyncResult
 	pm := transaction.Client().PaymailClient()
+	var payload *paymail.P2PTransactionPayload
 	for _, out := range draftTx.Configuration.Outputs {
 		if out.PaymailP4 != nil && out.PaymailP4.ResolutionType == ResolutionTypeP2P {
-			if _, err = finalizeP2PTransaction(
+			if payload, err = finalizeP2PTransaction(
 				pm,
 				out.PaymailP4.Alias,
 				out.PaymailP4.Domain,
@@ -471,10 +478,11 @@ func notifyPaymailProviders(transaction *Transaction) ([]*SyncAttempt, error) {
 			); err != nil {
 				return nil, err
 			}
-			attempts = append(attempts, &SyncAttempt{
-				Action:        "p2p",
-				AttemptedAt:   time.Now().UTC(),
-				StatusMessage: "notified: " + out.PaymailP4.ReceiveEndpoint,
+			attempts = append(attempts, &SyncResult{
+				Action:        syncActionP2P,
+				ExecutedAt:    time.Now().UTC(),
+				Provider:      out.PaymailP4.ReceiveEndpoint,
+				StatusMessage: "success: " + payload.TxID,
 			})
 		}
 	}

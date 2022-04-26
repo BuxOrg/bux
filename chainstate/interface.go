@@ -26,7 +26,7 @@ type Logger interface {
 
 // ChainService is the chain related methods
 type ChainService interface {
-	Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) error
+	Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) (string, error)
 	QueryTransaction(
 		ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 	) (*TransactionInfo, error)

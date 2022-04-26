@@ -59,7 +59,7 @@ func doesErrorContain(err string, messages []string) bool {
 // broadcast will broadcast using a standard strategy
 //
 // NOTE: if successful (in-mempool), no error will be returned
-func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration) error {
+func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration) (provider string, err error) {
 
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
@@ -71,20 +71,19 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 			if c.options.config.mAPI.broadcastMiners[index] != nil {
 
 				// Broadcast using mAPI
-				err := broadcastMAPI(
+				provider = c.options.config.mAPI.broadcastMiners[index].Miner.Name
+				err = broadcastMAPI(
 					ctxWithCancel, c, c.Minercraft(),
 					c.options.config.mAPI.broadcastMiners[index].Miner, id, hex,
 				)
 				if err == nil { // Success response!
-					return nil
+					return
 				}
 
 				// Check error response for "questionable errors"
 				if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-					if err = checkInMempool(ctx, c, id, err.Error(), timeout); err != nil {
-						return err
-					}
-					return nil // Success, found in mempool (or on-chain)
+					err = checkInMempool(ctx, c, id, err.Error(), timeout)
+					return // Success, found in mempool (or on-chain)
 				}
 
 				// Provider error?
@@ -94,58 +93,55 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	}
 
 	// Try next provider: MatterCloud
-	if err := broadcastMatterCloud(ctx, c, c.MatterCloud(), id, hex); err != nil {
+	provider = providerMatterCloud
+	if err = broadcastMatterCloud(ctx, c, c.MatterCloud(), id, hex); err != nil {
 
 		// Check error response for (TX FAILURE)
 		if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-			if err = checkInMempool(ctx, c, id, err.Error(), timeout); err != nil {
-				return err
-			}
-			return nil // Success, found in mempool (or on-chain)
+			err = checkInMempool(ctx, c, id, err.Error(), timeout)
+			return // Success, found in mempool (or on-chain)
 		}
 
 		// Provider error?
 		c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerMatterCloud)
 	} else { // Success!
-		return nil
+		return
 	}
 
 	// Try next provider: WhatsOnChain
-	if err := broadcastWhatsOnChain(ctx, c, c.WhatsOnChain(), id, hex); err != nil {
+	provider = providerWhatsOnChain
+	if err = broadcastWhatsOnChain(ctx, c, c.WhatsOnChain(), id, hex); err != nil {
 
 		// Check error response for (TX FAILURE)
 		if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-			if err = checkInMempool(ctx, c, id, err.Error(), timeout); err != nil {
-				return err
-			}
-			return nil // Success, found in mempool (or on-chain)
+			err = checkInMempool(ctx, c, id, err.Error(), timeout)
+			return // Success, found in mempool (or on-chain)
 		}
 
 		// Provider error?
 		c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerWhatsOnChain)
 	} else { // Success!
-		return nil
+		return
 	}
 
 	// Try next provider: NowNodes
-	if err := broadcastNowNodes(ctx, c, c.NowNodes(), id, id, hex); err != nil {
+	provider = providerNowNodes
+	if err = broadcastNowNodes(ctx, c, c.NowNodes(), id, id, hex); err != nil {
 
 		// Check error response for (TX FAILURE)
 		if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-			if err = checkInMempool(ctx, c, id, err.Error(), timeout); err != nil {
-				return err
-			}
-			return nil // Success, found in mempool (or on-chain)
+			err = checkInMempool(ctx, c, id, err.Error(), timeout)
+			return // Success, found in mempool (or on-chain)
 		}
 
 		// Provider error?
 		c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerNowNodes)
 	} else { // Success!
-		return nil
+		return
 	}
 
-	// Final error?
-	return errors.New("broadcast failed on all providers")
+	// Final error - all failures
+	return providerAll, errors.New("broadcast failed on all providers")
 }
 
 // checkInMempool is a quick check to see if the tx is in mempool (or on-chain)

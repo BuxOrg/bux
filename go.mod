@@ -35,7 +35,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/tidwall/gjson v1.14.1
 	github.com/tonicpow/go-minercraft v0.7.3
-	github.com/tonicpow/go-paymail v0.7.5
+	github.com/tonicpow/go-paymail v0.7.6
 	github.com/tryvium-travels/memongo v0.5.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
@@ -90,7 +90,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.1 // indirect
+	github.com/klauspost/compress v1.15.2 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -129,7 +129,7 @@ require (
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
+	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/text v0.3.7 // indirect

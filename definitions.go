@@ -6,17 +6,18 @@ import (
 
 // Defaults for engine functionality
 const (
+	changeOutputSize               = uint64(35)        // Average size in bytes of a change output
 	databaseLongReadTimeout        = 30 * time.Second  // For all "GET" or "SELECT" methods
+	defaultBroadcastTimeout        = 25 * time.Second  // Default timeout for broadcasting
 	defaultCacheLockTTL            = 20                // in Seconds
 	defaultCacheLockTTW            = 10                // in Seconds
 	defaultDatabaseReadTimeout     = 20 * time.Second  // For all "GET" or "SELECT" methods
 	defaultDraftTxExpiresIn        = 30 * time.Second  // Default TTL for draft transactions
-	defaultHTTPTimeout             = 20 * time.Second  //
+	defaultHTTPTimeout             = 20 * time.Second  // Default timeout for HTTP requests
 	defaultOverheadSize            = uint64(10)        // 10 bytes is the default overhead in a transaction
-	defaultUserAgent               = "bux: " + version // Default user agent
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
+	defaultUserAgent               = "bux: " + version // Default user agent
 	dustLimit                      = uint64(546)       // Dust limit
-	changeOutputSize               = uint64(35)        // Average size in bytes of a change output
 	mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
 	version                        = "v0.2.13"         // bux version

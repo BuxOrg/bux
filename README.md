@@ -124,12 +124,11 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 - [mrz1836/go-nownodes](https://github.com/mrz1836/go-nownodes)
 - [mrz1836/go-whatsonchain](https://github.com/mrz1836/go-whatsonchain)
 - [newrelic/go-agent](https://github.com/newrelic/go-agent)
-- [OrlovEvgeny/go-mcache](https://github.com/OrlovEvgeny/go-mcache)
 - [robfig/cron](https://github.com/robfig/cron)
 - [stretchr/testify](https://github.com/stretchr/testify)
 - [tonicpow/go-minercraft](https://github.com/tonicpow/go-minercraft)
 - [tonicpow/go-paymail](https://github.com/tonicpow/go-paymail)
-- [vmihailenco/taskq/v3](https://github.com/vmihailenco/taskq)
+- [vmihailenco/taskq](https://github.com/vmihailenco/taskq)
 </details>
 
 <details>
@@ -299,4 +298,4 @@ Thank you to these wonderful people ([emoji key](https://allcontributors.org/doc
 
 ## License
 
-[![License](https://img.shields.io/badge/license-Open%20BSV-brightgreen.svg?style=flat)](/LICENSE)
+[![License](https://img.shields.io/github/license/BuxOrg/bux.svg?style=flat&v=2)](LICENSE)

@@ -60,7 +60,7 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 
 		// Save all models (or fail!)
 		for _, modelToSave := range modelsToSave {
-			modelToSave.DebugLog("starting to Save model: " + modelToSave.Name())
+			modelToSave.DebugLog("starting to save model: " + modelToSave.Name() + " id: " + modelToSave.GetID())
 			if err = modelToSave.Client().Datastore().SaveModel(
 				ctx, modelToSave, tx, modelToSave.IsNew(), false,
 			); err != nil {

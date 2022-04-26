@@ -427,6 +427,17 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 			m.GetOptions(true)...,
 		)
 
+		// Found any p2p outputs?
+		p2pStatus := SyncStatusSkipped
+		if m.draftTransaction.Configuration.Outputs != nil {
+			for _, output := range m.draftTransaction.Configuration.Outputs {
+				if output.PaymailP4 != nil && output.PaymailP4.ResolutionType == ResolutionTypeP2P {
+					p2pStatus = SyncStatusPending
+				}
+			}
+		}
+		sync.P2PStatus = p2pStatus
+
 		// If all the options are skipped, do not make a new model (ignore the record)
 		if !sync.isSkipped() {
 			m.syncTransaction = sync
@@ -594,17 +605,6 @@ func (m *Transaction) processOutputs(ctx context.Context) (err error) {
 			}
 		}
 	}
-
-	/*
-		if m.isExternal() && numberOfOutputsProcessed == 0 {
-			// ERR BS transaction
-			fmt.Println("finish this")
-		} else if !m.isExternal() {
-			// check outputs of draft vs current model (excluding change and fee)
-			// Change addresses should still be internal addresses
-			fmt.Println("finish this")
-		}
-	*/
 
 	return
 }

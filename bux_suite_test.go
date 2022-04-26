@@ -318,7 +318,7 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 	}
 	opts = append(opts,
 		WithDebugging(),
-		WithChainstateOptions(false, false),
+		WithChainstateOptions(false, false, false),
 		WithAutoMigrate(BaseModels...),
 		WithAutoMigrate(&PaymailAddress{}),
 	)

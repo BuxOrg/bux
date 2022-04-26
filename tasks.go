@@ -79,6 +79,18 @@ func taskBroadcastTransactions(ctx context.Context, logClient logger.Interface, 
 	return err
 }
 
+// taskNotifyP2P will notify any p2p paymail providers
+func taskNotifyP2P(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+
+	logClient.Info(ctx, "running notify p2p paymail provider(s) task...")
+
+	err := processP2PTransactions(ctx, 10, opts...)
+	if err == nil || errors.Is(err, datastore.ErrNoResults) {
+		return nil
+	}
+	return err
+}
+
 // taskSyncTransactions will sync any transactions
 func taskSyncTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
 

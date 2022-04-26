@@ -12,8 +12,8 @@ func main() {
 	client, err := bux.NewClient(
 		context.Background(), // Set context
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithDebugging(),                   // Enable debugging (verbose logs)
-		bux.WithChainstateOptions(true, true), // Broadcasting enabled by defualt
+		bux.WithDebugging(),                         // Enable debugging (verbose logs)
+		bux.WithChainstateOptions(true, true, true), // Broadcasting enabled by defualt
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

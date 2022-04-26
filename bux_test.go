@@ -66,7 +66,7 @@ func DefaultClientOpts(debug, shared bool) []ClientOps {
 		opts,
 		WithTaskQ(tqc, taskmanager.FactoryMemory),
 		WithSQLite(tester.SQLiteTestConfig(debug, shared)),
-		WithChainstateOptions(false, false),
+		WithChainstateOptions(false, false, false),
 	)
 	if debug {
 		opts = append(opts, WithDebugging())
@@ -109,7 +109,7 @@ type account struct {
 }
 
 // Unlocker get the correct un-locker for a given locking script.
-func (a *account) Unlocker(ctx context.Context, lockingScript *bscript.Script) (bt.Unlocker, error) {
+func (a *account) Unlocker(context.Context, *bscript.Script) (bt.Unlocker, error) {
 	return &unlocker.Simple{
 		PrivateKey: a.PrivateKey,
 	}, nil

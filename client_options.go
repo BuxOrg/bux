@@ -45,6 +45,7 @@ func defaultClientOptions() *clientOptions {
 			ClientInterface: nil,
 			options:         []chainstate.ClientOps{},
 			broadcasting:    true, // Enabled by default for new users
+			paymailP2P:      true, // Enabled by default for new users
 			syncOnChain:     true, // Enabled by default for new users
 		},
 
@@ -95,10 +96,11 @@ func defaultClientOptions() *clientOptions {
 		taskManager: &taskManagerOptions{
 			ClientInterface: nil,
 			cronTasks: map[string]time.Duration{
-				ModelDraftTransaction.String() + "_clean_up":   60 * time.Second,
-				ModelIncomingTransaction.String() + "_process": 30 * time.Second,
-				ModelSyncTransaction.String() + "_broadcast":   30 * time.Second,
-				ModelSyncTransaction.String() + "_sync":        30 * time.Second,
+				ModelDraftTransaction.String() + "_clean_up":              60 * time.Second,
+				ModelIncomingTransaction.String() + "_process":            30 * time.Second,
+				ModelSyncTransaction.String() + "_" + syncActionBroadcast: 30 * time.Second,
+				ModelSyncTransaction.String() + "_" + syncActionSync:      60 * time.Second,
+				ModelSyncTransaction.String() + "_" + syncActionP2P:       35 * time.Second,
 			},
 		},
 
@@ -570,9 +572,10 @@ func WithCustomChainstate(chainState chainstate.ClientInterface) ClientOps {
 }
 
 // WithChainstateOptions will set chainstate defaults
-func WithChainstateOptions(broadcasting, syncOnChain bool) ClientOps {
+func WithChainstateOptions(broadcasting, paymailP2P, syncOnChain bool) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.broadcasting = broadcasting
+		c.chainstate.paymailP2P = paymailP2P
 		c.chainstate.syncOnChain = syncOnChain
 	}
 }

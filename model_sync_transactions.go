@@ -27,6 +27,7 @@ type SyncTransaction struct {
 	LastAttempt     utils.NullTime `json:"last_attempt" toml:"last_attempt" yaml:"last_attempt" gorm:"<-;comment:When the last broadcast occurred" bson:"last_attempt,omitempty"`
 	Results         SyncResults    `json:"results" toml:"results" yaml:"results" gorm:"<-;type:text;comment:This is the results struct in JSON" bson:"results"`
 	BroadcastStatus SyncStatus     `json:"broadcast_status" toml:"broadcast_status" yaml:"broadcast_status" gorm:"<-;type:varchar(10);index;comment:This is the status of the broadcast" bson:"broadcast_status"`
+	P2PStatus       SyncStatus     `json:"p2p_status" toml:"p2p_status" yaml:"p2p_status" gorm:"<-;column:p2p_status;type:varchar(10);index;comment:This is the status of the p2p paymail requests" bson:"p2p_status"`
 	SyncStatus      SyncStatus     `json:"sync_status" toml:"sync_status" yaml:"sync_status" gorm:"<-;type:varchar(10);index;comment:This is the status of the on-chain sync" bson:"sync_status"`
 }
 
@@ -44,9 +45,15 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 		bs = SyncStatusSkipped
 	}
 
+	// Notify Paymail P2P
+	ps := SyncStatusPending
+	if !config.PaymailP2P {
+		ps = SyncStatusSkipped
+	}
+
 	// Sync
 	ss := SyncStatusPending
-	if !config.Broadcast {
+	if !config.SyncOnChain {
 		ss = SyncStatusSkipped
 	}
 
@@ -55,6 +62,7 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 		Configuration:   *config,
 		ID:              txID,
 		Model:           *NewBaseModel(ModelSyncTransaction, opts...),
+		P2PStatus:       ps,
 		SyncStatus:      ss,
 	}
 }
@@ -68,6 +76,24 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 		ctx,
 		map[string]interface{}{
 			broadcastStatusField: SyncStatusReady.String(),
+		},
+		queryParams, opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+// getTransactionsToNotifyP2P will get the sync transactions to notify p2p paymail providers
+func getTransactionsToNotifyP2P(ctx context.Context, queryParams *datastore.QueryParams,
+	opts ...ModelOps) ([]*SyncTransaction, error) {
+
+	// Get the records by status
+	txs, err := getSyncTransactionsByConditions(
+		ctx,
+		map[string]interface{}{
+			p2pStatusField: SyncStatusReady.String(),
 		},
 		queryParams, opts...,
 	)
@@ -96,8 +122,8 @@ func getTransactionsToSync(ctx context.Context, queryParams *datastore.QueryPara
 }
 
 // getTransactionsToSync will get the sync transactions to sync
-func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]interface{}, queryParams *datastore.QueryParams,
-	opts ...ModelOps) ([]*SyncTransaction, error) {
+func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*SyncTransaction, error) {
 
 	if queryParams == nil {
 		queryParams = &datastore.QueryParams{}
@@ -127,9 +153,11 @@ func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]
 	return txs, nil
 }
 
-// isSkipped will return true if Broadcasting & SyncOnChain are both skipped
+// isSkipped will return true if Broadcasting, P2P and SyncOnChain are all skipped
 func (m *SyncTransaction) isSkipped() bool {
-	return m.BroadcastStatus == SyncStatusSkipped && m.SyncStatus == SyncStatusSkipped
+	return m.BroadcastStatus == SyncStatusSkipped &&
+		m.SyncStatus == SyncStatusSkipped &&
+		m.P2PStatus == SyncStatusSkipped
 }
 
 // GetModelName will get the name of the current model
@@ -156,10 +184,6 @@ func (m *SyncTransaction) GetID() string {
 func (m *SyncTransaction) BeforeCreating(_ context.Context) error {
 	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
 
-	// Set status
-	m.BroadcastStatus = SyncStatusReady
-	m.SyncStatus = SyncStatusPending
-
 	// Make sure ID is valid
 	if len(m.ID) == 0 {
 		return ErrMissingFieldID
@@ -179,7 +203,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 	}
 
 	// Register the task locally (cron task - set the defaults)
-	syncTask := m.Name() + "_sync"
+	syncTask := m.Name() + "_" + syncActionSync
 	ctx := context.Background()
 
 	// Register the task
@@ -207,7 +231,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 	}
 
 	// Register the task locally (cron task - set the defaults)
-	broadcastTask := m.Name() + "_broadcast"
+	broadcastTask := m.Name() + "_" + syncActionBroadcast
 
 	// Register the task
 	if err = tm.RegisterTask(&taskmanager.Task{
@@ -224,10 +248,36 @@ func (m *SyncTransaction) RegisterTasks() error {
 	}
 
 	// Run the task periodically
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
+	if err = tm.RunTask(ctx, &taskmanager.TaskOptions{
 		Arguments:      []interface{}{m.Client()},
 		RunEveryPeriod: m.Client().GetTaskPeriod(broadcastTask),
 		TaskName:       broadcastTask,
+	}); err != nil {
+		return err
+	}
+
+	// Register the task locally (cron task - set the defaults)
+	p2pTask := m.Name() + "_" + syncActionP2P
+
+	// Register the task
+	if err = tm.RegisterTask(&taskmanager.Task{
+		Name:       p2pTask,
+		RetryLimit: 1,
+		Handler: func(client ClientInterface) error {
+			if taskErr := taskNotifyP2P(ctx, client.Logger(), WithClient(client)); taskErr != nil {
+				client.Logger().Error(ctx, "error running "+p2pTask+" task: "+taskErr.Error())
+			}
+			return nil
+		},
+	}); err != nil {
+		return err
+	}
+
+	// Run the task periodically
+	return tm.RunTask(ctx, &taskmanager.TaskOptions{
+		Arguments:      []interface{}{m.Client()},
+		RunEveryPeriod: m.Client().GetTaskPeriod(p2pTask),
+		TaskName:       p2pTask,
 	})
 }
 
@@ -295,7 +345,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyProcessSyncTx, syncTx.GetID()), syncTx.Client().Cachestore(),
+		ctx, fmt.Sprintf(lockKeyProcessBroadcastTx, syncTx.GetID()), syncTx.Client().Cachestore(),
 	)
 	defer unlock()
 	if err != nil {
@@ -315,12 +365,14 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	if provider, err = syncTx.Client().Chainstate().Broadcast(
 		ctx, syncTx.ID, transaction.Hex, defaultBroadcastTimeout,
 	); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, provider, "broadcast error: "+err.Error())
+		bailAndSaveSyncTransaction(
+			ctx, syncTx, SyncStatusError, syncActionBroadcast, provider, "broadcast error: "+err.Error(),
+		)
 		return nil // nolint: nilerr // error is not needed
 	}
 
 	// Create status message
-	message := "transaction was broadcasted"
+	message := "broadcast success"
 
 	// Update the sync status
 	syncTx.BroadcastStatus = SyncStatusComplete
@@ -332,6 +384,11 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		StatusMessage: message,
 	})
 
+	// Update the P2P status
+	if syncTx.P2PStatus == SyncStatusPending {
+		syncTx.P2PStatus = SyncStatusReady
+	}
+
 	// Update sync status to be ready now
 	if syncTx.SyncStatus == SyncStatusPending {
 		syncTx.SyncStatus = SyncStatusReady
@@ -339,26 +396,16 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Update the sync transaction record
 	if err = syncTx.Save(ctx); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "internal", err.Error())
+		bailAndSaveSyncTransaction(
+			ctx, syncTx, SyncStatusError, syncActionBroadcast, "internal", err.Error(),
+		)
 		return err
 	}
 
 	// Notify any P2P paymail providers associated to the transaction
-	if len(transaction.DraftID) > 0 {
-		var results []*SyncResult
-		if results, err = notifyPaymailProviders(transaction); err != nil {
-			return err
-		}
-		if len(results) > 0 {
-			syncTx.Results.Results = append(syncTx.Results.Results, results...)
-			syncTx.Results.LastMessage = fmt.Sprintf("notified %d paymail provider(s)", len(results))
-			if err = syncTx.Save(ctx); err != nil {
-				return err
-			}
-		}
+	if syncTx.P2PStatus == SyncStatusReady {
+		return processP2PTransaction(ctx, syncTx, transaction)
 	}
-
-	// Done!
 	return nil
 }
 
@@ -380,7 +427,9 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
 	); err != nil {
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusReady, "all", "transaction not found on-chain")
+			bailAndSaveSyncTransaction(
+				ctx, syncTx, SyncStatusReady, syncActionSync, "all", "transaction not found on-chain",
+			)
 			return nil
 		}
 		return err
@@ -403,7 +452,9 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 
 	// Save the transaction (should NOT error)
 	if err = transaction.Save(ctx); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "internal", err.Error())
+		bailAndSaveSyncTransaction(
+			ctx, syncTx, SyncStatusError, syncActionSync, "internal", err.Error(),
+		)
 		return err
 	}
 
@@ -419,7 +470,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 
 	// Update the sync transaction record
 	if err = syncTx.Save(ctx); err != nil {
-		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "internal", err.Error())
+		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, syncActionSync, "internal", err.Error())
 		return err
 	}
 
@@ -427,9 +478,100 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 	return nil
 }
 
-// bailAndSaveSyncTransaction try to save the error message
-func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus, provider, message string) {
-	syncTx.SyncStatus = status
+// processP2PTransactions will process transactions for p2p notifications
+func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
+
+	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+
+	// Get x records
+	records, err := getTransactionsToNotifyP2P(
+		ctx, queryParams, opts...,
+	)
+	if err != nil {
+		return err
+	} else if len(records) == 0 {
+		return nil
+	}
+
+	// Process the incoming transaction
+	for index := range records {
+		if err = processP2PTransaction(
+			ctx, records[index], nil,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// processP2PTransaction will process the sync transaction record, or save the failure
+func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+
+	// Create the lock and set the release for after the function completes
+	unlock, err := newWriteLock(
+		ctx, fmt.Sprintf(lockKeyProcessP2PTx, syncTx.GetID()), syncTx.Client().Cachestore(),
+	)
+	defer unlock()
+	if err != nil {
+		return err
+	}
+
+	// Get the transaction
+	if transaction == nil {
+		if transaction, err = getTransactionByID(
+			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
+		); err != nil {
+			return err
+		}
+	}
+
+	// No draft?
+	if len(transaction.DraftID) == 0 {
+		bailAndSaveSyncTransaction(
+			ctx, syncTx, SyncStatusComplete, syncActionP2P, "all", "no draft found, cannot complete p2p",
+		)
+		return nil
+	}
+
+	// Notify any P2P paymail providers associated to the transaction
+	var results []*SyncResult
+	if results, err = notifyPaymailProviders(ctx, transaction); err != nil {
+		bailAndSaveSyncTransaction(
+			ctx, syncTx, SyncStatusReady, syncActionP2P, "", err.Error(),
+		)
+		return err
+	}
+
+	// Update if we have some results
+	if len(results) > 0 {
+		syncTx.Results.Results = append(syncTx.Results.Results, results...)
+		syncTx.Results.LastMessage = fmt.Sprintf("notified %d paymail provider(s)", len(results))
+	}
+
+	// Save the record
+	syncTx.P2PStatus = SyncStatusComplete
+	if err = syncTx.Save(ctx); err != nil {
+		bailAndSaveSyncTransaction(
+			ctx, syncTx, SyncStatusError, syncActionP2P, "internal", err.Error(),
+		)
+		return err
+	}
+
+	// Done!
+	return nil
+}
+
+// bailAndSaveSyncTransaction will save the error message for a sync tx
+func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus,
+	action, provider, message string) {
+	if action == syncActionSync {
+		syncTx.SyncStatus = status
+	} else if action == syncActionP2P {
+		syncTx.P2PStatus = status
+	} else if action == syncActionBroadcast {
+		syncTx.BroadcastStatus = status
+	}
 	syncTx.LastAttempt = utils.NullTime{
 		NullTime: sql.NullTime{
 			Time:  time.Now().UTC(),
@@ -438,7 +580,7 @@ func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, st
 	}
 	syncTx.Results.LastMessage = message
 	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
-		Action:        syncActionSync,
+		Action:        action,
 		ExecutedAt:    time.Now().UTC(),
 		Provider:      provider,
 		StatusMessage: message,
@@ -447,11 +589,11 @@ func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, st
 }
 
 // notifyPaymailProviders will notify any associated Paymail providers
-func notifyPaymailProviders(transaction *Transaction) ([]*SyncResult, error) {
+func notifyPaymailProviders(ctx context.Context, transaction *Transaction) ([]*SyncResult, error) {
 
 	// First get the draft tx
 	draftTx, err := getDraftTransactionID(
-		context.Background(),
+		ctx,
 		transaction.xPubID,
 		transaction.DraftID,
 		transaction.GetOptions(false)...,
@@ -466,10 +608,6 @@ func notifyPaymailProviders(transaction *Transaction) ([]*SyncResult, error) {
 	var attempts []*SyncResult
 	pm := transaction.Client().PaymailClient()
 	var payload *paymail.P2PTransactionPayload
-
-	transaction.Client().Logger().Info(
-		context.Background(), fmt.Sprintf("outputs found: %d", len(draftTx.Configuration.Outputs)),
-	)
 
 	for _, out := range draftTx.Configuration.Outputs {
 		if out.PaymailP4 != nil && out.PaymailP4.ResolutionType == ResolutionTypeP2P {

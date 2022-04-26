@@ -85,6 +85,7 @@ const (
 	metadataField        = "metadata"
 	nextExternalNumField = "next_external_num"
 	nextInternalNumField = "next_internal_num"
+	p2pStatusField       = "p2p_status"
 	satoshisField        = "satoshis"
 	spendingTxIDField    = "spending_tx_id"
 	statusField          = "status"

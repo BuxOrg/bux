@@ -7,12 +7,14 @@ import (
 )
 
 const (
-	lockKeyProcessIncomingTx = "process-incoming-transaction-%s" // + Tx ID
-	lockKeyProcessSyncTx     = "process-sync-transaction-%s"     // + Tx ID
-	lockKeyProcessXpub       = "action-xpub-id-%s"               // + Xpub ID
-	lockKeyRecordBlockHeader = "action-record-block-header-%s"   // + Hash id
-	lockKeyRecordTx          = "action-record-transaction-%s"    // + Tx ID
-	lockKeyReserveUtxo       = "utxo-reserve-xpub-id-%s"         // + Xpub ID
+	lockKeyProcessBroadcastTx = "process-broadcast-transaction-%s" // + Tx ID
+	lockKeyProcessIncomingTx  = "process-incoming-transaction-%s"  // + Tx ID
+	lockKeyProcessP2PTx       = "process-p2p-transaction-%s"       // + Tx ID
+	lockKeyProcessSyncTx      = "process-sync-transaction-%s"      // + Tx ID
+	lockKeyProcessXpub        = "action-xpub-id-%s"                // + Xpub ID
+	lockKeyRecordBlockHeader  = "action-record-block-header-%s"    // + Hash id
+	lockKeyRecordTx           = "action-record-transaction-%s"     // + Tx ID
+	lockKeyReserveUtxo        = "utxo-reserve-xpub-id-%s"          // + Xpub ID
 )
 
 // newWriteLock will take care of creating a lock and defer

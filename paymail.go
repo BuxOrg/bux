@@ -134,6 +134,15 @@ func finalizeP2PTransaction(client paymail.ClientInterface,
 	alias, domain, p2pSubmitURL, referenceID, note, senderPaymailAddress, txHex string) (*paymail.P2PTransactionPayload, error) {
 
 	// Submit the P2P transaction
+	/*logger.Data(2, logger.DEBUG, "sending p2p tx...",
+		logger.MakeParameter("alias", alias),
+		logger.MakeParameter("p2pSubmitURL", p2pSubmitURL),
+		logger.MakeParameter("domain", domain),
+		logger.MakeParameter("note", note),
+		logger.MakeParameter("senderPaymailAddress", senderPaymailAddress),
+		logger.MakeParameter("referenceID", referenceID),
+	)*/
+
 	response, err := client.SendP2PTransaction(p2pSubmitURL, alias, domain, &paymail.P2PTransaction{
 		Hex: txHex,
 		MetaData: &paymail.P2PMetaData{

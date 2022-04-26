@@ -86,10 +86,9 @@ func getDraftTransactionID(ctx context.Context, xPubID, id string,
 	conditions := map[string]interface{}{
 		xPubIDField: xPubID,
 		idField:     id,
-		// statusField:      DraftStatusDraft,
 	}
 	draftTransaction := newDraftTransaction("", config, opts...)
-	draftTransaction.ID = "" // newDraftTransaction always sets an ID, need to remove for querying
+	draftTransaction.ID = id // newDraftTransaction always sets an ID, need to remove for querying
 	if err := Get(ctx, draftTransaction, conditions, false, defaultDatabaseReadTimeout, true); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil

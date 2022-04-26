@@ -312,8 +312,9 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 			}
 			// todo will this overwrite the global metadata ?
 			m.Metadata = nil
+		} else {
+			m.DebugLog("xPub id is missing from transaction, cannot store metadata")
 		}
-		m.DebugLog("xPub id is missing from transaction, cannot store metadata")
 	}
 
 	return Save(ctx, m)

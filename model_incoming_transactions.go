@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -260,14 +259,12 @@ func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransac
 	// Find in mempool or on-chain
 	var txInfo *chainstate.TransactionInfo
 	if txInfo, err = incomingTx.Client().Chainstate().QueryTransactionFastest(
-		ctx, incomingTx.ID, chainstate.RequiredInMempool, 10*time.Second,
+		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
 		// todo: check the error... try broadcasting the tx, and retry query?
 
-		// todo: updating for now, but maybe remove this once errors are better known
 		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
-
 		return err
 	}
 

@@ -305,7 +305,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	// Get the transaction
 	var transaction *Transaction
 	if transaction, err = getTransactionByID(
-		ctx, syncTx.rawXpubKey, syncTx.ID, syncTx.GetOptions(false)...,
+		ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
 	); err != nil {
 		return err
 	}

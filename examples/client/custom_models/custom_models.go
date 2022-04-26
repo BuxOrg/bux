@@ -11,6 +11,8 @@ import (
 func main() {
 	client, err := bux.NewClient(
 		context.Background(), // Set context
+		bux.WithDebugging(),
+		bux.WithAutoMigrate(bux.BaseModels...),
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithModels(NewExample("example-field")),                                            // Add additional custom models to Bux
 	)

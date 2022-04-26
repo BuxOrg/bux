@@ -398,7 +398,7 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 	}
 
 	// 	m.xPubID is the xpub of the user registering the transaction
-	if m.xPubID != "" && m.DraftID != "" {
+	if len(m.xPubID) > 0 && len(m.DraftID) > 0 {
 
 		// Only get the draft if we haven't already
 		if m.draftTransaction == nil {

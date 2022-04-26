@@ -99,7 +99,7 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 		params = append(params, zlogger.MakeParameter("error_message", err.Error()))
 		level = zlogger.ERROR
 	}
-	zlogger.Data(2, level, "sql trace", params...)
+	zlogger.Data(4, level, "sql trace", params...)
 }
 
 // displayLog will display a log using logger
@@ -110,5 +110,5 @@ func displayLog(level zlogger.LogLevel, message string, params ...interface{}) {
 			keyValues = append(keyValues, zlogger.MakeParameter(fmt.Sprintf("index_%d", index), val))
 		}
 	}
-	zlogger.Data(2, level, message, keyValues...)
+	zlogger.Data(4, level, message, keyValues...)
 }

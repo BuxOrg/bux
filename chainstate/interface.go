@@ -46,7 +46,6 @@ type ProviderServices interface {
 // MinercraftServices is the minercraft services interface
 type MinercraftServices interface {
 	BroadcastMiners() []*Miner
-	Miners() []*Miner
 	QueryMiners() []*Miner
 	RefreshFeeQuotes(ctx context.Context) error
 }

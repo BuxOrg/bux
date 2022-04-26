@@ -30,7 +30,6 @@ func defaultClientOptions() *clientOptions {
 			httpClient: nil,
 			mAPI: &mAPIConfig{
 				broadcastMiners: bm,
-				miners:          bm,
 				queryMiners:     qm,
 			},
 			matterCloud:       nil,
@@ -211,15 +210,6 @@ func WithNetwork(network Network) ClientOps {
 	return func(c *clientOptions) {
 		if len(network) > 0 {
 			c.config.network = network
-		}
-	}
-}
-
-// WithCustomMiners will overwrite the default list of miners in Minercraft
-func WithCustomMiners(miners []*Miner) ClientOps {
-	return func(c *clientOptions) {
-		if c != nil && len(miners) > 0 {
-			c.config.mAPI.miners = miners
 		}
 	}
 }

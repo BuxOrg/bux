@@ -49,7 +49,6 @@ type (
 	// mAPIConfig is specific for mAPI configuration
 	mAPIConfig struct {
 		broadcastMiners []*Miner // List of loaded miners for broadcasting
-		miners          []*Miner // Default list of miners (overrides Minercraft defaults)
 		queryMiners     []*Miner // List of loaded miners for querying transactions
 	}
 
@@ -197,11 +196,6 @@ func (c *Client) BroadcastMiners() []*Miner {
 // QueryMiners will return the query miners
 func (c *Client) QueryMiners() []*Miner {
 	return c.options.config.mAPI.queryMiners
-}
-
-// Miners will return the miners (default or custom)
-func (c *Client) Miners() []*Miner {
-	return c.options.config.mAPI.miners
 }
 
 // RefreshFeeQuotes will update all fee quotes for all broadcasting miners in mAPI

@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
@@ -53,13 +54,27 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 	// No client?
 	if c.Minercraft() == nil {
 		var optionalMiners []*minercraft.Miner
-		for i := range c.options.config.mAPI.miners {
-			optionalMiners = append(optionalMiners, c.options.config.mAPI.miners[i].Miner)
+		var loadedMiners []string
+
+		// Loop all broadcast miners and append to the list of miners
+		for i := range c.options.config.mAPI.broadcastMiners {
+			if !utils.StringInSlice(c.options.config.mAPI.broadcastMiners[i].Miner.MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, c.options.config.mAPI.broadcastMiners[i].Miner)
+				loadedMiners = append(loadedMiners, c.options.config.mAPI.broadcastMiners[i].Miner.MinerID)
+			}
+		}
+
+		// Loop all query miners and append to the list of miners
+		for i := range c.options.config.mAPI.queryMiners {
+			if !utils.StringInSlice(c.options.config.mAPI.queryMiners[i].Miner.MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, c.options.config.mAPI.queryMiners[i].Miner)
+				loadedMiners = append(loadedMiners, c.options.config.mAPI.queryMiners[i].Miner.MinerID)
+			}
 		}
 		c.options.config.minercraft, err = minercraft.NewClient(
 			c.defaultMinercraftOptions(),
 			c.HTTPClient(),
-			optionalMiners,
+			optionalMiners, // If empty, it will use the default miners from Minercraft
 		)
 	}
 

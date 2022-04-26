@@ -188,22 +188,4 @@ func TestNewClient(t *testing.T) {
 		require.NotNil(t, c)
 		assert.Equal(t, StressTestNet, c.Network())
 	})
-
-	t.Run("custom miners for default", func(t *testing.T) {
-		miners := []*Miner{{
-			Miner: &minercraft.Miner{
-				MinerID: "test-miner-id",
-				Name:    "test-miner-name",
-				Token:   "test-miner-token",
-				URL:     "https://domain.com",
-			},
-		}}
-		c, err := NewClient(
-			context.Background(),
-			WithCustomMiners(miners),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, miners, c.Miners())
-	})
 }

@@ -334,35 +334,6 @@ func TestWithQueryMiners(t *testing.T) {
 	})
 }
 
-// TestWithCustomMiners will test the method WithCustomMiners()
-func TestWithCustomMiners(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithCustomMiners(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{mAPI: &mAPIConfig{}},
-		}
-		opt := WithCustomMiners(nil)
-		opt(options)
-		assert.Nil(t, options.config.mAPI.miners)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{mAPI: &mAPIConfig{}},
-		}
-		miners := []*Miner{{Miner: minerTaal}}
-		opt := WithCustomMiners(miners)
-		opt(options)
-		assert.Equal(t, miners, options.config.mAPI.miners)
-	})
-}
-
 // TestWithQueryTimeout will test the method WithQueryTimeout()
 func TestWithQueryTimeout(t *testing.T) {
 	t.Parallel()

@@ -851,6 +851,8 @@ github.com/tonicpow/go-minercraft v0.7.3 h1:zVf3F+MLR6nOatLYTkXkpciCYU/NXrgEiQcf
 github.com/tonicpow/go-minercraft v0.7.3/go.mod h1:LHEWs4eUUwLA/qsrLpBomfm5W5DxexxeeX9TAFf9lUk=
 github.com/tonicpow/go-paymail v0.7.6 h1:C3/LGAqgbOyUxH49U9YO0sjZJuqkoqHqx21WB8Tjylk=
 github.com/tonicpow/go-paymail v0.7.6/go.mod h1:QCKJPx82s0dItgg3VdT495yMHtrWqnKKpRS4bFnjBrA=
+github.com/tonicpow/go-paymail v0.7.7-0.20220426205744-1471448b50c6 h1:zNuTxMcIVa+PxAek69NyVtoWPioFsQiszsjHzakKPMI=
+github.com/tonicpow/go-paymail v0.7.7-0.20220426205744-1471448b50c6/go.mod h1:QCKJPx82s0dItgg3VdT495yMHtrWqnKKpRS4bFnjBrA=
 github.com/tryvium-travels/memongo v0.5.0 h1:Snai8FKpLWs23+IIXLJl99u+mFqz7kZBkrP6M7H1cAA=
 github.com/tryvium-travels/memongo v0.5.0/go.mod h1:TKLvXhrZIqe1meEsWofcM6EmWawRdhFRGazUhiYsaUM=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=

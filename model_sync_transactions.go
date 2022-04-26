@@ -458,14 +458,23 @@ func notifyPaymailProviders(transaction *Transaction) ([]*SyncResult, error) {
 	)
 	if err != nil {
 		return nil, err
+	} else if draftTx == nil {
+		return nil, errors.New("draft not found: " + transaction.DraftID)
 	}
 
 	// Loop each output looking for paymail outputs
 	var attempts []*SyncResult
 	pm := transaction.Client().PaymailClient()
 	var payload *paymail.P2PTransactionPayload
+
+	transaction.Client().Logger().Info(
+		context.Background(), fmt.Sprintf("outputs found: %d", len(draftTx.Configuration.Outputs)),
+	)
+
 	for _, out := range draftTx.Configuration.Outputs {
 		if out.PaymailP4 != nil && out.PaymailP4.ResolutionType == ResolutionTypeP2P {
+
+			// Notify each provider with the transaction
 			if payload, err = finalizeP2PTransaction(
 				pm,
 				out.PaymailP4.Alias,
@@ -486,10 +495,5 @@ func notifyPaymailProviders(transaction *Transaction) ([]*SyncResult, error) {
 			})
 		}
 	}
-
-	if len(attempts) > 0 {
-		return attempts, nil
-	}
-
-	return nil, nil
+	return attempts, nil
 }

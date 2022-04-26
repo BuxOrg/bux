@@ -311,7 +311,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Broadcast
 	if err = syncTx.Client().Chainstate().Broadcast(
-		ctx, syncTx.ID, transaction.Hex, 15*time.Second,
+		ctx, syncTx.ID, transaction.Hex, defaultBroadcastTimeout,
 	); err != nil {
 		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, "broadcast error: "+err.Error())
 		return nil // nolint: nilerr // error is not needed
@@ -334,10 +334,24 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		syncTx.SyncStatus = SyncStatusReady
 	}
 
-	// Update (or delete?) the sync transaction record
+	// Update the sync transaction record
 	if err = syncTx.Save(ctx); err != nil {
 		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, err.Error())
 		return err
+	}
+
+	// Notify any P2P paymail providers associated to the transaction
+	if len(transaction.DraftID) > 0 {
+		var attempts []*SyncAttempt
+		if attempts, err = notifyPaymailProviders(transaction); err != nil {
+			return err
+		}
+		if len(attempts) > 0 {
+			syncTx.Results.Attempts = append(syncTx.Results.Attempts, attempts...)
+			if err = syncTx.Save(ctx); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Done!
@@ -424,4 +438,50 @@ func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, st
 		StatusMessage: message,
 	})
 	_ = syncTx.Save(ctx)
+}
+
+// notifyPaymailProviders will notify any associated Paymail providers
+func notifyPaymailProviders(transaction *Transaction) ([]*SyncAttempt, error) {
+
+	// First get the draft tx
+	draftTx, err := getDraftTransactionID(
+		context.Background(),
+		transaction.xPubID,
+		transaction.DraftID,
+		transaction.GetOptions(false)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Loop each output looking for paymail outputs
+	var attempts []*SyncAttempt
+	pm := transaction.Client().PaymailClient()
+	for _, out := range draftTx.Configuration.Outputs {
+		if out.PaymailP4 != nil && out.PaymailP4.ResolutionType == ResolutionTypeP2P {
+			if _, err = finalizeP2PTransaction(
+				pm,
+				out.PaymailP4.Alias,
+				out.PaymailP4.Domain,
+				out.PaymailP4.ReceiveEndpoint,
+				out.PaymailP4.ReferenceID,
+				out.PaymailP4.Note,
+				out.PaymailP4.FromPaymail,
+				transaction.Hex,
+			); err != nil {
+				return nil, err
+			}
+			attempts = append(attempts, &SyncAttempt{
+				Action:        "p2p",
+				AttemptedAt:   time.Now().UTC(),
+				StatusMessage: "notified: " + out.PaymailP4.ReceiveEndpoint,
+			})
+		}
+	}
+
+	if len(attempts) > 0 {
+		return attempts, nil
+	}
+
+	return nil, nil
 }

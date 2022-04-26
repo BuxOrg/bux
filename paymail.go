@@ -128,3 +128,23 @@ func startP2PTransaction(client paymail.ClientInterface,
 
 	return &response.PaymentDestinationPayload, nil
 }
+
+// finalizeP2PTransaction will notify the paymail provider about the transaction
+func finalizeP2PTransaction(client paymail.ClientInterface,
+	alias, domain, p2pSubmitURL, referenceID, note, senderPaymailAddress, txHex string) (*paymail.P2PTransactionPayload, error) {
+
+	// Submit the P2P transaction
+	response, err := client.SendP2PTransaction(p2pSubmitURL, alias, domain, &paymail.P2PTransaction{
+		Hex: txHex,
+		MetaData: &paymail.P2PMetaData{
+			Note:   note,
+			Sender: senderPaymailAddress,
+		},
+		Reference: referenceID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.P2PTransactionPayload, nil
+}

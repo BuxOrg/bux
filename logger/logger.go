@@ -116,7 +116,7 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 			"error executing query",
 			zlogger.MakeParameter("file", utils.FileWithLineNum()),
 			zlogger.MakeParameter("error", err.Error()),
-			zlogger.MakeParameter("duration", fmt.Sprintf("[%.3fms]", float64(elapsed.Nanoseconds())/1e6)),
+			zlogger.MakeParameter("duration", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
 			zlogger.MakeParameter("rows", rows),
 			zlogger.MakeParameter("sql", sql),
 		)
@@ -126,7 +126,7 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 			"warning executing query",
 			zlogger.MakeParameter("file", utils.FileWithLineNum()),
 			zlogger.MakeParameter("slow_log", fmt.Sprintf("SLOW SQL >= %v", slowQueryThreshold)),
-			zlogger.MakeParameter("duration", fmt.Sprintf("[%.3fms]", float64(elapsed.Nanoseconds())/1e6)),
+			zlogger.MakeParameter("duration", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
 			zlogger.MakeParameter("rows", rows),
 			zlogger.MakeParameter("sql", sql),
 		)
@@ -135,7 +135,7 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 		zlogger.Data(l.stackLevel, zlogger.WARN,
 			"executing sql query",
 			zlogger.MakeParameter("file", utils.FileWithLineNum()),
-			zlogger.MakeParameter("duration", fmt.Sprintf("[%.3fms]", float64(elapsed.Nanoseconds())/1e6)),
+			zlogger.MakeParameter("duration", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
 			zlogger.MakeParameter("rows", rows),
 			zlogger.MakeParameter("sql", sql),
 		)

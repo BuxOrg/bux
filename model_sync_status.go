@@ -54,6 +54,8 @@ func (t *SyncStatus) Scan(value interface{}) error {
 		*t = SyncStatusError
 	case statusComplete:
 		*t = SyncStatusComplete
+	case statusSkipped:
+		*t = SyncStatusSkipped
 	}
 
 	return nil

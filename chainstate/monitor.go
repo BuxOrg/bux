@@ -72,7 +72,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 
 	// Set logger if not set
 	if monitor.logger == nil {
-		monitor.logger = logger.NewLogger(true)
+		monitor.logger = logger.NewLogger(true, 4)
 	}
 
 	switch monitor.filterType {

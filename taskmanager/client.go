@@ -52,7 +52,7 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug())
+		client.options.logger = logger.NewLogger(client.IsDebug(), 4)
 	}
 
 	// EMPTY! Engine was NOT set
@@ -135,7 +135,7 @@ func (c *Client) IsDebug() bool {
 
 // DebugLog will display verbose logs
 func (c *Client) DebugLog(text string) {
-	if c.IsDebug() && c.options.logger != nil {
+	if c.IsDebug() {
 		c.options.logger.Info(context.Background(), text)
 	}
 }

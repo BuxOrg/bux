@@ -125,7 +125,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set the logger (if no custom logger was detected)
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug())
+		client.options.logger = logger.NewLogger(client.IsDebug(), 4)
 	}
 
 	// Load the Cachestore client

@@ -79,7 +79,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug())
+		client.options.logger = logger.NewLogger(client.IsDebug(), 4)
 	}
 
 	// Start Minercraft

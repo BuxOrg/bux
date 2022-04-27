@@ -53,7 +53,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set logger (if not set already)
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug())
+		client.options.logger = logger.NewLogger(client.IsDebug(), 5)
 	}
 
 	// Create GORM logger

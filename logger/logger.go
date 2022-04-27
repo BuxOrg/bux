@@ -132,7 +132,7 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 		)
 	case l.logLevel == Info:
 		sql, rows := fc()
-		zlogger.Data(l.stackLevel, zlogger.WARN,
+		zlogger.Data(l.stackLevel, zlogger.INFO,
 			"executing sql query",
 			zlogger.MakeParameter("file", utils.FileWithLineNum()),
 			zlogger.MakeParameter("duration", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),

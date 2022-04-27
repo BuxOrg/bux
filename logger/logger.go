@@ -93,38 +93,34 @@ func (l *basicLogger) Trace(_ context.Context, begin time.Time, fc func() (sql s
 	switch {
 	case err != nil && l.logLevel >= Error && (!errors.Is(err, gorm.ErrRecordNotFound)):
 		sql, rows := fc()
-		if rows == -1 {
-			zlogger.Data(4, zlogger.ERROR,
-				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql),
-			)
-		} else {
-			zlogger.Data(4, zlogger.ERROR,
-				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql),
-			)
-		}
+		zlogger.Data(4, zlogger.ERROR,
+			"error executing query",
+			zlogger.MakeParameter("file", utils.FileWithLineNum()),
+			zlogger.MakeParameter("error", err.Error()),
+			zlogger.MakeParameter("duration", fmt.Sprintf("[%.3fms]", float64(elapsed.Nanoseconds())/1e6)),
+			zlogger.MakeParameter("rows", rows),
+			zlogger.MakeParameter("sql", sql),
+		)
 	case elapsed > slowThreshold && l.logLevel >= Warn:
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", slowThreshold)
-		if rows == -1 {
-			zlogger.Data(4, zlogger.WARN,
-				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, "-", sql),
-			)
-		} else {
-			zlogger.Data(4, zlogger.WARN,
-				fmt.Sprintf("%s %s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql),
-			)
-		}
+		zlogger.Data(4, zlogger.WARN,
+			"warning executing query",
+			zlogger.MakeParameter("file", utils.FileWithLineNum()),
+			zlogger.MakeParameter("slow_log", slowLog),
+			zlogger.MakeParameter("duration", fmt.Sprintf("[%.3fms]", float64(elapsed.Nanoseconds())/1e6)),
+			zlogger.MakeParameter("rows", rows),
+			zlogger.MakeParameter("sql", sql),
+		)
 	case l.logLevel == Info:
 		sql, rows := fc()
-		if rows == -1 {
-			zlogger.Data(4, zlogger.INFO,
-				fmt.Sprintf("%s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql),
-			)
-		} else {
-			zlogger.Data(4, zlogger.INFO,
-				fmt.Sprintf("%s\n[%.3fms] [rows:%v] %s", utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql),
-			)
-		}
+		zlogger.Data(4, zlogger.WARN,
+			"executing sql query",
+			zlogger.MakeParameter("file", utils.FileWithLineNum()),
+			zlogger.MakeParameter("duration", fmt.Sprintf("[%.3fms]", float64(elapsed.Nanoseconds())/1e6)),
+			zlogger.MakeParameter("rows", rows),
+			zlogger.MakeParameter("sql", sql),
+		)
 	}
 }
 

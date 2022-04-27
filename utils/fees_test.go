@@ -24,7 +24,7 @@ func TestGetOutputSizeForType(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid output type", func(t *testing.T) {
-		assert.Equal(t, uint64(35), GetOutputSize("76a914a7bf13994cb80a6c17ca3624cae128bf1ff4c57b88ac"))
+		assert.Equal(t, uint64(34), GetOutputSize("76a914a7bf13994cb80a6c17ca3624cae128bf1ff4c57b88ac"))
 	})
 
 	t.Run("unknown input type", func(t *testing.T) {

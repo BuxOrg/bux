@@ -13,6 +13,11 @@ type FeeUnit bt.FeeUnit
 func GetInputSizeForType(inputType string) uint64 {
 	switch inputType {
 	case ScriptTypePubKeyHash:
+		// 32 bytes txID
+		// + 4 bytes vout index
+		// + 1 byte script length
+		// + 107 bytes script pub key
+		// + 4 bytes nSequence
 		return 148
 	}
 
@@ -24,7 +29,7 @@ func GetOutputSize(lockingScript string) uint64 {
 	if lockingScript != "" {
 		size, _ := hex.DecodeString(lockingScript)
 		if size != nil {
-			return uint64(len(size)) + 10
+			return uint64(len(size)) + 9 // 9 bytes = 8 bytes value, 1 byte length
 		}
 	}
 

@@ -331,14 +331,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo)
-		assert.Equal(t, uint64(97), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(96), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 1)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(99903), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(99904), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
-		assert.Equal(t, uint64(99903), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(99904), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
 
 	t.Run("fee calculation - MAP", func(t *testing.T) {
@@ -449,6 +449,57 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, fee, txFee)
 	})
 
+	t.Run("fee calculation - tonicpow", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		destination := newDestination(testXPubID, testLockingScript,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 1, 114216,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			FeeUnit: &utils.FeeUnit{
+				Satoshis: 5,
+				Bytes:    100,
+			},
+			Outputs: []*TransactionOutput{{
+				OpReturn: &OpReturn{
+					Map: &MapProtocol{
+						App:  "tonicpow_staging",
+						Type: "offer_conversion",
+						Keys: map[string]interface{}{
+							"offer_conversion_config_id": "05384d8d8678e560426e1fb81e6723b6",
+							"offer_session_id":           "74a66f09450bd0bcccd5a26714cbebdb20d6ba7860d668562182f4c2512460a4",
+						},
+					},
+				},
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		fee := draftTransaction.Configuration.Fee
+		calculateFee := draftTransaction.estimateFee(draftTransaction.Configuration.FeeUnit, 0)
+		assert.Equal(t, fee, calculateFee)
+		txFee := uint64(0)
+		for _, input := range draftTransaction.Configuration.Inputs {
+			txFee += input.Satoshis
+		}
+		for _, output := range draftTransaction.Configuration.Outputs {
+			txFee -= output.Satoshis
+		}
+		assert.Equal(t, fee, txFee)
+	})
+
 	t.Run("send to all - multiple utxos", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
@@ -483,14 +534,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo)
-		assert.Equal(t, uint64(245), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(244), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 3)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(339755), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(339756), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
-		assert.Equal(t, uint64(339755), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(339756), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
 
 	t.Run("send to all - selected utxos", func(t *testing.T) {
@@ -534,14 +585,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo)
-		assert.Equal(t, uint64(171), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(170), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(239829), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(239830), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
-		assert.Equal(t, uint64(239829), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(239830), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
 
 	t.Run("include utxos - tokens", func(t *testing.T) {
@@ -593,7 +644,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
-		assert.Equal(t, uint64(1201), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(1200), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 3)
 
@@ -614,7 +665,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
-		assert.Equal(t, uint64(97235), draftTransaction.Configuration.Outputs[2].Satoshis)
+		assert.Equal(t, uint64(97236), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 }
 
@@ -1037,8 +1088,8 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 			realSize := uint64(float64(len(in["hex"].(string))) / 2)
 			sizeEstimate := draftTransaction.estimateSize()
 			feeEstimate := draftTransaction.estimateFee(&feeUnit, 0)
-			assert.Greater(t, sizeEstimate, realSize)
-			assert.Greater(t, feeEstimate, realFee)
+			assert.GreaterOrEqual(t, sizeEstimate, realSize)
+			assert.GreaterOrEqual(t, feeEstimate, realFee)
 		}
 	})
 }

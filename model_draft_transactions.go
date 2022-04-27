@@ -372,21 +372,23 @@ func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) erro
 
 // estimateSize will loop the inputs and outputs and estimate the size of the transaction
 func (m *DraftTransaction) estimateSize() uint64 {
-	size := defaultOverheadSize
+	size := defaultOverheadSize // version + nLockTime
+
+	inputSize := bt.VarInt(len(m.Configuration.Inputs))
+	size += uint64(inputSize.Length())
+
 	for _, input := range m.Configuration.Inputs {
 		size += utils.GetInputSizeForType(input.Type)
 	}
+
+	outputSize := bt.VarInt(len(m.Configuration.Outputs))
+	size += uint64(outputSize.Length())
+
 	for _, output := range m.Configuration.Outputs {
 		for _, s := range output.Scripts {
 			size += utils.GetOutputSize(s.Script)
 		}
 	}
-
-	/*
-		if m.Configuration.NLockTime {
-			size += 16
-		}
-	*/
 
 	return size
 }
@@ -394,7 +396,8 @@ func (m *DraftTransaction) estimateSize() uint64 {
 // estimateFee will loop the inputs and outputs and estimate the required fee
 func (m *DraftTransaction) estimateFee(unit *utils.FeeUnit, addToSize uint64) uint64 {
 	size := m.estimateSize() + addToSize
-	return uint64(math.Ceil(float64(size) * (float64(unit.Satoshis) / float64(unit.Bytes))))
+	feeEstimate := float64(size) * (float64(unit.Satoshis) / float64(unit.Bytes))
+	return uint64(math.Ceil(feeEstimate))
 }
 
 // addOutputs will add the given outputs to the bt.Tx

@@ -340,9 +340,7 @@ func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
 		includeUtxos = append(includeUtxos, utxoModel)
 	}
 
-	return m.processUtxos(
-		ctx, includeUtxos,
-	)
+	return m.processUtxos(ctx, includeUtxos)
 }
 
 // processUtxos will process the utxos

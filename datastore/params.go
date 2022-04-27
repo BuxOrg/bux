@@ -25,11 +25,16 @@ func MarshalQueryParams(m QueryParams) graphql.Marshaler {
 // UnmarshalQueryParams will unmarshal the custom type
 func UnmarshalQueryParams(v interface{}) (QueryParams, error) {
 	if v == nil {
-		return QueryParams{}, nil
+		return QueryParams{}, nil //nolint:nilerr // no error, empty result
+	}
+
+	data, err := json.Marshal(v)
+	if err != nil {
+		return QueryParams{}, err
 	}
 
 	var q QueryParams
-	if err := json.Unmarshal([]byte(v.(string)), &q); err != nil {
+	if err = json.Unmarshal(data, &q); err != nil {
 		return QueryParams{}, err
 	}
 

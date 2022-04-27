@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,11 @@ func TestQueryParams_UnmarshalQueryParams(t *testing.T) {
 	})
 
 	t.Run("object", func(t *testing.T) {
-		m, err := UnmarshalQueryParams(`{"page": 100}`)
+		var data map[string]interface{}
+		err := json.Unmarshal([]byte(`{"page": 100}`), &data)
+		require.NoError(t, err)
+		var m QueryParams
+		m, err = UnmarshalQueryParams(data)
 		require.NoError(t, err)
 		assert.Equal(t, QueryParams{Page: 100}, m)
 	})

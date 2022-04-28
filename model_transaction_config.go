@@ -45,40 +45,40 @@ type TransactionInput struct {
 
 // MapProtocol is a specific MAP protocol interface for an op_return
 type MapProtocol struct {
-	App  string                 `json:"app,omitempty"`
-	Keys map[string]interface{} `json:"keys,omitempty"`
-	Type string                 `json:"type,omitempty"`
+	App  string                 `json:"app,omitempty"`  // Application name
+	Keys map[string]interface{} `json:"keys,omitempty"` // Keys to set
+	Type string                 `json:"type,omitempty"` // Type of action
 }
 
 // OpReturn is the op_return definition for the output
 type OpReturn struct {
-	Hex         string       `json:"hex,omitempty"`
-	HexParts    []string     `json:"hex_parts,omitempty"`
-	Map         *MapProtocol `json:"map,omitempty"`
-	StringParts []string     `json:"string_parts,omitempty"`
+	Hex         string       `json:"hex,omitempty"`          // Full hex
+	HexParts    []string     `json:"hex_parts,omitempty"`    // Hex into parts
+	Map         *MapProtocol `json:"map,omitempty"`          // MAP protocol
+	StringParts []string     `json:"string_parts,omitempty"` // String parts
 }
 
 // TransactionOutput is an output on the transaction config
 type TransactionOutput struct {
-	PaymailP4    *PaymailP4      `json:"paymail_p4,omitempty" toml:"paymail_p4" yaml:"paymail_p4" bson:"paymail_p4,omitempty"`
-	Satoshis     uint64          `json:"satoshis" toml:"satoshis" yaml:"satoshis" bson:"satoshis"`
-	Scripts      []*ScriptOutput `json:"scripts" toml:"scripts" yaml:"scripts" bson:"scripts"`
-	To           string          `json:"to,omitempty" toml:"to" yaml:"to" bson:"to,omitempty"`
-	OpReturn     *OpReturn       `json:"op_return,omitempty" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`
+	OpReturn     *OpReturn       `json:"op_return,omitempty" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`                     // Add op_return data as an output
+	PaymailP4    *PaymailP4      `json:"paymail_p4,omitempty" toml:"paymail_p4" yaml:"paymail_p4" bson:"paymail_p4,omitempty"`                 // Additional information for P4 or Paymail
+	Satoshis     uint64          `json:"satoshis" toml:"satoshis" yaml:"satoshis" bson:"satoshis"`                                             // Set the specific satoshis to send (when applicable)
 	Script       string          `json:"script,omitempty" toml:"script" yaml:"script" bson:"script,omitempty"`                                 // custom (non-standard) script output
+	Scripts      []*ScriptOutput `json:"scripts" toml:"scripts" yaml:"scripts" bson:"scripts"`                                                 // Add script outputs
+	To           string          `json:"to,omitempty" toml:"to" yaml:"to" bson:"to,omitempty"`                                                 // To address, paymail, handle
 	UseForChange bool            `json:"use_for_change,omitempty" toml:"use_for_change" yaml:"use_for_change" bson:"use_for_change,omitempty"` // if set, no change destinations will be created, but all outputs flagged will get the change
 }
 
 // PaymailP4 paymail configuration for the p2p payments on this output
 type PaymailP4 struct {
-	Alias           string `json:"alias" toml:"alias" yaml:"alias" bson:"alias,omitempty"`
-	Domain          string `json:"domain" toml:"domain" yaml:"domain" bson:"domain,omitempty"`
-	FromPaymail     string `json:"from_paymail,omitempty" toml:"from_paymail" yaml:"from_paymail" bson:"from_paymail,omitempty"`
-	Note            string `json:"note,omitempty" toml:"note" yaml:"note" bson:"note,omitempty"`
-	PubKey          string `json:"pub_key,omitempty" toml:"pub_key" yaml:"pub_key" bson:"pub_key,omitempty"`
-	ReceiveEndpoint string `json:"receive_endpoint,omitempty" toml:"receive_endpoint" yaml:"receive_endpoint" bson:"receive_endpoint,omitempty"`
-	ReferenceID     string `json:"reference_id,omitempty" toml:"reference_id" yaml:"reference_id" bson:"reference_id,omitempty"`
-	ResolutionType  string `json:"resolution_type" toml:"resolution_type" yaml:"resolution_type" bson:"resolution_type,omitempty"`
+	Alias           string `json:"alias" toml:"alias" yaml:"alias" bson:"alias,omitempty"`                                                       // Alias of the paymail {alias}@domain.com
+	Domain          string `json:"domain" toml:"domain" yaml:"domain" bson:"domain,omitempty"`                                                   // Domain of the paymail alias@{domain.com}
+	FromPaymail     string `json:"from_paymail,omitempty" toml:"from_paymail" yaml:"from_paymail" bson:"from_paymail,omitempty"`                 // From paymail address: alias@domain.com
+	Note            string `json:"note,omitempty" toml:"note" yaml:"note" bson:"note,omitempty"`                                                 // Friendly readable note to the paymail receiver
+	PubKey          string `json:"pub_key,omitempty" toml:"pub_key" yaml:"pub_key" bson:"pub_key,omitempty"`                                     // Used for validating the signature
+	ReceiveEndpoint string `json:"receive_endpoint,omitempty" toml:"receive_endpoint" yaml:"receive_endpoint" bson:"receive_endpoint,omitempty"` // P2P endpoint when notifying
+	ReferenceID     string `json:"reference_id,omitempty" toml:"reference_id" yaml:"reference_id" bson:"reference_id,omitempty"`                 // Reference ID saved from P2P request
+	ResolutionType  string `json:"resolution_type" toml:"resolution_type" yaml:"resolution_type" bson:"resolution_type,omitempty"`               // Type of address resolution (basic vs p2p)
 }
 
 // Types of resolution methods

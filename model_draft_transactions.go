@@ -64,6 +64,7 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 	}
 
 	// Set the fee (if not found) (if chainstate is loaded, use the first miner)
+	// todo: make this more intelligent or allow the config to dictate the miner selection
 	if config.FeeUnit == nil {
 		if c := draft.Client(); c != nil {
 			if miners := c.Chainstate().BroadcastMiners(); len(miners) > 0 {
@@ -73,7 +74,6 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 		}
 		draft.Configuration.FeeUnit = chainstate.DefaultFee
 	}
-
 	return draft
 }
 

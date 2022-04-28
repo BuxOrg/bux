@@ -716,6 +716,78 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 		assert.Equal(t, utils.ScriptTypePubKeyHash, draftTransaction.Configuration.ChangeDestinations[0].Type)
 		assert.Equal(t, uint64(100), draftTransaction.Configuration.Outputs[0].Satoshis)
 	})
+
+	t.Run("use existing output", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := &DraftTransaction{
+			Model: *NewBaseModel(
+				ModelDraftTransaction,
+				append(client.DefaultModelOptions(), WithXPub(testXPub))...,
+			),
+			Configuration: TransactionConfig{
+				Outputs: []*TransactionOutput{{
+					To:           testExternalAddress,
+					Satoshis:     1000,
+					UseForChange: true,
+				}},
+				ChangeDestinations: []*Destination{{
+					ID: testDestinationID,
+				}},
+			},
+		}
+
+		err = draftTransaction.setChangeDestination(ctx, 100)
+		require.NoError(t, err)
+		assert.Equal(t, uint64(100), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Nil(t, draftTransaction.Configuration.ChangeDestinations)
+		// 100 sats added to the output
+		assert.Equal(t, uint64(1100), draftTransaction.Configuration.Outputs[0].Satoshis)
+	})
+
+	t.Run("use existing outputs", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := &DraftTransaction{
+			Model: *NewBaseModel(
+				ModelDraftTransaction,
+				append(client.DefaultModelOptions(), WithXPub(testXPub))...,
+			),
+			Configuration: TransactionConfig{
+				Outputs: []*TransactionOutput{{
+					To:           testExternalAddress,
+					Satoshis:     1000,
+					UseForChange: true,
+				}, {
+					To:       testExternalAddress,
+					Satoshis: 1000,
+				}, {
+					To:           testExternalAddress,
+					Satoshis:     1000,
+					UseForChange: true,
+				}},
+				ChangeDestinations: []*Destination{{
+					ID: testDestinationID,
+				}},
+			},
+		}
+
+		err = draftTransaction.setChangeDestination(ctx, 251)
+		require.NoError(t, err)
+		assert.Equal(t, uint64(251), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Nil(t, draftTransaction.Configuration.ChangeDestinations)
+		assert.Equal(t, uint64(1126), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(1125), draftTransaction.Configuration.Outputs[2].Satoshis)
+	})
 }
 
 // TestDraftTransaction_getInputsFromUtxos getting bt.UTXOs from bux Utxos

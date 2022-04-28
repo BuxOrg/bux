@@ -80,6 +80,25 @@ func getXpubByID(ctx context.Context, xPubID string, opts ...ModelOps) (*Xpub, e
 	return xPub, nil
 }
 
+// getXPubs will get all the xpubs matching the conditions
+func getXPubs(ctx context.Context, usingMetadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error) {
+
+	modelItems := make([]*Xpub, 0)
+	if err := getModelsByConditions(ctx, ModelXPub, &modelItems, usingMetadata, conditions, queryParams, opts); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getXPubsCount will get a count of the xpubs matching the conditions
+func getXPubsCount(ctx context.Context, usingMetadata *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelXPub, Xpub{}, usingMetadata, conditions, opts)
+}
+
 // GetModelName will get the name of the current model
 func (m *Xpub) GetModelName() string {
 	return ModelXPub.String()

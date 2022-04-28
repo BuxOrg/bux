@@ -236,11 +236,28 @@ func (c *Client) GetModels(
 	// Switch on the datastore engines
 	if c.Engine() == MongoDB { // Get using Mongo
 		return c.getWithMongo(ctx, models, conditions, fieldResults, queryParams)
-		// todo: add page/size for mongo
 	} else if !IsSQLEngine(c.Engine()) {
 		return ErrUnsupportedEngine
 	}
 	return c.find(ctx, models, conditions, queryParams, fieldResults, timeout)
+}
+
+// GetModelCount will return a count of the model matching conditions
+func (c *Client) GetModelCount(
+	ctx context.Context,
+	model interface{},
+	conditions map[string]interface{},
+	timeout time.Duration,
+) (int64, error) {
+
+	// Switch on the datastore engines
+	if c.Engine() == MongoDB {
+		return c.countWithMongo(ctx, model, conditions)
+	} else if !IsSQLEngine(c.Engine()) {
+		return 0, ErrUnsupportedEngine
+	}
+
+	return c.count(ctx, model, conditions, timeout)
 }
 
 // find will get records and return
@@ -290,6 +307,37 @@ func (c *Client) find(ctx context.Context, result interface{}, conditions map[st
 		return checkResult(tx.Find(fieldResults))
 	}
 	return checkResult(tx.Find(result))
+}
+
+// find will get records and return
+func (c *Client) count(ctx context.Context, model interface{}, conditions map[string]interface{},
+	timeout time.Duration) (int64, error) {
+
+	// Find the type
+	if reflect.TypeOf(model).Elem().Kind() != reflect.Slice {
+		return 0, errors.New("field: result is not a slice, found: " + reflect.TypeOf(model).Kind().String())
+	}
+
+	// Set the NewRelic txn
+	c.options.db = nrgorm.SetTxnToGorm(newrelic.FromContext(ctx), c.options.db)
+
+	// Create a new context, and new db tx
+	ctxDB, cancel := createCtx(ctx, c.options.db, timeout, c.IsDebug(), c.options.loggerDB)
+	defer cancel()
+
+	tx := ctxDB.Model(model)
+
+	// Check for errors or no records found
+	if len(conditions) > 0 {
+		gtx := gormWhere{tx: tx}
+		var count int64
+		err := checkResult(BuxWhere(&gtx, conditions, c.Engine()).(*gorm.DB).Model(model).Count(&count))
+		return count, err
+	}
+	var count int64
+	err := checkResult(tx.Count(&count))
+
+	return count, err
 }
 
 // Execute a SQL query

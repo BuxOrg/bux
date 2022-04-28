@@ -4,6 +4,8 @@ import (
 	"context"
 	"sort"
 
+	"github.com/BuxOrg/bux/datastore"
+
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt"
 	"github.com/mrz1836/go-whatsonchain"
@@ -253,4 +255,40 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 	}
 
 	return results, nil
+}
+
+// GetXPubs gets all xpubs matching the conditions
+func (c *Client) GetXPubs(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Xpub, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_destinations")
+
+	// Get the count
+	xPubs, err := getXPubs(
+		ctx, metadataConditions, conditions, queryParams, c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return xPubs, nil
+}
+
+// GetXPubsCount gets a count of all xpubs matching the conditions
+func (c *Client) GetXPubsCount(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_destinations")
+
+	// Get the count
+	count, err := getXPubsCount(
+		ctx, metadataConditions, conditions, c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

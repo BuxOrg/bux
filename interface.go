@@ -20,6 +20,8 @@ type AccessKeyService interface {
 	GetAccessKey(ctx context.Context, xPubID, pubAccessKey string) (*AccessKey, error)
 	GetAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error)
+	GetAccessKeysCount(ctx context.Context, xPubID string, metadata *Metadata,
+		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
 	NewAccessKey(ctx context.Context, rawXpubKey string, opts ...ModelOps) (*AccessKey, error)
 	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
 }
@@ -29,6 +31,8 @@ type TransactionService interface {
 	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
 	GetTransactions(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams) ([]*Transaction, error)
+	GetTransactionsCount(ctx context.Context, xPubID string, metadata *Metadata,
+		conditions *map[string]interface{}) (int64, error)
 	NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
@@ -52,6 +56,8 @@ type DestinationService interface {
 	GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error)
 	GetDestinations(ctx context.Context, xPubID string, usingMetadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams) ([]*Destination, error)
+	GetDestinationsCount(ctx context.Context, xPubID string, usingMetadata *Metadata,
+		conditions *map[string]interface{}) (int64, error)
 	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
@@ -80,8 +86,6 @@ type XPubService interface {
 // PaymailService is the paymail actions
 type PaymailService interface {
 	GetPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error)
-	GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata, conditions *map[string]interface{},
-		queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
 	GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
 		conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
 	NewPaymailAddress(ctx context.Context, key, address, publicName, avatar string, opts ...ModelOps) (*PaymailAddress, error)
@@ -112,6 +116,7 @@ type ClientServices interface {
 // ClientInterface is the client (bux engine) interface comprised of all services
 type ClientInterface interface {
 	AccessKeyService
+	AdminInterface
 	ClientServices
 	DestinationService
 	PaymailService

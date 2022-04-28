@@ -107,6 +107,35 @@ func getAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, condi
 	return accessKeys, nil
 }
 
+// getAccessKeysCount will get a count of all the access keys that match the metadata search
+func getAccessKeysCount(ctx context.Context, xPubID string, metadata *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	var dbConditions = map[string]interface{}{}
+	if conditions != nil {
+		dbConditions = *conditions
+	}
+	dbConditions[xPubIDField] = xPubID
+
+	if metadata != nil {
+		dbConditions[metadataField] = metadata
+	}
+
+	// Get the records
+	count, err := getModelCount(
+		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		AccessKey{}, dbConditions, defaultDatabaseReadTimeout,
+	)
+	if err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	return count, nil
+}
+
 // GetModelName will get the name of the current model
 func (m *AccessKey) GetModelName() string {
 	return ModelAccessKey.String()

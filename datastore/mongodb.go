@@ -270,6 +270,33 @@ func (c *Client) getWithMongo(
 	return nil
 }
 
+// countWithMongo will get a count of all models matching the conditions
+func (c *Client) countWithMongo(
+	ctx context.Context,
+	models interface{},
+	conditions map[string]interface{},
+) (int64, error) {
+	queryConditions := getMongoQueryConditions(models, conditions)
+	collectionName := utils.GetModelTableName(models)
+	if collectionName == nil {
+		return 0, ErrUnknownCollection
+	}
+
+	// Set the collection
+	collection := c.options.mongoDB.Collection(
+		setPrefix(c.options.mongoDBConfig.TablePrefix, *collectionName),
+	)
+
+	c.DebugLog(fmt.Sprintf(logLine, "count", *collectionName, queryConditions))
+
+	count, err := collection.CountDocuments(ctx, queryConditions)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 // GetMongoCollection will get the mongo collection for the given tableName
 func (c *Client) GetMongoCollection(
 	collectionName string,

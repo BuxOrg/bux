@@ -228,6 +228,24 @@ func (c *Client) GetTransactions(ctx context.Context, xPubID string, metadataCon
 	return transactions, nil
 }
 
+// GetTransactionsCount will get the count of all transactions matching the search criteria
+func (c *Client) GetTransactionsCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
+	conditions *map[string]interface{}) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "count_transactions")
+
+	count, err := getTransactionsCountByXpubID(
+		ctx, xPubID, metadataConditions, conditions,
+		c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 // UpdateTransactionMetadata will update the metadata in an existing transaction
 func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id string,
 	metadata Metadata) (*Transaction, error) {

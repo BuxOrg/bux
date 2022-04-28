@@ -101,6 +101,29 @@ func (c *Client) GetAccessKeys(ctx context.Context, xPubID string, metadataCondi
 	return accessKeys, nil
 }
 
+// GetAccessKeysCount will get a count of all existing access keys from the Datastore
+func (c *Client) GetAccessKeysCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_access_keys")
+
+	// Get the access key
+	count, err := getAccessKeysCount(
+		ctx,
+		xPubID,
+		metadataConditions,
+		conditions,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	// Return the models
+	return count, nil
+}
+
 // RevokeAccessKey will revoke an access key by its id
 //
 // opts are options and can include "metadata"

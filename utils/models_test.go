@@ -132,7 +132,6 @@ func TestIsModelSlice(t *testing.T) {
 
 	t.Run("valid slices", func(t *testing.T) {
 		s := []string{"test"}
-
 		assert.Equal(t, true, IsModelSlice(s))
 
 		i := []int{1}
@@ -142,9 +141,7 @@ func TestIsModelSlice(t *testing.T) {
 		assert.Equal(t, true, IsModelSlice(in))
 
 		ptr := []string{"test"}
-
 		assert.Equal(t, true, IsModelSlice(&ptr))
-
 	})
 
 	t.Run("not a slice", func(t *testing.T) {
@@ -153,7 +150,6 @@ func TestIsModelSlice(t *testing.T) {
 
 		i := 1
 		assert.Equal(t, false, IsModelSlice(i))
-
 	})
 }
 

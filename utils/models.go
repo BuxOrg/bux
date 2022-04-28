@@ -16,11 +16,16 @@ type checkForMethod interface {
 // IsModelSlice returns true if the given interface is a slice of models
 func IsModelSlice(model interface{}) bool {
 	value := reflect.ValueOf(model)
-	if value.Kind() == reflect.Ptr {
-		return value.Elem().Kind() == reflect.Slice
+	if value.Kind() == reflect.Ptr && value.IsNil() {
+		value = reflect.New(value.Type().Elem())
+	}
+	modelType := reflect.Indirect(value).Type()
+
+	if modelType.Kind() == reflect.Interface {
+		modelType = reflect.Indirect(reflect.ValueOf(model)).Elem().Type()
 	}
 
-	return reflect.TypeOf(model).Kind() == reflect.Slice
+	return modelType.Kind() == reflect.Slice
 }
 
 // GetModelName get the name of the model via reflection

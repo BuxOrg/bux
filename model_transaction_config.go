@@ -60,12 +60,13 @@ type OpReturn struct {
 
 // TransactionOutput is an output on the transaction config
 type TransactionOutput struct {
-	PaymailP4 *PaymailP4      `json:"paymail_p4,omitempty" toml:"paymail_p4" yaml:"paymail_p4" bson:"paymail_p4,omitempty"`
-	Satoshis  uint64          `json:"satoshis" toml:"satoshis" yaml:"satoshis" bson:"satoshis"`
-	Scripts   []*ScriptOutput `json:"scripts" toml:"scripts" yaml:"scripts" bson:"scripts"`
-	To        string          `json:"to,omitempty" toml:"to" yaml:"to" bson:"to,omitempty"`
-	OpReturn  *OpReturn       `json:"op_return,omitempty" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`
-	Script    string          `json:"script,omitempty" toml:"script" yaml:"script" bson:"script,omitempty"` // custom (non-standard) script output
+	PaymailP4    *PaymailP4      `json:"paymail_p4,omitempty" toml:"paymail_p4" yaml:"paymail_p4" bson:"paymail_p4,omitempty"`
+	Satoshis     uint64          `json:"satoshis" toml:"satoshis" yaml:"satoshis" bson:"satoshis"`
+	Scripts      []*ScriptOutput `json:"scripts" toml:"scripts" yaml:"scripts" bson:"scripts"`
+	To           string          `json:"to,omitempty" toml:"to" yaml:"to" bson:"to,omitempty"`
+	OpReturn     *OpReturn       `json:"op_return,omitempty" toml:"op_return" yaml:"op_return" bson:"op_return,omitempty"`
+	Script       string          `json:"script,omitempty" toml:"script" yaml:"script" bson:"script,omitempty"`                                 // custom (non-standard) script output
+	UseForChange bool            `json:"use_for_change,omitempty" toml:"use_for_change" yaml:"use_for_change" bson:"use_for_change,omitempty"` // if set, no change destinations will be created, but all outputs flagged will get the change
 }
 
 // PaymailP4 paymail configuration for the p2p payments on this output

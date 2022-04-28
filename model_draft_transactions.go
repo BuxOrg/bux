@@ -453,44 +453,65 @@ func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisCha
 
 	m.Configuration.ChangeSatoshis = satoshisChange
 
-	numberOfDestinations := m.Configuration.ChangeNumberOfDestinations
-	if numberOfDestinations <= 0 {
-		numberOfDestinations = 1 // todo get from config
-	}
-	minimumSatoshis := m.Configuration.ChangeMinimumSatoshis
-	if minimumSatoshis <= 0 { // todo: protect against un-spendable amount? less than fee to miner for min tx?
-		minimumSatoshis = 1250 // todo get from config
-	}
-
-	if float64(satoshisChange)/float64(numberOfDestinations) < float64(minimumSatoshis) {
-		// we cannot split our change to the number of destinations given, re-calc
-		numberOfDestinations = 1
-	}
-
-	if m.Configuration.ChangeDestinations == nil {
-		if err := m.setChangeDestinations(
-			ctx, numberOfDestinations,
-		); err != nil {
-			return err
+	useExistingOutputsForChange := make([]int, 0)
+	for index := range m.Configuration.Outputs {
+		if m.Configuration.Outputs[index].UseForChange {
+			useExistingOutputsForChange = append(useExistingOutputsForChange, index)
 		}
 	}
 
-	changeSatoshis, err := m.getChangeSatoshis(satoshisChange)
-	if err != nil {
-		return err
-	}
+	if len(useExistingOutputsForChange) > 0 {
+		// reset destinations if set
+		m.Configuration.ChangeDestinationsStrategy = ChangeStrategyDefault
+		m.Configuration.ChangeDestinations = nil
 
-	for _, destination := range m.Configuration.ChangeDestinations {
-		m.Configuration.Outputs = append(m.Configuration.Outputs, &TransactionOutput{
-			To: destination.Address,
-			Scripts: []*ScriptOutput{{
-				Address:    destination.Address,
-				Satoshis:   changeSatoshis[destination.LockingScript],
-				Script:     destination.LockingScript,
-				ScriptType: utils.ScriptTypePubKeyHash,
-			}},
-			Satoshis: changeSatoshis[destination.LockingScript],
-		})
+		numberOfExistingOutputs := uint64(len(useExistingOutputsForChange))
+		changePerOutput := uint64(float64(satoshisChange) / float64(numberOfExistingOutputs))
+		remainderOutput := satoshisChange - (changePerOutput * numberOfExistingOutputs)
+		for _, outputIndex := range useExistingOutputsForChange {
+			m.Configuration.Outputs[outputIndex].Satoshis += changePerOutput + remainderOutput
+			remainderOutput = 0 // reset remainder to 0 for other outputs
+		}
+	} else {
+		numberOfDestinations := m.Configuration.ChangeNumberOfDestinations
+		if numberOfDestinations <= 0 {
+			numberOfDestinations = 1 // todo get from config
+		}
+		minimumSatoshis := m.Configuration.ChangeMinimumSatoshis
+		if minimumSatoshis <= 0 { // todo: protect against un-spendable amount? less than fee to miner for min tx?
+			minimumSatoshis = 1250 // todo get from config
+		}
+
+		if float64(satoshisChange)/float64(numberOfDestinations) < float64(minimumSatoshis) {
+			// we cannot split our change to the number of destinations given, re-calc
+			numberOfDestinations = 1
+		}
+
+		if m.Configuration.ChangeDestinations == nil {
+			if err := m.setChangeDestinations(
+				ctx, numberOfDestinations,
+			); err != nil {
+				return err
+			}
+		}
+
+		changeSatoshis, err := m.getChangeSatoshis(satoshisChange)
+		if err != nil {
+			return err
+		}
+
+		for _, destination := range m.Configuration.ChangeDestinations {
+			m.Configuration.Outputs = append(m.Configuration.Outputs, &TransactionOutput{
+				To: destination.Address,
+				Scripts: []*ScriptOutput{{
+					Address:    destination.Address,
+					Satoshis:   changeSatoshis[destination.LockingScript],
+					Script:     destination.LockingScript,
+					ScriptType: utils.ScriptTypePubKeyHash,
+				}},
+				Satoshis: changeSatoshis[destination.LockingScript],
+			})
+		}
 	}
 
 	return nil

@@ -374,9 +374,15 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	// Create status message
 	message := "broadcast success"
 
-	// Update the sync status
+	// Update the sync information
 	syncTx.BroadcastStatus = SyncStatusComplete
 	syncTx.Results.LastMessage = message
+	syncTx.LastAttempt = utils.NullTime{
+		NullTime: sql.NullTime{
+			Time:  time.Now().UTC(),
+			Valid: true,
+		},
+	}
 	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
 		Action:        syncActionBroadcast,
 		ExecutedAt:    time.Now().UTC(),

@@ -21,20 +21,20 @@ import (
 type TransactionConfig struct {
 	// Conditions (utxo strategy)
 	// NlockTime uint32
-	ChangeDestinations         []*Destination       `json:"change_destinations" toml:"change_destinations" yaml:"change_destinations"`
-	ChangeDestinationsStrategy ChangeStrategy       `json:"change_destinations_strategy" toml:"change_destinations_strategy" yaml:"change_destinations_strategy"`
-	ChangeMinimumSatoshis      uint64               `json:"change_minimum_satoshis" toml:"change_minimum_satoshis" yaml:"change_minimum_satoshis"`
-	ChangeNumberOfDestinations int                  `json:"change_number_of_destinations" toml:"change_number_of_destinations" yaml:"change_number_of_destinations"`
-	ChangeSatoshis             uint64               `json:"change_satoshis" toml:"change_satoshis" yaml:"change_satoshis"` // The satoshis used for change
-	ExpiresIn                  time.Duration        `json:"expires_in" toml:"expires_in" yaml:"expires_in"`                // The expiration time for the draft and utxos
-	Fee                        uint64               `json:"fee" toml:"fee" yaml:"fee"`                                     // The fee used for the transaction
-	FeeUnit                    *utils.FeeUnit       `json:"fee_unit" toml:"fee_unit" yaml:"fee_unit"`                      // Fee unit to use (overrides minercraft if set)
-	FromUtxos                  []*UtxoPointer       `json:"from_utxos" toml:"from_utxos" yaml:"from_utxos"`                // use these utxos for the transaction
-	IncludeUtxos               []*UtxoPointer       `json:"include_utxos" toml:"include_utxos" yaml:"include_utxos"`       // include these utxos for the transaction, among others necessary if more is needed for fees
-	Inputs                     []*TransactionInput  `json:"inputs" toml:"inputs" yaml:"inputs"`                            // All transaction inputs
-	Outputs                    []*TransactionOutput `json:"outputs" toml:"outputs" yaml:"outputs"`                         // All transaction outputs
-	SendAllTo                  string               `json:"send_all_to,omitempty" toml:"send_all_to" yaml:"send_all_to"`   // Send ALL utxos to address
-	Sync                       *SyncConfig          `json:"sync" toml:"sync" yaml:"sync"`                                  // Sync config for broadcasting and on-chain sync
+	ChangeDestinations         []*Destination       `json:"change_destinations" toml:"change_destinations" yaml:"change_destinations" bson:"change_destinations"`
+	ChangeDestinationsStrategy ChangeStrategy       `json:"change_destinations_strategy" toml:"change_destinations_strategy" yaml:"change_destinations_strategy" bson:"change_destinations_strategy"`
+	ChangeMinimumSatoshis      uint64               `json:"change_minimum_satoshis" toml:"change_minimum_satoshis" yaml:"change_minimum_satoshis" bson:"change_minimum_satoshis"`
+	ChangeNumberOfDestinations int                  `json:"change_number_of_destinations" toml:"change_number_of_destinations" yaml:"change_number_of_destinations" bson:"change_number_of_destinations"`
+	ChangeSatoshis             uint64               `json:"change_satoshis" toml:"change_satoshis" yaml:"change_satoshis" bson:"change_satoshis"` // The satoshis used for change
+	ExpiresIn                  time.Duration        `json:"expires_in" toml:"expires_in" yaml:"expires_in" bson:"expires_in"`                     // The expiration time for the draft and utxos
+	Fee                        uint64               `json:"fee" toml:"fee" yaml:"fee" bson:"fee"`                                                 // The fee used for the transaction
+	FeeUnit                    *utils.FeeUnit       `json:"fee_unit" toml:"fee_unit" yaml:"fee_unit" bson:"fee_unit"`                             // Fee unit to use (overrides minercraft if set)
+	FromUtxos                  []*UtxoPointer       `json:"from_utxos" toml:"from_utxos" yaml:"from_utxos" bson:"from_utxos"`                     // use these utxos for the transaction
+	IncludeUtxos               []*UtxoPointer       `json:"include_utxos" toml:"include_utxos" yaml:"include_utxos" bson:"include_utxos"`         // include these utxos for the transaction, among others necessary if more is needed for fees
+	Inputs                     []*TransactionInput  `json:"inputs" toml:"inputs" yaml:"inputs" bson:"inputs"`                                     // All transaction inputs
+	Outputs                    []*TransactionOutput `json:"outputs" toml:"outputs" yaml:"outputs" bson:"outputs"`                                 // All transaction outputs
+	SendAllTo                  string               `json:"send_all_to,omitempty" toml:"send_all_to" yaml:"send_all_to" bson:"send_all_to"`       // Send ALL utxos to address
+	Sync                       *SyncConfig          `json:"sync" toml:"sync" yaml:"sync" bson:"sync"`                                             // Sync config for broadcasting and on-chain sync
 }
 
 // TransactionInput is an input on the transaction config

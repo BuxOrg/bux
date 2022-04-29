@@ -62,6 +62,27 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 				return nil, err
 			}
 
+			// Create the sync transaction model
+			sync := newSyncTransaction(
+				transaction.GetID(),
+				transaction.Client().DefaultSyncConfig(),
+				transaction.GetOptions(true)...,
+			)
+
+			// Skip broadcasting and skip P2P (incoming tx should have been broadcasted already)
+			sync.BroadcastStatus = SyncStatusSkipped // todo: this is an assumption
+			sync.P2PStatus = SyncStatusSkipped       // The owner of the Tx should have already notified paymail providers
+
+			// Use the same metadata
+			sync.Metadata = transaction.Metadata
+
+			// If all the options are skipped, do not make a new model (ignore the record)
+			if !sync.isSkipped() {
+				if err = sync.Save(ctx); err != nil {
+					return nil, err
+				}
+			}
+
 			// Added to queue
 			return newTransactionFromIncomingTransaction(incomingTx), nil
 		}

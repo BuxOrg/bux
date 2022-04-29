@@ -438,6 +438,9 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 		}
 		sync.P2PStatus = p2pStatus
 
+		// Use the same metadata
+		sync.Metadata = m.Metadata
+
 		// If all the options are skipped, do not make a new model (ignore the record)
 		if !sync.isSkipped() {
 			m.syncTransaction = sync

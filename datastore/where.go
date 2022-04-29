@@ -73,6 +73,12 @@ func processConditions(tx buxWhereInterface, conditions map[string]interface{}, 
 			varName := "var" + strconv.Itoa(*varNum)
 			tx.Where(*parentKey+" <= @"+varName, map[string]interface{}{varName: formatCondition(condition, engine)})
 			*varNum++
+		} else if key == "$exists" {
+			if condition.(bool) {
+				tx.Where(*parentKey + " IS NOT NULL")
+			} else {
+				tx.Where(*parentKey + " IS NULL")
+			}
 		} else if utils.StringInSlice(key, arrayFields) {
 			tx.Where(whereSlice(engine, key, formatCondition(condition, engine)))
 		} else if utils.StringInSlice(key, objectFields) {

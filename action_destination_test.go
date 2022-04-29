@@ -128,7 +128,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewDestinationForLockingScript() {
 	}
 }
 
-// TestClient_GetDestinations will test the method GetDestinations()
+// TestClient_GetDestinations will test the method GetDestinationsByXpubID()
 func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 	for _, testCase := range dbTestCases {
@@ -154,7 +154,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 			require.NotNil(t, destination)
 
 			var getDestinations []*Destination
-			getDestinations, err = tc.client.GetDestinations(
+			getDestinations, err = tc.client.GetDestinationsByXpubID(
 				tc.ctx, xPubID, nil, nil, nil,
 			)
 			require.NoError(t, err)
@@ -184,7 +184,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetDestinations() {
 
 			// use the wrong xpub
 			var getDestinations []*Destination
-			getDestinations, err = tc.client.GetDestinations(
+			getDestinations, err = tc.client.GetDestinationsByXpubID(
 				tc.ctx, testXPubID, nil, nil, nil,
 			)
 			require.NoError(t, err)

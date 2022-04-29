@@ -69,8 +69,27 @@ func getAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 	return key, nil
 }
 
-// getAccessKeys will get all the access keys that match the metadata search
-func getAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+// getAccessKeys will get all the access keys with the given conditions
+func getAccessKeys(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
+
+	modelItems := make([]*AccessKey, 0)
+	if err := getModelsByConditions(ctx, ModelAccessKey, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getAccessKeysCount will get a count of all the access keys with the given conditions
+func getAccessKeysCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelAccessKey, AccessKey{}, metadata, conditions, opts)
+}
+
+// getAccessKeysByXPubID will get all the access keys that match the metadata search
+func getAccessKeysByXPubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
 
 	// Construct an empty model
@@ -107,8 +126,8 @@ func getAccessKeys(ctx context.Context, xPubID string, metadata *Metadata, condi
 	return accessKeys, nil
 }
 
-// getAccessKeysCount will get a count of all the access keys that match the metadata search
-func getAccessKeysCount(ctx context.Context, xPubID string, metadata *Metadata,
+// getAccessKeysByXPubIDCount will get a count of all the access keys that match the metadata search
+func getAccessKeysByXPubIDCount(ctx context.Context, xPubID string, metadata *Metadata,
 	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
 
 	var dbConditions = map[string]interface{}{}

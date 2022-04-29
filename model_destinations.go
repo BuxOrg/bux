@@ -142,6 +142,25 @@ func getDestinationByLockingScript(ctx context.Context, lockingScript string, op
 	return destination, nil
 }
 
+// getDestinations will get all the destinations with the given conditions
+func getDestinations(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {
+
+	modelItems := make([]*Destination, 0)
+	if err := getModelsByConditions(ctx, ModelDestination, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getDestinationsCount will get a count of all the destinations with the given conditions
+func getDestinationsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelDestination, Destination{}, metadata, conditions, opts)
+}
+
 // getDestinationsByXpubID will get the destination(s) by the given xPubID
 func getDestinationsByXpubID(ctx context.Context, xPubID string, usingMetadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {

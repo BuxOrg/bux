@@ -235,6 +235,25 @@ func newUtxoFromTxID(txID string, index uint32, opts ...ModelOps) *Utxo {
 	}
 }
 
+// getUtxos will get all the utxos with the given conditions
+func getUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
+
+	modelItems := make([]*Utxo, 0)
+	if err := getModelsByConditions(ctx, ModelUtxo, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getAccessKeysCount will get a count of all the utxos with the given conditions
+func getUtxosCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelUtxo, Utxo{}, metadata, conditions, opts)
+}
+
 // getUtxosByXpubID will return utxos by a given xPub ID
 func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {

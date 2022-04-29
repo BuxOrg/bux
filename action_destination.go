@@ -100,10 +100,48 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 	return destination, nil
 }
 
-// GetDestinations will get destinations based on an xPub
+// GetDestinations will get all the destinations from the Datastore
+func (c *Client) GetDestinations(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_destinations")
+
+	// Get the destinations
+	destinations, err := getDestinations(
+		ctx, metadataConditions, conditions, queryParams,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return destinations, nil
+}
+
+// GetDestinationsCount will get a count of all the destinations from the Datastore
+func (c *Client) GetDestinationsCount(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_destinations_count")
+
+	// Get the destinations count
+	count, err := getDestinationsCount(
+		ctx, metadataConditions, conditions,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+// GetDestinationsByXpubID will get destinations based on an xPub
 //
 // metadataConditions are the search criteria used to find destinations
-func (c *Client) GetDestinations(ctx context.Context, xPubID string, metadataConditions *Metadata,
+func (c *Client) GetDestinationsByXpubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
 	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Destination, error) {
 
 	// Check for existing NewRelic transaction
@@ -120,8 +158,8 @@ func (c *Client) GetDestinations(ctx context.Context, xPubID string, metadataCon
 	return destinations, nil
 }
 
-// GetDestinationsCount will get a count of all destinations based on an xPub
-func (c *Client) GetDestinationsCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
+// GetDestinationsByXpubIDCount will get a count of all destinations based on an xPub
+func (c *Client) GetDestinationsByXpubIDCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
 	conditions *map[string]interface{}) (int64, error) {
 
 	// Check for existing NewRelic transaction

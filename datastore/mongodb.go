@@ -381,7 +381,7 @@ func getMongoQueryConditions(
 	return conditions
 }
 
-func processMongoConditions(conditions *map[string]interface{}) {
+func processMongoConditions(conditions *map[string]interface{}) *map[string]interface{} {
 
 	// transform the id field to mongo _id field
 	_, ok := (*conditions)["id"]
@@ -408,32 +408,20 @@ func processMongoConditions(conditions *map[string]interface{}) {
 		processXpubOutputValueConditions(conditions)
 	}
 
-	for key := range *conditions {
-		if key == "$and" {
-			var and []map[string]interface{}
-			if _, ok = (*conditions)["$and"].([]map[string]interface{}); ok {
-				and = (*conditions)["$and"].([]map[string]interface{})
-			} else {
-				a, _ := json.Marshal((*conditions)["$and"]) // nolint: errchkjson // this check might break the current code
-				_ = json.Unmarshal(a, &and)
+	for key, condition := range *conditions {
+		if key == "$and" || key == "$or" {
+			var slice []map[string]interface{}
+			a, _ := json.Marshal(condition) // nolint: errchkjson // this check might break the current code
+			_ = json.Unmarshal(a, &slice)
+			var newConditions []map[string]interface{}
+			for _, c := range slice {
+				newConditions = append(newConditions, *processMongoConditions(&c)) // nolint: scopelint,gosec // ignore for now
 			}
-			for _, c := range and {
-				processMongoConditions(&c) // nolint: scopelint,gosec // ignore for now
-			}
-		}
-		if key == "$or" {
-			var or []map[string]interface{}
-			if _, ok = (*conditions)["$or"].([]map[string]interface{}); ok {
-				or = (*conditions)["$or"].([]map[string]interface{})
-			} else {
-				a, _ := json.Marshal((*conditions)["$or"]) // nolint: errchkjson // this check might break the current code
-				_ = json.Unmarshal(a, &or)
-			}
-			for _, c := range or {
-				processMongoConditions(&c) // nolint: scopelint,gosec // ignore for now
-			}
+			(*conditions)[key] = newConditions
 		}
 	}
+
+	return conditions
 }
 
 func processXpubMetadataConditions(conditions *map[string]interface{}) {

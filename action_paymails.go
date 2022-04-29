@@ -30,7 +30,7 @@ func (c *Client) GetPaymailAddresses(ctx context.Context, metadataConditions *Me
 	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_transaction")
+	ctx = c.GetOrStartTxn(ctx, "get_paymail_addresses")
 
 	// Get the paymail address
 	paymailAddresses, err := getPaymailAddresses(
@@ -49,7 +49,7 @@ func (c *Client) GetPaymailAddressesCount(ctx context.Context, metadataCondition
 	conditions *map[string]interface{}) (int64, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_transaction")
+	ctx = c.GetOrStartTxn(ctx, "get_paymail_addresses_count")
 
 	// Get the paymail address
 	count, err := getPaymailAddressesCount(

@@ -157,6 +157,25 @@ func (m *Transaction) setXPubID() {
 	}
 }
 
+// getTransactions will get all the transactions with the given conditions
+func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
+
+	modelItems := make([]*Transaction, 0)
+	if err := getModelsByConditions(ctx, ModelTransaction, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getTransactionsCount will get a count of all the transactions with the given conditions
+func getTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelTransaction, Transaction{}, metadata, conditions, opts)
+}
+
 // getTransactionsCountByXpubID will get the count of all the models for a given xpub ID
 func getTransactionsCountByXpubID(ctx context.Context, xPubID string, metadata *Metadata,
 	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {

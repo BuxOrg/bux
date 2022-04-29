@@ -203,13 +203,51 @@ func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Tran
 	return transaction, nil
 }
 
-// GetTransactions will get all transactions for a given xpub from the Datastore
+// GetTransactions will get all the transactions from the Datastore
+func (c *Client) GetTransactions(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_transactions")
+
+	// Get the transactions
+	transactions, err := getTransactions(
+		ctx, metadataConditions, conditions, queryParams,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
+// GetTransactionsCount will get a count of all the transactions from the Datastore
+func (c *Client) GetTransactionsCount(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_transactions_count")
+
+	// Get the transactions count
+	count, err := getTransactionsCount(
+		ctx, metadataConditions, conditions,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+// GetTransactionsByXpubID will get all transactions for a given xpub from the Datastore
 //
 // ctx is the context
 // rawXpubKey is the raw xPub key
 // metadataConditions is added to the request for searching
 // conditions is added the request for searching
-func (c *Client) GetTransactions(ctx context.Context, xPubID string, metadataConditions *Metadata,
+func (c *Client) GetTransactionsByXpubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
 	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Transaction, error) {
 
 	// Check for existing NewRelic transaction
@@ -228,8 +266,8 @@ func (c *Client) GetTransactions(ctx context.Context, xPubID string, metadataCon
 	return transactions, nil
 }
 
-// GetTransactionsCount will get the count of all transactions matching the search criteria
-func (c *Client) GetTransactionsCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
+// GetTransactionsByXpubIDCount will get the count of all transactions matching the search criteria
+func (c *Client) GetTransactionsByXpubIDCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
 	conditions *map[string]interface{}) (int64, error) {
 
 	// Check for existing NewRelic transaction

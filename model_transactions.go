@@ -182,7 +182,7 @@ func getTransactionsCountByXpubID(ctx context.Context, xPubID string, metadata *
 
 	dbConditions := processDBConditions(xPubID, conditions, metadata)
 
-	return _getTransactionsCount(ctx, dbConditions, xPubID, opts...)
+	return _getTransactionsCount(ctx, dbConditions, opts...)
 }
 
 // getTransactionsByXpubID will get all the models for a given xpub ID
@@ -296,7 +296,7 @@ func _getTransactions(ctx context.Context, conditions map[string]interface{}, xP
 }
 
 // _getTransactionsCount get a count of all transactions for the given conditions
-func _getTransactionsCount(ctx context.Context, conditions map[string]interface{}, xPubID string,
+func _getTransactionsCount(ctx context.Context, conditions map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
 	count, err := getModelCount(

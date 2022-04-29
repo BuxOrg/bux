@@ -304,7 +304,7 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 	// Process the incoming transaction
 	for index := range records {
 		if err = processSyncTransaction(
-			ctx, records[index],
+			ctx, records[index], nil,
 		); err != nil {
 			return err
 		}
@@ -411,12 +411,14 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	// Notify any P2P paymail providers associated to the transaction
 	if syncTx.P2PStatus == SyncStatusReady {
 		return processP2PTransaction(ctx, syncTx, transaction)
+	} else if syncTx.P2PStatus == SyncStatusSkipped && syncTx.SyncStatus == SyncStatusReady {
+		return processSyncTransaction(ctx, syncTx, transaction)
 	}
 	return nil
 }
 
 // processSyncTransaction will process the sync transaction record, or save the failure
-func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
+func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -442,11 +444,12 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error 
 	}
 
 	// Get the transaction
-	var transaction *Transaction
-	if transaction, err = getTransactionByID(
-		ctx, "", txInfo.ID, syncTx.GetOptions(false)...,
-	); err != nil {
-		return err
+	if transaction == nil {
+		if transaction, err = getTransactionByID(
+			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
+		); err != nil {
+			return err
+		}
 	}
 
 	// Add additional information (if found on-chain)

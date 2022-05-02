@@ -260,6 +260,21 @@ func (c *Client) GetModelCount(
 	return c.count(ctx, model, conditions, timeout)
 }
 
+// GetModelsAggregate will return an aggregate count of the model matching conditions
+func (c *Client) GetModelsAggregate(ctx context.Context, models interface{},
+	conditions map[string]interface{}, aggregateColumn string, timeout time.Duration) (map[string]interface{}, error) {
+
+	// Switch on the datastore engines
+	if c.Engine() == MongoDB {
+		return c.aggregateWithMongo(ctx, models, conditions, aggregateColumn, timeout)
+	} else if !IsSQLEngine(c.Engine()) {
+		return nil, ErrUnsupportedEngine
+	}
+
+	//return c.aggregate(ctx, models, conditions, aggregateColumn, timeout)
+	return nil, nil
+}
+
 // find will get records and return
 func (c *Client) find(ctx context.Context, result interface{}, conditions map[string]interface{},
 	queryParams *QueryParams, fieldResults interface{}, timeout time.Duration) error {

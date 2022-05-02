@@ -222,6 +222,25 @@ func (c *Client) GetTransactions(ctx context.Context, metadataConditions *Metada
 	return transactions, nil
 }
 
+// GetTransactionsAggregate will get a count of all transactions per aggregate column from the Datastore
+func (c *Client) GetTransactionsAggregate(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_transactions")
+
+	// Get the transactionAggregate
+	transactionAggregate, err := getTransactionsAggregate(
+		ctx, metadataConditions, conditions, aggregateColumn,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactionAggregate, nil
+}
+
 // GetTransactionsCount will get a count of all the transactions from the Datastore
 func (c *Client) GetTransactionsCount(ctx context.Context, metadataConditions *Metadata,
 	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {

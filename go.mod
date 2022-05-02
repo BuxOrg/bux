@@ -44,7 +44,7 @@ require (
 	gorm.io/driver/postgres v1.3.5
 	gorm.io/driver/sqlite v1.3.2
 	gorm.io/gorm v1.23.5
-	gorm.io/plugin/dbresolver v1.1.0
+	gorm.io/plugin/dbresolver v1.2.0
 )
 
 require (
@@ -106,7 +106,7 @@ require (
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/segmentio/asm v1.1.5 // indirect
+	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/segmentio/encoding v0.3.5 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
@@ -131,18 +131,22 @@ require (
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220429121018-84afa8d3f7b3 // indirect
+	golang.org/x/sys v0.0.0-20220502124256-b6088ccd6cba // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46 // indirect
+	google.golang.org/genproto v0.0.0-20220429170224-98d788798c3e // indirect
 	google.golang.org/grpc v1.46.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
-// replace github.com/dgrijalva/jwt-go => github.com/dgrijalva/jwt-go v4.0.0-preview1
+// Issue with Ask Nancy on related packages
 replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.2.0
 
+// Issue with v1.0.6 breaking changes
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
+
+// Issue with a panic in clauses
+replace gorm.io/plugin/dbresolver => gorm.io/plugin/dbresolver v1.1.0

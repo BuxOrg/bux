@@ -5,7 +5,7 @@
 [![Build Status](https://img.shields.io/github/workflow/status/BuxOrg/bux/run-go-tests?logo=github&v=2)](https://github.com/BuxOrg/bux/actions)
 [![Report](https://goreportcard.com/badge/github.com/BuxOrg/bux?style=flat&v=2)](https://goreportcard.com/report/github.com/BuxOrg/bux)
 [![codecov](https://codecov.io/gh/BuxOrg/bux/branch/master/graph/badge.svg?v=2)](https://codecov.io/gh/BuxOrg/bux)
-[![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.io/badges/BuxOrg/bux&style=flat&v=2)](https://mergify.io)
+[![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/BuxOrg/bux&style=flat&v=2)](https://mergify.com)
 [![Go](https://img.shields.io/github/go-mod/go-version/BuxOrg/bux?v=2)](https://golang.org/)
 <br>
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod&v=2)](https://gitpod.io/#https://github.com/BuxOrg/bux)

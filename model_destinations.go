@@ -147,7 +147,7 @@ func getDestinations(ctx context.Context, metadata *Metadata, conditions *map[st
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {
 
 	modelItems := make([]*Destination, 0)
-	if err := getModelsByConditions(ctx, ModelDestination, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelDestination, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -158,7 +158,7 @@ func getDestinations(ctx context.Context, metadata *Metadata, conditions *map[st
 func getDestinationsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelDestination, Destination{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelDestination, Destination{}, metadata, conditions, opts...)
 }
 
 // getDestinationsByXpubID will get the destination(s) by the given xPubID

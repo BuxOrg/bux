@@ -61,7 +61,7 @@ func getModelCount(
 
 func getModelsByConditions(ctx context.Context, modelName ModelName, modelItems interface{},
 	metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams,
-	opts []ModelOps) error {
+	opts ...ModelOps) error {
 
 	dbConditions := map[string]interface{}{}
 
@@ -93,7 +93,7 @@ func getModelsByConditions(ctx context.Context, modelName ModelName, modelItems 
 }
 
 func getModelCountByConditions(ctx context.Context, modelName ModelName, model interface{},
-	metadata *Metadata, conditions *map[string]interface{}, opts []ModelOps) (int64, error) {
+	metadata *Metadata, conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
 
 	dbConditions := map[string]interface{}{}
 

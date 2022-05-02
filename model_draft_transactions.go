@@ -109,7 +109,7 @@ func getDraftTransactions(ctx context.Context, metadata *Metadata, conditions *m
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*DraftTransaction, error) {
 
 	modelItems := make([]*DraftTransaction, 0)
-	if err := getModelsByConditions(ctx, ModelDraftTransaction, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelDraftTransaction, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func getDraftTransactions(ctx context.Context, metadata *Metadata, conditions *m
 func getDraftTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelDraftTransaction, DraftTransaction{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelDraftTransaction, DraftTransaction{}, metadata, conditions, opts...)
 }
 
 // GetModelName will get the name of the current model

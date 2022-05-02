@@ -162,7 +162,7 @@ func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[st
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
 
 	modelItems := make([]*Transaction, 0)
-	if err := getModelsByConditions(ctx, ModelTransaction, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelTransaction, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -173,7 +173,7 @@ func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[st
 func getTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelTransaction, Transaction{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelTransaction, Transaction{}, metadata, conditions, opts...)
 }
 
 // getTransactionsCountByXpubID will get the count of all the models for a given xpub ID

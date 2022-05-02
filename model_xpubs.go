@@ -85,7 +85,7 @@ func getXPubs(ctx context.Context, usingMetadata *Metadata, conditions *map[stri
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error) {
 
 	modelItems := make([]*Xpub, 0)
-	if err := getModelsByConditions(ctx, ModelXPub, &modelItems, usingMetadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelXPub, &modelItems, usingMetadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -96,7 +96,7 @@ func getXPubs(ctx context.Context, usingMetadata *Metadata, conditions *map[stri
 func getXPubsCount(ctx context.Context, usingMetadata *Metadata,
 	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelXPub, Xpub{}, usingMetadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelXPub, Xpub{}, usingMetadata, conditions, opts...)
 }
 
 // GetModelName will get the name of the current model

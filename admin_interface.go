@@ -8,29 +8,24 @@ import (
 
 // AdminStats are statistics about the bux server
 type AdminStats struct {
-	Balance            uint64
-	Destinations       uint64
-	Transactions       uint64
-	Paymails           uint64
-	Utxos              uint64
-	XPubs              uint64
-	TransactionsPerDay map[string]uint64
+	Balance            int64            `json:"balance"`
+	Destinations       int64            `json:"destinations"`
+	Transactions       int64            `json:"transactions"`
+	Paymails           int64            `json:"paymails"`
+	Utxos              int64            `json:"utxos"`
+	XPubs              int64            `json:"xpubs"`
+	TransactionsPerDay map[string]int64 `json:"transactions_per_day"`
 }
 
 // AdminInterface is the bux admin interface comprised of all services available for admins
 type AdminInterface interface {
-	GetStats() (*AdminStats, error)
+	GetStats(ctx context.Context, opts ...ModelOps) (*AdminStats, error)
 	GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata, conditions *map[string]interface{},
-		queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
+		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error)
 	GetPaymailAddressesCount(ctx context.Context, metadataConditions *Metadata,
-		conditions *map[string]interface{}) (int64, error)
+		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
 	GetXPubs(ctx context.Context, metadataConditions *Metadata,
-		conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Xpub, error)
+		conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error)
 	GetXPubsCount(ctx context.Context, metadataConditions *Metadata,
-		conditions *map[string]interface{}) (int64, error)
-}
-
-// GetStats get admin stats
-func (c *Client) GetStats() (*AdminStats, error) {
-	return nil, nil
+		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
 }

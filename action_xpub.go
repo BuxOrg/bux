@@ -258,14 +258,14 @@ func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOp
 
 // GetXPubs gets all xpubs matching the conditions
 func (c *Client) GetXPubs(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Xpub, error) {
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
 	// Get the count
 	xPubs, err := getXPubs(
-		ctx, metadataConditions, conditions, queryParams, c.DefaultModelOptions()...,
+		ctx, metadataConditions, conditions, queryParams, c.DefaultModelOptions(opts...)...,
 	)
 	if err != nil {
 		return nil, err
@@ -276,14 +276,14 @@ func (c *Client) GetXPubs(ctx context.Context, metadataConditions *Metadata,
 
 // GetXPubsCount gets a count of all xpubs matching the conditions
 func (c *Client) GetXPubsCount(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}) (int64, error) {
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
 	// Get the count
 	count, err := getXPubsCount(
-		ctx, metadataConditions, conditions, c.DefaultModelOptions()...,
+		ctx, metadataConditions, conditions, c.DefaultModelOptions(opts...)...,
 	)
 	if err != nil {
 		return 0, err

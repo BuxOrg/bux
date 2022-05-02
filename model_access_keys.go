@@ -74,7 +74,7 @@ func getAccessKeys(ctx context.Context, metadata *Metadata, conditions *map[stri
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
 
 	modelItems := make([]*AccessKey, 0)
-	if err := getModelsByConditions(ctx, ModelAccessKey, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelAccessKey, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func getAccessKeys(ctx context.Context, metadata *Metadata, conditions *map[stri
 func getAccessKeysCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelAccessKey, AccessKey{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelAccessKey, AccessKey{}, metadata, conditions, opts...)
 }
 
 // getAccessKeysByXPubID will get all the access keys that match the metadata search

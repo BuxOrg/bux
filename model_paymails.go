@@ -81,7 +81,7 @@ func getPaymailAddresses(ctx context.Context, metadata *Metadata, conditions *ma
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error) {
 
 	modelItems := make([]*PaymailAddress, 0)
-	if err := getModelsByConditions(ctx, ModelPaymailAddress, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelPaymailAddress, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +92,7 @@ func getPaymailAddresses(ctx context.Context, metadata *Metadata, conditions *ma
 func getPaymailAddressesCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelPaymailAddress, PaymailAddress{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelPaymailAddress, PaymailAddress{}, metadata, conditions, opts...)
 }
 
 // getPaymailAddressByID will get the paymail with the given ID

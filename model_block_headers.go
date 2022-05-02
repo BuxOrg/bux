@@ -66,7 +66,7 @@ func getBlockHeaders(ctx context.Context, metadata *Metadata, conditions *map[st
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*BlockHeader, error) {
 
 	modelItems := make([]*BlockHeader, 0)
-	if err := getModelsByConditions(ctx, ModelBlockHeader, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelBlockHeader, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -77,7 +77,7 @@ func getBlockHeaders(ctx context.Context, metadata *Metadata, conditions *map[st
 func getBlockHeadersCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelBlockHeader, BlockHeader{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelBlockHeader, BlockHeader{}, metadata, conditions, opts...)
 }
 
 // getUnsyncedBlockHeaders will return all block headers that have not been marked as synced

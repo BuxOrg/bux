@@ -240,7 +240,7 @@ func getUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]in
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
 
 	modelItems := make([]*Utxo, 0)
-	if err := getModelsByConditions(ctx, ModelUtxo, &modelItems, metadata, conditions, queryParams, opts); err != nil {
+	if err := getModelsByConditions(ctx, ModelUtxo, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
@@ -251,7 +251,7 @@ func getUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]in
 func getUtxosCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
-	return getModelCountByConditions(ctx, ModelUtxo, Utxo{}, metadata, conditions, opts)
+	return getModelCountByConditions(ctx, ModelUtxo, Utxo{}, metadata, conditions, opts...)
 }
 
 // getUtxosByXpubID will return utxos by a given xPub ID

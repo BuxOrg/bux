@@ -47,6 +47,19 @@ func getModels(
 	return datastore.GetModels(ctx, models, conditions, queryParams, nil, timeout)
 }
 
+// getModelsAggregate will retrieve a count of the model(s) from the Cachestore or Datastore using the provided conditions
+func getModelsAggregate(
+	ctx context.Context,
+	datastore datastore.ClientInterface,
+	models interface{},
+	conditions map[string]interface{},
+	aggregateColumn string,
+	timeout time.Duration,
+) (map[string]interface{}, error) {
+	// Attempt to Get the model (by model fields & given conditions)
+	return datastore.GetModelsAggregate(ctx, models, conditions, aggregateColumn, timeout)
+}
+
 // getModelCount will retrieve a count of the model from the Cachestore or Datastore using the provided conditions
 func getModelCount(
 	ctx context.Context,
@@ -90,6 +103,40 @@ func getModelsByConditions(ctx context.Context, modelName ModelName, modelItems 
 	}
 
 	return nil
+}
+
+func getModelsAggregateByConditions(ctx context.Context, modelName ModelName, models interface{},
+	metadata *Metadata, conditions *map[string]interface{}, aggregateColumn string,
+	opts ...ModelOps) (map[string]interface{}, error) {
+
+	dbConditions := map[string]interface{}{}
+
+	if metadata != nil {
+		dbConditions[metadataField] = metadata
+	}
+
+	if conditions != nil && len(*conditions) > 0 {
+		and := make([]map[string]interface{}, 0)
+		if _, ok := dbConditions["$and"]; ok {
+			and = dbConditions["$and"].([]map[string]interface{})
+		}
+		and = append(and, *conditions)
+		dbConditions["$and"] = and
+	}
+
+	// Get the records
+	results, err := getModelsAggregate(
+		ctx, NewBaseModel(modelName, opts...).Client().Datastore(),
+		models, dbConditions, aggregateColumn, defaultDatabaseReadTimeout,
+	)
+	if err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return results, nil
 }
 
 func getModelCountByConditions(ctx context.Context, modelName ModelName, model interface{},

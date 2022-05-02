@@ -169,6 +169,19 @@ func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[st
 	return modelItems, nil
 }
 
+// getTransactionsAggregate will get a count of all transactions per aggregate column with the given conditions
+func getTransactionsAggregate(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
+
+	modelItems := make([]*Transaction, 0)
+	results, err := getModelsAggregateByConditions(ctx, ModelTransaction, &modelItems, metadata, conditions, aggregateColumn, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // getTransactionsCount will get a count of all the transactions with the given conditions
 func getTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {

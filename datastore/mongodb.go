@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/newrelic/go-agent/v3/integrations/nrmongo"
@@ -295,6 +296,94 @@ func (c *Client) countWithMongo(
 	}
 
 	return count, nil
+}
+
+// aggregateWithMongo will get a count of all models aggregate by aggregateColumn matching the conditions
+func (c *Client) aggregateWithMongo(
+	ctx context.Context,
+	models interface{},
+	conditions map[string]interface{},
+	aggregateColumn string,
+	timeout time.Duration,
+) (map[string]interface{}, error) {
+	queryConditions := getMongoQueryConditions(models, conditions)
+	collectionName := utils.GetModelTableName(models)
+	if collectionName == nil {
+		return nil, ErrUnknownCollection
+	}
+
+	// Set the collection
+	collection := c.options.mongoDB.Collection(
+		setPrefix(c.options.mongoDBConfig.TablePrefix, *collectionName),
+	)
+
+	c.DebugLog(fmt.Sprintf(logLine, "count", *collectionName, queryConditions))
+
+	var matchStage bson.D
+	data, err := bson.Marshal(queryConditions)
+	if err != nil {
+		return nil, err
+	}
+	err = bson.Unmarshal(data, &matchStage)
+	if err != nil {
+		return nil, err
+	}
+
+	aggregateOn := bson.E{
+		Key:   "_id",
+		Value: "$" + aggregateColumn,
+	} // default
+	if aggregateColumn == "created_at" {
+		aggregateOn = bson.E{
+			Key: "_id",
+			Value: bson.D{{
+				Key: "$dateToString",
+				Value: bson.D{
+					{Key: "format", Value: "%Y%m%d"},
+					{Key: "date", Value: "$created_at"},
+				}},
+			},
+		}
+	}
+
+	groupStage := bson.D{{Key: "$group", Value: bson.D{
+		aggregateOn, {
+			Key: "count",
+			Value: bson.D{{
+				Key:   "$sum",
+				Value: 1,
+			}},
+		},
+	}}}
+
+	pipeline := mongo.Pipeline{bson.D{{Key: "$match", Value: matchStage}}, groupStage}
+
+	// anonymous struct for unmarshalling result bson
+	var results []struct {
+		ID    string `bson:"_id"`
+		Count int64  `bson:"count"`
+	}
+
+	var aggregateCursor *mongo.Cursor
+	aggregateCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	aggregateCursor, err = collection.Aggregate(aggregateCtx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	err = aggregateCursor.All(ctx, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	aggregateResult := make(map[string]interface{})
+	for _, result := range results {
+		aggregateResult[result.ID] = result.Count
+	}
+
+	return aggregateResult, nil
 }
 
 // GetMongoCollection will get the mongo collection for the given tableName

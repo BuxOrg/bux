@@ -254,6 +254,19 @@ func getUtxosCount(ctx context.Context, metadata *Metadata, conditions *map[stri
 	return getModelCountByConditions(ctx, ModelUtxo, Utxo{}, metadata, conditions, opts...)
 }
 
+// getTransactionsAggregate will get a count of all transactions per aggregate column with the given conditions
+func getUtxosAggregate(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
+
+	modelItems := make([]*Utxo, 0)
+	results, err := getModelsAggregateByConditions(ctx, ModelUtxo, &modelItems, metadata, conditions, aggregateColumn, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // getUtxosByXpubID will return utxos by a given xPub ID
 func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {

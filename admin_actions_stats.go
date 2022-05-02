@@ -10,11 +10,15 @@ func (c *Client) GetStats(ctx context.Context, opts ...ModelOps) (stats *AdminSt
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "admin_stats")
 
-	var destinationsCount int64
-	var transactionsCount int64
-	var paymailsCount int64
-	var utxosCount int64
-	var xpubsCount int64
+	var (
+		destinationsCount  int64
+		transactionsCount  int64
+		paymailsCount      int64
+		utxosCount         int64
+		xpubsCount         int64
+		transactionsPerDay map[string]interface{}
+		utxosPerType       map[string]interface{}
+	)
 
 	if destinationsCount, err = getDestinationsCount(ctx, nil, nil, c.DefaultModelOptions(opts...)...); err != nil {
 		return nil, err
@@ -24,7 +28,10 @@ func (c *Client) GetStats(ctx context.Context, opts ...ModelOps) (stats *AdminSt
 		return nil, err
 	}
 
-	if paymailsCount, err = getPaymailAddressesCount(ctx, nil, nil, c.DefaultModelOptions(opts...)...); err != nil {
+	conditions := map[string]interface{}{
+		"deleted_at": nil,
+	}
+	if paymailsCount, err = getPaymailAddressesCount(ctx, nil, &conditions, c.DefaultModelOptions(opts...)...); err != nil {
 		return nil, err
 	}
 
@@ -36,6 +43,14 @@ func (c *Client) GetStats(ctx context.Context, opts ...ModelOps) (stats *AdminSt
 		return nil, err
 	}
 
+	if transactionsPerDay, err = getTransactionsAggregate(ctx, nil, nil, "created_at", c.DefaultModelOptions(opts...)...); err != nil {
+		return nil, err
+	}
+
+	if utxosPerType, err = getUtxosAggregate(ctx, nil, nil, "type", c.DefaultModelOptions(opts...)...); err != nil {
+		return nil, err
+	}
+
 	stats = &AdminStats{
 		Balance:            0,
 		Destinations:       destinationsCount,
@@ -43,7 +58,8 @@ func (c *Client) GetStats(ctx context.Context, opts ...ModelOps) (stats *AdminSt
 		Paymails:           paymailsCount,
 		Utxos:              utxosCount,
 		XPubs:              xpubsCount,
-		TransactionsPerDay: nil,
+		TransactionsPerDay: transactionsPerDay,
+		UtxosPerType:       utxosPerType,
 	}
 
 	return stats, nil

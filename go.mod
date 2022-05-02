@@ -147,6 +147,3 @@ replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.2.0
 
 // Issue with v1.0.6 breaking changes
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
-
-// Issue with a panic in clauses
-replace gorm.io/plugin/dbresolver => gorm.io/plugin/dbresolver v1.1.0

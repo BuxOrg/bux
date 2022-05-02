@@ -196,8 +196,12 @@ func (c *Client) GetModel(
 	// Get the model data using a select
 	// todo: optimize by specific fields
 	var tx *gorm.DB
-	if forceWriteDB { // Use the "write" database for this query
-		tx = ctxDB.Clauses(dbresolver.Write).Select("*")
+	if forceWriteDB { // Use the "write" database for this query (Only MySQL and Postgres)
+		if c.Engine() == MySQL || c.Engine() == PostgreSQL {
+			tx = ctxDB.Clauses(dbresolver.Write).Select("*")
+		} else {
+			tx = ctxDB.Select("*")
+		}
 	} else { // Use a replica if found
 		tx = ctxDB.Select("*")
 	}

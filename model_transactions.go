@@ -157,10 +157,46 @@ func (m *Transaction) setXPubID() {
 	}
 }
 
+// getTransactions will get all the transactions with the given conditions
+func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
+
+	modelItems := make([]*Transaction, 0)
+	if err := getModelsByConditions(ctx, ModelTransaction, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getTransactionsCount will get a count of all the transactions with the given conditions
+func getTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelTransaction, Transaction{}, metadata, conditions, opts...)
+}
+
+// getTransactionsCountByXpubID will get the count of all the models for a given xpub ID
+func getTransactionsCountByXpubID(ctx context.Context, xPubID string, metadata *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	dbConditions := processDBConditions(xPubID, conditions, metadata)
+
+	return _getTransactionsCount(ctx, dbConditions, opts...)
+}
+
 // getTransactionsByXpubID will get all the models for a given xpub ID
 func getTransactionsByXpubID(ctx context.Context, xPubID string,
 	metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
+
+	dbConditions := processDBConditions(xPubID, conditions, metadata)
+
+	return _getTransactions(ctx, dbConditions, xPubID, queryParams, opts...)
+}
+
+func processDBConditions(xPubID string, conditions *map[string]interface{},
+	metadata *Metadata) map[string]interface{} {
 
 	dbConditions := map[string]interface{}{
 		"$or": []map[string]interface{}{{
@@ -226,7 +262,7 @@ func getTransactionsByXpubID(ctx context.Context, xPubID string,
 		dbConditions["$and"] = and
 	}
 
-	return _getTransactions(ctx, dbConditions, xPubID, queryParams, opts...)
+	return dbConditions
 }
 
 // _getTransactions get all transactions for the given conditions
@@ -234,9 +270,10 @@ func getTransactionsByXpubID(ctx context.Context, xPubID string,
 func _getTransactions(ctx context.Context, conditions map[string]interface{}, xPubID string, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
 	var models []Transaction
 	if err := getModels(
-		ctx, NewBaseModel(
-			ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions,
+		ctx,
+		NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		&models,
+		conditions,
 		queryParams,
 		defaultDatabaseReadTimeout,
 	); err != nil {
@@ -256,6 +293,24 @@ func _getTransactions(ctx context.Context, conditions map[string]interface{}, xP
 	}
 
 	return transactions, nil
+}
+
+// _getTransactionsCount get a count of all transactions for the given conditions
+func _getTransactionsCount(ctx context.Context, conditions map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	count, err := getModelCount(
+		ctx,
+		NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		Transaction{},
+		conditions,
+		defaultDatabaseReadTimeout,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // UpdateTransactionMetadata will update the transaction metadata by xPubID

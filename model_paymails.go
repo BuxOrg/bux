@@ -80,41 +80,19 @@ func getPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*
 func getPaymailAddresses(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error) {
 
-	var models []PaymailAddress
-	dbConditions := map[string]interface{}{}
-
-	if metadata != nil {
-		dbConditions[metadataField] = metadata
-	}
-
-	if conditions != nil && len(*conditions) > 0 {
-		and := make([]map[string]interface{}, 0)
-		if _, ok := dbConditions["$and"]; ok {
-			and = dbConditions["$and"].([]map[string]interface{})
-		}
-		and = append(and, *conditions)
-		dbConditions["$and"] = and
-	}
-
-	// Get the records
-	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, dbConditions, queryParams, defaultDatabaseReadTimeout,
-	); err != nil {
-		if errors.Is(err, datastore.ErrNoResults) {
-			return nil, nil
-		}
+	modelItems := make([]*PaymailAddress, 0)
+	if err := getModelsByConditions(ctx, ModelPaymailAddress, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
 	}
 
-	// Loop and enrich
-	destinations := make([]*PaymailAddress, 0)
-	for index := range models {
-		models[index].enrich(ModelDestination, opts...)
-		destinations = append(destinations, &models[index])
-	}
+	return modelItems, nil
+}
 
-	return destinations, nil
+// getPaymailAddressesCount will get all the paymail addresses with the given conditions
+func getPaymailAddressesCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelPaymailAddress, PaymailAddress{}, metadata, conditions, opts...)
 }
 
 // getPaymailAddressByID will get the paymail with the given ID

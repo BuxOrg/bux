@@ -109,6 +109,41 @@ func TestClient_getMongoQueryConditions(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"_id": "identifier"}, queryConditions)
 	})
 
+	t.Run("$or ID", func(t *testing.T) {
+		condition := map[string]interface{}{
+			"$or": []map[string]interface{}{{
+				"id": "test-key",
+			}},
+		}
+		queryConditions := getMongoQueryConditions(nil, condition)
+		expected := map[string]interface{}{
+			"$or": []map[string]interface{}{{
+				"_id": "test-key",
+			}},
+		}
+		assert.Equal(t, expected, queryConditions)
+	})
+
+	t.Run("$and $or ID", func(t *testing.T) {
+		condition := map[string]interface{}{
+			"metadata": map[string]interface{}{},
+			"$and": []map[string]interface{}{{
+				"$or": []map[string]interface{}{{
+					"id": "test-key",
+				}},
+			}},
+		}
+		queryConditions := getMongoQueryConditions(nil, condition)
+		expected := map[string]interface{}{
+			"$and": []map[string]interface{}{{
+				"$or": []map[string]interface{}{{
+					"_id": "test-key",
+				}},
+			}},
+		}
+		assert.Equal(t, expected, queryConditions)
+	})
+
 	t.Run("embedded ID", func(t *testing.T) {
 		condition := map[string]interface{}{
 			"$and": []map[string]interface{}{{
@@ -189,13 +224,45 @@ func TestClient_getMongoQueryConditions(t *testing.T) {
 			"metadata.v": "test-value2",
 		}, {
 			"fee": map[string]interface{}{
-				"$lt": 98,
+				"$lt": float64(98),
 			},
 		}}
 		assert.Len(t, queryConditions["$and"], 3)
 		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[0])
 		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[1])
 		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[2])
+	})
+
+	t.Run("metadata $or", func(t *testing.T) {
+		condition := map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"test-key":  "test-value",
+				"test-key2": "test-value2",
+			},
+			"$or": []map[string]interface{}{{
+				"fee": map[string]interface{}{
+					"$lt": 98,
+				},
+			}},
+		}
+		queryConditions := getMongoQueryConditions(mockModel{}, condition)
+		expected := []map[string]interface{}{{
+			"metadata.k": "test-key",
+			"metadata.v": "test-value",
+		}, {
+			"metadata.k": "test-key2",
+			"metadata.v": "test-value2",
+		}}
+		expectedOr := []map[string]interface{}{{
+			"fee": map[string]interface{}{
+				"$lt": float64(98),
+			},
+		}}
+		assert.Len(t, queryConditions["$and"], 2)
+		assert.Len(t, queryConditions["$or"], 1)
+		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[0])
+		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[1])
+		assert.Contains(t, expectedOr, queryConditions["$or"].([]map[string]interface{})[0])
 	})
 
 	t.Run("xpub_metdata", func(t *testing.T) {
@@ -218,7 +285,7 @@ func TestClient_getMongoQueryConditions(t *testing.T) {
 			"xpub_metadata.v": "test-value",
 		}, {
 			"fee": map[string]interface{}{
-				"$lt": 98,
+				"$lt": float64(98),
 			},
 		}}
 		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[0])
@@ -345,7 +412,7 @@ func TestClient_getMongoQueryConditions(t *testing.T) {
 			},
 		}, {
 			"fee": map[string]interface{}{
-				"$lt": 98,
+				"$lt": float64(98),
 			},
 		}}
 		assert.Contains(t, expected, queryConditions["$and"].([]map[string]interface{})[0])

@@ -27,21 +27,40 @@ func (c *Client) GetPaymailAddress(ctx context.Context, address string, opts ...
 
 // GetPaymailAddresses will get all the paymail addresses from the Datastore
 func (c *Client) GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error) {
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_transaction")
+	ctx = c.GetOrStartTxn(ctx, "get_paymail_addresses")
 
 	// Get the paymail address
 	paymailAddresses, err := getPaymailAddresses(
 		ctx, metadataConditions, conditions, queryParams,
-		c.DefaultModelOptions()...,
+		c.DefaultModelOptions(opts...)...,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return paymailAddresses, nil
+}
+
+// GetPaymailAddressesCount will get a count of all the paymail addresses from the Datastore
+func (c *Client) GetPaymailAddressesCount(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_paymail_addresses_count")
+
+	// Get the paymail address
+	count, err := getPaymailAddressesCount(
+		ctx, metadataConditions, conditions,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // GetPaymailAddressesByXPubID will get all the paymail addresses for an xPubID from the Datastore

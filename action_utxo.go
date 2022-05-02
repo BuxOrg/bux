@@ -7,8 +7,46 @@ import (
 	"github.com/BuxOrg/bux/utils"
 )
 
-// GetUtxos will get utxos based on an xPub
-func (c *Client) GetUtxos(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+// GetUtxos will get all the utxos from the Datastore
+func (c *Client) GetUtxos(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_utxos")
+
+	// Get the utxos
+	utxos, err := getUtxos(
+		ctx, metadataConditions, conditions, queryParams,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return utxos, nil
+}
+
+// GetUtxosCount will get a count of all the utxos from the Datastore
+func (c *Client) GetUtxosCount(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_utxos_count")
+
+	// Get the utxos count
+	count, err := getUtxosCount(
+		ctx, metadataConditions, conditions,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+// GetUtxosByXpubID will get utxos based on an xPub
+func (c *Client) GetUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 	queryParams *datastore.QueryParams) ([]*Utxo, error) {
 
 	// Check for existing NewRelic transaction

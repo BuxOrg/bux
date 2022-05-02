@@ -42,6 +42,9 @@ func Test_processConditions(t *testing.T) {
 				Time:  time.Date(2022, 4, 4, 15, 12, 37, 651387237, time.UTC),
 			}},
 		},
+		"spending_tx_id": map[string]interface{}{
+			"$exists": true,
+		},
 	}
 
 	t.Run("MySQL", func(t *testing.T) {
@@ -52,6 +55,7 @@ func Test_processConditions(t *testing.T) {
 		varNum := 0
 		_ = processConditions(tx, conditions, MySQL, &varNum, nil)
 		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
 		assert.Equal(t, "2022-04-04 15:12:37", tx.Vars["var0"])
 	})
 
@@ -63,6 +67,7 @@ func Test_processConditions(t *testing.T) {
 		varNum := 0
 		_ = processConditions(tx, conditions, PostgreSQL, &varNum, nil)
 		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
 		assert.Equal(t, "2022-04-04T15:12:37Z", tx.Vars["var0"])
 	})
 
@@ -74,6 +79,7 @@ func Test_processConditions(t *testing.T) {
 		varNum := 0
 		_ = processConditions(tx, conditions, SQLite, &varNum, nil)
 		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
 		assert.Equal(t, "2022-04-04T15:12:37.651Z", tx.Vars["var0"])
 	})
 }

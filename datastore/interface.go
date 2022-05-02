@@ -16,6 +16,8 @@ type StorageService interface {
 	GetModel(ctx context.Context, model interface{}, conditions map[string]interface{}, timeout time.Duration, forceWriteDB bool) error
 	GetModels(ctx context.Context, models interface{}, conditions map[string]interface{}, queryParams *QueryParams,
 		fieldResults interface{}, timeout time.Duration) error
+	GetModelCount(ctx context.Context, model interface{}, conditions map[string]interface{},
+		timeout time.Duration) (int64, error)
 	HasMigratedModel(modelType string) bool
 	IncrementModel(ctx context.Context, model interface{},
 		fieldName string, increment int64) (newValue int64, err error)

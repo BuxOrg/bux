@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/BuxOrg/bux/datastore"
 	"github.com/libsv/go-bc"
 )
 
@@ -44,6 +45,44 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, height uint
 
 	// Return the response
 	return blockHeader, nil
+}
+
+// GetBlockHeaders will get all the block headers from the Datastore
+func (c *Client) GetBlockHeaders(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*BlockHeader, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_block_headers")
+
+	// Get the block headers
+	blockHeaders, err := getBlockHeaders(
+		ctx, metadataConditions, conditions, queryParams,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return blockHeaders, nil
+}
+
+// GetBlockHeadersCount will get a count of all the block headers from the Datastore
+func (c *Client) GetBlockHeadersCount(ctx context.Context, metadataConditions *Metadata,
+	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_block_headers_count")
+
+	// Get the block headers count
+	count, err := getBlockHeadersCount(
+		ctx, metadataConditions, conditions,
+		c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // GetUnsyncedBlockHeaders get all unsynced block headers

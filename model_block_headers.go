@@ -61,6 +61,25 @@ func (m *BlockHeader) GetModelTableName() string {
 	return tableBlockHeaders
 }
 
+// getBlockHeaders will get all the block headers with the given conditions
+func getBlockHeaders(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*BlockHeader, error) {
+
+	modelItems := make([]*BlockHeader, 0)
+	if err := getModelsByConditions(ctx, ModelBlockHeader, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
+		return nil, err
+	}
+
+	return modelItems, nil
+}
+
+// getBlockHeadersCount will get a count of all the block headers with the given conditions
+func getBlockHeadersCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+	opts ...ModelOps) (int64, error) {
+
+	return getModelCountByConditions(ctx, ModelBlockHeader, BlockHeader{}, metadata, conditions, opts...)
+}
+
 // getUnsyncedBlockHeaders will return all block headers that have not been marked as synced
 func getUnsyncedBlockHeaders(ctx context.Context, opts ...ModelOps) ([]*BlockHeader, error) {
 

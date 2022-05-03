@@ -69,12 +69,13 @@ func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 			utxo, err := getUtxo(ctx, fromUtxo.TransactionID, fromUtxo.OutputIndex, opts...)
 			if err != nil {
 				return nil, err
-			} else if utxo != nil {
-				if utxo.XpubID != xPubID || utxo.SpendingTxID.Valid {
-					return nil, ErrUtxoAlreadySpent
-				}
-				models = append(models, *utxo)
+			} else if utxo == nil {
+				return nil, ErrMissingUtxo
 			}
+			if utxo.XpubID != xPubID || utxo.SpendingTxID.Valid {
+				return nil, ErrUtxoAlreadySpent
+			}
+			models = append(models, *utxo)
 		}
 	} else {
 		// Get the records

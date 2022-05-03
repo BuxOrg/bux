@@ -755,6 +755,8 @@ func (m *Transaction) processInputs(ctx context.Context) (err error) {
 				m.XpubInIDs = append(m.XpubInIDs, utxo.XpubID)
 			}
 		}
+
+		// todo: what if the utxo is nil (not found)?
 	}
 
 	return

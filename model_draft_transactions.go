@@ -380,9 +380,10 @@ func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
 		utxoModel, err := getUtxo(ctx, utxo.TransactionID, utxo.OutputIndex, opts...)
 		if err != nil {
 			return err
-		} else if utxoModel != nil {
-			includeUtxos = append(includeUtxos, utxoModel)
+		} else if utxoModel == nil {
+			return ErrMissingUtxo
 		}
+		includeUtxos = append(includeUtxos, utxoModel)
 	}
 	return m.processUtxos(ctx, includeUtxos)
 }

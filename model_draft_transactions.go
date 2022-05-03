@@ -137,6 +137,8 @@ func (m *DraftTransaction) GetModelTableName() string {
 func (m *DraftTransaction) Save(ctx context.Context) (err error) {
 	if err = Save(ctx, m); err != nil {
 
+		m.DebugLog("save tx error: " + err.Error())
+
 		// todo: run in a go routine?
 		// un-reserve the utxos
 		if utxoErr := unReserveUtxos(

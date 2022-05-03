@@ -33,7 +33,7 @@ type TransactionConfig struct {
 	IncludeUtxos               []*UtxoPointer       `json:"include_utxos" toml:"include_utxos" yaml:"include_utxos" bson:"include_utxos"`         // include these utxos for the transaction, among others necessary if more is needed for fees
 	Inputs                     []*TransactionInput  `json:"inputs" toml:"inputs" yaml:"inputs" bson:"inputs"`                                     // All transaction inputs
 	Outputs                    []*TransactionOutput `json:"outputs" toml:"outputs" yaml:"outputs" bson:"outputs"`                                 // All transaction outputs
-	SendAllTo                  string               `json:"send_all_to,omitempty" toml:"send_all_to" yaml:"send_all_to" bson:"send_all_to"`       // Send ALL utxos to address
+	SendAllTo                  *TransactionOutput   `json:"send_all_to,omitempty" toml:"send_all_to" yaml:"send_all_to" bson:"send_all_to"`       // Send ALL utxos to address
 	Sync                       *SyncConfig          `json:"sync" toml:"sync" yaml:"sync" bson:"sync"`                                             // Sync config for broadcasting and on-chain sync
 }
 

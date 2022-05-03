@@ -9,14 +9,14 @@ const (
 	// EventTypeCreate when a new model is created
 	EventTypeCreate EventType = "create"
 
-	// EventTypeRead when a new model is read
-	EventTypeRead EventType = "read"
-
 	// EventTypeUpdate when a new model is updated
 	EventTypeUpdate EventType = "update"
 
 	// EventTypeDelete when a new model is deleted
 	EventTypeDelete EventType = "delete"
+
+	// EventTypeBroadcast when a transaction is broadcasted (sync tx)
+	EventTypeBroadcast EventType = "broadcast"
 )
 
 type (
@@ -29,14 +29,14 @@ type (
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
 		config     *notificationsConfig // Configuration for broadcasting and other chain-state actions
-		debug      bool
-		httpClient HTTPInterface
-		logger     logger.Interface
+		debug      bool                 // Debugging mode
+		httpClient HTTPInterface        // Custom HTTP client
+		logger     logger.Interface     // Custom logger interface
 	}
 
 	// syncConfig holds all the configuration about the different notifications
 	notificationsConfig struct {
-		webhookEndpoint string
+		webhookEndpoint string // Webhook URL for basic notifications
 	}
 )
 

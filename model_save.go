@@ -20,7 +20,7 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 
 	// Check for a datastore
 	ds := c.Datastore()
-	if c == nil {
+	if ds == nil {
 		return ErrDatastoreRequired
 	}
 	// Create new Datastore transaction

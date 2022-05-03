@@ -126,18 +126,20 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 
 	// Try next provider: NowNodes
 	provider = providerNowNodes
-	if err = broadcastNowNodes(ctx, c, c.NowNodes(), id, id, hex); err != nil {
+	if c.NowNodes() != nil { // Only if NowNodes is loaded (requires API key)
+		if err = broadcastNowNodes(ctx, c, c.NowNodes(), id, id, hex); err != nil {
 
-		// Check error response for (TX FAILURE)
-		if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-			err = checkInMempool(ctx, c, id, err.Error(), timeout)
-			return // Success, found in mempool (or on-chain)
+			// Check error response for (TX FAILURE)
+			if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
+				err = checkInMempool(ctx, c, id, err.Error(), timeout)
+				return // Success, found in mempool (or on-chain)
+			}
+
+			// Provider error?
+			c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerNowNodes)
+		} else { // Success!
+			return
 		}
-
-		// Provider error?
-		c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerNowNodes)
-	} else { // Success!
-		return
 	}
 
 	// Final error - all failures

@@ -42,11 +42,12 @@ func defaultClientOptions() *clientOptions {
 
 		// Blank chainstate config
 		chainstate: &chainstateOptions{
-			ClientInterface: nil,
-			options:         []chainstate.ClientOps{},
-			broadcasting:    true, // Enabled by default for new users
-			paymailP2P:      true, // Enabled by default for new users
-			syncOnChain:     true, // Enabled by default for new users
+			ClientInterface:  nil,
+			options:          []chainstate.ClientOps{},
+			broadcasting:     true, // Enabled by default for new users
+			broadcastInstant: true, // Enabled by default for new users
+			paymailP2P:       true, // Enabled by default for new users
+			syncOnChain:      true, // Enabled by default for new users
 		},
 
 		// Blank cache config
@@ -572,9 +573,10 @@ func WithCustomChainstate(chainState chainstate.ClientInterface) ClientOps {
 }
 
 // WithChainstateOptions will set chainstate defaults
-func WithChainstateOptions(broadcasting, paymailP2P, syncOnChain bool) ClientOps {
+func WithChainstateOptions(broadcasting, broadcastInstant, paymailP2P, syncOnChain bool) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.broadcasting = broadcasting
+		c.chainstate.broadcastInstant = broadcastInstant
 		c.chainstate.paymailP2P = paymailP2P
 		c.chainstate.syncOnChain = syncOnChain
 	}

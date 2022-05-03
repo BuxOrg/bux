@@ -66,7 +66,7 @@ func DefaultClientOpts(debug, shared bool) []ClientOps {
 		opts,
 		WithTaskQ(tqc, taskmanager.FactoryMemory),
 		WithSQLite(tester.SQLiteTestConfig(debug, shared)),
-		WithChainstateOptions(false, false, false),
+		WithChainstateOptions(false, false, false, false),
 	)
 	if debug {
 		opts = append(opts, WithDebugging())

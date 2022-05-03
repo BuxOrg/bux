@@ -190,7 +190,7 @@ func Test_getCapabilities(t *testing.T) {
 			WithRedisConnection(redisClient),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
-			WithChainstateOptions(false, false, false),
+			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
 		)
 		require.NoError(t, err)
@@ -229,7 +229,7 @@ func Test_getCapabilities(t *testing.T) {
 			WithRedisConnection(redisClient),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
-			WithChainstateOptions(false, false, false),
+			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
 		)
 		require.NoError(t, err)
@@ -331,7 +331,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			WithRedisConnection(redisClient),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
-			WithChainstateOptions(false, false, false),
+			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
 		)
 		require.NoError(t, err)

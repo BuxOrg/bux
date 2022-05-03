@@ -47,6 +47,7 @@ type (
 		chainstate.ClientInterface                        // Client for Chainstate
 		options                    []chainstate.ClientOps // List of options
 		broadcasting               bool                   // Default value for all transactions
+		broadcastInstant           bool                   // Default value for all transactions
 		paymailP2P                 bool                   // Default value for all transactions
 		syncOnChain                bool                   // Default value for all transactions
 	}
@@ -451,8 +452,9 @@ func (c *Client) Version() string {
 // DefaultSyncConfig will return the default sync config from the client defaults (for chainstate)
 func (c *Client) DefaultSyncConfig() *SyncConfig {
 	return &SyncConfig{
-		Broadcast:   c.options.chainstate.broadcasting,
-		PaymailP2P:  c.options.chainstate.paymailP2P,
-		SyncOnChain: c.options.chainstate.syncOnChain,
+		Broadcast:        c.options.chainstate.broadcasting,
+		BroadcastInstant: c.options.chainstate.broadcastInstant,
+		PaymailP2P:       c.options.chainstate.paymailP2P,
+		SyncOnChain:      c.options.chainstate.syncOnChain,
 	}
 }

@@ -548,8 +548,6 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 	// Pre-build the options
 	opts := m.GetOptions(false)
 
-	// todo: run these in go routines?
-
 	// update the xpub balances
 	for xPubID, balance := range m.XpubOutputValue {
 		// todo move this into a function on the xpub model
@@ -560,23 +558,36 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		} else if xPub == nil {
 			return ErrMissingRequiredXpub
 		}
-		err = xPub.IncrementBalance(ctx, balance)
-		if err != nil {
+		if err = xPub.IncrementBalance(ctx, balance); err != nil {
 			return err
 		}
 	}
 
 	// update the draft transaction (if linked to reference) to complete
-	if m.draftTransaction != nil {
-		m.draftTransaction.Status = DraftStatusComplete
-		m.draftTransaction.FinalTxID = m.ID
-		err := m.draftTransaction.Save(ctx)
-		if err != nil {
-			m.DebugLog("error updating draft transaction: " + err.Error())
-		}
-	}
+	go func(tx *Transaction) {
+		if tx.draftTransaction != nil {
+			tx.draftTransaction.Status = DraftStatusComplete
+			tx.draftTransaction.FinalTxID = tx.ID
+			if err := tx.draftTransaction.Save(context.Background()); err != nil {
+				tx.DebugLog("error updating draft transaction: " + err.Error())
+			}
 
+			// Should we broadcast immediately?
+			if tx.syncTransaction != nil &&
+				tx.draftTransaction.Configuration.Sync.Broadcast &&
+				tx.draftTransaction.Configuration.Sync.BroadcastInstant {
+				if err := processBroadcastTransaction(
+					context.Background(), tx.syncTransaction,
+				); err != nil {
+					tx.DebugLog("error running broadcast tx: " + err.Error())
+				}
+			}
+		}
+	}(m)
+
+	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeCreate, m)
+
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
 }
@@ -585,6 +596,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 func (m *Transaction) AfterUpdated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
 
+	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeUpdate, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
@@ -595,6 +607,7 @@ func (m *Transaction) AfterUpdated(_ context.Context) error {
 func (m *Transaction) AfterDeleted(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
 
+	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeDelete, m)
 
 	m.DebugLog("end: " + m.Name() + " AfterDelete hook")

@@ -323,14 +323,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
-			SendAllTo: testExternalAddress,
+			SendAllTo: &TransactionOutput{To: testExternalAddress},
 		}, append(client.DefaultModelOptions(), New())...)
 
 		err = draftTransaction.createTransactionHex(ctx)
 		require.NoError(t, err)
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
-		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo.To)
 		assert.Equal(t, uint64(96), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 1)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
@@ -526,14 +526,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
-			SendAllTo: testExternalAddress,
+			SendAllTo: &TransactionOutput{To: testExternalAddress},
 		}, append(client.DefaultModelOptions(), New())...)
 
 		err = draftTransaction.createTransactionHex(ctx)
 		require.NoError(t, err)
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
-		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo.To)
 		assert.Equal(t, uint64(244), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 3)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
@@ -570,7 +570,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
-			SendAllTo: testExternalAddress,
+			SendAllTo: &TransactionOutput{To: testExternalAddress},
 			FromUtxos: []*UtxoPointer{{
 				TransactionID: testTxID,
 				OutputIndex:   1,
@@ -584,7 +584,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
-		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo.To)
 		assert.Equal(t, uint64(170), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
@@ -667,6 +667,96 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, uint64(97236), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
+
+	t.Run("SendAllTo", func(t *testing.T) {
+		ctx, client, deferMe := initSimpleTestCase(t)
+		defer deferMe()
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			FromUtxos: []*UtxoPointer{{
+				TransactionID: testTxID,
+				OutputIndex:   0,
+			}},
+			SendAllTo: &TransactionOutput{
+				To: testExternalAddress,
+			},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err := draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, uint64(99904), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(96), draftTransaction.Configuration.Fee)
+	})
+
+	t.Run("SendAllTo + output", func(t *testing.T) {
+		ctx, client, deferMe := initSimpleTestCase(t)
+		defer deferMe()
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			FromUtxos: []*UtxoPointer{{
+				TransactionID: testTxID,
+				OutputIndex:   0,
+			}},
+			SendAllTo: &TransactionOutput{
+				To: testExternalAddress,
+			},
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 1000,
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err := draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draftTransaction.Configuration.Outputs, 2)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, uint64(98887), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(113), draftTransaction.Configuration.Fee)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[1].To)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[1].Satoshis)
+	})
+
+	t.Run("SendAllTo + output + op_return", func(t *testing.T) {
+		ctx, client, deferMe := initSimpleTestCase(t)
+		defer deferMe()
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			FromUtxos: []*UtxoPointer{{
+				TransactionID: testTxID,
+				OutputIndex:   0,
+			}},
+			SendAllTo: &TransactionOutput{
+				To: testExternalAddress,
+			},
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 1000,
+			}, {
+				OpReturn: &OpReturn{
+					Map: &MapProtocol{
+						App:  "social",
+						Type: "post",
+						Keys: map[string]interface{}{
+							"title": "Hello World!",
+						},
+					},
+				},
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err := draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draftTransaction.Configuration.Outputs, 3)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, uint64(98842), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(158), draftTransaction.Configuration.Fee)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[1].To)
+		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, "", draftTransaction.Configuration.Outputs[2].To)
+		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[2].Satoshis)
+	})
 }
 
 // TestDraftTransaction_setChangeDestination setting the change destination
@@ -681,10 +771,14 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 			),
 			Configuration: TransactionConfig{
 				ChangeDestinations: nil,
+				FeeUnit: &utils.FeeUnit{
+					Satoshis: 5,
+					Bytes:    10,
+				},
 			},
 		}
 
-		err := draftTransaction.setChangeDestination(ctx, 100)
+		_, err := draftTransaction.setChangeDestination(ctx, 100, 200)
 		require.ErrorIs(t, err, ErrMissingXpub)
 	})
 
@@ -704,17 +798,23 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 			),
 			Configuration: TransactionConfig{
 				ChangeDestinations: nil,
+				FeeUnit: &utils.FeeUnit{
+					Satoshis: 5,
+					Bytes:    10,
+				},
 			},
 		}
 
-		err = draftTransaction.setChangeDestination(ctx, 100)
+		var newFee uint64
+		newFee, err = draftTransaction.setChangeDestination(ctx, 100, 0)
 		require.NoError(t, err)
-		assert.Equal(t, uint64(100), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Equal(t, uint64(23), newFee)
+		assert.Equal(t, uint64(77), draftTransaction.Configuration.ChangeSatoshis)
 		assert.Equal(t, testXPubID, draftTransaction.Configuration.ChangeDestinations[0].XpubID)
 		assert.Equal(t, uint32(1), draftTransaction.Configuration.ChangeDestinations[0].Chain)
 		assert.Equal(t, uint32(12), draftTransaction.Configuration.ChangeDestinations[0].Num)
 		assert.Equal(t, utils.ScriptTypePubKeyHash, draftTransaction.Configuration.ChangeDestinations[0].Type)
-		assert.Equal(t, uint64(100), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(77), draftTransaction.Configuration.Outputs[0].Satoshis)
 	})
 
 	t.Run("use existing output", func(t *testing.T) {
@@ -741,8 +841,10 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 			},
 		}
 
-		err = draftTransaction.setChangeDestination(ctx, 100)
+		var newFee uint64
+		newFee, err = draftTransaction.setChangeDestination(ctx, 100, 0)
 		require.NoError(t, err)
+		assert.Equal(t, uint64(0), newFee)
 		assert.Equal(t, uint64(100), draftTransaction.Configuration.ChangeSatoshis)
 		assert.Nil(t, draftTransaction.Configuration.ChangeDestinations)
 		// 100 sats added to the output
@@ -780,8 +882,10 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 			},
 		}
 
-		err = draftTransaction.setChangeDestination(ctx, 251)
+		var newFee uint64
+		newFee, err = draftTransaction.setChangeDestination(ctx, 251, 100)
 		require.NoError(t, err)
+		assert.Equal(t, uint64(100), newFee) // fee should not change
 		assert.Equal(t, uint64(251), draftTransaction.Configuration.ChangeSatoshis)
 		assert.Nil(t, draftTransaction.Configuration.ChangeDestinations)
 		assert.Equal(t, uint64(1126), draftTransaction.Configuration.Outputs[0].Satoshis)
@@ -1244,7 +1348,7 @@ func TestDraftTransaction_SignInputs(t *testing.T) {
 		{
 			name: "sign 1",
 			config: &TransactionConfig{
-				SendAllTo: "1AqYEDUf16CHaD2guBLHHhosfV2AyYJLz",
+				SendAllTo: &TransactionOutput{To: "1AqYEDUf16CHaD2guBLHHhosfV2AyYJLz"},
 			},
 			xPriv:   xPrivHD,
 			wantErr: assert.NoError,
@@ -1297,4 +1401,24 @@ func TestDraftTransaction_SignInputs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func initSimpleTestCase(t *testing.T) (context.Context, ClientInterface, func()) {
+	ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+
+	xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+	err := xPub.Save(ctx)
+	require.NoError(t, err)
+
+	destination := newDestination(testXPubID, testLockingScript,
+		append(client.DefaultModelOptions(), New())...)
+	err = destination.Save(ctx)
+	require.NoError(t, err)
+
+	utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
+		append(client.DefaultModelOptions(), New())...)
+	err = utxo.Save(ctx)
+	require.NoError(t, err)
+
+	return ctx, client, deferMe
 }

@@ -163,10 +163,12 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 	c := m.Client()
 
 	// Special case where we are sending all funds to a single (address, paymail, handle)
-	if len(m.Configuration.SendAllTo) > 0 {
-		m.Configuration.Outputs = []*TransactionOutput{{
-			To: m.Configuration.SendAllTo,
-		}}
+	if m.Configuration.SendAllTo != nil {
+		outputs := m.Configuration.Outputs
+
+		m.Configuration.SendAllTo.UseForChange = true
+		m.Configuration.Outputs = []*TransactionOutput{m.Configuration.SendAllTo}
+
 		if err := m.Configuration.Outputs[0].processOutput(
 			ctx, c.Cachestore(),
 			c.PaymailClient(),
@@ -175,6 +177,21 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 			false,
 		); err != nil {
 			return err
+		}
+
+		// re-add the other outputs we had before
+		for _, output := range outputs {
+			output.UseForChange = false // make sure we do not add change to this output
+			if err := output.processOutput(
+				ctx, c.Cachestore(),
+				c.PaymailClient(),
+				c.GetPaymailConfig().DefaultFromPaymail,
+				c.GetPaymailConfig().DefaultNote,
+				true,
+			); err != nil {
+				return err
+			}
+			m.Configuration.Outputs = append(m.Configuration.Outputs, output)
 		}
 	} else {
 		// Loop all outputs and process
@@ -205,7 +222,7 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error) {
 
 	// Check that we have outputs
-	if len(m.Configuration.Outputs) == 0 && len(m.Configuration.SendAllTo) == 0 {
+	if len(m.Configuration.Outputs) == 0 && m.Configuration.SendAllTo == nil {
 		return ErrMissingTransactionOutputs
 	}
 
@@ -224,7 +241,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	var inputUtxos *[]*bt.UTXO
 	var satoshisReserved uint64
 
-	if m.Configuration.SendAllTo != "" { // Send TO ALL
+	if m.Configuration.SendAllTo != nil { // Send TO ALL
 
 		var spendableUtxos []*Utxo
 		// todo should all utxos be sent to the SendAllTo address, not only the p2pkhs?
@@ -304,14 +321,22 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 	// Estimate the fee for the transaction
 	fee := m.estimateFee(m.Configuration.FeeUnit, 0)
-	if m.Configuration.SendAllTo != "" {
+	if m.Configuration.SendAllTo != nil {
 		if m.Configuration.Outputs[0].Satoshis <= dustLimit {
 			return ErrOutputValueTooLow
 		}
 
-		m.Configuration.Outputs[0].Satoshis -= fee
-		m.Configuration.Outputs[0].Scripts[0].Satoshis = m.Configuration.Outputs[0].Satoshis
 		m.Configuration.Fee = fee
+		m.Configuration.Outputs[0].Satoshis -= fee
+
+		// subtract all the satoshis sent in other outputs
+		for _, output := range m.Configuration.Outputs {
+			if !output.UseForChange { // only normal outputs
+				m.Configuration.Outputs[0].Satoshis -= output.Satoshis
+			}
+		}
+
+		m.Configuration.Outputs[0].Scripts[0].Satoshis = m.Configuration.Outputs[0].Satoshis
 	} else {
 		if satoshisReserved < satoshisNeeded+fee {
 			return ErrNotEnoughUtxos
@@ -321,12 +346,11 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		satoshisChange := satoshisReserved - satoshisNeeded - fee
 		m.Configuration.Fee = fee
 		if satoshisChange > 0 {
-			// we are adding an extra output and need to add that fee as well
-			newFee := m.estimateFee(m.Configuration.FeeUnit, changeOutputSize)
-			satoshisChange -= newFee - fee
-			if err = m.setChangeDestination(
-				ctx, satoshisChange,
-			); err != nil {
+			var newFee uint64
+			newFee, err = m.setChangeDestination(
+				ctx, satoshisChange, fee,
+			)
+			if err != nil {
 				return
 			}
 			m.Configuration.Fee = newFee
@@ -470,7 +494,7 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 }
 
 // setChangeDestination will make a new change destination
-func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisChange uint64) error {
+func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisChange uint64, fee uint64) (uint64, error) {
 
 	m.Configuration.ChangeSatoshis = satoshisChange
 
@@ -481,6 +505,7 @@ func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisCha
 		}
 	}
 
+	newFee := fee
 	if len(useExistingOutputsForChange) > 0 {
 		// reset destinations if set
 		m.Configuration.ChangeDestinationsStrategy = ChangeStrategyDefault
@@ -508,17 +533,21 @@ func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisCha
 			numberOfDestinations = 1
 		}
 
+		newFee = m.estimateFee(m.Configuration.FeeUnit, uint64(numberOfDestinations)*changeOutputSize)
+		satoshisChange -= newFee - fee
+		m.Configuration.ChangeSatoshis = satoshisChange
+
 		if m.Configuration.ChangeDestinations == nil {
 			if err := m.setChangeDestinations(
 				ctx, numberOfDestinations,
 			); err != nil {
-				return err
+				return fee, err
 			}
 		}
 
 		changeSatoshis, err := m.getChangeSatoshis(satoshisChange)
 		if err != nil {
-			return err
+			return fee, err
 		}
 
 		for _, destination := range m.Configuration.ChangeDestinations {
@@ -535,7 +564,7 @@ func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisCha
 		}
 	}
 
-	return nil
+	return newFee, nil
 }
 
 // split the change satoshis amongst the change destinations according to the strategy given in config

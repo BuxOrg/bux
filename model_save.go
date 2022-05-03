@@ -12,10 +12,21 @@ import (
 // Save will Save the model(s) into the Datastore
 func Save(ctx context.Context, model ModelInterface) (err error) {
 
+	// Check for a client
+	c := model.Client()
+	if c == nil {
+		return ErrMissingClient
+	}
+
+	// Check for a datastore
+	ds := c.Datastore()
+	if c == nil {
+		return ErrDatastoreRequired
+	}
 	// Create new Datastore transaction
 	// @siggi: we need this to be in a callback context for Mongo
 	// NOTE: a DB error is not being returned from here
-	return model.Client().Datastore().NewTx(ctx, func(tx *datastore.Transaction) (err error) {
+	return ds.NewTx(ctx, func(tx *datastore.Transaction) (err error) {
 
 		// Fire the before hooks (parent model)
 		if model.IsNew() {

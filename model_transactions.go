@@ -570,7 +570,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 			tx.draftTransaction.FinalTxID = tx.ID
 			tx.draftTransaction.enrich(ModelDraftTransaction, tx.GetOptions(false)...)
 			if err := tx.draftTransaction.Save(context.Background()); err != nil {
-				tx.DebugLog("error updating draft transaction: " + err.Error())
+				tx.Client().Logger().Error(context.Background(), "error updating draft transaction: "+err.Error())
 			}
 
 			// Should we broadcast immediately?
@@ -581,7 +581,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 				if err := processBroadcastTransaction(
 					context.Background(), tx.syncTransaction,
 				); err != nil {
-					tx.DebugLog("error running broadcast tx: " + err.Error())
+					tx.Client().Logger().Error(context.Background(), "error running broadcast tx: "+err.Error())
 				}
 			}
 		}

@@ -183,3 +183,6 @@ var ErrMissingPaymailExternalXPub = errors.New("missing external xPub in paymail
 
 // ErrMissingPaymailXPubID missing xpub_id in paymail
 var ErrMissingPaymailXPubID = errors.New("missing xpub_id in paymail")
+
+// ErrMissingClient missing client from model
+var ErrMissingClient = errors.New("client is missing from model, cannot save")

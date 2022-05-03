@@ -80,8 +80,7 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 	)
 	if err != nil {
 		return nil, err
-	}
-	if utxo == nil {
+	} else if utxo == nil {
 		return nil, ErrMissingUtxo
 	}
 

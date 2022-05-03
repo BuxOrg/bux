@@ -51,7 +51,7 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 	}
 }
 
-// getSpendableUtxos Get all spendable utxos by page / pageSize
+// getSpendableUtxos get all spendable utxos by page / pageSize
 func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, // nolint:unparam // this param will be used
 	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
@@ -69,11 +69,12 @@ func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 			utxo, err := getUtxo(ctx, fromUtxo.TransactionID, fromUtxo.OutputIndex, opts...)
 			if err != nil {
 				return nil, err
+			} else if utxo != nil {
+				if utxo.XpubID != xPubID || utxo.SpendingTxID.Valid {
+					return nil, ErrUtxoAlreadySpent
+				}
+				models = append(models, *utxo)
 			}
-			if utxo.XpubID != xPubID || utxo.SpendingTxID.Valid {
-				return nil, ErrUtxoAlreadySpent
-			}
-			models = append(models, *utxo)
 		}
 	} else {
 		// Get the records
@@ -86,6 +87,11 @@ func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 			}
 			return nil, err
 		}
+	}
+
+	// No utxos found?
+	if len(models) == 0 {
+		return nil, ErrMissingUTXOsSpendable
 	}
 
 	// Loop and enrich

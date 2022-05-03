@@ -79,14 +79,14 @@ var ErrOutputValueNotRecognized = errors.New("output value is unrecognized")
 // ErrOutputValueTooLow is when the satoshis output is too low on a transaction
 var ErrOutputValueTooLow = errors.New("output value is too low")
 
-// ErrOutputValueUnSpendable is when the satoshis output is set on an op_return and is un-spendable
-// var ErrOutputValueUnSpendable = errors.New("output value un-spendable")
+// ErrMissingUTXOsInclude is when there are no utxos found from the "include utxos"
+var ErrMissingUTXOsInclude = errors.New("no utxos found using include")
+
+// ErrMissingUTXOsSpendable is when there are no utxos found from the "spendable utxos"
+var ErrMissingUTXOsSpendable = errors.New("no utxos found using spendable")
 
 // ErrPaymailAddressIsInvalid is when the paymail address is NOT alias@domain.com
 var ErrPaymailAddressIsInvalid = errors.New("paymail address is invalid")
-
-// ErrPaymailAddressAlreadyRegistered is when the paymail address is already registered to another xpub
-// var ErrPaymailAddressAlreadyRegistered = errors.New("paymail address is already registered")
 
 // ErrUtxoNotReserved is when the utxo is not reserved, but a transaction tries to spend it
 var ErrUtxoNotReserved = errors.New("transaction utxo has not been reserved for spending")

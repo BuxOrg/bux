@@ -54,8 +54,10 @@ func Test_processConditions(t *testing.T) {
 		}
 		varNum := 0
 		_ = processConditions(tx, conditions, MySQL, &varNum, nil)
-		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
-		assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
+		// assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Contains(t, tx.WhereClauses, "monitor > @var0")
+		// assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
+		assert.Contains(t, tx.WhereClauses, "spending_tx_id IS NOT NULL")
 		assert.Equal(t, "2022-04-04 15:12:37", tx.Vars["var0"])
 	})
 
@@ -66,8 +68,10 @@ func Test_processConditions(t *testing.T) {
 		}
 		varNum := 0
 		_ = processConditions(tx, conditions, PostgreSQL, &varNum, nil)
-		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
-		assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
+		// assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Contains(t, tx.WhereClauses, "monitor > @var0")
+		// assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
+		assert.Contains(t, tx.WhereClauses, "spending_tx_id IS NOT NULL")
 		assert.Equal(t, "2022-04-04T15:12:37Z", tx.Vars["var0"])
 	})
 
@@ -78,8 +82,10 @@ func Test_processConditions(t *testing.T) {
 		}
 		varNum := 0
 		_ = processConditions(tx, conditions, SQLite, &varNum, nil)
-		assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
-		assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
+		// assert.Equal(t, "monitor > @var0", tx.WhereClauses[0])
+		assert.Contains(t, tx.WhereClauses, "monitor > @var0")
+		// assert.Equal(t, "spending_tx_id IS NOT NULL", tx.WhereClauses[1])
+		assert.Contains(t, tx.WhereClauses, "spending_tx_id IS NOT NULL")
 		assert.Equal(t, "2022-04-04T15:12:37.651Z", tx.Vars["var0"])
 	})
 }

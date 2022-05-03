@@ -53,7 +53,7 @@ func main() {
 	var draft *bux.DraftTransaction
 	draft, err = client.NewTransaction(context.Background(), xpub.RawXpub(), &bux.TransactionConfig{
 		ExpiresIn: 10 * time.Second,
-		SendAllTo: "mrz@moneybutton.com",
+		SendAllTo: &bux.TransactionOutput{To: "mrz@moneybutton.com"},
 	})
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

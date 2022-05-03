@@ -563,29 +563,27 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		}
 	}
 
-	// update the draft transaction, process broadcasting
-	go func(tx *Transaction) {
-		if tx.draftTransaction != nil {
-			tx.draftTransaction.Status = DraftStatusComplete
-			tx.draftTransaction.FinalTxID = tx.ID
-			tx.draftTransaction.enrich(ModelDraftTransaction, tx.GetOptions(false)...)
-			if err := tx.draftTransaction.Save(context.Background()); err != nil {
-				tx.Client().Logger().Error(context.Background(), "error updating draft transaction: "+err.Error())
-			}
+	// Update the draft transaction, process broadcasting
+	// todo: go routine (however its not working, panic in save for missing datastore)
+	if m.draftTransaction != nil {
+		m.draftTransaction.Status = DraftStatusComplete
+		m.draftTransaction.FinalTxID = m.ID
+		if err := m.draftTransaction.Save(ctx); err != nil {
+			return err
+		}
 
-			// Should we broadcast immediately?
-			if tx.syncTransaction != nil &&
-				tx.draftTransaction.Configuration.Sync.Broadcast &&
-				tx.draftTransaction.Configuration.Sync.BroadcastInstant {
-				tx.syncTransaction.enrich(ModelSyncTransaction, tx.GetOptions(false)...)
-				if err := processBroadcastTransaction(
-					context.Background(), tx.syncTransaction,
-				); err != nil {
-					tx.Client().Logger().Error(context.Background(), "error running broadcast tx: "+err.Error())
-				}
+		// Should we broadcast immediately?
+		if m.syncTransaction != nil &&
+			m.draftTransaction.Configuration.Sync.Broadcast &&
+			m.draftTransaction.Configuration.Sync.BroadcastInstant {
+			if err := processBroadcastTransaction(
+				ctx, m.syncTransaction,
+			); err != nil {
+				// return err (do not return and fail the tx creation)
+				m.Client().Logger().Error(ctx, "error running broadcast tx: "+err.Error())
 			}
 		}
-	}(m)
+	}
 
 	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeCreate, m)

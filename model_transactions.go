@@ -550,8 +550,8 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 
 	// update the xpub balances
 	for xPubID, balance := range m.XpubOutputValue {
-		// todo move this into a function on the xpub model
-		// todo: turn this in to job/task to run? (go routine)
+		// todo: move this into a function on the xpub model
+		// todo: run this in a go routine?
 		xPub, err := getXpubByID(ctx, xPubID, opts...)
 		if err != nil {
 			return err
@@ -563,11 +563,12 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		}
 	}
 
-	// update the draft transaction (if linked to reference) to complete
+	// update the draft transaction, process broadcasting
 	go func(tx *Transaction) {
 		if tx.draftTransaction != nil {
 			tx.draftTransaction.Status = DraftStatusComplete
 			tx.draftTransaction.FinalTxID = tx.ID
+			tx.draftTransaction.enrich(ModelDraftTransaction, tx.GetOptions(false)...)
 			if err := tx.draftTransaction.Save(context.Background()); err != nil {
 				tx.DebugLog("error updating draft transaction: " + err.Error())
 			}
@@ -576,6 +577,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 			if tx.syncTransaction != nil &&
 				tx.draftTransaction.Configuration.Sync.Broadcast &&
 				tx.draftTransaction.Configuration.Sync.BroadcastInstant {
+				tx.syncTransaction.enrich(ModelSyncTransaction, tx.GetOptions(false)...)
 				if err := processBroadcastTransaction(
 					context.Background(), tx.syncTransaction,
 				); err != nil {

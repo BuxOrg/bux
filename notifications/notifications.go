@@ -13,7 +13,7 @@ func (c *Client) GetWebhookEndpoint() string {
 	return c.options.config.webhookEndpoint
 }
 
-// Notify will create a new notification
+// Notify will create a new notification event
 func (c *Client) Notify(ctx context.Context, modelType string, eventType EventType,
 	model interface{}, id string) error {
 
@@ -23,10 +23,10 @@ func (c *Client) Notify(ctx context.Context, modelType string, eventType EventTy
 		}
 	} else {
 		jsonData, err := json.Marshal(map[string]interface{}{
-			"eventType": eventType,
-			"id":        id,
-			"model":     model,
-			"modelType": modelType,
+			"event_type": eventType,
+			"id":         id,
+			"model":      model,
+			"model_type": modelType,
 		})
 		if err != nil {
 			return err

@@ -9,6 +9,7 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/tonicpow/go-paymail"
@@ -407,6 +408,9 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		)
 		return err
 	}
+
+	// Fire a notification
+	notify(notifications.EventTypeBroadcast, syncTx)
 
 	// Notify any P2P paymail providers associated to the transaction
 	if syncTx.P2PStatus == SyncStatusReady {

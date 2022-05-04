@@ -757,6 +757,63 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[2].To)
 		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
+	t.Run("SendAllTo + 2 utxos", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+
+		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+		err := xPub.Save(ctx)
+		require.NoError(t, err)
+
+		destination := newDestination(testXPubID, testLockingScript,
+			append(client.DefaultModelOptions(), New())...)
+		err = destination.Save(ctx)
+		require.NoError(t, err)
+
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 1, 13483,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 0, 13483,
+			append(client.DefaultModelOptions(), New())...)
+		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			FromUtxos: []*UtxoPointer{{
+				TransactionID: testTxID,
+				OutputIndex:   1,
+			}, {
+				TransactionID: testTxID,
+				OutputIndex:   0,
+			}},
+			SendAllTo: &TransactionOutput{
+				To:       testExternalAddress,
+				Satoshis: 27004,
+			},
+			Outputs: []*TransactionOutput{{
+				OpReturn: &OpReturn{
+					Map: &MapProtocol{
+						App:  "social",
+						Type: "post",
+						Keys: map[string]interface{}{
+							"title": "Hello World!",
+						},
+					},
+				},
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.NoError(t, err)
+		assert.Len(t, draftTransaction.Configuration.Outputs, 2)
+		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, uint64(26751), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(215), draftTransaction.Configuration.Fee)
+		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].To)
+		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[1].Satoshis)
+	})
 }
 
 // TestDraftTransaction_setChangeDestination setting the change destination

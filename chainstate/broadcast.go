@@ -65,6 +65,9 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	// Set the error messages
+	var errorMessages []string
+
 	// First: try all mAPI miners (Only supported on main and test right now)
 	if c.Network() == MainNet || c.Network() == TestNet {
 		for index := range c.options.config.mAPI.broadcastMiners {
@@ -87,6 +90,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 				}
 
 				// Provider error?
+				errorMessages = append(errorMessages, provider+": "+err.Error())
 				c.DebugLog("broadcast error: " + err.Error() + " from provider: " + c.options.config.mAPI.broadcastMiners[index].Miner.Name)
 			}
 		}
@@ -103,6 +107,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 		}
 
 		// Provider error?
+		errorMessages = append(errorMessages, provider+": "+err.Error())
 		c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerMatterCloud)
 	} else { // Success!
 		return
@@ -119,6 +124,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 		}
 
 		// Provider error?
+		errorMessages = append(errorMessages, provider+": "+err.Error())
 		c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerWhatsOnChain)
 	} else { // Success!
 		return
@@ -136,6 +142,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 			}
 
 			// Provider error?
+			errorMessages = append(errorMessages, provider+": "+err.Error())
 			c.DebugLog("broadcast error: " + err.Error() + " from provider: " + providerNowNodes)
 		} else { // Success!
 			return
@@ -143,7 +150,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	}
 
 	// Final error - all failures
-	return providerAll, errors.New("broadcast failed on all providers")
+	return providerAll, errors.New("broadcast failed on all providers - error messages: " + strings.Join(errorMessages, ","))
 }
 
 // checkInMempool is a quick check to see if the tx is in mempool (or on-chain)

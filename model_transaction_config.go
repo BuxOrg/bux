@@ -270,14 +270,15 @@ func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Conte
 func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string) error {
 
 	// todo: this is a hack since paymail providers will complain if satoshis are empty (SendToAll has 0 satoshi)
-	if t.Satoshis <= 0 {
-		t.Satoshis = 100
+	satoshis := t.Satoshis
+	if satoshis <= 0 {
+		satoshis = 100
 	}
 
 	// Get the outputs and destination information from the Paymail provider
 	destinationInfo, err := startP2PTransaction(
 		client, t.PaymailP4.Alias, t.PaymailP4.Domain,
-		p2pDestinationURL, t.Satoshis,
+		p2pDestinationURL, satoshis,
 	)
 	if err != nil {
 		return err
@@ -289,7 +290,7 @@ func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface,
 			t.Scripts,
 			&ScriptOutput{
 				Address:    out.Address,
-				Satoshis:   out.Satoshis,
+				Satoshis:   t.Satoshis,
 				Script:     out.Script,
 				ScriptType: utils.ScriptTypePubKeyHash,
 			},

@@ -167,6 +167,7 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 		outputs := m.Configuration.Outputs
 
 		m.Configuration.SendAllTo.UseForChange = true
+		m.Configuration.SendAllTo.Satoshis = 0
 		m.Configuration.Outputs = []*TransactionOutput{m.Configuration.SendAllTo}
 
 		if err := m.Configuration.Outputs[0].processOutput(
@@ -279,7 +280,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		}
 	} else {
 
-		// we can only include separate utxos (like tokens) when not using SendToAll
+		// we can only include separate utxos (like tokens) when not using SendAllTo
 		if m.Configuration.IncludeUtxos != nil {
 			err = m.addIncludeUtxos(ctx)
 			if err != nil {

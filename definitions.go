@@ -123,6 +123,14 @@ const (
 	modelList    = "models"
 )
 
+// Cache keys for model caching
+const (
+	cacheKeyDestinationModel                = "destination-id-%s"             // model-id-<destination_id>
+	cacheKeyDestinationModelByAddress       = "destination-address-%s"        // model-address-<address>
+	cacheKeyDestinationModelByLockingScript = "destination-locking-script-%s" // model-locking-script-<script>
+	cacheKeyXpubModel                       = "xpub-id-%s"                    // model-id-<xpub_id>
+)
+
 var (
 
 	// BaseModels is the list of models for loading the engine and AutoMigration (defaults)

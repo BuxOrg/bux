@@ -182,8 +182,8 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 
 	// Get the corresponding xPub related to the paymail address
 	var xPub *Xpub
-	if xPub, err = getXpubByID(
-		ctx, paymailAddress.XpubID, opts...,
+	if xPub, err = getXpubWithCache(
+		ctx, p.client, "", paymailAddress.XpubID, opts...,
 	); err != nil {
 		return nil, "", nil, err
 	}

@@ -97,7 +97,7 @@ func (m *IncomingTransaction) GetModelTableName() string {
 	return tableIncomingTransactions
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *IncomingTransaction) Save(ctx context.Context) error {
 	return Save(ctx, m)
 }
@@ -133,7 +133,7 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 	}
 
 	// Check that the transaction has >= 1 known destination
-	if !m.TransactionBase.hasOneKnownDestination(ctx, m.GetOptions(false)...) {
+	if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client(), m.GetOptions(false)...) {
 		return ErrNoMatchingOutputs
 	}
 
@@ -144,7 +144,7 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 	opts := m.GetOptions(false)
 	for index := range m.TransactionBase.parsedTx.Outputs {
 		lockingScript = m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
-		destination, err := getDestinationByLockingScript(ctx, lockingScript, opts...)
+		destination, err := getDestinationWithCache(ctx, m.Client(), "", "", lockingScript, opts...)
 		if err != nil {
 			m.Client().Logger().Warn(ctx, "error getting destination: "+err.Error())
 		} else if destination != nil && destination.LockingScript == lockingScript {

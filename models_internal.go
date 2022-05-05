@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/notifications"
@@ -156,10 +155,25 @@ func incrementField(ctx context.Context, model ModelInterface, fieldName string,
 	increment int64) (int64, error) {
 
 	// Debug log
-	model.DebugLog(fmt.Sprintf("increment model %s field ... %s %d", model.Name(), fieldName, increment))
+	// model.DebugLog(fmt.Sprintf("increment model %s field ... %s %d", model.Name(), fieldName, increment))
+
+	// Check for client
+	c := model.Client()
+	if c == nil {
+		return 0, ErrMissingClient
+	}
 
 	// Increment
-	return model.Client().Datastore().IncrementModel(ctx, model, fieldName, increment)
+	newValue, err := c.Datastore().IncrementModel(ctx, model, fieldName, increment)
+	if err != nil {
+		return 0, err
+	}
+
+	// Fire an AfterUpdate event
+	if err = model.AfterUpdated(ctx); err != nil {
+		return 0, err
+	}
+	return newValue, nil
 }
 
 // notify about an event on the model

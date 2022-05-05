@@ -133,7 +133,7 @@ func (m *DraftTransaction) GetModelTableName() string {
 	return tableDraftTransactions
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *DraftTransaction) Save(ctx context.Context) (err error) {
 	if err = Save(ctx, m); err != nil {
 
@@ -421,8 +421,8 @@ func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) erro
 	opts := m.GetOptions(false)
 	for _, utxo := range utxos {
 		lockingScript := utils.GetDestinationLockingScript(utxo.ScriptPubKey)
-		destination, err := getDestinationByLockingScript(
-			ctx, lockingScript, opts...,
+		destination, err := getDestinationWithCache(
+			ctx, m.Client(), "", "", lockingScript, opts...,
 		)
 		if err != nil {
 			return err
@@ -641,6 +641,7 @@ func (m *DraftTransaction) setChangeDestinations(ctx context.Context, numberOfDe
 	// Set the options
 	opts := m.GetOptions(false)
 	optsNew := append(opts, New())
+	c := m.Client()
 
 	var err error
 	var xPub *Xpub
@@ -648,15 +649,15 @@ func (m *DraftTransaction) setChangeDestinations(ctx context.Context, numberOfDe
 
 	// Loop for each destination
 	for i := 0; i < numberOfDestinations; i++ {
-		if xPub, err = getXpub(
-			ctx, m.rawXpubKey, opts...,
+		if xPub, err = getXpubWithCache(
+			ctx, c, m.rawXpubKey, "", opts...,
 		); err != nil {
 			return err
 		} else if xPub == nil {
 			return ErrMissingXpub
 		}
 
-		if num, err = xPub.IncrementNextNum(
+		if num, err = xPub.incrementNextNum(
 			ctx, utils.ChainInternal,
 		); err != nil {
 			return err

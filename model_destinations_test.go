@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/utils"
 	"github.com/DATA-DOG/go-sqlmock"
 	bscript2 "github.com/libsv/go-bt/v2/bscript"
+	"github.com/mrz1836/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -414,11 +415,15 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Commit the TX
 		tc.MockSQLDB.ExpectCommit()
 
+		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
+		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
+
 		err := destination.Save(tc.ctx)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
 		require.NoError(t, err)
+		assert.Equal(t, true, setCmd.Called)
 	})
 
 	ts.T().Run("[mysql] [redis] [mocking] - create destination", func(t *testing.T) {
@@ -457,11 +462,15 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Commit the TX
 		tc.MockSQLDB.ExpectCommit()
 
+		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
+		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
+
 		err := destination.Save(tc.ctx)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
 		require.NoError(t, err)
+		assert.Equal(t, true, setCmd.Called)
 	})
 
 	ts.T().Run("[postgresql] [redis] [mocking] - create destination", func(t *testing.T) {
@@ -498,11 +507,15 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Commit the TX
 		tc.MockSQLDB.ExpectCommit()
 
+		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
+		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
+
 		err := destination.Save(tc.ctx)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
 		require.NoError(t, err)
+		assert.Equal(t, true, setCmd.Called)
 	})
 
 	ts.T().Run("[mongo] [redis] [mocking] - create destination", func(t *testing.T) {

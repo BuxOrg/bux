@@ -165,7 +165,7 @@ func (m *AccessKey) GetModelTableName() string {
 	return tableAccessKeys
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *AccessKey) Save(ctx context.Context) error {
 	return Save(ctx, m)
 }

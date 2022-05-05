@@ -361,7 +361,7 @@ func (m *Transaction) GetModelTableName() string {
 	return tableTransactions
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *Transaction) Save(ctx context.Context) (err error) {
 
 	// Prepare the metadata
@@ -518,7 +518,7 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 	// If we are external and the user disabled incoming transaction checking, check outputs
 	if m.isExternal() && !m.Client().IsITCEnabled() {
 		// Check that the transaction has >= 1 known destination
-		if !m.TransactionBase.hasOneKnownDestination(ctx, m.GetOptions(false)...) {
+		if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client(), m.GetOptions(false)...) {
 			return ErrNoMatchingOutputs
 		}
 	}
@@ -552,13 +552,13 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 	for xPubID, balance := range m.XpubOutputValue {
 		// todo: move this into a function on the xpub model
 		// todo: run this in a go routine?
-		xPub, err := getXpubByID(ctx, xPubID, opts...)
+		xPub, err := getXpubWithCache(ctx, m.Client(), "", xPubID, opts...)
 		if err != nil {
 			return err
 		} else if xPub == nil {
 			return ErrMissingRequiredXpub
 		}
-		if err = xPub.IncrementBalance(ctx, balance); err != nil {
+		if err = xPub.incrementBalance(ctx, balance); err != nil {
 			return err
 		}
 	}
@@ -897,13 +897,13 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 // hasOneKnownDestination will check if the transaction has at least one known destination
 //
 // This is used to validate if an external transaction should be recorded into the engine
-func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, opts ...ModelOps) bool {
+func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface, opts ...ModelOps) bool {
 
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
 	lockingScript := ""
 	for index := range m.parsedTx.Outputs {
 		lockingScript = m.parsedTx.Outputs[index].LockingScript.String()
-		destination, err := getDestinationByLockingScript(ctx, lockingScript, opts...)
+		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript, opts...)
 		if err != nil {
 			destination = newDestination("", lockingScript, opts...)
 			destination.Client().Logger().Error(ctx, "error getting destination: "+err.Error())

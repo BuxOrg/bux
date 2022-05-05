@@ -24,8 +24,8 @@ func (c *Client) NewAccessKey(ctx context.Context, rawXpubKey string, opts ...Mo
 
 	// Get the xPub (by key - converts to id)
 	var xPub *Xpub
-	if xPub, err = getXpub(
-		ctx, rawXpubKey, // Pass the context and key everytime (for now)
+	if xPub, err = getXpubWithCache(
+		ctx, c, rawXpubKey, "", // Pass the context and key everytime (for now)
 		c.DefaultModelOptions()..., // Passing down the Datastore and client information into the model
 	); err != nil {
 		return nil, err
@@ -178,8 +178,8 @@ func (c *Client) RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opt
 
 	// Get the xPub (by key - converts to id)
 	var xPub *Xpub
-	if xPub, err = getXpub(
-		ctx, rawXpubKey, // Pass the context and key everytime (for now)
+	if xPub, err = getXpubWithCache(
+		ctx, c, rawXpubKey, "", // Pass the context and key everytime (for now)
 		c.DefaultModelOptions()..., // Passing down the Datastore and client information into the model
 	); err != nil {
 		return nil, err

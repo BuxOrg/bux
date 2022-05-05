@@ -359,7 +359,7 @@ func (m *Utxo) GetModelTableName() string {
 	return tableUTXOs
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *Utxo) Save(ctx context.Context) (err error) {
 	return Save(ctx, m)
 }

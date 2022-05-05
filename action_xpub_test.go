@@ -117,7 +117,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_GetXpub() {
 			xPub, err := tc.client.GetXpub(tc.ctx, "test")
 			require.Error(t, err)
 			require.Nil(t, xPub)
-			assert.ErrorIs(t, err, utils.ErrXpubInvalidLength)
+			assert.ErrorIs(t, err, ErrMissingXpub)
 		})
 
 		ts.T().Run(testCase.name+" - error - missing xpub", func(t *testing.T) {

@@ -143,7 +143,7 @@ func getLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, er
 	return nil, nil
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *BlockHeader) Save(ctx context.Context) (err error) {
 	return Save(ctx, m)
 }

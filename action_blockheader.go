@@ -8,7 +8,7 @@ import (
 	"github.com/libsv/go-bc"
 )
 
-// RecordBlockHeader will Save a block header into the Datastore
+// RecordBlockHeader will save a block header into the Datastore
 //
 // hash is the hash of the block header
 // bh is the block header data

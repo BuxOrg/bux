@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Save will Save the model(s) into the Datastore
+// Save will save the model(s) into the Datastore
 func Save(ctx context.Context, model ModelInterface) (err error) {
 
 	// Check for a client
@@ -110,17 +110,19 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 	})
 }
 
-// saveToCache will Save the model to the cache using the given key
+// saveToCache will save the model to the cache using the given key(s)
 //
 // ttl of 0 will cache forever
-func saveToCache(ctx context.Context, key string, model ModelInterface, ttl time.Duration) error {
-	// NOTE: this check is in place in-case a model does not load it's Parent Client
+func saveToCache(ctx context.Context, keys []string, model ModelInterface, ttl time.Duration) error {
+	// NOTE: this check is in place in-case a model does not load its parent Client()
 	if model.Client() != nil {
-		c := model.Client().Cachestore()
-		if c != nil && !c.Engine().IsEmpty() {
-			return c.SetModel(ctx, key, model, ttl)
+		for _, key := range keys {
+			if err := model.Client().Cachestore().SetModel(ctx, key, model, ttl); err != nil {
+				return err
+			}
 		}
+	} else {
+		model.DebugLog("ignoring saveToCache: client or cachestore is missing")
 	}
-	model.DebugLog("ignoring SetModel: client or cachestore is missing")
 	return nil
 }

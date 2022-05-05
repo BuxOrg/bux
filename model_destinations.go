@@ -231,6 +231,75 @@ func getDestinationsCountByXPubID(ctx context.Context, xPubID string, usingMetad
 	return count, nil
 }
 
+// getXpubWithCache will try to get from cache first, then datastore
+//
+// key is the raw xPub key or use xPubID
+func getDestinationWithCache(ctx context.Context, client ClientInterface,
+	id, address, lockingScript string, opts ...ModelOps) (*Destination, error) {
+
+	// Create the cache key
+	var cacheKey string
+	if len(id) > 0 {
+		cacheKey = fmt.Sprintf(cacheKeyDestinationModel, id)
+	} else if len(address) > 0 {
+		cacheKey = fmt.Sprintf(cacheKeyDestinationModelByAddress, address)
+	} else if len(lockingScript) > 0 {
+		cacheKey = fmt.Sprintf(cacheKeyDestinationModelByLockingScript, lockingScript)
+	}
+	if len(cacheKey) == 0 {
+		return nil, ErrMissingFieldID
+	}
+
+	// Attempt to get from cache
+	destination := new(Destination)
+	found, err := getModelFromCache(
+		ctx, client.Cachestore(), cacheKey, destination,
+	)
+	if err != nil { // Found a real error
+		return nil, err
+	} else if found { // Return the cached model
+		destination.enrich(ModelDestination, opts...) // Enrich the model with our parent options
+		return destination, nil
+	}
+
+	// Get via ID, address or locking script
+	if len(id) > 0 {
+		destination, err = getDestinationByID(
+			ctx, id, opts...,
+		)
+	} else if len(address) > 0 {
+		destination, err = getDestinationByAddress(
+			ctx, address, opts...,
+		)
+	} else if len(lockingScript) > 0 {
+		destination, err = getDestinationByLockingScript(
+			ctx, lockingScript, opts...,
+		)
+	}
+
+	// Check for errors and if the destination is returned
+	if err != nil {
+		return nil, err
+	} else if destination == nil {
+		return nil, ErrMissingDestination
+	}
+
+	// Save to cache
+	// todo: run in a go routine
+	if err = saveToCache(
+		ctx, []string{
+			fmt.Sprintf(cacheKeyDestinationModel, destination.GetID()),
+			fmt.Sprintf(cacheKeyDestinationModelByAddress, destination.Address),
+			fmt.Sprintf(cacheKeyDestinationModelByLockingScript, destination.LockingScript),
+		}, destination, 0,
+	); err != nil {
+		return nil, err
+	}
+
+	// Return the model
+	return destination, nil
+}
+
 // GetModelName will get the name of the current model
 func (m *Destination) GetModelName() string {
 	return ModelDestination.String()
@@ -241,7 +310,7 @@ func (m *Destination) GetModelTableName() string {
 	return tableDestinations
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *Destination) Save(ctx context.Context) (err error) {
 	return Save(ctx, m)
 }
@@ -268,7 +337,7 @@ func (m *Destination) BeforeCreating(_ context.Context) error {
 }
 
 // AfterCreated will fire after the model is created in the Datastore
-func (m *Destination) AfterCreated(_ context.Context) error {
+func (m *Destination) AfterCreated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
 	if m.Monitor.Valid {
@@ -280,6 +349,17 @@ func (m *Destination) AfterCreated(_ context.Context) error {
 				m.DebugLog(fmt.Sprintf("ERROR: failed adding destination to monitor: %s", err.Error()))
 			}
 		}
+	}
+
+	// Store in the cache
+	if err := saveToCache(
+		ctx, []string{
+			fmt.Sprintf(cacheKeyDestinationModel, m.GetID()),
+			fmt.Sprintf(cacheKeyDestinationModelByAddress, m.Address),
+			fmt.Sprintf(cacheKeyDestinationModelByLockingScript, m.LockingScript),
+		}, m, 0,
+	); err != nil {
+		return err
 	}
 
 	notify(notifications.EventTypeCreate, m)
@@ -325,8 +405,19 @@ func (m *Destination) Migrate(client datastore.ClientInterface) error {
 }
 
 // AfterUpdated will fire after the model is updated in the Datastore
-func (m *Destination) AfterUpdated(_ context.Context) error {
+func (m *Destination) AfterUpdated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+
+	// Store in the cache
+	if err := saveToCache(
+		ctx, []string{
+			fmt.Sprintf(cacheKeyDestinationModel, m.GetID()),
+			fmt.Sprintf(cacheKeyDestinationModelByAddress, m.Address),
+			fmt.Sprintf(cacheKeyDestinationModelByLockingScript, m.LockingScript),
+		}, m, 0,
+	); err != nil {
+		return err
+	}
 
 	notify(notifications.EventTypeUpdate, m)
 
@@ -335,8 +426,25 @@ func (m *Destination) AfterUpdated(_ context.Context) error {
 }
 
 // AfterDeleted will fire after the model is deleted in the Datastore
-func (m *Destination) AfterDeleted(_ context.Context) error {
+func (m *Destination) AfterDeleted(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
+
+	// Only if we have a client, remove all keys
+	if m.Client() != nil {
+		keys := map[string]string{
+			cacheKeyDestinationModel:                m.GetID(),
+			cacheKeyDestinationModelByAddress:       m.Address,
+			cacheKeyDestinationModelByLockingScript: m.LockingScript,
+		}
+
+		for key, val := range keys {
+			if err := m.Client().Cachestore().Delete(
+				ctx, fmt.Sprintf(key, val),
+			); err != nil {
+				return err
+			}
+		}
+	}
 
 	notify(notifications.EventTypeDelete, m)
 

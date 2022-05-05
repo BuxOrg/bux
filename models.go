@@ -28,11 +28,11 @@ type Model struct {
 
 	// Private fields
 	client        ClientInterface // Interface of the parent Client that loaded this bux model
-	encryptionKey string          // Use for sensitive values that required encryption
+	encryptionKey string          // Use for sensitive values that required encryption (IE: paymail public xpub)
 	name          ModelName       // Name of model (table name)
 	newRecord     bool            // Determine if the record is new (create vs update)
-	rawXpubKey    string          // Used on "CREATE" on some instances
-	pageSize      int             // number of items per page to get if being used in for instance getModels
+	pageSize      int             // Number of items per page to get if being used in for method getModels
+	rawXpubKey    string          // Used on "CREATE" on some models
 }
 
 // ModelInterface is the interface that all models share

@@ -33,7 +33,7 @@ func newXpub(key string, opts ...ModelOps) *Xpub {
 	}
 }
 
-// newXpub will start a new xPub model
+// newXpubUsingID will start a new xPub model using the xPubID
 func newXpubUsingID(xPubID string, opts ...ModelOps) *Xpub {
 	return &Xpub{
 		ID:    xPubID,
@@ -64,12 +64,7 @@ func getXpubByID(ctx context.Context, xPubID string, opts ...ModelOps) (*Xpub, e
 	// Get the record
 	xPub := newXpubUsingID(xPubID, opts...)
 	if err := Get(
-		ctx,
-		xPub,
-		nil,
-		false,
-		defaultDatabaseReadTimeout,
-		false,
+		ctx, xPub, nil, false, defaultDatabaseReadTimeout, true,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
 			return nil, nil
@@ -80,22 +75,69 @@ func getXpubByID(ctx context.Context, xPubID string, opts ...ModelOps) (*Xpub, e
 	return xPub, nil
 }
 
-// getXPubs will get all the xpubs matching the conditions
-func getXPubs(ctx context.Context, usingMetadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error) {
+// getXpubWithCache will try to get from cache first, then datastore
+//
+// key is the raw xPub key or use xPubID
+func getXpubWithCache(ctx context.Context, client ClientInterface,
+	key, xPubID string, opts ...ModelOps) (*Xpub, error) {
 
-	modelItems := make([]*Xpub, 0)
-	if err := getModelsByConditions(ctx, ModelXPub, &modelItems, usingMetadata, conditions, queryParams, opts...); err != nil {
+	// Create the cache key
+	if len(key) > 0 {
+		xPubID = utils.Hash(key)
+		opts = append(opts, WithXPub(key)) // Add the xPub option which will set it on the model
+	} else if len(xPubID) == 0 {
+		return nil, ErrMissingFieldXpubID
+	}
+	cacheKey := fmt.Sprintf(cacheKeyXpubModel, xPubID)
+
+	// Attempt to get from cache
+	xPub := new(Xpub)
+	found, err := getModelFromCache(
+		ctx, client.Cachestore(), cacheKey, xPub,
+	)
+	if err != nil { // Found a real error
+		return nil, err
+	} else if found { // Return the cached model
+		xPub.enrich(ModelXPub, opts...) // Enrich the model with our parent options
+		return xPub, nil
+	}
+
+	// Get the xPub
+	if xPub, err = getXpubByID(
+		ctx, xPubID, opts...,
+	); err != nil {
+		return nil, err
+	} else if xPub == nil {
+		return nil, ErrMissingXpub
+	}
+
+	// Save to cache
+	// todo: run in a go routine
+	if err = saveToCache(
+		ctx, []string{cacheKey}, xPub, 0,
+	); err != nil {
 		return nil, err
 	}
 
+	// Return the model
+	return xPub, nil
+}
+
+// getXPubs will get all the xpubs matching the conditions
+func getXPubs(ctx context.Context, usingMetadata *Metadata, conditions *map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error) {
+	modelItems := make([]*Xpub, 0)
+	if err := getModelsByConditions(
+		ctx, ModelXPub, &modelItems, usingMetadata, conditions, queryParams, opts...,
+	); err != nil {
+		return nil, err
+	}
 	return modelItems, nil
 }
 
 // getXPubsCount will get a count of the xpubs matching the conditions
 func getXPubsCount(ctx context.Context, usingMetadata *Metadata,
 	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
-
 	return getModelCountByConditions(ctx, ModelXPub, Xpub{}, usingMetadata, conditions, opts...)
 }
 
@@ -109,7 +151,7 @@ func (m *Xpub) GetModelTableName() string {
 	return tableXPubs
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *Xpub) Save(ctx context.Context) error {
 	return Save(ctx, m)
 }
@@ -130,7 +172,7 @@ func (m *Xpub) getNewDestination(ctx context.Context, chain uint32, destinationT
 	}
 
 	// Increment the next num
-	num, err := m.IncrementNextNum(ctx, chain)
+	num, err := m.incrementNextNum(ctx, chain)
 	if err != nil {
 		return nil, err
 	}
@@ -145,12 +187,11 @@ func (m *Xpub) getNewDestination(ctx context.Context, chain uint32, destinationT
 
 	// Add the destination to the xPub
 	m.destinations = append(m.destinations, *destination)
-
 	return destination, nil
 }
 
-// IncrementBalance will atomically update the balance of the xPub
-func (m *Xpub) IncrementBalance(ctx context.Context, balanceIncrement int64) error {
+// incrementBalance will atomically update the balance of the xPub
+func (m *Xpub) incrementBalance(ctx context.Context, balanceIncrement int64) error {
 	newBalance, err := incrementField(ctx, m, currentBalanceField, balanceIncrement)
 	if err != nil {
 		return err
@@ -159,8 +200,8 @@ func (m *Xpub) IncrementBalance(ctx context.Context, balanceIncrement int64) err
 	return nil
 }
 
-// IncrementNextNum will atomically update the num of the given chain of the xPub and return it
-func (m *Xpub) IncrementNextNum(ctx context.Context, chain uint32) (uint32, error) {
+// incrementNextNum will atomically update the num of the given chain of the xPub and return it
+func (m *Xpub) incrementNextNum(ctx context.Context, chain uint32) (uint32, error) {
 	var err error
 	var newNum int64
 
@@ -215,9 +256,9 @@ func (m *Xpub) AfterCreated(ctx context.Context) error {
 
 	// todo: run these in go routines?
 
-	// Store in the cache (if enabled)
+	// Store in the cache
 	if err := saveToCache(
-		ctx, fmt.Sprintf("%s-id-%s", m.GetModelName(), m.GetID()), m, 0,
+		ctx, []string{fmt.Sprintf(cacheKeyXpubModel, m.GetID())}, m, 0,
 	); err != nil {
 		return err
 	}
@@ -230,9 +271,9 @@ func (m *Xpub) AfterCreated(ctx context.Context) error {
 func (m *Xpub) AfterUpdated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
 
-	// Store in the cache (if enabled)
+	// Store in the cache
 	if err := saveToCache(
-		ctx, fmt.Sprintf("%s-id-%s", m.GetModelName(), m.GetID()), m, 0,
+		ctx, []string{fmt.Sprintf(cacheKeyXpubModel, m.GetID())}, m, 0,
 	); err != nil {
 		return err
 	}

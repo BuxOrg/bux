@@ -171,7 +171,7 @@ func (m *SyncTransaction) GetModelTableName() string {
 	return tableSyncTransactions
 }
 
-// Save will Save the model into the Datastore
+// Save will save the model into the Datastore
 func (m *SyncTransaction) Save(ctx context.Context) error {
 	return Save(ctx, m)
 }

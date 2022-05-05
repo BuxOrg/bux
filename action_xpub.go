@@ -10,7 +10,7 @@ import (
 	"github.com/mrz1836/go-whatsonchain"
 )
 
-// NewXpub will parse the xPub and Save it into the Datastore
+// NewXpub will parse the xPub and save it into the Datastore
 //
 // xPubKey is the raw public xPub
 // opts are options and can include "metadata"
@@ -41,20 +41,10 @@ func (c *Client) GetXpub(ctx context.Context, xPubKey string) (*Xpub, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_xpub")
 
-	// Validate the xPub
-	if _, err := utils.ValidateXPub(xPubKey); err != nil {
-		return nil, err
-	}
-
-	// Get the xPub (by key - converts to id)
-	xPub, err := getXpub(
-		ctx, xPubKey, // Pass the context and key everytime (for now)
-		c.DefaultModelOptions()..., // Passing down the Datastore and client information into the model
-	)
+	// Attempt to get from cache or datastore
+	xPub, err := getXpubWithCache(ctx, c, xPubKey, "", c.DefaultModelOptions()...)
 	if err != nil {
 		return nil, err
-	} else if xPub == nil {
-		return nil, ErrMissingXpub
 	}
 
 	// Return the model
@@ -62,20 +52,17 @@ func (c *Client) GetXpub(ctx context.Context, xPubKey string) (*Xpub, error) {
 }
 
 // GetXpubByID will get an existing xPub from the Datastore
+//
+// xPubID is the hash of the xPub
 func (c *Client) GetXpubByID(ctx context.Context, xPubID string) (*Xpub, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_xpub_by_id")
 
-	// Get the xPub (by key - converts to id)
-	xPub, err := getXpubByID(
-		ctx, xPubID,
-		c.DefaultModelOptions()...,
-	)
+	// Attempt to get from cache or datastore
+	xPub, err := getXpubWithCache(ctx, c, "", xPubID, c.DefaultModelOptions()...)
 	if err != nil {
 		return nil, err
-	} else if xPub == nil {
-		return nil, ErrMissingXpub
 	}
 
 	// Return the model
@@ -83,6 +70,8 @@ func (c *Client) GetXpubByID(ctx context.Context, xPubID string) (*Xpub, error) 
 }
 
 // UpdateXpubMetadata will update the metadata in an existing xPub
+//
+// xPubID is the hash of the xP
 func (c *Client) UpdateXpubMetadata(ctx context.Context, xPubID string, metadata Metadata) (*Xpub, error) {
 
 	// Check for existing NewRelic transaction
@@ -107,6 +96,8 @@ func (c *Client) UpdateXpubMetadata(ctx context.Context, xPubID string, metadata
 }
 
 // ImportXpub will import a given xPub and all related destinations and transactions
+//
+// xPubKey is the raw public xPub
 func (c *Client) ImportXpub(ctx context.Context, xPubKey string, opts ...ModelOps) (*ImportResults, error) {
 
 	// Validate the xPub

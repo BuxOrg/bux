@@ -18,16 +18,11 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination")
 
-	// Validate that the xPubKey is a valid xPub
-	_, err := utils.ValidateXPub(xPubKey)
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the xPub (by key - converts to id)
 	var xPub *Xpub
-	if xPub, err = getXpub(
-		ctx, xPubKey, // Get the xPub by xPubID
+	var err error
+	if xPub, err = getXpubWithCache(
+		ctx, c, xPubKey, "", // Get the xPub by xPubID
 		c.DefaultModelOptions()..., // Passing down the Datastore and client information into the model
 	); err != nil {
 		return nil, err
@@ -182,15 +177,12 @@ func (c *Client) GetDestinationByID(ctx context.Context, xPubID, id string) (*De
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_id")
 
-	// Get the destinations
-	destination, err := getDestinationByID(
-		ctx, id, c.DefaultModelOptions()...,
+	// Get the destination
+	destination, err := getDestinationWithCache(
+		ctx, c, id, "", "", c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err
-	}
-	if destination == nil {
-		return nil, ErrMissingDestination
 	}
 
 	// Check that the id matches
@@ -207,15 +199,12 @@ func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubID, lock
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_locking_script")
 
-	// Get the destinations
-	destination, err := getDestinationByLockingScript(
-		ctx, lockingScript, c.DefaultModelOptions()...,
+	// Get the destination
+	destination, err := getDestinationWithCache(
+		ctx, c, "", "", lockingScript, c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err
-	}
-	if destination == nil {
-		return nil, ErrMissingDestination
 	}
 
 	// Check that the id matches
@@ -232,15 +221,12 @@ func (c *Client) GetDestinationByAddress(ctx context.Context, xPubID, address st
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_address")
 
-	// Get the destinations
-	destination, err := getDestinationByAddress(
-		ctx, address, c.DefaultModelOptions()...,
+	// Get the destination
+	destination, err := getDestinationWithCache(
+		ctx, c, "", address, "", c.DefaultModelOptions()...,
 	)
 	if err != nil {
 		return nil, err
-	}
-	if destination == nil {
-		return nil, ErrMissingDestination
 	}
 
 	// Check that the id matches

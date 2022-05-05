@@ -8,7 +8,7 @@ import (
 	"github.com/BuxOrg/bux/utils"
 )
 
-// RecordTransaction will parse the transaction and Save it into the Datastore
+// RecordTransaction will parse the transaction and save it into the Datastore
 //
 // Internal (known) transactions: there is a corresponding `draft_transaction` via `draft_id`
 // External (known) transactions: there are output(s) related to the destination `reference_id`, tx is valid (mempool/on-chain)
@@ -107,7 +107,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 	return transaction, nil
 }
 
-// RecordMonitoredTransaction will parse the transaction and Save it into the Datastore
+// RecordMonitoredTransaction will parse the transaction and save it into the Datastore
 //
 // This function will try to record the transaction directly, without checking draft ids etc.
 func (c *Client) RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {

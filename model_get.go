@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/datastore"
 )
 
@@ -72,6 +73,7 @@ func getModelCount(
 	return datastore.GetModelCount(ctx, model, conditions, timeout)
 }
 
+// getModelsByConditions will get models by given conditions
 func getModelsByConditions(ctx context.Context, modelName ModelName, modelItems interface{},
 	metadata *Metadata, conditions *map[string]interface{}, queryParams *datastore.QueryParams,
 	opts ...ModelOps) error {
@@ -105,6 +107,7 @@ func getModelsByConditions(ctx context.Context, modelName ModelName, modelItems 
 	return nil
 }
 
+// getModelsAggregateByConditions will get aggregates of models by given conditions
 func getModelsAggregateByConditions(ctx context.Context, modelName ModelName, models interface{},
 	metadata *Metadata, conditions *map[string]interface{}, aggregateColumn string,
 	opts ...ModelOps) (map[string]interface{}, error) {
@@ -139,6 +142,7 @@ func getModelsAggregateByConditions(ctx context.Context, modelName ModelName, mo
 	return results, nil
 }
 
+// getModelCountByConditions will get model counts (sums) from given conditions
 func getModelCountByConditions(ctx context.Context, modelName ModelName, model interface{},
 	metadata *Metadata, conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
 
@@ -170,4 +174,16 @@ func getModelCountByConditions(ctx context.Context, modelName ModelName, model i
 	}
 
 	return count, nil
+}
+
+// getModelFromCache will attempt to get a model from cache
+func getModelFromCache(ctx context.Context, cacheClient cachestore.ClientInterface,
+	key string, model ModelInterface) (bool, error) { // Success if the key was found
+	if err := cacheClient.GetModel(ctx, key, model); err != nil {
+		if errors.Is(err, cachestore.ErrKeyNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

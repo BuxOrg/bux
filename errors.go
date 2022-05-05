@@ -13,7 +13,7 @@ var ErrMissingDestination = errors.New("destination could not be found")
 // ErrMissingTransaction is an error when a transaction could not be found
 var ErrMissingTransaction = errors.New("transaction could not be found")
 
-// ErrMissingUtxo is an error when a utxo could not be found
+// ErrMissingUtxo is an error when a given utxo could not be found
 var ErrMissingUtxo = errors.New("utxo could not be found")
 
 // ErrMissingFieldID is an error when missing the id field
@@ -84,9 +84,6 @@ var ErrOutputValueTooHigh = errors.New("output value is too high")
 
 // ErrTransactionFeeInvalid is when the fee on the transaction is not the difference between inputs and outputs
 var ErrTransactionFeeInvalid = errors.New("transaction fee is invalid")
-
-// ErrMissingUTXOsInclude is when there are no utxos found from the "include utxos"
-var ErrMissingUTXOsInclude = errors.New("no utxos found using include")
 
 // ErrMissingUTXOsSpendable is when there are no utxos found from the "spendable utxos"
 var ErrMissingUTXOsSpendable = errors.New("no utxos found using spendable")

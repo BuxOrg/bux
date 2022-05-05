@@ -667,7 +667,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
-		assert.Equal(t, uint64(97236), draftTransaction.Configuration.Outputs[2].Satoshis)
+		assert.Equal(t, uint64(97800), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 
 	t.Run("SendAllTo", func(t *testing.T) {
@@ -1112,9 +1112,10 @@ func TestDraftTransaction_addIncludeUtxos(t *testing.T) {
 		draft := &DraftTransaction{
 			Configuration: TransactionConfig{},
 		}
-		err := draft.addIncludeUtxos(ctx)
+		includeUtxoSatoshis, err := draft.addIncludeUtxos(ctx)
 		require.NoError(t, err)
 		assert.Len(t, draft.Configuration.Inputs, 0)
+		assert.Equal(t, uint64(0), includeUtxoSatoshis)
 	})
 
 	t.Run("with includeUtxos", func(t *testing.T) {
@@ -1136,9 +1137,11 @@ func TestDraftTransaction_addIncludeUtxos(t *testing.T) {
 			}},
 		}, client.DefaultModelOptions(New())...)
 
-		err = draft.addIncludeUtxos(ctx)
+		var includeUtxoSatoshis uint64
+		includeUtxoSatoshis, err = draft.addIncludeUtxos(ctx)
 		require.NoError(t, err)
 		assert.Len(t, draft.Configuration.Inputs, 1)
+		assert.Equal(t, uint64(550), includeUtxoSatoshis)
 		assert.Equal(t, testSTASLockingScript, draft.Configuration.Inputs[0].ScriptPubKey)
 		assert.Equal(t, testSTASScriptPubKey, draft.Configuration.Inputs[0].Destination.LockingScript)
 	})

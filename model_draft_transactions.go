@@ -281,8 +281,9 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	} else {
 
 		// we can only include separate utxos (like tokens) when not using SendAllTo
+		var includeUtxoSatoshis uint64
 		if m.Configuration.IncludeUtxos != nil {
-			err = m.addIncludeUtxos(ctx)
+			includeUtxoSatoshis, err = m.addIncludeUtxos(ctx)
 			if err != nil {
 				return err
 			}
@@ -305,6 +306,9 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		); err != nil {
 			return
 		}
+
+		// add the satoshis from the utxos we forcibly included to the total input sats
+		satoshisReserved += includeUtxoSatoshis
 
 		// Reserve the utxos
 		if err = m.processUtxos(
@@ -363,6 +367,26 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		return
 	}
 
+	// final sanity check
+	inputValue := uint64(0)
+	for _, input := range m.Configuration.Inputs {
+		inputValue += input.Satoshis
+	}
+	outputValue := uint64(0)
+	for _, output := range m.Configuration.Outputs {
+		outputValue += output.Satoshis
+	}
+
+	if inputValue < outputValue {
+		return ErrOutputValueTooHigh
+	}
+	if m.Configuration.Fee <= 0 {
+		return ErrTransactionFeeInvalid
+	}
+	if inputValue-outputValue != m.Configuration.Fee {
+		return ErrTransactionFeeInvalid
+	}
+
 	// Create the final hex (without signatures)
 	m.Hex = tx.String()
 
@@ -370,23 +394,25 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 }
 
 // addIncludeUtxos will add the included utxos
-func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) error {
+func (m *DraftTransaction) addIncludeUtxos(ctx context.Context) (uint64, error) {
 	// Whatever utxos are selected, the IncludeUtxos should be added to the transaction
 	// This can be used to add for instance tokens where fees need to be paid from other utxos
 	// The satoshis of these inputs are not added to the reserved satoshis. If these inputs contain satoshis
 	// that will be added to the total inputs and handled with the change addresses.
 	includeUtxos := make([]*Utxo, 0)
 	opts := m.GetOptions(false)
+	var includeUtxoSatoshis uint64
 	for _, utxo := range m.Configuration.IncludeUtxos {
 		utxoModel, err := getUtxo(ctx, utxo.TransactionID, utxo.OutputIndex, opts...)
 		if err != nil {
-			return err
+			return 0, err
 		} else if utxoModel == nil {
-			return ErrMissingUtxo
+			return 0, ErrMissingUtxo
 		}
 		includeUtxos = append(includeUtxos, utxoModel)
+		includeUtxoSatoshis += utxoModel.Satoshis
 	}
-	return m.processUtxos(ctx, includeUtxos)
+	return includeUtxoSatoshis, m.processUtxos(ctx, includeUtxos)
 }
 
 // processUtxos will process the utxos

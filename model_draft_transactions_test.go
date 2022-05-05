@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/jarcoal/httpmock"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2"
@@ -665,7 +667,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
-		assert.Equal(t, uint64(97236), draftTransaction.Configuration.Outputs[2].Satoshis)
+		assert.Equal(t, uint64(97800), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 
 	t.Run("SendAllTo", func(t *testing.T) {
@@ -757,9 +759,23 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[2].To)
 		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
+
 	t.Run("SendAllTo + 2 utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		p := newTestPaymailClient(t, []string{"handcash.io"})
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false,
+			WithCustomTaskManager(&taskManagerMockBase{}),
+			WithPaymailClient(p),
+		)
 		defer deferMe()
+
+		httpmock.Reset()
+		mockValidResponse(http.StatusOK, true, "handcash.io")
+		httpmock.RegisterResponder(http.MethodPost, "https://handcash.io/api/v1/bsvalias/p2p-payment-destination/mrzz@handcash.io",
+			httpmock.NewStringResponder(
+				200,
+				`{"outputs": [{"script": "76a9143e2d1d795f8acaa7957045cc59376177eb04a3c588ac","satoshis": 100}],"reference": "z0bac4ec-6f15-42de-9ef4-e60bfdabf4f7"}`,
+			),
+		)
 
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -789,8 +805,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 				OutputIndex:   0,
 			}},
 			SendAllTo: &TransactionOutput{
-				To:       testExternalAddress,
-				Satoshis: 27004,
+				To: "mrzz@handcash.io",
 			},
 			Outputs: []*TransactionOutput{{
 				OpReturn: &OpReturn{
@@ -808,8 +823,11 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = draftTransaction.createTransactionHex(ctx)
 		require.NoError(t, err)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 2)
-		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
+		assert.Equal(t, "mrzz@handcash.io", draftTransaction.Configuration.Outputs[0].To)
 		assert.Equal(t, uint64(26751), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, "16fkwYn8feXEbK7iCTg5KMx9Rx9GzZ9HuE", draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
+		assert.Equal(t, "76a9143e2d1d795f8acaa7957045cc59376177eb04a3c588ac", draftTransaction.Configuration.Outputs[0].Scripts[0].Script)
+		assert.Equal(t, uint64(26751), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 		assert.Equal(t, uint64(215), draftTransaction.Configuration.Fee)
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].To)
 		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[1].Satoshis)
@@ -1094,9 +1112,10 @@ func TestDraftTransaction_addIncludeUtxos(t *testing.T) {
 		draft := &DraftTransaction{
 			Configuration: TransactionConfig{},
 		}
-		err := draft.addIncludeUtxos(ctx)
+		includeUtxoSatoshis, err := draft.addIncludeUtxos(ctx)
 		require.NoError(t, err)
 		assert.Len(t, draft.Configuration.Inputs, 0)
+		assert.Equal(t, uint64(0), includeUtxoSatoshis)
 	})
 
 	t.Run("with includeUtxos", func(t *testing.T) {
@@ -1118,9 +1137,11 @@ func TestDraftTransaction_addIncludeUtxos(t *testing.T) {
 			}},
 		}, client.DefaultModelOptions(New())...)
 
-		err = draft.addIncludeUtxos(ctx)
+		var includeUtxoSatoshis uint64
+		includeUtxoSatoshis, err = draft.addIncludeUtxos(ctx)
 		require.NoError(t, err)
 		assert.Len(t, draft.Configuration.Inputs, 1)
+		assert.Equal(t, uint64(550), includeUtxoSatoshis)
 		assert.Equal(t, testSTASLockingScript, draft.Configuration.Inputs[0].ScriptPubKey)
 		assert.Equal(t, testSTASScriptPubKey, draft.Configuration.Inputs[0].Destination.LockingScript)
 	})

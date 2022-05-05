@@ -79,6 +79,12 @@ var ErrOutputValueNotRecognized = errors.New("output value is unrecognized")
 // ErrOutputValueTooLow is when the satoshis output is too low on a transaction
 var ErrOutputValueTooLow = errors.New("output value is too low")
 
+// ErrOutputValueTooHigh is when the satoshis output is too high on a transaction
+var ErrOutputValueTooHigh = errors.New("output value is too high")
+
+// ErrTransactionFeeInvalid is when the fee on the transaction is not the difference between inputs and outputs
+var ErrTransactionFeeInvalid = errors.New("transaction fee is invalid")
+
 // ErrMissingUTXOsInclude is when there are no utxos found from the "include utxos"
 var ErrMissingUTXOsInclude = errors.New("no utxos found using include")
 

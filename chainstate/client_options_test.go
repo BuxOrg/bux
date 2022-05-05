@@ -446,3 +446,32 @@ func TestWithLogger(t *testing.T) {
 		assert.Equal(t, customClient, options.logger)
 	})
 }
+
+// TestWithExcludedProviders will test the method WithExcludedProviders()
+func TestWithExcludedProviders(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithExcludedProviders(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying empty string", func(t *testing.T) {
+		options := &clientOptions{
+			config: &syncConfig{},
+		}
+		opt := WithExcludedProviders([]string{""})
+		opt(options)
+		assert.Equal(t, []string{""}, options.config.excludedProviders)
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		options := &clientOptions{
+			config: &syncConfig{},
+		}
+		opt := WithExcludedProviders([]string{ProviderWhatsOnChain})
+		opt(options)
+		assert.Equal(t, 1, len(options.config.excludedProviders))
+		assert.Equal(t, ProviderWhatsOnChain, options.config.excludedProviders[0])
+	})
+}

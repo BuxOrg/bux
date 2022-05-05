@@ -33,6 +33,7 @@ type (
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
+		excludedProviders  []string                     // List of provider names
 		httpClient         HTTPInterface                // Custom HTTP client (Minercraft, WOC, MatterCloud)
 		mAPI               *mAPIConfig                  // mAPI configuration
 		matterCloud        mattercloud.ClientInterface  // MatterCloud client

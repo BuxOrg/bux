@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/tonicpow/go-minercraft"
 )
@@ -67,66 +68,36 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	var errorMessages []string
 
 	// First: try all mAPI miners (Only supported on main and test right now)
-	if c.Network() == MainNet || c.Network() == TestNet {
-		for index := range c.options.config.mAPI.broadcastMiners {
-			if c.options.config.mAPI.broadcastMiners[index] != nil {
+	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
+		if c.Network() == MainNet || c.Network() == TestNet {
+			for index := range c.options.config.mAPI.broadcastMiners {
+				if c.options.config.mAPI.broadcastMiners[index] != nil {
 
-				// Broadcast using mAPI
-				provider = c.options.config.mAPI.broadcastMiners[index].Miner.Name
-				if err = broadcastMAPI(
-					ctxWithCancel, c, c.options.config.mAPI.broadcastMiners[index].Miner, id, hex,
-				); err == nil { // Success response!
-					return
+					// Broadcast using mAPI
+					provider = c.options.config.mAPI.broadcastMiners[index].Miner.Name
+					if err = broadcastMAPI(
+						ctxWithCancel, c, c.options.config.mAPI.broadcastMiners[index].Miner, id, hex,
+					); err == nil { // Success response!
+						return
+					}
+
+					// Check error response for "questionable errors"
+					if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
+						err = checkInMempool(ctx, c, id, err.Error(), timeout)
+						return // Success, found in mempool (or on-chain)
+					}
+
+					// Provider error?
+					errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
 				}
-
-				// Check error response for "questionable errors"
-				if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-					err = checkInMempool(ctx, c, id, err.Error(), timeout)
-					return // Success, found in mempool (or on-chain)
-				}
-
-				// Provider error?
-				storeErrorMessage(c, errorMessages, err.Error(), provider)
 			}
 		}
 	}
 
 	// Try next provider: MatterCloud
-	provider = providerMatterCloud
-	if err = broadcastMatterCloud(ctx, c, id, hex); err != nil {
-
-		// Check error response for (TX FAILURE)
-		if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-			err = checkInMempool(ctx, c, id, err.Error(), timeout)
-			return // Success, found in mempool (or on-chain)
-		}
-
-		// Provider error?
-		storeErrorMessage(c, errorMessages, err.Error(), provider)
-	} else { // Success!
-		return
-	}
-
-	// Try next provider: WhatsOnChain
-	provider = providerWhatsOnChain
-	if err = broadcastWhatsOnChain(ctx, c, id, hex); err != nil {
-
-		// Check error response for (TX FAILURE)
-		if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-			err = checkInMempool(ctx, c, id, err.Error(), timeout)
-			return // Success, found in mempool (or on-chain)
-		}
-
-		// Provider error?
-		storeErrorMessage(c, errorMessages, err.Error(), provider)
-	} else { // Success!
-		return
-	}
-
-	// Try next provider: NowNodes
-	if c.NowNodes() != nil { // Only if NowNodes is loaded (requires API key)
-		provider = providerNowNodes
-		if err = broadcastNowNodes(ctx, c, id, id, hex); err != nil {
+	if !utils.StringInSlice(ProviderMatterCloud, c.options.config.excludedProviders) {
+		provider = ProviderMatterCloud
+		if err = broadcastMatterCloud(ctx, c, id, hex); err != nil {
 
 			// Check error response for (TX FAILURE)
 			if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
@@ -135,14 +106,52 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 			}
 
 			// Provider error?
-			storeErrorMessage(c, errorMessages, err.Error(), provider)
+			errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
 		} else { // Success!
 			return
 		}
 	}
 
+	// Try next provider: WhatsOnChain
+	if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
+		provider = ProviderWhatsOnChain
+		if err = broadcastWhatsOnChain(ctx, c, id, hex); err != nil {
+
+			// Check error response for (TX FAILURE)
+			if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
+				err = checkInMempool(ctx, c, id, err.Error(), timeout)
+				return // Success, found in mempool (or on-chain)
+			}
+
+			// Provider error?
+			errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
+		} else { // Success!
+			return
+		}
+	}
+
+	// Try next provider: NowNodes
+	if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
+		if c.NowNodes() != nil { // Only if NowNodes is loaded (requires API key)
+			provider = ProviderNowNodes
+			if err = broadcastNowNodes(ctx, c, id, id, hex); err != nil {
+
+				// Check error response for (TX FAILURE)
+				if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
+					err = checkInMempool(ctx, c, id, err.Error(), timeout)
+					return // Success, found in mempool (or on-chain)
+				}
+
+				// Provider error?
+				errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
+			} else { // Success!
+				return
+			}
+		}
+	}
+
 	// Final error - all failures
-	return providerAll, errors.New("broadcast failed on all providers, errors: " + strings.Join(errorMessages, ","))
+	return ProviderAll, errors.New("broadcast failed on all providers, errors: " + strings.Join(errorMessages, ","))
 }
 
 // storeErrorMessage will append the error and log it out
@@ -203,7 +212,7 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 // broadcastMatterCloud will broadcast a transaction to MatterCloud
 func broadcastMatterCloud(ctx context.Context, client ClientInterface, id, hex string) error {
-	client.DebugLog("executing broadcast request for " + providerMatterCloud)
+	client.DebugLog("executing broadcast request for " + ProviderMatterCloud)
 
 	resp, err := client.MatterCloud().Broadcast(ctx, hex)
 	if err != nil {
@@ -231,7 +240,7 @@ func broadcastMatterCloud(ctx context.Context, client ClientInterface, id, hex s
 
 // broadcastWhatsOnChain will broadcast a transaction to WhatsOnChain
 func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex string) error {
-	client.DebugLog("executing broadcast request for " + providerWhatsOnChain)
+	client.DebugLog("executing broadcast request for " + ProviderWhatsOnChain)
 
 	txID, err := client.WhatsOnChain().BroadcastTx(ctx, hex)
 	if err != nil {
@@ -254,7 +263,7 @@ func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex 
 
 // broadcastNowNodes will broadcast a transaction to NowNodes
 func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, txID, hex string) error {
-	client.DebugLog("executing broadcast request for " + providerNowNodes)
+	client.DebugLog("executing broadcast request for " + ProviderNowNodes)
 
 	result, err := client.NowNodes().SendRawTransaction(ctx, nownodes.BSV, hex, uniqueID)
 	if err != nil {

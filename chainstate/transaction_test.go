@@ -77,7 +77,7 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Equal(t, providerWhatsOnChain, info.Provider)
+		assert.Equal(t, ProviderWhatsOnChain, info.Provider)
 	})
 
 	t.Run("mAPI, WOC not found - mattercloud, nownodes", func(t *testing.T) {
@@ -99,7 +99,7 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Equal(t, providerMatterCloud, info.Provider)
+		assert.Equal(t, ProviderMatterCloud, info.Provider)
 	})
 
 	t.Run("mAPI, WOC, mattercloud not found - nownodes", func(t *testing.T) {
@@ -121,7 +121,7 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Equal(t, providerNowNodes, info.Provider)
+		assert.Equal(t, ProviderNowNodes, info.Provider)
 	})
 
 	t.Run("error - all not found", func(t *testing.T) {
@@ -161,7 +161,7 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Contains(t, []string{providerWhatsOnChain, providerMatterCloud}, info.Provider)
+		assert.Contains(t, []string{ProviderWhatsOnChain, ProviderMatterCloud}, info.Provider)
 	})
 
 	t.Run("valid - test network", func(t *testing.T) {
@@ -292,6 +292,6 @@ func TestClient_TransactionFastest(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Contains(t, []string{providerWhatsOnChain, providerMatterCloud}, info.Provider)
+		assert.Contains(t, []string{ProviderWhatsOnChain, ProviderMatterCloud}, info.Provider)
 	})
 }

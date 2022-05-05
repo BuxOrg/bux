@@ -240,3 +240,12 @@ func WithMonitoringInterface(monitor MonitorService) ClientOps {
 		}
 	}
 }
+
+// WithExcludedProviders will set a list of excluded providers
+func WithExcludedProviders(providers []string) ClientOps {
+	return func(c *clientOptions) {
+		if len(providers) > 0 {
+			c.config.excludedProviders = providers
+		}
+	}
+}

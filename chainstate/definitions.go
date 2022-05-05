@@ -30,14 +30,19 @@ const (
 
 // Requirements and providers
 const (
-	mAPIFailure          = "failure"      // Minercraft result was a failure / error
-	mAPISuccess          = "success"      // Minercraft result was success (still could be an error)
-	providerAll          = "all"          // All providers
-	providerMatterCloud  = "mattercloud"  // Query & broadcast provider for MatterCloud
-	providerNowNodes     = "nownodes"     // Query & broadcast provider for NowNodes
-	providerWhatsOnChain = "whatsonchain" // Query & broadcast provider for WhatsOnChain
-	requiredInMempool    = "mempool"      // Requirement for tx query (has to be >= mempool)
-	requiredOnChain      = "on-chain"     // Requirement for tx query (has to be == on-chain)
+	mAPIFailure       = "failure"  // Minercraft result was a failure / error
+	mAPISuccess       = "success"  // Minercraft result was success (still could be an error)
+	requiredInMempool = "mempool"  // Requirement for tx query (has to be >= mempool)
+	requiredOnChain   = "on-chain" // Requirement for tx query (has to be == on-chain)
+)
+
+// List of providers
+const (
+	ProviderAll          = "all"          // All providers (used for errors etc)
+	ProviderMAPI         = "mapi"         // Query & broadcast provider for mAPI (using given miners)
+	ProviderMatterCloud  = "mattercloud"  // Query & broadcast provider for MatterCloud
+	ProviderNowNodes     = "nownodes"     // Query & broadcast provider for NowNodes
+	ProviderWhatsOnChain = "whatsonchain" // Query & broadcast provider for WhatsOnChain
 )
 
 // TransactionInfo is the universal information about the transaction found from a chain provider

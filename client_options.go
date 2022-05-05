@@ -627,6 +627,15 @@ func WithMatterCloudAPIKey(apiKey string) ClientOps {
 	}
 }
 
+// WithExcludedProviders will set a list of excluded providers
+func WithExcludedProviders(providers []string) ClientOps {
+	return func(c *clientOptions) {
+		if len(providers) > 0 {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithExcludedProviders(providers))
+		}
+	}
+}
+
 // WithMonitoring will create a new monitorConfig interface with the given options
 func WithMonitoring(ctx context.Context, monitorOptions *chainstate.MonitorOptions) ClientOps {
 	return func(c *clientOptions) {

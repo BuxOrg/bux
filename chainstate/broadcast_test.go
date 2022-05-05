@@ -57,7 +57,7 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, providerMatterCloud, provider)
+		assert.Equal(t, ProviderMatterCloud, provider)
 	})
 
 	t.Run("broadcast - success (WhatsOnChain)", func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, providerWhatsOnChain, provider)
+		assert.Equal(t, ProviderWhatsOnChain, provider)
 	})
 
 	t.Run("broadcast - success (NowNodes)", func(t *testing.T) {
@@ -87,7 +87,7 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, providerNowNodes, provider)
+		assert.Equal(t, ProviderNowNodes, provider)
 	})
 }
 
@@ -257,6 +257,6 @@ func TestClient_Broadcast(t *testing.T) {
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.Error(t, err)
-		assert.Equal(t, providerAll, provider)
+		assert.Equal(t, ProviderAll, provider)
 	})
 }

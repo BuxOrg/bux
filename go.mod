@@ -16,7 +16,7 @@ require (
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v1.8.8
 	github.com/iancoleman/strcase v0.2.0
-	github.com/jarcoal/httpmock v1.1.0
+	github.com/jarcoal/httpmock v1.2.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/libsv/go-bc v0.1.11
 	github.com/libsv/go-bk v0.1.6

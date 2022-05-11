@@ -290,7 +290,12 @@ func (m *SyncTransaction) Migrate(client datastore.ClientInterface) error {
 // processSyncTransactions will process sync transaction records
 func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
 
-	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      maxTransactions,
+		OrderByField:  "created_at",
+		SortDirection: "asc",
+	}
 
 	// Get x records
 	records, err := getTransactionsToSync(
@@ -317,7 +322,12 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 // processBroadcastTransactions will process sync transaction records
 func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
 
-	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      maxTransactions,
+		OrderByField:  "created_at",
+		SortDirection: "asc",
+	}
 
 	// Get x records
 	records, err := getTransactionsToBroadcast(
@@ -494,7 +504,12 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 // processP2PTransactions will process transactions for p2p notifications
 func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
 
-	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      maxTransactions,
+		OrderByField:  "created_at",
+		SortDirection: "asc",
+	}
 
 	// Get x records
 	records, err := getTransactionsToNotifyP2P(

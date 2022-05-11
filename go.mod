@@ -21,7 +21,7 @@ require (
 	github.com/libsv/go-bc v0.1.11
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.4
-	github.com/libsv/go-bt/v2 v2.1.0-beta.2.0.20211221142324-0d686850c5e0
+	github.com/libsv/go-bt/v2 v2.1.0-beta.3
 	github.com/mrz1836/go-cache v0.6.5
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
@@ -35,7 +35,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/tidwall/gjson v1.14.1
 	github.com/tonicpow/go-minercraft v0.7.3
-	github.com/tonicpow/go-paymail v0.7.7-0.20220426205744-1471448b50c6
+	github.com/tonicpow/go-paymail v0.7.7
 	github.com/tryvium-travels/memongo v0.5.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
@@ -90,13 +90,13 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.3 // indirect
+	github.com/klauspost/compress v1.15.4 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matryer/respond v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
-	github.com/miekg/dns v1.1.48 // indirect
+	github.com/miekg/dns v1.1.49 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/mrz1836/go-api-router v0.4.13 // indirect
 	github.com/mrz1836/go-parameters v0.2.8 // indirect

@@ -381,19 +381,10 @@ func (m *Destination) setAddress(rawXpubKey string) error {
 	m.XpubID = utils.Hash(rawXpubKey)
 
 	// Derive the address to ensure it is correct
-	var internal, external string
-	if external, internal, err = utils.DeriveAddresses(
-		hdKey, m.Num,
+	if m.Address, err = utils.DeriveAddress(
+		hdKey, m.Chain, m.Num,
 	); err != nil {
 		return err
-	}
-
-	if m.Chain == utils.ChainExternal {
-		// Set to external
-		m.Address = external
-	} else {
-		// Default is internal
-		m.Address = internal
 	}
 
 	return nil

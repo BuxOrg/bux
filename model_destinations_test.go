@@ -141,7 +141,42 @@ func TestDestination_setLockingScriptForAddress(t *testing.T) {
 
 // TestDestination_setAddress will test the method setAddress()
 func TestDestination_setAddress(t *testing.T) {
-	// finish test
+
+	t.Run("internal 1", func(t *testing.T) {
+		destination := newDestination(testXPubID, testLockingScript)
+		destination.Chain = utils.ChainInternal
+		destination.Num = 1
+		err := destination.setAddress(testXPub)
+		require.NoError(t, err)
+		assert.Equal(t, "1PQW54xMn5KA6uK7wgfzN4y7ZXMi6o7Qtm", destination.Address)
+	})
+
+	t.Run("external 1", func(t *testing.T) {
+		destination := newDestination(testXPubID, testLockingScript)
+		destination.Chain = utils.ChainExternal
+		destination.Num = 1
+		err := destination.setAddress(testXPub)
+		require.NoError(t, err)
+		assert.Equal(t, "16fq7PmmXXbFUG5maT5Xvr2zDBUgN1xdMF", destination.Address)
+	})
+
+	t.Run("internal 2", func(t *testing.T) {
+		destination := newDestination(testXPubID, testLockingScript)
+		destination.Chain = utils.ChainInternal
+		destination.Num = 2
+		err := destination.setAddress(testXPub)
+		require.NoError(t, err)
+		assert.Equal(t, "13St2SHkw1b8ZuaExyMf6ZMEzNjYbWRqL4", destination.Address)
+	})
+
+	t.Run("external 2", func(t *testing.T) {
+		destination := newDestination(testXPubID, testLockingScript)
+		destination.Chain = utils.ChainExternal
+		destination.Num = 2
+		err := destination.setAddress(testXPub)
+		require.NoError(t, err)
+		assert.Equal(t, "19jswATg9vBFta1aRnEjPHa2KMwafkmANj", destination.Address)
+	})
 }
 
 // TestDestination_getDestinationByID will test the method getDestinationByID()

@@ -17,6 +17,7 @@ const (
 	testExternalAddress = "1CfaQw9udYNPccssFJFZ94DN8MqNZm9nGt"
 	testDraftID         = "z50bb0d4eda0636aae1709e7e7080485a4d00af3ca2962c6e677cf5b53dgab9l"
 	testReferenceID     = "example-reference-id"
+	testXPriv           = "xprv9s21ZrQH143K3N6qVJQAu4EP51qMcyrKYJLkLgmYXgz58xmVxVLSsbx2DfJUtjcnXK8NdvkHMKfmmg5AJT2nqqRWUrjSHX29qEJwBgBPkJQ"
 	testXPub            = "xpub661MyMwAqRbcFrBJbKwBGCB7d3fr2SaAuXGM95BA62X41m6eW2ehRQGW4xLi9wkEXUGnQZYxVVj4PxXnyrLk7jdqvBAs1Qq9gf6ykMvjR7J"
 	testXPubID          = "1a0b10d4eda0636aae1709e7e7080485a4d99af3ca2962c6e677cf5b53d8ab8c"
 )

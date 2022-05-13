@@ -95,7 +95,7 @@ require (
 	github.com/lib/pq v1.10.5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matryer/respond v1.0.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.12 // indirect
+	github.com/mattn/go-sqlite3 v1.14.13 // indirect
 	github.com/miekg/dns v1.1.49 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/mrz1836/go-api-router v0.4.13 // indirect
@@ -139,7 +139,7 @@ require (
 	google.golang.org/grpc v1.46.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99 // indirect
 )
 
 // Issue with Ask Nancy on related packages

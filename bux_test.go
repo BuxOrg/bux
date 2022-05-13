@@ -98,6 +98,30 @@ func CreateTestSQLiteClient(t *testing.T, debug, shared bool, clientOpts ...Clie
 	return ctx, client, f
 }
 
+// CreateBenchmarkSQLiteClient will create a test client for SQLite
+//
+// NOTE: you need to close the client using the returned defer func
+func CreateBenchmarkSQLiteClient(b *testing.B, debug, shared bool, clientOpts ...ClientOps) (context.Context, ClientInterface, func()) {
+	ctx := context.Background()
+
+	// Set the default options, add migrate models
+	opts := DefaultClientOpts(debug, shared)
+	opts = append(opts, WithAutoMigrate(BaseModels...))
+	opts = append(opts, clientOpts...)
+
+	// Create the client
+	client, err := NewClient(ctx, opts...)
+	if err != nil {
+		b.Fail()
+	}
+
+	// Create a defer function
+	f := func() {
+		_ = client.Close(context.Background())
+	}
+	return ctx, client, f
+}
+
 // CloseClient is function used in the "defer()" function
 func CloseClient(ctx context.Context, t *testing.T, client ClientInterface) {
 	require.NoError(t, client.Close(ctx))

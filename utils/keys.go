@@ -4,6 +4,7 @@ import (
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
+	"github.com/libsv/go-bt/v2/bscript"
 )
 
 // DeriveChildKeyFromHex derive the child extended key from the hex string
@@ -55,6 +56,34 @@ func ValidateXPub(rawKey string) (*bip32.ExtendedKey, error) {
 		return nil, ErrXpubNoMatch
 	}
 	return hdKey, nil
+}
+
+// DeriveAddress will derive the given address from a key
+func DeriveAddress(hdKey *bip32.ExtendedKey, chain uint32, num uint32) (address string, err error) {
+
+	// Don't panic
+	if hdKey == nil {
+		return "", ErrHDKeyNil
+	}
+
+	var child *bip32.ExtendedKey
+	if child, err = bitcoin.GetHDKeyByPath(hdKey, chain, num); err != nil {
+		return "", err
+	}
+
+	var pubKey *bec.PublicKey
+	if pubKey, err = child.ECPubKey(); err != nil {
+		// Should never error since the previous method ensures a valid hdKey
+		return "", err
+	}
+
+	var addressScript *bscript.Address
+	if addressScript, err = bitcoin.GetAddressFromPubKey(pubKey, true); err != nil {
+		// Should never error if the pubKeys are valid keys
+		return "", err
+	}
+
+	return addressScript.AddressString, nil
 }
 
 // DeriveAddresses will derive the internal and external address from a key

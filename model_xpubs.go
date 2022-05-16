@@ -214,7 +214,6 @@ func (m *Xpub) incrementNextNum(ctx context.Context, chain uint32) (uint32, erro
 	}
 
 	// Try to increment the field
-	// incrementXPub := newXpubUsingID(m.ID, m.GetOptions(false)...)
 	if newNum, err = incrementField(
 		ctx, m, fieldName, 1,
 	); err != nil {
@@ -259,7 +258,6 @@ func (m *Xpub) AfterCreated(ctx context.Context) error {
 	// todo: run these in go routines?
 
 	// Store in the cache
-	m.DebugLog("saving xpub to cache: " + fmt.Sprintf("%+v\n", m))
 	if err := saveToCache(
 		ctx, []string{fmt.Sprintf(cacheKeyXpubModel, m.GetID())}, m, 0,
 	); err != nil {
@@ -275,7 +273,6 @@ func (m *Xpub) AfterUpdated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
 
 	// Store in the cache
-	m.DebugLog("saving xpub to cache: " + fmt.Sprintf("%+v\n", m))
 	if err := saveToCache(
 		ctx, []string{fmt.Sprintf(cacheKeyXpubModel, m.GetID())}, m, 0,
 	); err != nil {

@@ -102,6 +102,8 @@ func getXpubWithCache(ctx context.Context, client ClientInterface,
 		return xPub, nil
 	}
 
+	client.Logger().Info(ctx, "xpub not found in cache")
+
 	// Get the xPub
 	if xPub, err = getXpubByID(
 		ctx, xPubID, opts...,
@@ -257,6 +259,7 @@ func (m *Xpub) AfterCreated(ctx context.Context) error {
 	// todo: run these in go routines?
 
 	// Store in the cache
+	m.DebugLog("saving xpub to cache: " + fmt.Sprintf("%+v\n", m))
 	if err := saveToCache(
 		ctx, []string{fmt.Sprintf(cacheKeyXpubModel, m.GetID())}, m, 0,
 	); err != nil {
@@ -272,6 +275,7 @@ func (m *Xpub) AfterUpdated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
 
 	// Store in the cache
+	m.DebugLog("saving xpub to cache: " + fmt.Sprintf("%+v\n", m))
 	if err := saveToCache(
 		ctx, []string{fmt.Sprintf(cacheKeyXpubModel, m.GetID())}, m, 0,
 	); err != nil {

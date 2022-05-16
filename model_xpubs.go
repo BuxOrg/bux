@@ -214,9 +214,9 @@ func (m *Xpub) incrementNextNum(ctx context.Context, chain uint32) (uint32, erro
 	}
 
 	// Try to increment the field
-	incrementXPub := newXpubUsingID(m.ID, m.GetOptions(false)...)
+	// incrementXPub := newXpubUsingID(m.ID, m.GetOptions(false)...)
 	if newNum, err = incrementField(
-		ctx, incrementXPub, fieldName, 1,
+		ctx, m, fieldName, 1,
 	); err != nil {
 		return 0, err
 	}

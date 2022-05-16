@@ -204,10 +204,16 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 		return nil, "", nil, err
 	}
 
+	// todo: should we use this method: ???
+	// xPub.getNewDestination(ctx,utils.ChainExternal,utils.ScriptTypeNonStandard,append(opts, New())...)
+
 	// create a new destination, based on the External xPub child
 	// this is not yet possible within this library, it needs the full xPub
+	// using a custom locking script...
 	destination = newDestination(paymailAddress.XpubID, lockingScript, append(opts, New())...)
 	destination.Chain = utils.ChainExternal
+
+	// todo: this value can be wrong - use: getNewDestination?
 	destination.Num = xPub.NextExternalNum
 
 	// Only on for basic address resolution, not enabled for p2p
@@ -224,8 +230,7 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	}
 
 	// Increment and save
-	xPub.NextExternalNum++
-	if err = xPub.Save(ctx); err != nil {
+	if _, err = incrementField(ctx, xPub, nextExternalNumField, 1); err != nil {
 		return nil, "", nil, err
 	}
 	return

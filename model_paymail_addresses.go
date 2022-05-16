@@ -239,6 +239,14 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 	return
 }
 
+// AfterCreated will fire after the model is created in the Datastore
+func (m *PaymailAddress) AfterCreated(_ context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+
+	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	return nil
+}
+
 // Migrate model specific migration on startup
 func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 

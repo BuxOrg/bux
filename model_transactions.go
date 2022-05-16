@@ -195,7 +195,7 @@ func getTransactionsCountByXpubID(ctx context.Context, xPubID string, metadata *
 
 	dbConditions := processDBConditions(xPubID, conditions, metadata)
 
-	return _getTransactionsCount(ctx, dbConditions, opts...)
+	return getTransactionsCountInternal(ctx, dbConditions, opts...)
 }
 
 // getTransactionsByXpubID will get all the models for a given xpub ID
@@ -205,7 +205,7 @@ func getTransactionsByXpubID(ctx context.Context, xPubID string,
 
 	dbConditions := processDBConditions(xPubID, conditions, metadata)
 
-	return _getTransactions(ctx, dbConditions, xPubID, queryParams, opts...)
+	return getTransactionsInternal(ctx, dbConditions, xPubID, queryParams, opts...)
 }
 
 func processDBConditions(xPubID string, conditions *map[string]interface{},
@@ -278,13 +278,14 @@ func processDBConditions(xPubID string, conditions *map[string]interface{},
 	return dbConditions
 }
 
-// _getTransactions get all transactions for the given conditions
+// getTransactionsInternal get all transactions for the given conditions
 // NOTE: this function should only be used internally, it allows to query the whole transaction table
-func _getTransactions(ctx context.Context, conditions map[string]interface{}, xPubID string, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
+func getTransactionsInternal(ctx context.Context, conditions map[string]interface{}, xPubID string,
+	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
 	var models []Transaction
 	if err := getModels(
 		ctx,
-		NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		NewBaseModel(ModelTransaction, opts...).Client().Datastore(),
 		&models,
 		conditions,
 		queryParams,
@@ -308,8 +309,8 @@ func _getTransactions(ctx context.Context, conditions map[string]interface{}, xP
 	return transactions, nil
 }
 
-// _getTransactionsCount get a count of all transactions for the given conditions
-func _getTransactionsCount(ctx context.Context, conditions map[string]interface{},
+// getTransactionsCountInternal get a count of all transactions for the given conditions
+func getTransactionsCountInternal(ctx context.Context, conditions map[string]interface{},
 	opts ...ModelOps) (int64, error) {
 
 	count, err := getModelCount(

@@ -70,10 +70,10 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 		model.DebugLog(fmt.Sprintf("saving %d models...", len(modelsToSave)))
 
 		// Save all models (or fail!)
-		for _, modelToSave := range modelsToSave {
-			modelToSave.DebugLog("starting to save model: " + modelToSave.Name() + " id: " + modelToSave.GetID())
-			if err = modelToSave.Client().Datastore().SaveModel(
-				ctx, modelToSave, tx, modelToSave.IsNew(), false,
+		for index := range modelsToSave {
+			modelsToSave[index].DebugLog("starting to save model: " + modelsToSave[index].Name() + " id: " + modelsToSave[index].GetID())
+			if err = modelsToSave[index].Client().Datastore().SaveModel(
+				ctx, modelsToSave[index], tx, modelsToSave[index].IsNew(), false,
 			); err != nil {
 				return
 			}
@@ -89,12 +89,12 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 
 		// Fire after hooks (only on commit success)
 		var afterErr error
-		for _, modelToSave := range modelsToSave {
-			if modelToSave.IsNew() {
-				modelToSave.NotNew() // NOTE: calling it before this method... after created assumes its been saved already
-				afterErr = modelToSave.AfterCreated(ctx)
+		for index := range modelsToSave {
+			if modelsToSave[index].IsNew() {
+				modelsToSave[index].NotNew() // NOTE: calling it before this method... after created assumes its been saved already
+				afterErr = modelsToSave[index].AfterCreated(ctx)
 			} else {
-				afterErr = modelToSave.AfterUpdated(ctx)
+				afterErr = modelsToSave[index].AfterUpdated(ctx)
 			}
 			if afterErr != nil {
 				if err == nil { // First error - set the error

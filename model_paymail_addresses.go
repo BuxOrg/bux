@@ -272,7 +272,7 @@ func (m *PaymailAddress) migratePostgreSQL(client datastore.ClientInterface, tab
 		return err
 	}
 	if !idxExists {
-		tx := client.Execute("CREATE UNIQUE INDEX idx_paymail_address ON `" + tableName + "` (alias, domain)")
+		tx := client.Execute("CREATE UNIQUE INDEX " + idxName + " ON `" + tableName + "` (alias, domain)")
 		if tx.Error != nil {
 			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
 			return nil // nolint: nilerr // error is not needed
@@ -289,7 +289,7 @@ func (m *PaymailAddress) migrateMySQL(client datastore.ClientInterface, tableNam
 		return err
 	}
 	if !idxExists {
-		tx := client.Execute("CREATE UNIQUE INDEX idx_paymail_address ON `" + tableName + "` (alias, domain)")
+		tx := client.Execute("CREATE UNIQUE INDEX " + idxName + " ON `" + tableName + "` (alias, domain)")
 		if tx.Error != nil {
 			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
 			return nil // nolint: nilerr // error is not needed

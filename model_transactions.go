@@ -571,21 +571,6 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 		if err := m.draftTransaction.Save(ctx); err != nil {
 			return err
 		}
-
-		/*
-			// @mrz: moved into AfterCreated in sync_transaction model
-			// Should we broadcast immediately?
-			if m.syncTransaction != nil &&
-				m.draftTransaction.Configuration.Sync.Broadcast &&
-				m.draftTransaction.Configuration.Sync.BroadcastInstant {
-				if err := processBroadcastTransaction(
-					ctx, m.syncTransaction,
-				); err != nil {
-					// return err (do not return and fail the tx creation)
-					m.Client().Logger().Error(ctx, "error running broadcast tx: "+err.Error())
-				}
-			}
-		*/
 	}
 
 	// Fire notifications (this is already in a go routine)

@@ -266,12 +266,34 @@ func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 
 // migratePostgreSQL is specific migration SQL for Postgresql
 func (m *PaymailAddress) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
-	tx := client.Execute(`CREATE UNIQUE INDEX IF NOT EXISTS "idx_paymail_address" ON "` + tableName + `" ("alias","domain")`)
-	return tx.Error
+	idxName := "idx_" + tableName + "_paymail_address"
+	idxExists, err := client.IndexExists(tableName, idxName)
+	if err != nil {
+		return err
+	}
+	if !idxExists {
+		tx := client.Execute("CREATE UNIQUE INDEX idx_paymail_address ON `" + tableName + "` (alias, domain)")
+		if tx.Error != nil {
+			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
+			return nil // nolint: nilerr // error is not needed
+		}
+	}
+	return nil
 }
 
 // migrateMySQL is specific migration SQL for MySQL
 func (m *PaymailAddress) migrateMySQL(client datastore.ClientInterface, tableName string) error {
-	tx := client.Execute("CREATE UNIQUE INDEX idx_paymail_address ON `" + tableName + "` (alias, domain)")
-	return tx.Error
+	idxName := "idx_" + tableName + "_paymail_address"
+	idxExists, err := client.IndexExists(tableName, idxName)
+	if err != nil {
+		return err
+	}
+	if !idxExists {
+		tx := client.Execute("CREATE UNIQUE INDEX idx_paymail_address ON `" + tableName + "` (alias, domain)")
+		if tx.Error != nil {
+			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
+			return nil // nolint: nilerr // error is not needed
+		}
+	}
+	return nil
 }

@@ -207,7 +207,7 @@ func (m *Xpub) incrementNextNum(ctx context.Context, chain uint32) (uint32, erro
 	var err error
 	var newNum int64
 
-	// overwrite the model when incrementing on the DB
+	// Choose the field to update
 	fieldName := nextExternalNumField
 	if chain == utils.ChainInternal {
 		fieldName = nextInternalNumField
@@ -218,6 +218,13 @@ func (m *Xpub) incrementNextNum(ctx context.Context, chain uint32) (uint32, erro
 		ctx, m, fieldName, 1,
 	); err != nil {
 		return 0, err
+	}
+
+	// Update the model
+	if chain == utils.ChainInternal {
+		m.NextInternalNum = uint32(newNum)
+	} else {
+		m.NextExternalNum = uint32(newNum)
 	}
 
 	// return the previous number, which was next num

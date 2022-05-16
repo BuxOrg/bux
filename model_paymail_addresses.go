@@ -267,16 +267,9 @@ func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 // migratePostgreSQL is specific migration SQL for Postgresql
 func (m *PaymailAddress) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
 	idxName := "idx_" + tableName + "_paymail_address"
-	idxExists, err := client.IndexExists(tableName, idxName)
-	if err != nil {
-		return err
-	}
-	if !idxExists {
-		tx := client.Execute("CREATE UNIQUE INDEX " + idxName + " ON `" + tableName + "` (alias, domain)")
-		if tx.Error != nil {
-			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
-			return nil // nolint: nilerr // error is not needed
-		}
+	tx := client.Execute("CREATE INDEX IF NOT EXISTS " + idxName + " ON `" + tableName + "` (alias, domain)")
+	if tx.Error != nil {
+		return tx.Error
 	}
 	return nil
 }

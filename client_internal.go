@@ -107,6 +107,13 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 
 // runModelMigrations will run the model Migrate() method for all models
 func (c *Client) runModelMigrations(models ...interface{}) (err error) {
+
+	// If the migrations are disabled, just return
+	if c.options.dataStore.migrationDisabled {
+		return nil
+	}
+
+	// Migrate the models
 	d := c.Datastore()
 	for _, model := range models {
 		model.(ModelInterface).SetOptions(WithClient(c))

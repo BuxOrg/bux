@@ -61,6 +61,7 @@ type (
 	// dataStoreOptions holds the data storage configuration and client
 	dataStoreOptions struct {
 		datastore.ClientInterface                       // Client for Datastore
+		migrationDisabled         bool                  // If the migrations are disabled
 		options                   []datastore.ClientOps // List of options
 	}
 

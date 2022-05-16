@@ -369,6 +369,13 @@ func WithAutoMigrate(migrateModels ...interface{}) ClientOps {
 	}
 }
 
+// WithMigrationDisabled will disable all migrations
+func WithMigrationDisabled() ClientOps {
+	return func(c *clientOptions) {
+		c.dataStore.migrationDisabled = true
+	}
+}
+
 // WithSQLite will set the Datastore to use SQLite
 func WithSQLite(config *datastore.SQLiteConfig) ClientOps {
 	return func(c *clientOptions) {

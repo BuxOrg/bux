@@ -307,6 +307,11 @@ func TestWithAutoMigrate(t *testing.T) {
 	// finish test
 }
 
+// TestWithMigrationDisabled will test the method WithMigrationDisabled()
+func TestWithMigrationDisabled(t *testing.T) {
+	// finish test
+}
+
 // TestWithSQLite will test the method WithSQLite()
 func TestWithSQLite(t *testing.T) {
 	// finish test

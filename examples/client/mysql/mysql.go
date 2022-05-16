@@ -34,12 +34,9 @@ func main() {
 			TxTimeout: defaultTimeouts,
 			User:      os.Getenv("DB_USER"),
 		}),
+		bux.WithPaymailSupport([]string{"test.com"}, "example@test.com", "Example note", false, false),
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithAutoMigrate( // All models
-			append(bux.BaseModels, &bux.PaymailAddress{
-				Model: *bux.NewBaseModel(bux.ModelPaymailAddress), // Add the paymail model (for use in BUX server & clients)
-			})...,
-		),
+		bux.WithAutoMigrate(bux.BaseModels...),
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

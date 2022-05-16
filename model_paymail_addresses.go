@@ -267,7 +267,7 @@ func (m *PaymailAddress) Migrate(client datastore.ClientInterface) error {
 // migratePostgreSQL is specific migration SQL for Postgresql
 func (m *PaymailAddress) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
 	idxName := "idx_" + tableName + "_paymail_address"
-	tx := client.Execute("CREATE INDEX IF NOT EXISTS " + idxName + " ON `" + tableName + "` (alias, domain)")
+	tx := client.Execute(`CREATE INDEX IF NOT EXISTS "` + idxName + `" ON "` + tableName + `" ("alias", "domain")`)
 	if tx.Error != nil {
 		return tx.Error
 	}

@@ -91,7 +91,6 @@ func getPaymailAddresses(ctx context.Context, metadata *Metadata, conditions *ma
 // getPaymailAddressesCount will get all the paymail addresses with the given conditions
 func getPaymailAddressesCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
-
 	return getModelCountByConditions(ctx, ModelPaymailAddress, PaymailAddress{}, metadata, conditions, opts...)
 }
 

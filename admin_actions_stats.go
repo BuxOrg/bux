@@ -4,63 +4,99 @@ import (
 	"context"
 )
 
-// GetStats will get stats for a admin dashboard
-func (c *Client) GetStats(ctx context.Context, opts ...ModelOps) (stats *AdminStats, err error) {
+// AdminStats are statistics about the bux server
+type AdminStats struct {
+	Balance            int64                  `json:"balance"`
+	Destinations       int64                  `json:"destinations"`
+	PaymailAddresses   int64                  `json:"paymail_addresses"`
+	Transactions       int64                  `json:"transactions"`
+	TransactionsPerDay map[string]interface{} `json:"transactions_per_day"`
+	Utxos              int64                  `json:"utxos"`
+	UtxosPerType       map[string]interface{} `json:"utxos_per_type"`
+	XPubs              int64                  `json:"xpubs"`
+}
+
+// GetStats will get stats for the BUX Console (admin)
+func (c *Client) GetStats(ctx context.Context, opts ...ModelOps) (*AdminStats, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "admin_stats")
+	ctx = c.GetOrStartTxn(ctx, "admin_get_stats")
+
+	// Set the default model options
+	defaultOpts := c.DefaultModelOptions(opts...)
 
 	var (
-		destinationsCount  int64
-		transactionsCount  int64
-		paymailsCount      int64
-		utxosCount         int64
-		xpubsCount         int64
-		transactionsPerDay map[string]interface{}
-		utxosPerType       map[string]interface{}
+		destinationsCount   int64
+		err                 error
+		paymailAddressCount int64
+		transactionsCount   int64
+		transactionsPerDay  map[string]interface{}
+		utxosCount          int64
+		utxosPerType        map[string]interface{}
+		xpubsCount          int64
 	)
 
-	if destinationsCount, err = getDestinationsCount(ctx, nil, nil, c.DefaultModelOptions(opts...)...); err != nil {
+	// Get the destination count
+	if destinationsCount, err = getDestinationsCount(
+		ctx, nil, nil, defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
-	if transactionsCount, err = getTransactionsCount(ctx, nil, nil, c.DefaultModelOptions(opts...)...); err != nil {
+	// Get the transaction count
+	if transactionsCount, err = getTransactionsCount(
+		ctx, nil, nil, defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
+	// Get the paymail address count
 	conditions := map[string]interface{}{
 		"deleted_at": nil,
 	}
-	if paymailsCount, err = getPaymailAddressesCount(ctx, nil, &conditions, c.DefaultModelOptions(opts...)...); err != nil {
+	if paymailAddressCount, err = getPaymailAddressesCount(
+		ctx, nil, &conditions, defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
-	if utxosCount, err = getUtxosCount(ctx, nil, nil, c.DefaultModelOptions(opts...)...); err != nil {
+	// Get the utxo count
+	if utxosCount, err = getUtxosCount(
+		ctx, nil, nil, defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
-	if xpubsCount, err = getXPubsCount(ctx, nil, nil, c.DefaultModelOptions(opts...)...); err != nil {
+	// Get the xpub count
+	if xpubsCount, err = getXPubsCount(
+		ctx, nil, nil, defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
-	if transactionsPerDay, err = getTransactionsAggregate(ctx, nil, nil, "created_at", c.DefaultModelOptions(opts...)...); err != nil {
+	// Get the transactions per day count
+	if transactionsPerDay, err = getTransactionsAggregate(
+		ctx, nil, nil, "created_at", defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
-	if utxosPerType, err = getUtxosAggregate(ctx, nil, nil, "type", c.DefaultModelOptions(opts...)...); err != nil {
+	// Get the utxos per day count
+	if utxosPerType, err = getUtxosAggregate(
+		ctx, nil, nil, "type", defaultOpts...,
+	); err != nil {
 		return nil, err
 	}
 
-	stats = &AdminStats{
+	// Return the statistics
+	return &AdminStats{
 		Balance:            0,
 		Destinations:       destinationsCount,
+		PaymailAddresses:   paymailAddressCount,
 		Transactions:       transactionsCount,
-		Paymails:           paymailsCount,
-		Utxos:              utxosCount,
-		XPubs:              xpubsCount,
 		TransactionsPerDay: transactionsPerDay,
+		Utxos:              utxosCount,
 		UtxosPerType:       utxosPerType,
-	}
-
-	return stats, nil
+		XPubs:              xpubsCount,
+	}, nil
 }

@@ -162,10 +162,12 @@ type gormWhere struct {
 	tx *gorm.DB
 }
 
+// Where will help fire the tx.Where method
 func (g *gormWhere) Where(query interface{}, args ...interface{}) {
 	g.tx.Where(query, args...)
 }
 
+// getGormTx returns the GORM db tx
 func (g *gormWhere) getGormTx() *gorm.DB {
 	return g.tx
 }

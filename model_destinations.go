@@ -157,7 +157,6 @@ func getDestinations(ctx context.Context, metadata *Metadata, conditions *map[st
 // getDestinationsCount will get a count of all the destinations with the given conditions
 func getDestinationsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
-
 	return getModelCountByConditions(ctx, ModelDestination, Destination{}, metadata, conditions, opts...)
 }
 

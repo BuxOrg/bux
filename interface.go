@@ -30,35 +30,42 @@ type AccessKeyService interface {
 	RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opts ...ModelOps) (*AccessKey, error)
 }
 
-// TransactionService is the transaction actions
-type TransactionService interface {
-	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
-	GetTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error)
-	GetTransactionsCount(ctx context.Context, metadata *Metadata,
+// AdminService is the bux admin service interface comprised of all services available for admins
+type AdminService interface {
+	GetStats(ctx context.Context, opts ...ModelOps) (*AdminStats, error)
+	GetPaymailAddresses(ctx context.Context, metadataConditions *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*PaymailAddress, error)
+	GetPaymailAddressesCount(ctx context.Context, metadataConditions *Metadata,
 		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
-	GetTransactionsByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
-		queryParams *datastore.QueryParams) ([]*Transaction, error)
-	GetTransactionsByXpubIDCount(ctx context.Context, xPubID string, metadata *Metadata,
-		conditions *map[string]interface{}) (int64, error)
-	NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
-		opts ...ModelOps) (*DraftTransaction, error)
-	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
-		opts ...ModelOps) (*Transaction, error)
-	RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
-	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
+	GetXPubs(ctx context.Context, metadataConditions *Metadata,
+		conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error)
+	GetXPubsCount(ctx context.Context, metadataConditions *Metadata,
+		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
 }
 
 // BlockHeaderService is the block header actions
 type BlockHeaderService interface {
-	RecordBlockHeader(ctx context.Context, hash string, height uint32, bh bc.BlockHeader, opts ...ModelOps) (*BlockHeader, error)
+	GetBlockHeaderByHeight(ctx context.Context, height uint32) (*BlockHeader, error)
 	GetBlockHeaders(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*BlockHeader, error)
-	GetBlockHeadersCount(ctx context.Context, metadata *Metadata,
-		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
-	GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error)
+	GetBlockHeadersCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+		opts ...ModelOps) (int64, error)
 	GetLastBlockHeader(ctx context.Context) (*BlockHeader, error)
-	GetBlockHeaderByHeight(ctx context.Context, height uint32) (*BlockHeader, error)
+	GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error)
+	RecordBlockHeader(ctx context.Context, hash string, height uint32, bh bc.BlockHeader,
+		opts ...ModelOps) (*BlockHeader, error)
+}
+
+// ClientService is the client related services
+type ClientService interface {
+	Cachestore() cachestore.ClientInterface
+	Chainstate() chainstate.ClientInterface
+	Datastore() datastore.ClientInterface
+	HTTPClient() HTTPInterface
+	Logger() logger.Interface
+	Notifications() notifications.ClientInterface
+	PaymailClient() paymail.ClientInterface
+	Taskmanager() taskmanager.ClientInterface
 }
 
 // DestinationService is the destination actions
@@ -79,8 +86,10 @@ type DestinationService interface {
 	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
 		opts ...ModelOps) (*Destination, error)
 	UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error)
-	UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID, lockingScript string, metadata Metadata) (*Destination, error)
-	UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID,
+		lockingScript string, metadata Metadata) (*Destination, error)
+	UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string,
+		metadata Metadata) (*Destination, error)
 }
 
 // DraftTransactionService is the draft transactions actions
@@ -89,6 +98,52 @@ type DraftTransactionService interface {
 		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*DraftTransaction, error)
 	GetDraftTransactionsCount(ctx context.Context, metadata *Metadata,
 		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
+}
+
+// HTTPInterface is the HTTP client interface
+type HTTPInterface interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// ModelService is the "model" related services
+type ModelService interface {
+	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
+	DefaultModelOptions(opts ...ModelOps) []ModelOps
+	GetModelNames() []string
+}
+
+// PaymailService is the paymail actions & services
+type PaymailService interface {
+	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
+	GetPaymailConfig() *PaymailServerOptions
+	GetPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error)
+	GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
+		conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
+	NewPaymailAddress(ctx context.Context, key, address, publicName,
+		avatar string, opts ...ModelOps) (*PaymailAddress, error)
+	UpdatePaymailAddress(ctx context.Context, address, publicName,
+		avatar string, opts ...ModelOps) (*PaymailAddress, error)
+	UpdatePaymailAddressMetadata(ctx context.Context, address string,
+		metadata Metadata, opts ...ModelOps) (*PaymailAddress, error)
+}
+
+// TransactionService is the transaction actions
+type TransactionService interface {
+	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
+	GetTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error)
+	GetTransactionsCount(ctx context.Context, metadata *Metadata,
+		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
+	GetTransactionsByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
+		queryParams *datastore.QueryParams) ([]*Transaction, error)
+	GetTransactionsByXpubIDCount(ctx context.Context, xPubID string, metadata *Metadata,
+		conditions *map[string]interface{}) (int64, error)
+	NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
+		opts ...ModelOps) (*DraftTransaction, error)
+	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
+		opts ...ModelOps) (*Transaction, error)
+	RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
+	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
 }
 
 // UTXOService is the utxo actions
@@ -111,61 +166,30 @@ type XPubService interface {
 	UpdateXpubMetadata(ctx context.Context, xPubID string, metadata Metadata) (*Xpub, error)
 }
 
-// PaymailService is the paymail actions
-type PaymailService interface {
-	GetPaymailAddress(ctx context.Context, address string, opts ...ModelOps) (*PaymailAddress, error)
-	GetPaymailAddressesByXPubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
-		conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error)
-	NewPaymailAddress(ctx context.Context, key, address, publicName, avatar string, opts ...ModelOps) (*PaymailAddress, error)
-	DeletePaymailAddress(ctx context.Context, address string, opts ...ModelOps) error
-	UpdatePaymailAddress(ctx context.Context, address, publicName, avatar string,
-		opts ...ModelOps) (*PaymailAddress, error)
-	UpdatePaymailAddressMetadata(ctx context.Context, address string,
-		metadata Metadata, opts ...ModelOps) (*PaymailAddress, error)
-}
-
-// HTTPInterface is the HTTP client interface
-type HTTPInterface interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
-// ClientServices is the client related services
-type ClientServices interface {
-	Cachestore() cachestore.ClientInterface
-	Chainstate() chainstate.ClientInterface
-	Datastore() datastore.ClientInterface
-	HTTPClient() HTTPInterface
-	Logger() logger.Interface
-	Notifications() notifications.ClientInterface
-	PaymailClient() paymail.ClientInterface
-	Taskmanager() taskmanager.ClientInterface
-}
-
-// ClientInterface is the client (bux engine) interface comprised of all services
+// ClientInterface is the client (bux engine) interface comprised of all services/actions
 type ClientInterface interface {
 	AccessKeyService
-	AdminInterface
-	ClientServices
+	AdminService
+	BlockHeaderService
+	ClientService
 	DestinationService
 	DraftTransactionService
+	ModelService
 	PaymailService
 	TransactionService
-	BlockHeaderService
 	UTXOService
 	XPubService
-	AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error
 	AuthenticateRequest(ctx context.Context, req *http.Request, adminXPubs []string,
 		adminRequired, requireSigning, signingDisabled bool) (*http.Request, error)
 	Close(ctx context.Context) error
 	Debug(on bool)
-	DefaultModelOptions(opts ...ModelOps) []ModelOps
 	DefaultSyncConfig() *SyncConfig
 	EnableNewRelic()
 	GetOrStartTxn(ctx context.Context, name string) context.Context
-	GetPaymailConfig() *PaymailServerOptions
 	GetTaskPeriod(name string) time.Duration
 	ImportBlockHeadersFromURL() string
 	IsDebug() bool
+	IsEncryptionKeySet() bool
 	IsITCEnabled() bool
 	IsIUCEnabled() bool
 	IsNewRelicEnabled() bool

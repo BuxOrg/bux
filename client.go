@@ -289,21 +289,6 @@ func (c *Client) Datastore() datastore.ClientInterface {
 	return nil
 }
 
-// HTTPClient will return the http interface to use in the client
-func (c *Client) HTTPClient() HTTPInterface {
-	return c.options.httpClient
-}
-
-// ImportBlockHeadersFromURL will the URL where to import block headers from
-func (c *Client) ImportBlockHeadersFromURL() string {
-	return c.options.importBlockHeadersURL
-}
-
-// Logger will return the Logger if it exists
-func (c *Client) Logger() logger.Interface {
-	return c.options.logger
-}
-
 // Debug will toggle the debug mode (for all resources)
 func (c *Client) Debug(on bool) {
 
@@ -336,6 +321,16 @@ func (c *Client) Debug(on bool) {
 	}
 }
 
+// DefaultSyncConfig will return the default sync config from the client defaults (for chainstate)
+func (c *Client) DefaultSyncConfig() *SyncConfig {
+	return &SyncConfig{
+		Broadcast:        c.options.chainstate.broadcasting,
+		BroadcastInstant: c.options.chainstate.broadcastInstant,
+		PaymailP2P:       c.options.chainstate.paymailP2P,
+		SyncOnChain:      c.options.chainstate.syncOnChain,
+	}
+}
+
 // EnableNewRelic will enable NewRelic tracing
 func (c *Client) EnableNewRelic() {
 	if c.options.newRelic != nil && c.options.newRelic.app != nil {
@@ -363,6 +358,21 @@ func (c *Client) GetTaskPeriod(name string) time.Duration {
 	return 0
 }
 
+// GetModelNames will return the model names that have been loaded
+func (c *Client) GetModelNames() []string {
+	return c.options.models.modelNames
+}
+
+// HTTPClient will return the http interface to use in the client
+func (c *Client) HTTPClient() HTTPInterface {
+	return c.options.httpClient
+}
+
+// ImportBlockHeadersFromURL will the URL where to import block headers from
+func (c *Client) ImportBlockHeadersFromURL() string {
+	return c.options.importBlockHeadersURL
+}
+
 // IsDebug will return the debug flag (bool)
 func (c *Client) IsDebug() bool {
 	return c.options.debug
@@ -386,6 +396,16 @@ func (c *Client) IsITCEnabled() bool {
 // IsIUCEnabled will return the flag (bool)
 func (c *Client) IsIUCEnabled() bool {
 	return c.options.iuc
+}
+
+// IsEncryptionKeySet will return the flag (bool) if the encryption key has been set
+func (c *Client) IsEncryptionKeySet() bool {
+	return len(c.options.encryptionKey) > 0
+}
+
+// Logger will return the Logger if it exists
+func (c *Client) Logger() logger.Interface {
+	return c.options.logger
 }
 
 // ModifyTaskPeriod will modify a cron task's duration period from the default
@@ -448,14 +468,4 @@ func (c *Client) UserAgent() string {
 // Version will return the version
 func (c *Client) Version() string {
 	return version
-}
-
-// DefaultSyncConfig will return the default sync config from the client defaults (for chainstate)
-func (c *Client) DefaultSyncConfig() *SyncConfig {
-	return &SyncConfig{
-		Broadcast:        c.options.chainstate.broadcasting,
-		BroadcastInstant: c.options.chainstate.broadcastInstant,
-		PaymailP2P:       c.options.chainstate.paymailP2P,
-		SyncOnChain:      c.options.chainstate.syncOnChain,
-	}
 }

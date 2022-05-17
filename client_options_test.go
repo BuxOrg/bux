@@ -2,12 +2,15 @@ package bux
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -138,6 +141,11 @@ func TestClient_defaultModelOptions(t *testing.T) {
 func TestWithUserAgent(t *testing.T) {
 	t.Parallel()
 
+	t.Run("check type", func(t *testing.T) {
+		opt := WithUserAgent("")
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
 	t.Run("empty user agent", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithUserAgent(""))
@@ -169,12 +177,22 @@ func TestWithUserAgent(t *testing.T) {
 
 // TestWithNewRelic will test the method WithNewRelic()
 func TestWithNewRelic(t *testing.T) {
-	// finish test
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithNewRelic(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
 }
 
 // TestWithDebugging will test the method WithDebugging()
 func TestWithDebugging(t *testing.T) {
 	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithDebugging()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
 
 	t.Run("set debug (with cache and Datastore)", func(t *testing.T) {
 		tc, err := NewClient(
@@ -192,8 +210,48 @@ func TestWithDebugging(t *testing.T) {
 	})
 }
 
+// TestWithEncryption will test the method WithEncryption()
+func TestWithEncryption(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithEncryption("")
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("empty key", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithEncryption(""))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, false, tc.IsEncryptionKeySet())
+	})
+
+	t.Run("custom encryption key", func(t *testing.T) {
+		key, _ := utils.RandomHex(32)
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithEncryption(key))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, true, tc.IsEncryptionKeySet())
+	})
+}
+
 // TestWithRedis will test the method WithRedis()
 func TestWithRedis(t *testing.T) {
+	t.Run("check type", func(t *testing.T) {
+		opt := WithRedis(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
 	t.Run("using valid config", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping live local redis tests")
@@ -243,6 +301,11 @@ func TestWithRedis(t *testing.T) {
 func TestWithFreeCache(t *testing.T) {
 	t.Parallel()
 
+	t.Run("check type", func(t *testing.T) {
+		opt := WithFreeCache()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
 	t.Run("using FreeCache", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
@@ -262,6 +325,11 @@ func TestWithFreeCache(t *testing.T) {
 // TestWithFreeCacheConnection will test the method WithFreeCacheConnection()
 func TestWithFreeCacheConnection(t *testing.T) {
 	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithFreeCacheConnection(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
 
 	t.Run("using a nil client", func(t *testing.T) {
 		tc, err := NewClient(
@@ -429,7 +497,37 @@ func TestWithTaskQ(t *testing.T) {
 
 // TestWithLogger will test the method WithLogger()
 func TestWithLogger(t *testing.T) {
-	// finish this!
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithLogger(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithLogger(nil))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.NotNil(t, tc.Logger())
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		customLogger := logger.NewLogger(true, 4)
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithLogger(customLogger))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, customLogger, tc.Logger())
+	})
 }
 
 // TestWithCustomTaskManager will test the method WithCustomTaskManager()
@@ -454,5 +552,183 @@ func TestWithCustomChainstate(t *testing.T) {
 
 // TestWithModels will test the method WithModels()
 func TestWithModels(t *testing.T) {
-	// finish this!
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithModels()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("empty models - returns default models", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithModels())
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, []string{
+			ModelXPub.String(), ModelAccessKey.String(),
+			ModelDraftTransaction.String(), ModelIncomingTransaction.String(),
+			ModelTransaction.String(), ModelBlockHeader.String(),
+			ModelSyncTransaction.String(), ModelDestination.String(),
+			ModelUtxo.String(),
+		}, tc.GetModelNames())
+	})
+
+	t.Run("add custom models", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithModels(newPaymail(testPaymail)))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, []string{
+			ModelXPub.String(), ModelAccessKey.String(),
+			ModelDraftTransaction.String(), ModelIncomingTransaction.String(),
+			ModelTransaction.String(), ModelBlockHeader.String(),
+			ModelSyncTransaction.String(), ModelDestination.String(),
+			ModelUtxo.String(), ModelPaymailAddress.String(),
+		}, tc.GetModelNames())
+	})
+}
+
+// TestWithITCDisabled will test the method WithITCDisabled()
+func TestWithITCDisabled(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithITCDisabled()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("default options", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, true, tc.IsITCEnabled())
+	})
+
+	t.Run("itc disabled", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithITCDisabled())
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, false, tc.IsITCEnabled())
+	})
+}
+
+// TestWithIUCDisabled will test the method WithIUCDisabled()
+func TestWithIUCDisabled(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithIUCDisabled()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("default options", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, true, tc.IsIUCEnabled())
+	})
+
+	t.Run("itc disabled", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithIUCDisabled())
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, false, tc.IsIUCEnabled())
+	})
+}
+
+// TestWithImportBlockHeaders will test the method WithImportBlockHeaders()
+func TestWithImportBlockHeaders(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithImportBlockHeaders("")
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("empty url", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithImportBlockHeaders(""))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, "", tc.ImportBlockHeadersFromURL())
+	})
+
+	t.Run("custom import url", func(t *testing.T) {
+		customURL := "https://domain.com/import.txt"
+
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithImportBlockHeaders(customURL))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, customURL, tc.ImportBlockHeadersFromURL())
+	})
+}
+
+// TestWithHTTPClient will test the method WithHTTPClient()
+func TestWithHTTPClient(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithHTTPClient(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithHTTPClient(nil))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.NotNil(t, tc.HTTPClient())
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		customClient := &http.Client{}
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithHTTPClient(customClient))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, customClient, tc.HTTPClient())
+	})
 }

@@ -225,14 +225,16 @@ func WithEncryption(key string) ClientOps {
 	}
 }
 
-// WithMempoolMonitoring will enable mempool monitoring for a given filter
-/*func WithMempoolMonitoring(filter string) ClientOps {
-	return func(c *clientOptions) {
-		if c.chainstate != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithMempoolMonitoring(filter))
+/*
+	// WithMempoolMonitoring will enable mempool monitoring for a given filter
+	func WithMempoolMonitoring(filter string) ClientOps {
+		return func(c *clientOptions) {
+			if c.chainstate != nil {
+				c.chainstate.options = append(c.chainstate.options, chainstate.WithMempoolMonitoring(filter))
+			}
 		}
 	}
-}*/
+*/
 
 // WithModels will add additional models (will NOT migrate using datastore)
 //
@@ -262,14 +264,18 @@ func WithIUCDisabled() ClientOps {
 // WithImportBlockHeaders will import block headers on startup
 func WithImportBlockHeaders(importBlockHeadersURL string) ClientOps {
 	return func(c *clientOptions) {
-		c.importBlockHeadersURL = importBlockHeadersURL
+		if len(importBlockHeadersURL) > 0 {
+			c.importBlockHeadersURL = importBlockHeadersURL
+		}
 	}
 }
 
 // WithHTTPClient will set the custom http interface
 func WithHTTPClient(httpClient HTTPInterface) ClientOps {
 	return func(c *clientOptions) {
-		c.httpClient = httpClient
+		if httpClient != nil {
+			c.httpClient = httpClient
+		}
 	}
 }
 

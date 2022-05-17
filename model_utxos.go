@@ -257,7 +257,6 @@ func getUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]in
 // getAccessKeysCount will get a count of all the utxos with the given conditions
 func getUtxosCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 	opts ...ModelOps) (int64, error) {
-
 	return getModelCountByConditions(ctx, ModelUtxo, Utxo{}, metadata, conditions, opts...)
 }
 
@@ -266,7 +265,9 @@ func getUtxosAggregate(ctx context.Context, metadata *Metadata, conditions *map[
 	aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
 
 	modelItems := make([]*Utxo, 0)
-	results, err := getModelsAggregateByConditions(ctx, ModelUtxo, &modelItems, metadata, conditions, aggregateColumn, opts...)
+	results, err := getModelsAggregateByConditions(
+		ctx, ModelUtxo, &modelItems, metadata, conditions, aggregateColumn, opts...,
+	)
 	if err != nil {
 		return nil, err
 	}

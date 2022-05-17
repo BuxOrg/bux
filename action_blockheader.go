@@ -89,8 +89,9 @@ func (c *Client) GetBlockHeadersCount(ctx context.Context, metadataConditions *M
 func (c *Client) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_unsynced_blockheaders")
+	ctx = c.GetOrStartTxn(ctx, "get_unsynced_block_headers")
 
+	// Get the unsynced block headers
 	return getUnsyncedBlockHeaders(ctx, c.DefaultModelOptions()...)
 }
 
@@ -98,8 +99,9 @@ func (c *Client) GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, e
 func (c *Client) GetLastBlockHeader(ctx context.Context) (*BlockHeader, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_last_blockheader")
+	ctx = c.GetOrStartTxn(ctx, "get_last_block_header")
 
+	// Get the last block header
 	return getLastBlockHeader(ctx, c.DefaultModelOptions()...)
 }
 
@@ -107,7 +109,8 @@ func (c *Client) GetLastBlockHeader(ctx context.Context) (*BlockHeader, error) {
 func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint32) (*BlockHeader, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_blockheader_by_height")
+	ctx = c.GetOrStartTxn(ctx, "get_block_header_by_height")
 
+	// Get the block header by height
 	return getBlockHeaderByHeight(ctx, height, c.DefaultModelOptions()...)
 }

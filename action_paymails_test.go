@@ -19,11 +19,11 @@ var (
 func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 	for _, testCase := range dbTestCases {
 		ts.T().Run(testCase.name+" - empty address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
+			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 
 			// Create xPub (required to add a paymail address)
-			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, tc.client.DefaultModelOptions()...)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXPub, tc.client.DefaultModelOptions()...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
 
@@ -34,16 +34,18 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 		})
 
 		ts.T().Run(testCase.name+" - new paymail address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
+			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 
+			opts := tc.client.DefaultModelOptions()
+
 			// Create xPub (required to add a paymail address)
-			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, tc.client.DefaultModelOptions()...)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXPub, opts...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
 
 			var paymailAddress *PaymailAddress
-			paymailAddress, err = tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, tc.client.DefaultModelOptions()...)
+			paymailAddress, err = tc.client.NewPaymailAddress(tc.ctx, xPub.RawXpub(), testPaymail, testPublicName, testAvatar, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 
@@ -55,7 +57,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			assert.Equal(t, externalXPubID, paymailAddress.ExternalXpubKey)
 
 			var p2 *PaymailAddress
-			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, p2)
 
@@ -74,7 +76,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 	for _, testCase := range dbTestCases {
 
 		ts.T().Run(testCase.name+" - empty", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
+			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 
 			paymail := ""
@@ -83,7 +85,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 		})
 
 		ts.T().Run(testCase.name+" - delete unknown paymail address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
+			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 
 			err := tc.client.DeletePaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
@@ -91,12 +93,12 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 		})
 
 		ts.T().Run(testCase.name+" - delete paymail address", func(t *testing.T) {
-			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
+			tc := ts.genericDBClient(t, testCase.database, false)
 			defer tc.Close(tc.ctx)
 			opts := tc.client.DefaultModelOptions()
 
 			// Create xPub (required to add a paymail address)
-			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, opts...)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXPub, opts...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
 
@@ -140,7 +142,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 			opts = append(opts, WithMetadatas(metadata))
 
 			// Create xPub (required to add a paymail address)
-			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, opts...)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXPub, opts...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
 
@@ -185,7 +187,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddress() {
 			opts := tc.client.DefaultModelOptions()
 
 			// Create xPub (required to add a paymail address)
-			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, opts...)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXPub, opts...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
 

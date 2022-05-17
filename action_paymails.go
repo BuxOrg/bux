@@ -96,7 +96,7 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, public
 	ctx = c.GetOrStartTxn(ctx, "new_paymail_address")
 
 	// Get the xPub (make sure it exists)
-	_, err := c.GetXpub(ctx, xPubKey)
+	_, err := getXpubWithCache(ctx, c, xPubKey, "", c.DefaultModelOptions()...)
 	if err != nil {
 		return nil, err
 	}

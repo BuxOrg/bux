@@ -10,8 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// todo: refactor, cleanup, test name, add more tests etc
-
+// TestNewPaymail will test the method newPaymail()
 func TestNewPaymail(t *testing.T) {
 
 	t.Run("paymail basic test", func(t *testing.T) {
@@ -20,7 +19,7 @@ func TestNewPaymail(t *testing.T) {
 
 		paymail := "paymail@tester.com"
 
-		xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(testXpub)
+		xPub, err := bitcoin.GetHDKeyFromExtendedPublicKey(testXpubAuth)
 		require.NoError(t, err)
 		require.NotNil(t, xPub)
 
@@ -43,7 +42,7 @@ func TestNewPaymail(t *testing.T) {
 		p := newPaymail(
 			paymail,
 			WithClient(client),
-			WithXPub(testXpub),
+			WithXPub(testXpubAuth),
 			WithEncryptionKey(testEncryption),
 		)
 		p.PublicName = "Tester"

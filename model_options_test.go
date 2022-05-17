@@ -45,15 +45,15 @@ func TestWithXPub(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Get opts", func(t *testing.T) {
-		opt := WithXPub(testXpub)
+		opt := WithXPub(testXPub)
 		assert.IsType(t, *new(ModelOps), opt)
 	})
 
 	t.Run("apply opts", func(t *testing.T) {
-		opt := WithXPub(testXpub)
+		opt := WithXPub(testXPub)
 		m := new(Model)
 		m.SetOptions(opt)
-		assert.Equal(t, testXpub, m.rawXpubKey)
+		assert.Equal(t, testXPub, m.rawXpubKey)
 	})
 }
 

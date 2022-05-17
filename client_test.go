@@ -266,7 +266,7 @@ func TestPaymailOptions_Note(t *testing.T) {
 
 // TestPaymailOptions_ServerConfig will test the method ServerConfig()
 func TestPaymailOptions_ServerConfig(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	t.Run("no server config", func(t *testing.T) {
 		p := new(paymailOptions)

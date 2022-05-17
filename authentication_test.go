@@ -28,8 +28,8 @@ const (
 	testEncryption        = "35dbe09a941a90a5f59e57020face68860d7b284b7b2973a58de8b4242ec5a925a40ac2933b7e45e78a0b3a13123520e46f9566815589ba2d345577dadee0d5e"
 	testSignature         = `HxNguR72c6BV7tKNn5BQ3/mS2+RX3BGyQHFfVfQ3v4mVdAuh+w32QsFYxsB13KiXuRJ7ZnN7C8RhkAtLi/qvH88=`
 	testSignatureAuthHash = `5858adf09a0cc01f6d3a4d377f010408313031bb96b40d98e6edccf18c26464e`
-	testXpub              = "xpub661MyMwAqRbcH3WGvLjupmr43L1GVH3MP2WQWvdreDraBeFJy64Xxv4LLX9ZVWWz3ZjZkMuZtSsc9qH9JZR74bR4PWkmtEvP423r6DJR8kA"
-	testXpubHash          = "d8c2bed524071d72d859caf90da5f448b5861cd4d4fd47697f94166c13c5a987"
+	testXpubAuth          = "xpub661MyMwAqRbcH3WGvLjupmr43L1GVH3MP2WQWvdreDraBeFJy64Xxv4LLX9ZVWWz3ZjZkMuZtSsc9qH9JZR74bR4PWkmtEvP423r6DJR8kA"
+	testXpubAuthHash      = "d8c2bed524071d72d859caf90da5f448b5861cd4d4fd47697f94166c13c5a987"
 )
 
 // TestClient_AuthenticateRequest will test the method AuthenticateRequest()
@@ -41,7 +41,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req.Header.Set(AuthHeader, testXpub)
+		req.Header.Set(AuthHeader, testXpubAuth)
 
 		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
 		defer deferMe()
@@ -54,11 +54,11 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 
 		// Test the request
 		x, ok := GetXpubFromRequest(req)
-		assert.Equal(t, testXpub, x)
+		assert.Equal(t, testXpubAuth, x)
 		assert.Equal(t, true, ok)
 
 		x, ok = GetXpubHashFromRequest(req)
-		assert.Equal(t, testXpubHash, x)
+		assert.Equal(t, testXpubAuthHash, x)
 		assert.Equal(t, true, ok)
 	})
 
@@ -120,7 +120,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req.Header.Set(AuthHeader, testXpub)
+		req.Header.Set(AuthHeader, testXpubAuth)
 
 		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
 		defer deferMe()
@@ -138,13 +138,13 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req.Header.Set(AuthHeader, testXpub)
+		req.Header.Set(AuthHeader, testXpubAuth)
 
 		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
 		defer deferMe()
 
 		req, err = client.AuthenticateRequest(
-			context.Background(), req, []string{testXpub}, true, false, false,
+			context.Background(), req, []string{testXpubAuth}, true, false, false,
 		)
 		require.Error(t, err)
 		require.NotNil(t, req)
@@ -156,13 +156,13 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req.Header.Set(AuthHeader, testXpub)
+		req.Header.Set(AuthHeader, testXpubAuth)
 
 		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
 		defer deferMe()
 
 		req, err = client.AuthenticateRequest(
-			context.Background(), req, []string{testXpub}, true, false, false,
+			context.Background(), req, []string{testXpubAuth}, true, false, false,
 		)
 		require.Error(t, err)
 		require.NotNil(t, req)
@@ -202,13 +202,13 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req.Header.Set(AuthHeader, testXpub)
+		req.Header.Set(AuthHeader, testXpubAuth)
 
 		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
 		defer deferMe()
 
 		req, err = client.AuthenticateRequest(
-			context.Background(), req, []string{testXpub}, true, false, true,
+			context.Background(), req, []string{testXpubAuth}, true, false, true,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, req)
@@ -368,7 +368,7 @@ func Test_verifyKeyXPub(t *testing.T) {
 
 	t.Run("error - missing auth data", func(t *testing.T) {
 
-		err := verifyKeyXPub(testXpub, nil)
+		err := verifyKeyXPub(testXpubAuth, nil)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrMissingSignature)
 	})
@@ -584,12 +584,12 @@ func Test_getSigningMessage(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid format", func(t *testing.T) {
-		message := getSigningMessage(testXpub, &AuthPayload{
-			AuthHash:  testXpubHash,
+		message := getSigningMessage(testXpubAuth, &AuthPayload{
+			AuthHash:  testXpubAuthHash,
 			AuthNonce: "auth-nonce",
 			AuthTime:  12345678,
 		})
-		assert.Equal(t, fmt.Sprintf("%s%s%s%d", testXpub, testXpubHash, "auth-nonce", 12345678), message)
+		assert.Equal(t, fmt.Sprintf("%s%s%s%d", testXpubAuth, testXpubAuthHash, "auth-nonce", 12345678), message)
 	})
 }
 
@@ -602,10 +602,10 @@ func TestGetXpubFromRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req = setOnRequest(req, ParamXPubKey, testXpub)
+		req = setOnRequest(req, ParamXPubKey, testXpubAuth)
 
 		xPub, success := GetXpubFromRequest(req)
-		assert.Equal(t, testXpub, xPub)
+		assert.Equal(t, testXpubAuth, xPub)
 		assert.Equal(t, true, success)
 	})
 
@@ -668,10 +668,10 @@ func TestGetXpubHashFromRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		req = setOnRequest(req, ParamXPubHashKey, testXpubHash)
+		req = setOnRequest(req, ParamXPubHashKey, testXpubAuthHash)
 
 		xPubHash, success := GetXpubHashFromRequest(req)
-		assert.Equal(t, testXpubHash, xPubHash)
+		assert.Equal(t, testXpubAuthHash, xPubHash)
 		assert.Equal(t, true, success)
 	})
 

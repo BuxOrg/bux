@@ -169,15 +169,8 @@ func incrementField(ctx context.Context, model ModelInterface, fieldName string,
 		return 0, err
 	}
 
-	// Update the model's value
-	if err = setFieldValueByJSONTag(model, fieldName, increment); err != nil {
-		return 0, err
-	}
+	// AfterUpdate event should be called by parent function
 
-	// Fire an AfterUpdate event
-	if err = model.AfterUpdated(ctx); err != nil {
-		return 0, err
-	}
 	return newValue, nil
 }
 

@@ -199,6 +199,11 @@ func (m *Xpub) incrementBalance(ctx context.Context, balanceIncrement int64) err
 		return err
 	}
 	m.CurrentBalance = uint64(newBalance)
+
+	if err = m.AfterUpdated(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -225,6 +230,10 @@ func (m *Xpub) incrementNextNum(ctx context.Context, chain uint32) (uint32, erro
 		m.NextInternalNum = uint32(newNum)
 	} else {
 		m.NextExternalNum = uint32(newNum)
+	}
+
+	if err = m.AfterUpdated(ctx); err != nil {
+		return 0, err
 	}
 
 	// return the previous number, which was next num

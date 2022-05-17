@@ -95,6 +95,12 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, public
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_paymail_address")
 
+	// Get the xPub (make sure it exists)
+	_, err := c.GetXpub(ctx, xPubKey)
+	if err != nil {
+		return nil, err
+	}
+
 	// Start the new paymail address model
 	paymailAddress := newPaymail(
 		address,
@@ -109,10 +115,9 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, public
 	paymailAddress.PublicName = publicName
 
 	// Save the model
-	if err := paymailAddress.Save(ctx); err != nil {
+	if err = paymailAddress.Save(ctx); err != nil {
 		return nil, err
 	}
-
 	return paymailAddress, nil
 }
 

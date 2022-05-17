@@ -2,6 +2,9 @@ package bux
 
 import (
 	"context"
+	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/BuxOrg/bux/notifications"
@@ -166,10 +169,8 @@ func incrementField(ctx context.Context, model ModelInterface, fieldName string,
 		return 0, err
 	}
 
-	// Fire an AfterUpdate event
-	if err = model.AfterUpdated(ctx); err != nil {
-		return 0, err
-	}
+	// AfterUpdate event should be called by parent function
+
 	return newValue, nil
 }
 
@@ -194,4 +195,46 @@ func notify(eventType notifications.EventType, model interface{}) {
 			}
 		}
 	}()
+}
+
+// setFieldValueByJSONTag will parse the struct looking for the field (json tag) and updating the value if found
+//
+// todo: this was created because the increment field was not updating the model's value
+func setFieldValueByJSONTag(item interface{}, fieldName string, value interface{}) error {
+	v := reflect.ValueOf(item).Elem()
+	if !v.CanAddr() {
+		return fmt.Errorf("cannot assign to the item passed, item must be a pointer in order to assign")
+	}
+	// It's possible we can cache this, which is why precompute all these ahead of time.
+	findJSONName := func(t reflect.StructTag) (string, error) {
+		if jt, ok := t.Lookup("json"); ok {
+			return strings.Split(jt, ",")[0], nil
+		}
+		return "", fmt.Errorf("tag provided does not define a json tag: %s", fieldName)
+	}
+	fieldNames := map[string]int{}
+	for i := 0; i < v.NumField(); i++ {
+		structTypeField := v.Type().Field(i)
+		jName, _ := findJSONName(structTypeField.Tag)
+		if jName != "" && jName != "-" {
+			fieldNames[jName] = i
+		}
+	}
+
+	fieldNum, ok := fieldNames[fieldName]
+	if !ok {
+		return fmt.Errorf("field %s does not exist within the provided item", fieldName)
+	}
+	fieldVal := v.Field(fieldNum)
+	switch fieldVal.Interface().(type) {
+	case uint8:
+		fieldVal.Set(reflect.ValueOf(uint8(value.(int64))))
+	case uint16:
+		fieldVal.Set(reflect.ValueOf(uint16(value.(int64))))
+	case uint32:
+		fieldVal.Set(reflect.ValueOf(uint32(value.(int64))))
+	case uint64:
+		fieldVal.Set(reflect.ValueOf(uint64(value.(int64))))
+	}
+	return nil
 }

@@ -194,21 +194,27 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 		return nil, "", nil, err
 	}
 
+	// Increment and save
+	var chainNum uint32
+	if chainNum, err = xPub.incrementNextNum(ctx, utils.ChainExternal); err != nil {
+		return nil, "", nil, err
+	}
+
 	// Generate the new xPub and address with locking script
 	var lockingScript string
 	pubKey, _, lockingScript, err = getPaymailKeyInfo(
 		externalXpub.String(),
-		xPub.NextExternalNum,
+		chainNum,
 	)
 	if err != nil {
 		return nil, "", nil, err
 	}
 
 	// create a new destination, based on the External xPub child
-	// this is not yet possible within this library, it needs the full xPub
+	// this is not yet possible using the xpub struct. That needs the full xPub, which we don't have.
 	destination = newDestination(paymailAddress.XpubID, lockingScript, append(opts, New())...)
 	destination.Chain = utils.ChainExternal
-	destination.Num = xPub.NextExternalNum
+	destination.Num = chainNum
 
 	// Only on for basic address resolution, not enabled for p2p
 	if monitor {
@@ -223,11 +229,6 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 		return nil, "", nil, err
 	}
 
-	// Increment and save
-	xPub.NextExternalNum++
-	if err = xPub.Save(ctx); err != nil {
-		return nil, "", nil, err
-	}
 	return
 }
 

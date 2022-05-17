@@ -107,7 +107,7 @@ func (c *Client) registerTaskUsingTaskQ(task *Task) {
 		c.options.taskq.tasks[task.Name] = t
 
 		// Task already exists!
-		c.DebugLog(fmt.Sprintf("registering task: %s... task already exists!", task.Name))
+		// c.DebugLog(fmt.Sprintf("registering task: %s... task already exists!", task.Name))
 
 		mutex.Unlock()
 

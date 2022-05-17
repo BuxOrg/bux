@@ -22,7 +22,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
-			// Create xPub (required to add a paymail address
+			// Create xPub (required to add a paymail address)
 			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, tc.client.DefaultModelOptions()...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
@@ -37,7 +37,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
 
-			// Create xPub (required to add a paymail address
+			// Create xPub (required to add a paymail address)
 			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, tc.client.DefaultModelOptions()...)
 			require.NotNil(t, xPub)
 			require.NoError(t, err)
@@ -69,6 +69,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 	}
 }
 
+// Test_DeletePaymailAddress will test the method DeletePaymailAddress()
 func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 	for _, testCase := range dbTestCases {
 
@@ -92,21 +93,28 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 		ts.T().Run(testCase.name+" - delete paymail address", func(t *testing.T) {
 			tc := ts.genericDBClient(t, testCase.database, false, WithAutoMigrate(&PaymailAddress{}))
 			defer tc.Close(tc.ctx)
+			opts := tc.client.DefaultModelOptions()
 
-			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, tc.client.DefaultModelOptions()...)
+			// Create xPub (required to add a paymail address)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, opts...)
+			require.NotNil(t, xPub)
+			require.NoError(t, err)
+
+			var paymailAddress *PaymailAddress
+			paymailAddress, err = tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 
-			err = tc.client.DeletePaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			err = tc.client.DeletePaymailAddress(tc.ctx, testPaymail, opts...)
 			require.NoError(t, err)
 
 			var p2 *PaymailAddress
-			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, opts...)
 			require.NoError(t, err)
 			require.Nil(t, p2)
 
 			var p3 *PaymailAddress
-			p3, err = getPaymailAddressByID(tc.ctx, paymailAddress.ID, tc.client.DefaultModelOptions()...)
+			p3, err = getPaymailAddressByID(tc.ctx, paymailAddress.ID, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, p3)
 			require.Equal(t, testPaymail, p3.Alias)
@@ -115,6 +123,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 	}
 }
 
+// TestClient_UpdatePaymailAddressMetadata will test the method UpdatePaymailAddressMetadata()
 func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 
 	for _, testCase := range dbTestCases {
@@ -130,7 +139,13 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 			opts := tc.client.DefaultModelOptions()
 			opts = append(opts, WithMetadatas(metadata))
 
-			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
+			// Create xPub (required to add a paymail address)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, opts...)
+			require.NotNil(t, xPub)
+			require.NoError(t, err)
+
+			var paymailAddress *PaymailAddress
+			paymailAddress, err = tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 
@@ -151,7 +166,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 			assert.Equal(t, "new-value-2", paymailAddress.Metadata["test-key-new-2"])
 
 			var p2 *PaymailAddress
-			p2, err = getPaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
+			p2, err = getPaymailAddress(tc.ctx, testPaymail, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, p2)
 			assert.Len(t, paymailAddress.Metadata, 2)
@@ -159,6 +174,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddressMetadata() {
 	}
 }
 
+// TestClient_UpdatePaymailAddress will test the method UpdatePaymailAddress()
 func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddress() {
 
 	for _, testCase := range dbTestCases {
@@ -167,7 +183,14 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdatePaymailAddress() {
 			defer tc.Close(tc.ctx)
 
 			opts := tc.client.DefaultModelOptions()
-			paymailAddress, err := tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
+
+			// Create xPub (required to add a paymail address)
+			xPub, err := tc.client.NewXpub(tc.ctx, testXpub, opts...)
+			require.NotNil(t, xPub)
+			require.NoError(t, err)
+
+			var paymailAddress *PaymailAddress
+			paymailAddress, err = tc.client.NewPaymailAddress(tc.ctx, testXPub, testPaymail, testPublicName, testAvatar, opts...)
 			require.NoError(t, err)
 			require.NotNil(t, paymailAddress)
 			assert.Equal(t, testPublicName, paymailAddress.PublicName)

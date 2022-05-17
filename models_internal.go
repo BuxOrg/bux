@@ -2,9 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
-	"reflect"
-	"strings"
 	"time"
 
 	"github.com/BuxOrg/bux/notifications"
@@ -197,6 +194,7 @@ func notify(eventType notifications.EventType, model interface{}) {
 	}()
 }
 
+/*
 // setFieldValueByJSONTag will parse the struct looking for the field (json tag) and updating the value if found
 //
 // todo: this was created because the increment field was not updating the model's value
@@ -238,3 +236,4 @@ func setFieldValueByJSONTag(item interface{}, fieldName string, value interface{
 	}
 	return nil
 }
+*/

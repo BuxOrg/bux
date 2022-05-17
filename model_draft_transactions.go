@@ -671,7 +671,6 @@ func (m *DraftTransaction) setChangeDestinations(ctx context.Context, numberOfDe
 		}
 
 		destination.DraftID = m.ID
-
 		if err = destination.Save(ctx); err != nil {
 			return err
 		}

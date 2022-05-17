@@ -194,12 +194,17 @@ func (m *Xpub) getNewDestination(ctx context.Context, chain uint32, destinationT
 
 // incrementBalance will atomically update the balance of the xPub
 func (m *Xpub) incrementBalance(ctx context.Context, balanceIncrement int64) error {
+
+	// Increment the field
 	newBalance, err := incrementField(ctx, m, currentBalanceField, balanceIncrement)
 	if err != nil {
 		return err
 	}
+
+	// Update the field value
 	m.CurrentBalance = uint64(newBalance)
 
+	// Fire the after update
 	if err = m.AfterUpdated(ctx); err != nil {
 		return err
 	}

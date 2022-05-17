@@ -551,8 +551,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 
 	// update the xpub balances
 	for xPubID, balance := range m.XpubOutputValue {
-		// todo: move this into a function on the xpub model
-		// todo: run this in a go routine?
+		// todo: run this in a go routine? (move this into a function on the xpub model?)
 		xPub, err := getXpubWithCache(ctx, m.Client(), "", xPubID, opts...)
 		if err != nil {
 			return err
@@ -565,7 +564,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 	}
 
 	// Update the draft transaction, process broadcasting
-	// todo: go routine (however its not working, panic in save for missing datastore)
+	// todo: go routine (however it's not working, panic in save for missing datastore)
 	if m.draftTransaction != nil {
 		m.draftTransaction.Status = DraftStatusComplete
 		m.draftTransaction.FinalTxID = m.ID

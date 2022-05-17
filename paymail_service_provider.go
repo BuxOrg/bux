@@ -202,11 +202,10 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 
 	// Generate the new xPub and address with locking script
 	var lockingScript string
-	pubKey, _, lockingScript, err = getPaymailKeyInfo(
+	if pubKey, _, lockingScript, err = getPaymailKeyInfo(
 		externalXpub.String(),
 		chainNum,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, "", nil, err
 	}
 

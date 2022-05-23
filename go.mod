@@ -41,7 +41,7 @@ require (
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.9.1
 	gorm.io/driver/mysql v1.3.3
-	gorm.io/driver/postgres v1.3.5
+	gorm.io/driver/postgres v1.3.6
 	gorm.io/driver/sqlite v1.3.2
 	gorm.io/gorm v1.23.5
 	gorm.io/plugin/dbresolver v1.2.0

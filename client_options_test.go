@@ -19,8 +19,6 @@ import (
 	"github.com/tonicpow/go-paymail"
 )
 
-// todo: finish unit tests!
-
 // TestNewRelicOptions will test the method enable()
 func Test_newRelicOptions_enable(t *testing.T) {
 	t.Parallel()
@@ -365,51 +363,6 @@ func TestWithFreeCacheConnection(t *testing.T) {
 	})
 }
 
-// TestWithRedisConnection will test the method WithRedisConnection()
-func TestWithRedisConnection(t *testing.T) {
-	// finish test
-}
-
-// TestWithAutoMigrate will test the method WithAutoMigrate()
-func TestWithAutoMigrate(t *testing.T) {
-	// finish test
-}
-
-// TestWithMigrationDisabled will test the method WithMigrationDisabled()
-func TestWithMigrationDisabled(t *testing.T) {
-	// finish test
-}
-
-// TestWithSQLite will test the method WithSQLite()
-func TestWithSQLite(t *testing.T) {
-	// finish test
-}
-
-// TestWithSQL will test the method WithSQL()
-func TestWithSQL(t *testing.T) {
-	// finish test
-}
-
-// TestWithSQLConfigs will test the method WithSQLConfigs()
-func TestWithSQLConfigs(t *testing.T) {
-	// finish test
-}
-
-// TestWithSQLConnection will test the method WithSQLConnection()
-func TestWithSQLConnection(t *testing.T) {
-	// finish test
-}
-
-// TestWithMongoDB will test the method WithMongoDB()
-func TestWithMongoDB(t *testing.T) {
-	// finish test
-}
-
-// TestWithMongoConnection will test the method WithMongoConnection()
-func TestWithMongoConnection(t *testing.T) {
-	// finish test
-}
-
 // TestWithPaymailClient will test the method WithPaymailClient()
 func TestWithPaymailClient(t *testing.T) {
 	t.Parallel()
@@ -528,26 +481,6 @@ func TestWithLogger(t *testing.T) {
 
 		assert.Equal(t, customLogger, tc.Logger())
 	})
-}
-
-// TestWithCustomTaskManager will test the method WithCustomTaskManager()
-func TestWithCustomTaskManager(t *testing.T) {
-	// finish this!
-}
-
-// TestWithCustomDatastore will test the method WithCustomDatastore()
-func TestWithCustomDatastore(t *testing.T) {
-	// finish this!
-}
-
-// TestWithCustomCachestore will test the method WithCustomCachestore()
-func TestWithCustomCachestore(t *testing.T) {
-	// finish this!
-}
-
-// TestWithCustomChainstate will test the method WithCustomChainstate()
-func TestWithCustomChainstate(t *testing.T) {
-	// finish this!
 }
 
 // TestWithModels will test the method WithModels()
@@ -730,5 +663,43 @@ func TestWithHTTPClient(t *testing.T) {
 		defer CloseClient(context.Background(), t, tc)
 
 		assert.Equal(t, customClient, tc.HTTPClient())
+	})
+}
+
+// TestWithCustomCachestore will test the method WithCustomCachestore()
+func TestWithCustomCachestore(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithCustomCachestore(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithCustomCachestore(nil))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.NotNil(t, tc.Cachestore())
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		customCache, err := cachestore.NewClient(context.Background())
+		require.NoError(t, err)
+
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithCustomCachestore(customCache))
+
+		var tc ClientInterface
+		tc, err = NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, customCache, tc.Cachestore())
 	})
 }

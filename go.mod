@@ -150,3 +150,5 @@ replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
 
 // Issue with Nancy and deps
 replace github.com/99designs/gqlgen => github.com/99designs/gqlgen v0.17.6
+replace github.com/jackc/pgproto3 => github.com/jackc/pgproto3/v2 v2.3.0
+replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.12.0

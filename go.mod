@@ -3,7 +3,7 @@ module github.com/BuxOrg/bux
 go 1.17
 
 require (
-	github.com/99designs/gqlgen v0.17.6
+	github.com/99designs/gqlgen v0.17.9
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.21.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
@@ -27,7 +27,7 @@ require (
 	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.5
 	github.com/mrz1836/go-whatsonchain v0.10.4
-	github.com/newrelic/go-agent/v3 v3.16.0
+	github.com/newrelic/go-agent/v3 v3.16.1
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
@@ -40,8 +40,8 @@ require (
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.9.1
-	gorm.io/driver/mysql v1.3.3
-	gorm.io/driver/postgres v1.3.6
+	gorm.io/driver/mysql v1.3.4
+	gorm.io/driver/postgres v1.3.7
 	gorm.io/driver/sqlite v1.3.2
 	gorm.io/gorm v1.23.5
 	gorm.io/plugin/dbresolver v1.2.0
@@ -55,7 +55,7 @@ require (
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
 	github.com/bsm/redislock v0.7.2 // indirect
 	github.com/capnm/sysinfo v0.0.0-20130621111458-5909a53897f3 // indirect
-	github.com/centrifugal/protocol v0.8.6 // indirect
+	github.com/centrifugal/protocol v0.8.7 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/d4l3k/messagediff v1.2.1 // indirect
@@ -90,7 +90,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.4 // indirect
+	github.com/klauspost/compress v1.15.5 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -118,7 +118,7 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/vektah/gqlparser/v2 v2.4.3 // indirect
+	github.com/vektah/gqlparser/v2 v2.4.4 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
@@ -127,19 +127,19 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
-	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220524220425-1d687d428aca // indirect
+	golang.org/x/net v0.0.0-20220526153639-5463443f8c37 // indirect
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
-	google.golang.org/genproto v0.0.0-20220525015930-6ca3db687a9d // indirect
+	google.golang.org/genproto v0.0.0-20220531134929-86cf59382f1b // indirect
 	google.golang.org/grpc v1.46.2 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // Issue with Ask Nancy on related packages
@@ -149,6 +149,6 @@ replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.1
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
 
 // Issue with Nancy and deps
-replace github.com/99designs/gqlgen => github.com/99designs/gqlgen v0.17.6
-replace github.com/jackc/pgproto3 => github.com/jackc/pgproto3/v2 v2.3.0
-replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.12.0
+// replace github.com/99designs/gqlgen => github.com/99designs/gqlgen v0.17.6
+// replace github.com/jackc/pgproto3 => github.com/jackc/pgproto3/v2 v2.3.0
+// replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.12.0

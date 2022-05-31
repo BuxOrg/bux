@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/BuxOrg/bux/logger"
@@ -28,6 +29,7 @@ type Monitor struct {
 	processMempoolOnConnect      bool
 	processor                    MonitorProcessor
 	saveTransactionsDestinations bool
+	mempoolSyncChannel           chan bool
 }
 
 // MonitorOptions options for starting this monitorConfig
@@ -59,6 +61,9 @@ func (o *MonitorOptions) checkDefaults() {
 // NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
 func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 	options.checkDefaults()
+	if options.ProcessorType == "" {
+		options.ProcessorType = filterBloom
+	}
 	monitor = &Monitor{
 		authToken:                    options.AuthToken,
 		buxAgentURL:                  options.BuxAgentURL,
@@ -68,6 +73,8 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
+		filterType:                   options.ProcessorType,
+		mempoolSyncChannel:           make(chan bool),
 	}
 
 	// Set logger if not set
@@ -139,12 +146,11 @@ func (m *Monitor) SetChainstateOptions(options *clientOptions) {
 }
 
 // Monitor open a socket to the service provider and monitorConfig transactions
-func (m *Monitor) Monitor(handler MonitorHandler) error {
-
+func (m *Monitor) Start(handler MonitorHandler) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
-		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Connecting to server: %s", m.buxAgentURL))
+		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Starting, connecting to server: %s", m.buxAgentURL))
 		m.client = newCentrifugeClient(m.buxAgentURL, handler)
 		if m.authToken != "" {
 			m.client.SetToken(m.authToken)
@@ -183,12 +189,15 @@ func (m *Monitor) IsConnected() bool {
 }
 
 // PauseMonitor closes the monitoring socket and pauses monitoring
-func (m *Monitor) PauseMonitor() error {
+func (m *Monitor) Stop() error {
+	m.logger.Info(context.Background(), "[MONITOR] Stopping monitor...")
+	defer close(m.mempoolSyncChannel)
 	return m.client.Disconnect()
 }
 
 // ProcessMempool processes all current transactions in the mempool
 func (m *Monitor) ProcessMempool(ctx context.Context) error {
+
 	woc := m.handler.GetWhatsOnChain()
 	if woc != nil {
 		mempoolTxs, err := woc.GetMempoolTransactions(ctx)
@@ -196,6 +205,9 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 			return err
 		}
 
+		// TODO: This is overkill right now, but gives us a chance to parallelize this stuff
+		var done sync.WaitGroup
+		done.Add(1)
 		// run the processing of the txs in a different thread
 		go func() {
 			if m.debug {
@@ -228,50 +240,59 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 					if m.debug {
 						m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool processing batch: %d\n", i+1))
 					}
-
-					txHashes := new(whatsonchain.TxHashes)
-					txHashes.TxIDs = append(txHashes.TxIDs, batch...)
-
-					// Get the tx details (max of MaxTransactionsUTXO)
-					var returnedList whatsonchain.TxList
-					if returnedList, err = woc.BulkRawTransactionDataProcessor(
-						ctx, txHashes,
-					); err != nil {
+					// While processing all the batches, check if channel is closed
+					select {
+					case <-m.mempoolSyncChannel:
 						return
-					}
+					default:
 
-					// Add to the list
-					for _, tx := range returnedList {
-						if m.debug {
-							m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool tx: %s\n", tx.TxID))
+						txHashes := new(whatsonchain.TxHashes)
+						txHashes.TxIDs = append(txHashes.TxIDs, batch...)
+
+						// Get the tx details (max of MaxTransactionsUTXO)
+						var returnedList whatsonchain.TxList
+						if returnedList, err = woc.BulkRawTransactionDataProcessor(
+							ctx, txHashes,
+						); err != nil {
+							return
 						}
-						var txHex string
-						txHex, err = m.processor.FilterTransaction(tx.Hex) // todo off
-						if err != nil {
-							m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx %s: %s\n", tx.TxID, err.Error()))
-							continue
-						}
-						if txHex != "" {
-							err = m.handler.RecordTransaction(ctx, txHex)
+
+						// Add to the list
+						for _, tx := range returnedList {
+							if m.debug {
+								m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool tx: %s\n", tx.TxID))
+							}
+							var txHex string
+							txHex, err = m.processor.FilterTransaction(tx.Hex) // todo off
 							if err != nil {
-								m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %s\n", err.Error()))
+								m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx %s: %s\n", tx.TxID, err.Error()))
 								continue
 							}
-							if m.debug {
-								m.logger.Info(ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %s\n", tx.TxID))
+							if txHex != "" {
+								err = m.handler.RecordTransaction(ctx, txHex)
+								if err != nil {
+									m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %s\n", err.Error()))
+									continue
+								}
+								if m.debug {
+									m.logger.Info(ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %s\n", tx.TxID))
+								}
 							}
 						}
-					}
 
-					// Accumulate / sleep to prevent rate limiting
-					currentRateLimit++
-					if currentRateLimit >= woc.RateLimit() {
-						time.Sleep(1 * time.Second)
-						currentRateLimit = 0
+						// Accumulate / sleep to prevent rate limiting
+						currentRateLimit++
+						if currentRateLimit >= woc.RateLimit() {
+							time.Sleep(1 * time.Second)
+							currentRateLimit = 0
+						}
 					}
 				}
 			}
+			done.Done()
 		}()
+		done.Wait()
+		m.mempoolSyncChannel <- true
 	}
 
 	return nil

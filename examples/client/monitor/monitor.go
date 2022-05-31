@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/BuxOrg/bux/datastore"
 	"log"
 	"time"
+
+	"github.com/BuxOrg/bux/datastore"
 
 	"github.com/BuxOrg/bux"
 	"github.com/BuxOrg/bux/chainstate"
@@ -23,7 +24,6 @@ func main() {
 				MaxOpenConnections:    10,
 				TablePrefix:           "bux",
 			},
-			DatabasePath: "test.json",
 		}),
 
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
@@ -37,7 +37,7 @@ func main() {
 
 	m := chainstate.NewMonitor(context.Background(), &chainstate.MonitorOptions{
 		BuxAgentURL:             "wss://bux-agent.siftbitcoin.com/websocket",
-		AuthToken:               "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkeWxhbiIsImV4cCI6MTc1MzY3NzEwM30.inpWNKDHesoJtTMA1_LGaFl7_yyJv0gKD6Vlp9Zn1OI",
+		AuthToken:               "TOKEN",
 		ProcessorType:           "regex",
 		ProcessMempoolOnConnect: false,
 	})

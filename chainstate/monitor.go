@@ -61,6 +61,9 @@ func (o *MonitorOptions) checkDefaults() {
 // NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
 func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 	options.checkDefaults()
+	if options.ProcessorType == "" {
+		options.ProcessorType = filterBloom
+	}
 	monitor = &Monitor{
 		authToken:                    options.AuthToken,
 		buxAgentURL:                  options.BuxAgentURL,
@@ -70,6 +73,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
+		filterType:                   options.ProcessorType,
 		mempoolSyncChannel:           make(chan bool),
 	}
 
@@ -143,11 +147,10 @@ func (m *Monitor) SetChainstateOptions(options *clientOptions) {
 
 // Monitor open a socket to the service provider and monitorConfig transactions
 func (m *Monitor) Start(handler MonitorHandler) error {
-
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
-		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Connecting to server: %s", m.buxAgentURL))
+		m.logger.Info(context.Background(), fmt.Sprintf("[MONITOR] Starting, connecting to server: %s", m.buxAgentURL))
 		m.client = newCentrifugeClient(m.buxAgentURL, handler)
 		if m.authToken != "" {
 			m.client.SetToken(m.authToken)
@@ -187,6 +190,7 @@ func (m *Monitor) IsConnected() bool {
 
 // PauseMonitor closes the monitoring socket and pauses monitoring
 func (m *Monitor) Stop() error {
+	m.logger.Info(context.Background(), "[MONITOR] Stopping monitor...")
 	defer close(m.mempoolSyncChannel)
 	return m.client.Disconnect()
 }

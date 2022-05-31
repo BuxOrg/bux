@@ -181,17 +181,21 @@ func (h *MonitorEventHandler) ProcessBlockHeaders(ctx context.Context, client *c
 	lastBlockHeader, err := h.buxClient.GetLastBlockHeader(ctx)
 	if err != nil {
 		h.logger.Error(h.ctx, err.Error())
+		return err
+	}
+	if lastBlockHeader == nil {
+		h.logger.Info(h.ctx, "no last block header found, skipping...")
+		return nil
+	}
+	var subscription *centrifuge.Subscription
+	subscription, err = client.NewSubscription("block:headers:history:" + fmt.Sprint(lastBlockHeader.Height))
+	if err != nil {
+		h.logger.Error(h.ctx, err.Error())
 	} else {
-		var subscription *centrifuge.Subscription
-		subscription, err = client.NewSubscription("block:headers:history:" + fmt.Sprint(lastBlockHeader.Height))
-		if err != nil {
+		h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block header subscription: %v", subscription))
+		subscription.OnPublish(h)
+		if err = subscription.Subscribe(); err != nil {
 			h.logger.Error(h.ctx, err.Error())
-		} else {
-			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block header subscription: %v", subscription))
-			subscription.OnPublish(h)
-			if err = subscription.Subscribe(); err != nil {
-				h.logger.Error(h.ctx, err.Error())
-			}
 		}
 	}
 
@@ -240,7 +244,6 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 
 // OnPublish on publish event
 func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
-
 	channelName := subscription.Channel()
 	if strings.HasPrefix(channelName, "block:sync:") {
 		// block subscription

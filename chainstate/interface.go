@@ -77,44 +77,44 @@ type MonitorClient interface {
 // MonitorHandler interface
 type MonitorHandler interface {
 	whatsonchain.SocketHandler
-	SetMonitor(monitor *Monitor)
-	RecordTransaction(ctx context.Context, txHex string) error
-	RecordBlockHeader(ctx context.Context, bh bc.BlockHeader) error
 	GetWhatsOnChain() whatsonchain.ClientInterface
+	RecordBlockHeader(ctx context.Context, bh bc.BlockHeader) error
+	RecordTransaction(ctx context.Context, txHex string) error
+	SetMonitor(monitor *Monitor)
 }
 
 // MonitorProcessor struct that defines interface to all filter processors
 type MonitorProcessor interface {
 	Add(regexString, item string) error
 	Debug(bool)
-	FilterTransactionPublishEvent(eData []byte) (string, error)
 	FilterTransaction(txHex string) (string, error)
+	FilterTransactionPublishEvent(eData []byte) (string, error)
 	GetFilters() map[string]*BloomProcessorFilter
-	SetFilter(regex string, filter []byte) error
 	GetHash() string
 	IsDebug() bool
 	Logger() Logger
 	Reload(regexString string, items []string) error
+	SetFilter(regex string, filter []byte) error
 	SetLogger(logger Logger)
 	Test(regexString string, item string) bool
 }
 
 // MonitorService for the monitoring
 type MonitorService interface {
-	IsDebug() bool
-	Logger() Logger
+	Add(regexpString string, item string) error
 	Connected()
 	Disconnected()
-	IsConnected() bool
-	GetMonitorDays() int
-	SaveDestinations() bool
-	LoadMonitoredDestinations() bool
 	GetFalsePositiveRate() float64
 	GetMaxNumberOfDestinations() int
+	GetMonitorDays() int
 	GetProcessMempoolOnConnect() bool
-	Add(regexpString string, item string) error
-	Processor() MonitorProcessor
+	IsConnected() bool
+	IsDebug() bool
+	LoadMonitoredDestinations() bool
+	Logger() Logger
 	ProcessMempool(ctx context.Context) error
+	Processor() MonitorProcessor
+	SaveDestinations() bool
 	Start(ctx context.Context, handler MonitorHandler) error
 	Stop(ctx context.Context) error
 }

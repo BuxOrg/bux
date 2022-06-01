@@ -74,6 +74,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
+		loadMonitoredDestinations:    options.LoadMonitoredDestinations,
 	}
 
 	// Set logger if not set

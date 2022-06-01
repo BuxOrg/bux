@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/BuxOrg/bux/datastore"
@@ -25,7 +26,18 @@ func main() {
 				TablePrefix:           "bux",
 			},
 		}),
-
+		bux.WithMonitoring(context.Background(), &chainstate.MonitorOptions{
+			AuthToken:                   os.Getenv("BUX_MONITOR_AUTH_TOKEN"),
+			BuxAgentURL:                 "wss://" + os.Getenv("BUX_MONITOR_URL"),
+			Debug:                       true,
+			FalsePositiveRate:           0,
+			LoadMonitoredDestinations:   true,
+			MaxNumberOfDestinations:     25000,
+			MonitorDays:                 5,
+			ProcessMempoolOnConnect:     false,
+			ProcessorType:               chainstate.FilterRegex,
+			SaveTransactionDestinations: false,
+		}),
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithDebugging(), // Enable debugging (verbose logs)
 		bux.WithChainstateOptions(true, true, true, true), // Broadcasting enabled by default
@@ -35,26 +47,28 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	m := chainstate.NewMonitor(context.Background(), &chainstate.MonitorOptions{
-		BuxAgentURL:             "wss://bux-agent.siftbitcoin.com/websocket",
-		AuthToken:               "TOKEN",
-		ProcessorType:           "regex",
-		ProcessMempoolOnConnect: false,
-	})
+	m := client.Chainstate().Monitor()
 
+	// Create a new handler
 	handler := bux.NewMonitorHandler(context.Background(), client, m)
-	err = m.Start(&handler)
-	if err != nil {
+
+	// Start
+	if err = m.Start(context.Background(), &handler); err != nil {
 		log.Fatalf(err.Error())
 	}
-	err = m.Add("006a", "")
-	if err != nil {
+
+	// Add a regex filter
+	if err = m.Add("006a", ""); err != nil {
 		log.Fatal(err.Error())
 	}
-	time.Sleep(time.Second * 20)
-	err = m.Stop()
-	if err != nil {
+
+	// Pause
+	time.Sleep(time.Second * 10)
+
+	// Stop the monitor
+	if err = m.Stop(context.Background()); err != nil {
 		log.Fatalf(err.Error())
 	}
-	time.Sleep(time.Minute * 20)
+	time.Sleep(time.Second * 5)
+	log.Println("Complete!")
 }

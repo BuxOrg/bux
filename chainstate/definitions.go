@@ -14,9 +14,15 @@ const (
 	defaultMaxNumberOfDestinations = 100000
 	defaultMonitorDays             = 7
 	defaultQueryTimeOut            = 15 * time.Second
-	filterBloom                    = "bloom"
-	filterRegex                    = "regex"
 	whatsOnChainRateLimitWithKey   = 20
+)
+
+const (
+	// FilterBloom is for bloom filters
+	FilterBloom = "bloom"
+
+	// FilterRegex is for regex filters
+	FilterRegex = "regex"
 )
 
 // Internal network names

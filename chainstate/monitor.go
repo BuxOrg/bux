@@ -74,6 +74,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
+		loadMonitoredDestinations:    options.LoadMonitoredDestinations,
 	}
 
 	// Set logger if not set
@@ -84,7 +85,6 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 	switch monitor.filterType {
 	case FilterRegex:
 		monitor.processor = NewRegexProcessor()
-	case FilterBloom:
 	default:
 		monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
 	}

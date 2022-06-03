@@ -97,11 +97,12 @@ func defaultClientOptions() *clientOptions {
 		taskManager: &taskManagerOptions{
 			ClientInterface: nil,
 			cronTasks: map[string]time.Duration{
-				ModelDraftTransaction.String() + "_clean_up":              60 * time.Second,
-				ModelIncomingTransaction.String() + "_process":            30 * time.Second,
-				ModelSyncTransaction.String() + "_" + syncActionBroadcast: 30 * time.Second,
-				ModelSyncTransaction.String() + "_" + syncActionSync:      60 * time.Second,
-				ModelSyncTransaction.String() + "_" + syncActionP2P:       35 * time.Second,
+				ModelDestination.String() + "_monitor":                    taskIntervalMonitorCheck,
+				ModelDraftTransaction.String() + "_clean_up":              taskIntervalDraftCleanup,
+				ModelIncomingTransaction.String() + "_process":            taskIntervalProcessIncomingTxs,
+				ModelSyncTransaction.String() + "_" + syncActionBroadcast: taskIntervalSyncActionBroadcast,
+				ModelSyncTransaction.String() + "_" + syncActionP2P:       taskIntervalSyncActionP2P,
+				ModelSyncTransaction.String() + "_" + syncActionSync:      taskIntervalSyncActionSync,
 			},
 		},
 

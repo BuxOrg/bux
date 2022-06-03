@@ -83,8 +83,9 @@ func (a *AgentClient) SetFilter(regex string, bloomFilter *BloomProcessorFilter)
 	return a.Client.Publish("set_filter", data)
 }
 
+// newCentrifugeClient will create a new Centrifuge using the provided handler and default configurations
 func newCentrifugeClient(wsURL string, handler whatsonchain.SocketHandler) MonitorClient {
-	c := centrifuge.NewJsonClient(wsURL, centrifuge.DefaultConfig())
+	c := centrifuge.NewJsonClient(wsURL, centrifuge.DefaultConfig()) // todo: use our own defaults/custom options
 
 	c.OnConnect(handler)
 	c.OnDisconnect(handler)

@@ -142,7 +142,6 @@ type TransactionService interface {
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
-	RecordMonitoredTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
 }
 

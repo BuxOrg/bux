@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
@@ -93,43 +92,27 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 // Cachestore is required to be loaded before this method is called
 func (c *Client) loadMonitor(ctx context.Context) (err error) {
 
-	// Load monitor if set by the user
+	// Check if the monitor was set by the user
 	monitor := c.options.chainstate.Monitor()
 	if monitor == nil {
-		return
+		return // No monitor, exit!
 	}
 
-	// Detect if the monitor has been loaded already (Looking for a LockID & Cachestore)
+	// Detect if the monitor has been loaded already (Looking for a LockID, Cachestore & last heartbeat)
 	lockID := monitor.GetLockID()
-	cs := c.Cachestore()
-	if cs != nil && len(lockID) > 0 {
-		// Check if there is already a monitor loaded using this unique lock id
-		key, _ := cs.Get(ctx, fmt.Sprintf(lockKeyMonitorLockID, lockID))
-		if len(key) > 0 {
-			// Monitor has already loaded with this LockID
-			c.Logger().Info(ctx, "monitor has already been loaded using this lockID: "+lockID)
+	if len(lockID) > 0 {
+		var locked bool
+		if locked, err = checkMonitorHeartbeat(ctx, c, lockID); err != nil { // Locally and global check
+			return
+		} else if locked { // Monitor found using LockID and heartbeat is in range
 			return
 		}
+
+		// Monitor might be found using LockID but the heartbeat failed (closed? disconnected? bad state?)
 	}
 
-	// Create a handler and load destinations if option has been set
-	handler := NewMonitorHandler(ctx, c, monitor)
-	if c.options.chainstate.Monitor().LoadMonitoredDestinations() {
-		if err = c.loadMonitoredDestinations(ctx, monitor); err != nil {
-			return
-		}
-	}
-
-	// Start the monitor
-	if err = monitor.Start(ctx, &handler); err != nil {
-		return err
-	}
-
-	// Set the cache-key lock for this monitor
-	if cs != nil && len(lockID) > 0 {
-		return cs.Set(ctx, fmt.Sprintf(lockKeyMonitorLockID, lockID), lockID)
-	}
-	return
+	// Start the default monitor
+	return startDefaultMonitor(ctx, c, monitor)
 }
 
 // runModelMigrations will run the model Migrate() method for all models

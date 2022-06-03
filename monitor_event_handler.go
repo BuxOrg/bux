@@ -18,13 +18,13 @@ import (
 
 // MonitorEventHandler for handling transaction events from a monitor
 type MonitorEventHandler struct {
+	blockSyncChannel chan bool
 	buxClient        ClientInterface
 	ctx              context.Context
 	debug            bool
 	limit            *limiter.ConcurrencyLimiter
 	logger           chainstate.Logger
 	monitor          chainstate.MonitorService
-	blockSyncChannel chan bool
 }
 
 type blockSubscriptionHandler struct {
@@ -50,7 +50,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 			return
 		}
 
-		if _, err = b.buxClient.RecordMonitoredTransaction(b.ctx, tx); err != nil {
+		if _, err = recordMonitoredTransaction(b.ctx, b.buxClient, tx); err != nil {
 			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
 			return
 		}
@@ -71,13 +71,13 @@ func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscr
 // NewMonitorHandler create a new monitor handler
 func NewMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor chainstate.MonitorService) MonitorEventHandler {
 	return MonitorEventHandler{
+		blockSyncChannel: make(chan bool),
 		buxClient:        buxClient,
 		ctx:              ctx,
 		debug:            monitor.IsDebug(),
 		limit:            limiter.NewConcurrencyLimiter(runtime.NumCPU()),
 		logger:           monitor.Logger(),
 		monitor:          monitor,
-		blockSyncChannel: make(chan bool),
 	}
 }
 
@@ -254,7 +254,7 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 		if tx == "" {
 			return
 		}
-		if _, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx); err != nil {
+		if _, err = recordMonitoredTransaction(h.ctx, h.buxClient, tx); err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
 			return
 		}
@@ -281,12 +281,12 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 				return
 			}
 			bh := bc.BlockHeader{
-				HashPrevBlock:  []byte(bi.PreviousBlockHash),
-				HashMerkleRoot: []byte(bi.MerkleRoot),
-				Nonce:          uint32(bi.Nonce),
-				Version:        uint32(bi.Version),
-				Time:           uint32(bi.Time),
 				Bits:           []byte(bi.Bits),
+				HashMerkleRoot: []byte(bi.MerkleRoot),
+				HashPrevBlock:  []byte(bi.PreviousBlockHash),
+				Nonce:          uint32(bi.Nonce),
+				Time:           uint32(bi.Time),
+				Version:        uint32(bi.Version),
 			}
 			if _, err = h.buxClient.RecordBlockHeader(
 				h.ctx, bi.Hash, uint32(bi.Height), bh,
@@ -369,7 +369,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 	if tx == "" {
 		return
 	}
-	if _, err = h.buxClient.RecordMonitoredTransaction(h.ctx, tx); err != nil {
+	if _, err = recordMonitoredTransaction(h.ctx, h.buxClient, tx); err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
 		return
 	}
@@ -446,7 +446,7 @@ func (h *MonitorEventHandler) SetMonitor(monitor *chainstate.Monitor) {
 
 // RecordTransaction records a transaction into bux
 func (h *MonitorEventHandler) RecordTransaction(ctx context.Context, txHex string) error {
-	_, err := h.buxClient.RecordMonitoredTransaction(ctx, txHex)
+	_, err := recordMonitoredTransaction(ctx, h.buxClient, txHex)
 	return err
 }
 

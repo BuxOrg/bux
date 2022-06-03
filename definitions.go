@@ -14,6 +14,8 @@ const (
 	defaultDatabaseReadTimeout     = 20 * time.Second  // For all "GET" or "SELECT" methods
 	defaultDraftTxExpiresIn        = 20 * time.Second  // Default TTL for draft transactions
 	defaultHTTPTimeout             = 20 * time.Second  // Default timeout for HTTP requests
+	defaultMonitorHeartbeat        = 60                // in Seconds (heartbeat for active monitor)
+	defaultMonitorHeartbeatMax     = 90                // in Seconds (max out of range time for heartbeat, something is wrong)
 	defaultOverheadSize            = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime
 	defaultQueryTxTimeout          = 10 * time.Second  // Default timeout for syncing on-chain information
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
@@ -22,6 +24,16 @@ const (
 	mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
 	version                        = "v0.2.28"         // bux version
+)
+
+// Defaults for task cron jobs (tasks)
+const (
+	taskIntervalDraftCleanup        = 60 * time.Second                      // Default task time for cron jobs (seconds)
+	taskIntervalMonitorCheck        = defaultMonitorHeartbeat * time.Second // Default task time for cron jobs (seconds)
+	taskIntervalProcessIncomingTxs  = 30 * time.Second                      // Default task time for cron jobs (seconds)
+	taskIntervalSyncActionBroadcast = 30 * time.Second                      // Default task time for cron jobs (seconds)
+	taskIntervalSyncActionP2P       = 35 * time.Second                      // Default task time for cron jobs (seconds)
+	taskIntervalSyncActionSync      = 40 * time.Second                      // Default task time for cron jobs (seconds)
 )
 
 // All the base models

@@ -7,6 +7,7 @@ import (
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
+	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 )
@@ -440,4 +441,39 @@ func (m *Destination) AfterDeleted(ctx context.Context) error {
 
 	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
 	return nil
+}
+
+// RegisterTasks will register the model specific tasks on client initialization
+func (m *Destination) RegisterTasks() error {
+
+	// No task manager loaded?
+	tm := m.Client().Taskmanager()
+	if tm == nil {
+		return nil
+	}
+
+	// Register the task locally (cron task - set the defaults)
+	monitorTask := m.Name() + "_monitor"
+	ctx := context.Background()
+
+	// Register the task
+	if err := tm.RegisterTask(&taskmanager.Task{
+		Name:       monitorTask,
+		RetryLimit: 1,
+		Handler: func(client ClientInterface) error {
+			if taskErr := taskCheckActiveMonitor(ctx, client.Logger(), client); taskErr != nil {
+				client.Logger().Error(ctx, "error running "+monitorTask+" task: "+taskErr.Error())
+			}
+			return nil
+		},
+	}); err != nil {
+		return err
+	}
+
+	// Run the task periodically
+	return tm.RunTask(ctx, &taskmanager.TaskOptions{
+		Arguments:      []interface{}{m.Client()},
+		RunEveryPeriod: m.Client().GetTaskPeriod(monitorTask),
+		TaskName:       monitorTask,
+	})
 }

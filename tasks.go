@@ -117,6 +117,8 @@ func taskCheckActiveMonitor(ctx context.Context, logClient logger.Interface, cli
 			return cs.Set(ctx, fmt.Sprintf(lockKeyMonitorLockID, m.GetLockID()), fmt.Sprintf("%d", time.Now().UTC().Unix()))
 		}
 
+		// todo: add a MachineID to detect multi-machines using same LockID?
+
 		// Check for an active Monitor (globally) (we are not the primary monitor potentially)
 		locked, err := checkMonitorHeartbeat(ctx, client, m.GetLockID())
 		if err != nil {

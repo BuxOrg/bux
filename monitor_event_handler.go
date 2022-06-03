@@ -18,13 +18,13 @@ import (
 
 // MonitorEventHandler for handling transaction events from a monitor
 type MonitorEventHandler struct {
+	blockSyncChannel chan bool
 	buxClient        ClientInterface
 	ctx              context.Context
 	debug            bool
 	limit            *limiter.ConcurrencyLimiter
 	logger           chainstate.Logger
 	monitor          chainstate.MonitorService
-	blockSyncChannel chan bool
 }
 
 type blockSubscriptionHandler struct {
@@ -281,12 +281,12 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 				return
 			}
 			bh := bc.BlockHeader{
-				HashPrevBlock:  []byte(bi.PreviousBlockHash),
-				HashMerkleRoot: []byte(bi.MerkleRoot),
-				Nonce:          uint32(bi.Nonce),
-				Version:        uint32(bi.Version),
-				Time:           uint32(bi.Time),
 				Bits:           []byte(bi.Bits),
+				HashMerkleRoot: []byte(bi.MerkleRoot),
+				HashPrevBlock:  []byte(bi.PreviousBlockHash),
+				Nonce:          uint32(bi.Nonce),
+				Time:           uint32(bi.Time),
+				Version:        uint32(bi.Version),
 			}
 			if _, err = h.buxClient.RecordBlockHeader(
 				h.ctx, bi.Hash, uint32(bi.Height), bh,

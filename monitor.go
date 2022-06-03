@@ -110,7 +110,11 @@ func startDefaultMonitor(ctx context.Context, client ClientInterface, monitor ch
 
 	// Set the cache-key lock for this monitor (with a heartbeat time of now)
 	if len(monitor.GetLockID()) > 0 {
-		return client.Cachestore().Set(ctx, fmt.Sprintf(lockKeyMonitorLockID, monitor.GetLockID()), fmt.Sprintf("%d", time.Now().UTC().Unix()))
+		return client.Cachestore().Set(
+			ctx,
+			fmt.Sprintf(lockKeyMonitorLockID, monitor.GetLockID()),
+			fmt.Sprintf("%d", time.Now().UTC().Unix()),
+		)
 	}
 	return nil
 }

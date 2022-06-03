@@ -32,6 +32,7 @@ func main() {
 			Debug:                       true,
 			FalsePositiveRate:           0,
 			LoadMonitoredDestinations:   true,
+			LockID:                      "unique-lock-id-for-multiple-servers",
 			MaxNumberOfDestinations:     25000,
 			MonitorDays:                 5,
 			ProcessMempoolOnConnect:     false,
@@ -46,6 +47,9 @@ func main() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+	defer func() {
+		_ = client.Close(context.Background())
+	}()
 
 	m := client.Chainstate().Monitor()
 

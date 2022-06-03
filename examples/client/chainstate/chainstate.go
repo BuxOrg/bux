@@ -19,5 +19,9 @@ func main() {
 		log.Fatalln("error: " + err.Error())
 	}
 
+	defer func() {
+		_ = client.Close(context.Background())
+	}()
+
 	log.Println("client loaded!", client.UserAgent(), "debugging: ", client.IsDebug())
 }

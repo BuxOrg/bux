@@ -32,6 +32,10 @@ func main() {
 		log.Fatalln("error: " + err.Error())
 	}
 
+	defer func() {
+		_ = client.Close(context.Background())
+	}()
+
 	// Get the miners
 	broadcastMiners := client.Chainstate().BroadcastMiners()
 	for _, miner := range broadcastMiners {

@@ -364,7 +364,7 @@ func WithAutoMigrate(migrateModels ...interface{}) ClientOps {
 	}
 }
 
-// WithMigrationDisabled will disable all migrations
+// WithMigrationDisabled will disable all migrations from running in the Datastore
 func WithMigrationDisabled() ClientOps {
 	return func(c *clientOptions) {
 		c.dataStore.migrationDisabled = true

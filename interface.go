@@ -192,6 +192,7 @@ type ClientInterface interface {
 	IsEncryptionKeySet() bool
 	IsITCEnabled() bool
 	IsIUCEnabled() bool
+	IsMigrationEnabled() bool
 	IsNewRelicEnabled() bool
 	ModifyTaskPeriod(name string, period time.Duration) error
 	SetNotificationsClient(notifications.ClientInterface)

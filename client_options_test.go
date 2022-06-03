@@ -3,7 +3,9 @@ package bux
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/datastore"
@@ -283,6 +285,50 @@ func TestWithRedis(t *testing.T) {
 			WithRedis(&cachestore.RedisConfig{
 				URL: "localhost:6379",
 			}),
+			WithSQLite(tester.SQLiteTestConfig(false, true)),
+		)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		cs := tc.Cachestore()
+		require.NotNil(t, cs)
+		assert.Equal(t, cachestore.Redis, cs.Engine())
+	})
+}
+
+// TestWithRedisConnection will test the method WithRedisConnection()
+func TestWithRedisConnection(t *testing.T) {
+	t.Run("check type", func(t *testing.T) {
+		opt := WithRedisConnection(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("using a nil connection", func(t *testing.T) {
+		tc, err := NewClient(
+			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithRedisConnection(nil),
+			WithSQLite(tester.SQLiteTestConfig(false, true)),
+		)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		cs := tc.Cachestore()
+		require.NotNil(t, cs)
+		assert.Equal(t, cachestore.FreeCache, cs.Engine())
+	})
+
+	t.Run("using an existing connection", func(t *testing.T) {
+		client, conn := tester.LoadMockRedis(10*time.Second, 10*time.Second, 10, 10)
+		require.NotNil(t, client)
+		require.NotNil(t, conn)
+
+		tc, err := NewClient(
+			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
+			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 		)
 		require.NoError(t, err)
@@ -701,5 +747,136 @@ func TestWithCustomCachestore(t *testing.T) {
 		defer CloseClient(context.Background(), t, tc)
 
 		assert.Equal(t, customCache, tc.Cachestore())
+	})
+}
+
+// TestWithCustomDatastore will test the method WithCustomDatastore()
+func TestWithCustomDatastore(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithCustomDatastore(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithCustomDatastore(nil))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.NotNil(t, tc.Datastore())
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		customData, err := datastore.NewClient(context.Background())
+		require.NoError(t, err)
+
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithCustomDatastore(customData))
+
+		var tc ClientInterface
+		tc, err = NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, customData, tc.Datastore())
+	})
+
+	// Attempt to remove a file created during the test
+	t.Cleanup(func() {
+		_ = os.Remove("datastore.db")
+	})
+}
+
+// TestWithAutoMigrate will test the method WithAutoMigrate()
+func TestWithAutoMigrate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithAutoMigrate()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("no additional models, just base models", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithAutoMigrate())
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, []string{
+			ModelXPub.String(),
+			ModelAccessKey.String(),
+			ModelDraftTransaction.String(),
+			ModelIncomingTransaction.String(),
+			ModelTransaction.String(),
+			ModelBlockHeader.String(),
+			ModelSyncTransaction.String(),
+			ModelDestination.String(),
+			ModelUtxo.String(),
+		}, tc.GetModelNames())
+	})
+
+	t.Run("one additional model", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithAutoMigrate(newPaymail(testPaymail)))
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, []string{
+			ModelXPub.String(),
+			ModelAccessKey.String(),
+			ModelDraftTransaction.String(),
+			ModelIncomingTransaction.String(),
+			ModelTransaction.String(),
+			ModelBlockHeader.String(),
+			ModelSyncTransaction.String(),
+			ModelDestination.String(),
+			ModelUtxo.String(),
+			ModelPaymailAddress.String(),
+		}, tc.GetModelNames())
+	})
+}
+
+// TestWithMigrationDisabled will test the method WithMigrationDisabled()
+func TestWithMigrationDisabled(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithMigrationDisabled()
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("default options", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, true, tc.IsMigrationEnabled())
+	})
+
+	t.Run("migration disabled", func(t *testing.T) {
+		opts := DefaultClientOpts(false, true)
+		opts = append(opts, WithMigrationDisabled())
+
+		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
+		require.NoError(t, err)
+		require.NotNil(t, tc)
+		defer CloseClient(context.Background(), t, tc)
+
+		assert.Equal(t, false, tc.IsMigrationEnabled())
 	})
 }

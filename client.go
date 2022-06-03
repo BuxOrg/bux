@@ -403,6 +403,11 @@ func (c *Client) IsEncryptionKeySet() bool {
 	return len(c.options.encryptionKey) > 0
 }
 
+// IsMigrationEnabled will return the flag (bool)
+func (c *Client) IsMigrationEnabled() bool {
+	return !c.options.dataStore.migrationDisabled
+}
+
 // Logger will return the Logger if it exists
 func (c *Client) Logger() logger.Interface {
 	return c.options.logger

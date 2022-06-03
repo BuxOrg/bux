@@ -216,9 +216,7 @@ func (h *MonitorEventHandler) OnMessage(_ *centrifuge.Client, e centrifuge.Messa
 	}
 
 	if _, ok := data["time"]; !ok {
-		if h.debug {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnMessage: %v", data))
-		}
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnMessage: %v", data))
 	}
 }
 
@@ -231,14 +229,14 @@ func (h *MonitorEventHandler) OnDisconnect(_ *centrifuge.Client, _ centrifuge.Di
 // OnJoin event when joining a server
 func (h *MonitorEventHandler) OnJoin(_ *centrifuge.Subscription, e centrifuge.JoinEvent) {
 	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnJoin: %v", e))
+		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnJoin: %v", e))
 	}
 }
 
 // OnLeave event when leaving a server
 func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.LeaveEvent) {
 	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnLeave: %v", e))
+		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnLeave: %v", e))
 	}
 }
 
@@ -299,7 +297,7 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 		}
 	} else {
 		if h.debug {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e.Data))
+			h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnPublish: %v", e.Data))
 		}
 	}
 }
@@ -307,35 +305,33 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 // OnServerSubscribe on server subscribe event
 func (h *MonitorEventHandler) OnServerSubscribe(_ *centrifuge.Client, e centrifuge.ServerSubscribeEvent) {
 	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnServerSubscribe: %v", e))
+		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnServerSubscribe: %v", e))
 	}
 }
 
 // OnServerUnsubscribe on the unsubscribe event
 func (h *MonitorEventHandler) OnServerUnsubscribe(_ *centrifuge.Client, e centrifuge.ServerUnsubscribeEvent) {
 	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnServerUnsubscribe: %v", e))
+		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnServerUnsubscribe: %v", e))
 	}
 }
 
 // OnSubscribeSuccess on subscribe success
 func (h *MonitorEventHandler) OnSubscribeSuccess(_ *centrifuge.Subscription, e centrifuge.SubscribeSuccessEvent) {
 	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnSubscribeSuccess: %v", e))
+		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnSubscribeSuccess: %v", e))
 	}
 }
 
 // OnSubscribeError is for an error
 func (h *MonitorEventHandler) OnSubscribeError(_ *centrifuge.Subscription, e centrifuge.SubscribeErrorEvent) {
-	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnSubscribeError: %v", e))
-	}
+	h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnSubscribeError: %v", e))
 }
 
 // OnUnsubscribe will unsubscribe
 func (h *MonitorEventHandler) OnUnsubscribe(_ *centrifuge.Subscription, e centrifuge.UnsubscribeEvent) {
 	if h.debug {
-		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %v", e))
+		h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %v", e))
 	}
 }
 
@@ -408,8 +404,7 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Clien
 	}
 	if previousBlockHeader == nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR Previous block header not found: %d", height-1))
-		err = h.ProcessBlockHeaders(h.ctx, client)
-		if err != nil {
+		if err = h.ProcessBlockHeaders(h.ctx, client); err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
 		}
 		return

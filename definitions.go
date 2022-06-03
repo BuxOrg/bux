@@ -15,7 +15,7 @@ const (
 	defaultDraftTxExpiresIn        = 20 * time.Second  // Default TTL for draft transactions
 	defaultHTTPTimeout             = 20 * time.Second  // Default timeout for HTTP requests
 	defaultMonitorHeartbeat        = 60                // in Seconds (heartbeat for active monitor)
-	defaultMonitorHeartbeatMax     = 120               // in Seconds (max out of range time for heartbeat, something is wrong)
+	defaultMonitorHeartbeatMax     = 90                // in Seconds (max out of range time for heartbeat, something is wrong)
 	defaultOverheadSize            = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime
 	defaultQueryTxTimeout          = 10 * time.Second  // Default timeout for syncing on-chain information
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block

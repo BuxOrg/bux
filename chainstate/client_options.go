@@ -227,6 +227,7 @@ func WithLogger(customLogger logger.Interface) ClientOps {
 func WithMonitoring(ctx context.Context, monitorOptions *MonitorOptions) ClientOps {
 	return func(c *clientOptions) {
 		if monitorOptions != nil {
+			// Create the default Monitor for monitoring destinations
 			c.monitor = NewMonitor(ctx, monitorOptions)
 		}
 	}

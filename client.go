@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/cachestore"
@@ -247,8 +248,14 @@ func (c *Client) Close(ctx context.Context) error {
 		defer txn.StartSegment("close_all").End()
 	}
 
-	// Close Cachestore
+	// If we loaded a Monitor, remove the long-lasting lock-key before closing cachestore
 	cs := c.Cachestore()
+	m := c.Chainstate().Monitor()
+	if m != nil && cs != nil && len(m.GetLockID()) > 0 {
+		_ = cs.Delete(ctx, fmt.Sprintf(lockKeyMonitorLockID, m.GetLockID()))
+	}
+
+	// Close Cachestore
 	if cs != nil {
 		cs.Close(ctx)
 		c.options.cacheStore.ClientInterface = nil

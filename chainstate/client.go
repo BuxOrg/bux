@@ -109,21 +109,32 @@ func (c *Client) Close(ctx context.Context) {
 		defer txn.StartSegment("close_chainstate").End()
 	}
 	if c != nil && c.options.config != nil {
+
+		// Close minercraft
 		if c.options.config.minercraft != nil {
 			c.options.config.minercraft = nil
 		}
+
+		// Close WhatsOnChain
 		if c.options.config.whatsOnChain != nil {
 			c.options.config.whatsOnChain = nil
 		}
+
+		// Close MatterCloud
 		if c.options.config.matterCloud != nil {
 			c.options.config.matterCloud = nil
 		}
+
+		// Close NowNodes
 		if c.options.config.nowNodes != nil {
 			c.options.config.nowNodes = nil
 		}
-		/*if c.options.monitor != nil {
-			c.options.monitor.Disconnected()
-		}*/
+
+		// Stop the active Monitor (if not already stopped)
+		if c.options.monitor != nil {
+			_ = c.options.monitor.Stop(ctx)
+			c.options.monitor = nil
+		}
 	}
 }
 

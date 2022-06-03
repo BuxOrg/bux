@@ -7,10 +7,13 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/logger"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
 // Monitor starts a new monitorConfig to monitor and filter transactions from a source
+//
+// Internal struct with all options being private
 type Monitor struct {
 	authToken                    string
 	buxAgentURL                  string
@@ -22,6 +25,7 @@ type Monitor struct {
 	filterType                   string
 	handler                      MonitorHandler
 	loadMonitoredDestinations    bool
+	lockID                       string
 	logger                       logger.Interface
 	maxNumberOfDestinations      int
 	mempoolSyncChannel           chan bool
@@ -38,6 +42,7 @@ type MonitorOptions struct {
 	Debug                       bool    `json:"debug"`
 	FalsePositiveRate           float64 `json:"false_positive_rate"`
 	LoadMonitoredDestinations   bool    `json:"load_monitored_destinations"`
+	LockID                      string  `json:"lock_id"`
 	MaxNumberOfDestinations     int     `json:"max_number_of_destinations"`
 	MonitorDays                 int     `json:"monitor_days"`
 	ProcessMempoolOnConnect     bool    `json:"process_mempool_on_connect"`
@@ -45,36 +50,53 @@ type MonitorOptions struct {
 	SaveTransactionDestinations bool    `json:"save_transaction_destinations"`
 }
 
+// checkDefaults will check for missing values and set default values
 func (o *MonitorOptions) checkDefaults() {
+	// Set the default for Monitor Days (days in past)
 	if o.MonitorDays <= 0 {
 		o.MonitorDays = defaultMonitorDays
 	}
+
+	// Set the false positive rate
 	if o.FalsePositiveRate <= 0 {
 		o.FalsePositiveRate = defaultFalsePositiveRate
 	}
+
+	// Set the maximum number of destinations to monitor
 	if o.MaxNumberOfDestinations <= 0 {
 		o.MaxNumberOfDestinations = defaultMaxNumberOfDestinations
+	}
+
+	// Set a unique lock id if it's not provided
+	if len(o.LockID) == 0 { // todo: lockID should always be set (return an error if not set?)
+		o.LockID, _ = utils.RandomHex(32)
 	}
 }
 
 // NewMonitor starts a new monitorConfig and loads all addresses that need to be monitored into the bloom filter
 func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
+	// Check the defaults
 	options.checkDefaults()
-	if options.ProcessorType == "" {
+
+	// Set the default processor type if not recognized
+	if options.ProcessorType != FilterBloom && options.ProcessorType != FilterRegex {
 		options.ProcessorType = FilterBloom
 	}
+
+	// Create a monitor struct
 	monitor = &Monitor{
 		authToken:                    options.AuthToken,
 		buxAgentURL:                  options.BuxAgentURL,
 		debug:                        options.Debug,
 		falsePositiveRate:            options.FalsePositiveRate,
 		filterType:                   options.ProcessorType,
+		loadMonitoredDestinations:    options.LoadMonitoredDestinations,
+		lockID:                       options.LockID,
 		maxNumberOfDestinations:      options.MaxNumberOfDestinations,
 		mempoolSyncChannel:           make(chan bool),
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
-		loadMonitoredDestinations:    options.LoadMonitoredDestinations,
 	}
 
 	// Set logger if not set
@@ -82,6 +104,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitor.logger = logger.NewLogger(options.Debug, 4)
 	}
 
+	// Switch on the filter type
 	switch monitor.filterType {
 	case FilterRegex:
 		monitor.processor = NewRegexProcessor()
@@ -89,74 +112,10 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
 	}
 
+	// Load the settings for debuggin and logging
 	monitor.processor.Debug(options.Debug)
 	monitor.processor.SetLogger(monitor.logger)
 	return
-}
-
-// IsDebug gets whether debugging is on
-func (m *Monitor) IsDebug() bool {
-	return m.debug
-}
-
-// Logger gets the current logger
-func (m *Monitor) Logger() Logger {
-	return m.logger
-}
-
-// Processor gets the monitor processor
-func (m *Monitor) Processor() MonitorProcessor {
-	return m.processor
-}
-
-// GetMonitorDays gets the monitorDays option
-func (m *Monitor) GetMonitorDays() int {
-	return m.monitorDays
-}
-
-// GetFalsePositiveRate gets the falsePositiveRate option
-func (m *Monitor) GetFalsePositiveRate() float64 {
-	return m.falsePositiveRate
-}
-
-// GetMaxNumberOfDestinations gets the monitorDays option
-func (m *Monitor) GetMaxNumberOfDestinations() int {
-	return m.maxNumberOfDestinations
-}
-
-// GetProcessMempoolOnConnect gets whether the whole mempool should be processed when connecting
-func (m *Monitor) GetProcessMempoolOnConnect() bool {
-	return m.processMempoolOnConnect
-}
-
-// SaveDestinations gets whether we should save destinations from transactions that pass monitor filter
-func (m *Monitor) SaveDestinations() bool {
-	return m.saveTransactionsDestinations
-}
-
-// LoadMonitoredDestinations gets where we want to add the monitored destinations from the database into the processor
-func (m *Monitor) LoadMonitoredDestinations() bool {
-	return m.loadMonitoredDestinations
-}
-
-// SetChainstateOptions sets the chainstate options on the monitor to allow more syncing capabilities
-func (m *Monitor) SetChainstateOptions(options *clientOptions) {
-	m.chainstateOptions = options
-}
-
-// Start open a socket to the service provider and monitorConfig transactions
-func (m *Monitor) Start(ctx context.Context, handler MonitorHandler) error {
-	if m.client == nil {
-		handler.SetMonitor(m)
-		m.handler = handler
-		m.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting, connecting to server: %s", m.buxAgentURL))
-		m.client = newCentrifugeClient(m.buxAgentURL, handler)
-		if m.authToken != "" {
-			m.client.SetToken(m.authToken)
-		}
-	}
-
-	return m.client.Connect()
 }
 
 // Add a new item to monitor
@@ -165,8 +124,7 @@ func (m *Monitor) Add(regexString, item string) error {
 		return ErrMonitorNotAvailable
 	}
 	// todo signal to bux-agent that a new item was added
-	_, err := m.client.AddFilter(regexString, item)
-	if err != nil {
+	if _, err := m.client.AddFilter(regexString, item); err != nil {
 		return err
 	}
 	return m.processor.Add(regexString, item)
@@ -182,16 +140,54 @@ func (m *Monitor) Disconnected() {
 	m.connected = false
 }
 
+// GetMonitorDays gets the monitorDays option
+func (m *Monitor) GetMonitorDays() int {
+	return m.monitorDays
+}
+
+// GetFalsePositiveRate gets the falsePositiveRate option
+func (m *Monitor) GetFalsePositiveRate() float64 {
+	return m.falsePositiveRate
+}
+
+// GetLockID gets the lock id from the Monitor
+func (m *Monitor) GetLockID() string {
+	return m.lockID
+}
+
+// GetMaxNumberOfDestinations gets the monitorDays option
+func (m *Monitor) GetMaxNumberOfDestinations() int {
+	return m.maxNumberOfDestinations
+}
+
+// GetProcessMempoolOnConnect gets whether the whole mempool should be processed when connecting
+func (m *Monitor) GetProcessMempoolOnConnect() bool {
+	return m.processMempoolOnConnect
+}
+
 // IsConnected returns whether we are connected to the socket
 func (m *Monitor) IsConnected() bool {
 	return m.connected
 }
 
-// Stop closes the monitoring socket and pauses monitoring
-func (m *Monitor) Stop(ctx context.Context) error {
-	m.logger.Info(ctx, "[MONITOR] Stopping monitor...")
-	defer close(m.mempoolSyncChannel)
-	return m.client.Disconnect()
+// IsDebug gets whether debugging is on
+func (m *Monitor) IsDebug() bool {
+	return m.debug
+}
+
+// LoadMonitoredDestinations gets where we want to add the monitored destinations from the database into the processor
+func (m *Monitor) LoadMonitoredDestinations() bool {
+	return m.loadMonitoredDestinations
+}
+
+// Logger gets the current logger
+func (m *Monitor) Logger() Logger {
+	return m.logger
+}
+
+// Processor gets the monitor processor
+func (m *Monitor) Processor() MonitorProcessor {
+	return m.processor
 }
 
 // ProcessMempool processes all current transactions in the mempool
@@ -294,5 +290,40 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 		m.mempoolSyncChannel <- true
 	}
 
+	return nil
+}
+
+// SaveDestinations gets whether we should save destinations from transactions that pass monitor filter
+func (m *Monitor) SaveDestinations() bool {
+	return m.saveTransactionsDestinations
+}
+
+// SetChainstateOptions sets the chainstate options on the monitor to allow more syncing capabilities
+func (m *Monitor) SetChainstateOptions(options *clientOptions) {
+	m.chainstateOptions = options
+}
+
+// Start open a socket to the service provider and monitorConfig transactions
+func (m *Monitor) Start(ctx context.Context, handler MonitorHandler) error {
+	if m.client == nil {
+		handler.SetMonitor(m)
+		m.handler = handler
+		m.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting, connecting to server: %s", m.buxAgentURL))
+		m.client = newCentrifugeClient(m.buxAgentURL, handler)
+		if m.authToken != "" {
+			m.client.SetToken(m.authToken)
+		}
+	}
+
+	return m.client.Connect()
+}
+
+// Stop closes the monitoring socket and pauses monitoring
+func (m *Monitor) Stop(ctx context.Context) error {
+	m.logger.Info(ctx, "[MONITOR] Stopping monitor...")
+	if m.IsConnected() { // Only close if still connected
+		defer close(m.mempoolSyncChannel)
+		return m.client.Disconnect()
+	}
 	return nil
 }

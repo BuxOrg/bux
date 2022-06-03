@@ -90,7 +90,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.5 // indirect
+	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -147,8 +147,3 @@ replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.1
 
 // Issue with v1.0.6 breaking changes
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
-
-// Issue with Nancy and deps
-// replace github.com/99designs/gqlgen => github.com/99designs/gqlgen v0.17.6
-// replace github.com/jackc/pgproto3 => github.com/jackc/pgproto3/v2 v2.3.0
-// replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.12.0

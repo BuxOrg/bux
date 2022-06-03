@@ -54,7 +54,7 @@
 #### **Project Assumptions: MVP**
 - _No private keys are used_, only the xPub (or access key) is given to bux
 - (BYOX) `Bring your own xPub`
-- Signing a transaction is outside this application (IE: bux-server or bux-wallet)
+- Signing a transaction is outside this application (IE: [bux-server](https://github.com/BuxOrg/bux-server) or [bux-client](https://github.com/BuxOrg/go-buxclient))
 - All transactions need to be submitted to the bux service to effectively track utxo states
 - Database can be backed up, but not regenerated from chain
   - Certain data is not on chain, plus re-scanning an xPub is expensive and not easily possible with 3rd party limitations

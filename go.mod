@@ -25,7 +25,7 @@ require (
 	github.com/mrz1836/go-cache v0.6.5
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-mattercloud v0.5.3
-	github.com/mrz1836/go-nownodes v0.0.5
+	github.com/mrz1836/go-nownodes v0.0.6
 	github.com/mrz1836/go-whatsonchain v0.10.4
 	github.com/newrelic/go-agent/v3 v3.16.1
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2

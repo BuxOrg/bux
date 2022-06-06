@@ -614,8 +614,8 @@ github.com/mrz1836/go-logger v0.2.5 h1:n4yQKHalut4MYoZsk9pXVf7bIcW9J/vdl9zYJAE67
 github.com/mrz1836/go-logger v0.2.5/go.mod h1:E4gFkyzOlEb2MmaLaTYO0KUKKcsXB1KeMPhcJIGD5F4=
 github.com/mrz1836/go-mattercloud v0.5.3 h1:neBpVRS/leavDgBZ0K7R8p4kIWzxGy5lA6pfyocc1BM=
 github.com/mrz1836/go-mattercloud v0.5.3/go.mod h1:f4AE0HJ3J0mDPfMuZLXJY7fFUBsLqjHrdhGxIJbXXKw=
-github.com/mrz1836/go-nownodes v0.0.5 h1:tId4WvR8hSilsrluVzIeYcigEV/Nn6vVqcPYIYhE7cE=
-github.com/mrz1836/go-nownodes v0.0.5/go.mod h1:W3z5V6No3bO6cYqFLl3Wq79D91JjXY0oEJVL7SVG7t8=
+github.com/mrz1836/go-nownodes v0.0.6 h1:RxXOUEYromY8uJeOiphFZ/60zfYoaHj86Bgy7faYir0=
+github.com/mrz1836/go-nownodes v0.0.6/go.mod h1:QMrAPr+OMqUnzcqKmlXWGSI7Xh2TKcwp9tsnTKC4XaA=
 github.com/mrz1836/go-parameters v0.2.8 h1:TfirO5GgS0RxYc3X36zbGds00c3U+BUgkfqyDFNcVBM=
 github.com/mrz1836/go-parameters v0.2.8/go.mod h1:5Ig2rnk6DH2BNf+Hknisoo7v6X5GE7wQCt1xvQSLgGQ=
 github.com/mrz1836/go-sanitize v1.1.5 h1:LOywG3ijK/B/D9ik3hsniyIzA1JVZlM2wmp3Q/CBk88=

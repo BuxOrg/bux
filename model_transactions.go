@@ -118,15 +118,15 @@ func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Tra
 	// Set the generic metadata (might be ignored if no xPub is used)
 	tx.Metadata = incomingTx.Metadata
 
-	// Set the fields
-	tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
-	tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
-	tx.Status = statusProcessing
-
 	// Set the ID (run the same method)
 	if len(tx.Hex) > 0 {
 		_ = tx.setID()
 	}
+
+	// Set the fields
+	tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
+	tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
+	tx.Status = statusProcessing
 
 	return tx
 }

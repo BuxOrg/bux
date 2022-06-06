@@ -124,8 +124,12 @@ func (m *Monitor) Add(regexString, item string) error {
 		return ErrMonitorNotAvailable
 	}
 	// todo signal to bux-agent that a new item was added
-	if _, err := m.client.AddFilter(regexString, item); err != nil {
-		return err
+	if m.client != nil {
+		if _, err := m.client.AddFilter(regexString, item); err != nil {
+			return err
+		}
+	} else {
+		m.logger.Error(context.Background(), "client was expected but not found")
 	}
 	return m.processor.Add(regexString, item)
 }

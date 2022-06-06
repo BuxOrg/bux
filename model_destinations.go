@@ -344,8 +344,9 @@ func (m *Destination) AfterCreated(ctx context.Context) error {
 		monitor := m.Client().Chainstate().Monitor()
 		if monitor != nil {
 			m.DebugLog(fmt.Sprintf("adding destination to monitor: %s", m.LockingScript))
-			err := monitor.Add(utils.P2PKHRegexpString, m.LockingScript)
-			if err != nil {
+			if err := monitor.Add(
+				utils.P2PKHRegexpString, m.LockingScript,
+			); err != nil {
 				m.Client().Logger().Error(ctx, fmt.Sprintf("failed adding destination to monitor: %s", err.Error()))
 			}
 		}

@@ -248,6 +248,12 @@ func processIncomingTransactions(ctx context.Context, maxTransactions int, opts 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
 func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransaction) error {
 
+	defer func() {
+		if err := recover(); err != nil {
+			incomingTx.Client().Logger().Error(ctx, fmt.Sprintf("panic occurred: %v", err))
+		}
+	}()
+
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
 		ctx, fmt.Sprintf(lockKeyProcessIncomingTx, incomingTx.GetID()), incomingTx.Client().Cachestore(),

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -373,6 +375,18 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 // processBroadcastTransaction will process the sync transaction record, or save the failure
 func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 
+	// Successfully capture any panics, convert to readable string and log the error
+	defer func() {
+		if err := recover(); err != nil {
+			syncTx.Client().Logger().Error(ctx,
+				fmt.Sprintf(
+					"panic: %v - stack trace: %v", err,
+					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
+				),
+			)
+		}
+	}()
+
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
 		ctx, fmt.Sprintf(lockKeyProcessBroadcastTx, syncTx.GetID()), syncTx.Client().Cachestore(),
@@ -454,6 +468,18 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 // processSyncTransaction will process the sync transaction record, or save the failure
 func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+
+	// Successfully capture any panics, convert to readable string and log the error
+	defer func() {
+		if err := recover(); err != nil {
+			syncTx.Client().Logger().Error(ctx,
+				fmt.Sprintf(
+					"panic: %v - stack trace: %v", err,
+					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
+				),
+			)
+		}
+	}()
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -556,6 +582,18 @@ func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...Mo
 
 // processP2PTransaction will process the sync transaction record, or save the failure
 func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+
+	// Successfully capture any panics, convert to readable string and log the error
+	defer func() {
+		if err := recover(); err != nil {
+			syncTx.Client().Logger().Error(ctx,
+				fmt.Sprintf(
+					"panic: %v - stack trace: %v", err,
+					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
+				),
+			)
+		}
+	}()
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(

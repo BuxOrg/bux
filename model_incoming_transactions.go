@@ -249,9 +249,15 @@ func processIncomingTransactions(ctx context.Context, maxTransactions int, opts 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
 func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransaction) error {
 
+	// Successfully capture any panics, convert to readable string and log the error
 	defer func() {
 		if err := recover(); err != nil {
-			incomingTx.Client().Logger().Error(ctx, fmt.Sprintf("panic occurred: %v - stack: %v", err, string(debug.Stack())))
+			incomingTx.Client().Logger().Error(ctx,
+				fmt.Sprintf(
+					"panic: %v - stack trace: %v", err,
+					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
+				),
+			)
 		}
 	}()
 

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/logger"
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -32,12 +31,10 @@ func defaultClientOptions() *clientOptions {
 				broadcastMiners: bm,
 				queryMiners:     qm,
 			},
-			matterCloud:       nil,
-			matterCloudAPIKey: "",
-			minercraft:        nil,
-			network:           MainNet,
-			queryTimeout:      defaultQueryTimeOut,
-			whatsOnChain:      nil,
+			minercraft:   nil,
+			network:      MainNet,
+			queryTimeout: defaultQueryTimeOut,
+			whatsOnChain: nil,
 		},
 		debug:           false,
 		newRelicEnabled: false,
@@ -124,15 +121,6 @@ func WithWhatsOnChain(client whatsonchain.ClientInterface) ClientOps {
 	}
 }
 
-// WithMatterCloud will set a custom MatterCloud client
-func WithMatterCloud(client mattercloud.ClientInterface) ClientOps {
-	return func(c *clientOptions) {
-		if client != nil {
-			c.config.matterCloud = client
-		}
-	}
-}
-
 // WithNowNodes will set a custom NowNodes client
 func WithNowNodes(client nownodes.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
@@ -147,15 +135,6 @@ func WithNowNodesAPIKey(apiKey string) ClientOps {
 	return func(c *clientOptions) {
 		if len(apiKey) > 0 {
 			c.config.nowNodesAPIKey = apiKey
-		}
-	}
-}
-
-// WithMatterCloudAPIKey will set a custom MatterCloud API key
-func WithMatterCloudAPIKey(apiKey string) ClientOps {
-	return func(c *clientOptions) {
-		if len(apiKey) > 0 {
-			c.config.matterCloudAPIKey = apiKey
 		}
 	}
 }

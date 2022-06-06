@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -32,15 +31,6 @@ func (c *Client) defaultWhatsOnChainOptions() (opts *whatsonchain.Options) {
 	if len(c.options.config.whatsOnChainAPIKey) > 0 {
 		opts.APIKey = c.options.config.whatsOnChainAPIKey
 		opts.RateLimit = whatsOnChainRateLimitWithKey
-	}
-	return
-}
-
-// defaultMatterCloudOptions will create the defaults
-func (c *Client) defaultMatterCloudOptions() (opts *mattercloud.Options) {
-	opts = mattercloud.ClientDefaultOptions()
-	if len(c.options.userAgent) > 0 {
-		opts.UserAgent = c.options.userAgent
 	}
 	return
 }
@@ -105,29 +95,6 @@ func (c *Client) startWhatsOnChain(ctx context.Context) {
 			c.HTTPClient(),
 		)
 	}
-}
-
-// startMatterCloud will start MatterCloud (if no custom client is found)
-func (c *Client) startMatterCloud(ctx context.Context) (err error) {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("start_mattercloud").End()
-	}
-
-	if c.MatterCloud() == nil {
-
-		// go-matter cloud requires a key to load the library
-		if len(c.options.config.matterCloudAPIKey) == 0 {
-			c.options.config.matterCloudAPIKey = "your-api-key" // todo: hack for go-mattercloud (wants an api key)
-		}
-
-		c.options.config.matterCloud, err = mattercloud.NewClient(
-			c.options.config.matterCloudAPIKey,
-			c.Network().MatterCloud(),
-			c.defaultMatterCloudOptions(),
-			c.HTTPClient(),
-		)
-	}
-	return
 }
 
 // startNowNodes will start NowNodes if API key is set (if no custom client is found)

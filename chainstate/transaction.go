@@ -43,15 +43,6 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 		}
 	}
 
-	// Next: try MatterCloud
-	if !utils.StringInSlice(ProviderMatterCloud, c.options.config.excludedProviders) {
-		if resp, err := queryMatterCloud(
-			ctxWithCancel, c, id,
-		); err == nil && checkRequirement(requiredIn, id, resp) {
-			return resp
-		}
-	}
-
 	// Next: try NowNodes (if loaded)
 	if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
 		if c.NowNodes() != nil && c.Network() == MainNet {
@@ -75,7 +66,7 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 	resultsChannel := make(
 		chan *TransactionInfo,
 		// len(c.options.config.mAPI.queryMiners)+2,
-	) // All miners & WhatsOnChain & MatterCloud
+	) // All miners & WhatsOnChain
 
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
@@ -109,19 +100,6 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 		go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
 			defer wg.Done()
 			if resp, err := queryWhatsOnChain(
-				ctx, client, id,
-			); err == nil && checkRequirement(requiredIn, id, resp) {
-				resultsChannel <- resp
-			}
-		}(ctxWithCancel, c, id, requiredIn)
-	}
-
-	// Backup: MatterCloud
-	if !utils.StringInSlice(ProviderMatterCloud, c.options.config.excludedProviders) {
-		wg.Add(1)
-		go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
-			defer wg.Done()
-			if resp, err := queryMatterCloud(
 				ctx, client, id,
 			); err == nil && checkRequirement(requiredIn, id, resp) {
 				resultsChannel <- resp
@@ -185,25 +163,6 @@ func queryWhatsOnChain(ctx context.Context, client ClientInterface, id string) (
 			Confirmations: resp.Confirmations,
 			ID:            resp.TxID,
 			Provider:      ProviderWhatsOnChain,
-			MinerID:       "",
-		}, nil
-	}
-	return nil, ErrTransactionIDMismatch
-}
-
-// queryMatterCloud will request MatterCloud for transaction information
-func queryMatterCloud(ctx context.Context, client ClientInterface, id string) (*TransactionInfo, error) {
-	client.DebugLog("executing request in mattercloud")
-	if resp, err := client.MatterCloud().Transaction(ctx, id); err != nil {
-		client.DebugLog("error executing request in mattercloud: " + err.Error())
-		return nil, err
-	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
-		return &TransactionInfo{
-			BlockHash:     resp.BlockHash,
-			BlockHeight:   resp.BlockHeight,
-			Confirmations: resp.Confirmations,
-			ID:            resp.TxID,
-			Provider:      ProviderMatterCloud,
 			MinerID:       "",
 		}, nil
 	}

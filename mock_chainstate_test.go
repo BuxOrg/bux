@@ -6,7 +6,6 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/tonicpow/go-minercraft"
@@ -50,10 +49,6 @@ func (c *chainStateBase) IsDebug() bool {
 
 func (c *chainStateBase) IsNewRelicEnabled() bool {
 	return true
-}
-
-func (c *chainStateBase) MatterCloud() mattercloud.ClientInterface {
-	return nil
 }
 
 func (c *chainStateBase) Minercraft() minercraft.ClientInterface {

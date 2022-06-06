@@ -3,7 +3,6 @@ package chainstate
 import (
 	"testing"
 
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,22 +36,6 @@ func TestNetwork_WhatsOnChain(t *testing.T) {
 	t.Run("unknown network", func(t *testing.T) {
 		un := Network("")
 		assert.Equal(t, whatsonchain.NetworkMain, un.WhatsOnChain())
-	})
-}
-
-// TestNetwork_MatterCloud will test the method MatterCloud()
-func TestNetwork_MatterCloud(t *testing.T) {
-	t.Parallel()
-
-	t.Run("test all networks", func(t *testing.T) {
-		assert.Equal(t, mattercloud.NetworkMain, MainNet.MatterCloud())
-		assert.Equal(t, mattercloud.NetworkStn, StressTestNet.MatterCloud())
-		assert.Equal(t, mattercloud.NetworkTest, TestNet.MatterCloud())
-	})
-
-	t.Run("unknown network", func(t *testing.T) {
-		un := Network("")
-		assert.Equal(t, mattercloud.NetworkMain, un.MatterCloud())
 	})
 }
 

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +47,6 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, false, c.IsDebug())
 		assert.Equal(t, MainNet, c.Network())
 		assert.Nil(t, c.HTTPClient())
-		assert.NotNil(t, c.MatterCloud())
 		assert.NotNil(t, c.WhatsOnChain())
 		assert.NotNil(t, c.Minercraft())
 	})
@@ -78,34 +76,6 @@ func TestNewClient(t *testing.T) {
 		require.NotNil(t, c)
 		assert.NotNil(t, c.WhatsOnChain())
 		assert.Equal(t, customClient, c.WhatsOnChain())
-	})
-
-	t.Run("custom mattercloud client", func(t *testing.T) {
-		customClient, err := mattercloud.NewClient(
-			testDummyKey, MainNet.MatterCloud(), mattercloud.ClientDefaultOptions(), nil,
-		)
-		require.NoError(t, err)
-		require.NotNil(t, customClient)
-
-		var c ClientInterface
-		c, err = NewClient(
-			context.Background(),
-			WithMatterCloud(customClient),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.NotNil(t, c.MatterCloud())
-		assert.Equal(t, customClient, c.MatterCloud())
-	})
-
-	t.Run("custom matter cloud api key", func(t *testing.T) {
-		c, err := NewClient(
-			context.Background(),
-			WithMatterCloudAPIKey(testDummyKey),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.NotNil(t, c.MatterCloud())
 	})
 
 	t.Run("custom whats on chain api key", func(t *testing.T) {

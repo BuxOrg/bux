@@ -94,24 +94,6 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 		}
 	}
 
-	// Try next provider: MatterCloud
-	if !utils.StringInSlice(ProviderMatterCloud, c.options.config.excludedProviders) {
-		provider = ProviderMatterCloud
-		if err = broadcastMatterCloud(ctx, c, id, hex); err != nil {
-
-			// Check error response for (TX FAILURE)
-			if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-				err = checkInMempool(ctx, c, id, err.Error(), timeout)
-				return // Success, found in mempool (or on-chain)
-			}
-
-			// Provider error?
-			errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
-		} else { // Success!
-			return
-		}
-	}
-
 	// Try next provider: WhatsOnChain
 	if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
 		provider = ProviderWhatsOnChain
@@ -208,34 +190,6 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 	// We got a potential real error message?
 	return errors.New(resp.Results.ResultDescription)
-}
-
-// broadcastMatterCloud will broadcast a transaction to MatterCloud
-func broadcastMatterCloud(ctx context.Context, client ClientInterface, id, hex string) error {
-	client.DebugLog("executing broadcast request for " + ProviderMatterCloud)
-
-	resp, err := client.MatterCloud().Broadcast(ctx, hex)
-	if err != nil {
-
-		// Check error message (for success error message)
-		if doesErrorContain(err.Error(), broadcastSuccessErrors) {
-			return nil
-		}
-		return err
-	}
-
-	// Something went wrong - got back an id that does not match
-	if !strings.EqualFold(resp.Result.TxID, id) {
-		return errors.New("returned tx id [" + resp.Result.TxID + "] does not match given tx id [" + id + "]")
-	}
-
-	// Success was a failure?
-	if !resp.Success {
-		return errors.New("returned response was unsuccessful")
-	}
-
-	// Success
-	return nil
 }
 
 // broadcastWhatsOnChain will broadcast a transaction to WhatsOnChain

@@ -7,7 +7,6 @@ import (
 
 	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -34,10 +33,8 @@ type (
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
 		excludedProviders  []string                     // List of provider names
-		httpClient         HTTPInterface                // Custom HTTP client (Minercraft, WOC, MatterCloud)
+		httpClient         HTTPInterface                // Custom HTTP client (Minercraft, WOC)
 		mAPI               *mAPIConfig                  // mAPI configuration
-		matterCloud        mattercloud.ClientInterface  // MatterCloud client
-		matterCloudAPIKey  string                       // If set, use this key on the client
 		minercraft         minercraft.ClientInterface   // Minercraft client
 		network            Network                      // Current network (mainnet, testnet, stn)
 		nowNodes           nownodes.ClientInterface     // NOWNodes client
@@ -88,11 +85,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Start MatterCloud
-	if err := client.startMatterCloud(ctx); err != nil {
-		return nil, err
-	}
-
 	// Start WhatsOnChain
 	client.startWhatsOnChain(ctx)
 
@@ -118,11 +110,6 @@ func (c *Client) Close(ctx context.Context) {
 		// Close WhatsOnChain
 		if c.options.config.whatsOnChain != nil {
 			c.options.config.whatsOnChain = nil
-		}
-
-		// Close MatterCloud
-		if c.options.config.matterCloud != nil {
-			c.options.config.matterCloud = nil
 		}
 
 		// Close NowNodes
@@ -183,11 +170,6 @@ func (c *Client) Monitor() MonitorService {
 // WhatsOnChain will return the WhatsOnChain client
 func (c *Client) WhatsOnChain() whatsonchain.ClientInterface {
 	return c.options.config.whatsOnChain
-}
-
-// MatterCloud will return the MatterCloud client
-func (c *Client) MatterCloud() mattercloud.ClientInterface {
-	return c.options.config.matterCloud
 }
 
 // NowNodes will return the NowNodes client

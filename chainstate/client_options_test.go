@@ -162,63 +162,6 @@ func TestWithWhatsOnChainAPIKey(t *testing.T) {
 	})
 }
 
-// TestWithMatterCloud will test the method WithMatterCloud()
-func TestWithMatterCloud(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithMatterCloud(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithMatterCloud(nil)
-		opt(options)
-		assert.Nil(t, options.config.matterCloud)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		customClient := &matterCloudTxOnChain{}
-		opt := WithMatterCloud(customClient)
-		opt(options)
-		assert.Equal(t, customClient, options.config.matterCloud)
-	})
-}
-
-// TestWithMatterCloudAPIKey will test the method WithMatterCloudAPIKey()
-func TestWithMatterCloudAPIKey(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithMatterCloudAPIKey("")
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying empty string", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithMatterCloudAPIKey("")
-		opt(options)
-		assert.Equal(t, "", options.config.matterCloudAPIKey)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithMatterCloudAPIKey(testDummyKey)
-		opt(options)
-		assert.Equal(t, testDummyKey, options.config.matterCloudAPIKey)
-	})
-}
-
 // TestWithNowNodes will test the method WithNowNodes()
 func TestWithNowNodes(t *testing.T) {
 	t.Parallel()

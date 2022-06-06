@@ -621,15 +621,6 @@ func WithNowNodesAPIKey(apiKey string) ClientOps {
 	}
 }
 
-// WithMatterCloudAPIKey will set the API key
-func WithMatterCloudAPIKey(apiKey string) ClientOps {
-	return func(c *clientOptions) {
-		if len(apiKey) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithMatterCloudAPIKey(apiKey))
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {

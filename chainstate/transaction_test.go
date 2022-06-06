@@ -35,12 +35,11 @@ func TestClient_Transaction(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidRequirements)
 	})
 
-	t.Run("valid - all four", func(t *testing.T) {
+	t.Run("valid - all three", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
@@ -58,12 +57,11 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, "030d1fe5c1b560efe196ba40540ce9017c20daa9504c4c4cec6184fc702d9f274e", info.MinerID)
 	})
 
-	t.Run("mAPI not found - woc, mattercloud, nownodes", func(t *testing.T) {
+	t.Run("mAPI not found - woc, nownodes", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}), // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
@@ -80,12 +78,11 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, ProviderWhatsOnChain, info.Provider)
 	})
 
-	t.Run("mAPI, WOC not found - mattercloud, nownodes", func(t *testing.T) {
+	t.Run("mAPI, WOC not found - nownodes", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
@@ -99,15 +96,13 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Equal(t, ProviderMatterCloud, info.Provider)
 	})
 
-	t.Run("mAPI, WOC, mattercloud not found - nownodes", func(t *testing.T) {
+	t.Run("mAPI, WOC, nownodes", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithMatterCloud(&matterCloudTxNotFound{}),   // NOT going to find the TX
 			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
@@ -129,7 +124,6 @@ func TestClient_Transaction(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithMatterCloud(&matterCloudTxNotFound{}),   // NOT going to find the TX
 			WithNowNodes(&nowNodesTxNotFound{}),         // NOT going to find the TX
 		)
 
@@ -147,7 +141,6 @@ func TestClient_Transaction(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNetwork(StressTestNet),
 		)
 
@@ -161,7 +154,7 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Contains(t, []string{ProviderWhatsOnChain, ProviderMatterCloud}, info.Provider)
+		assert.Contains(t, []string{ProviderWhatsOnChain}, info.Provider)
 	})
 
 	t.Run("valid - test network", func(t *testing.T) {
@@ -169,7 +162,6 @@ func TestClient_Transaction(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNetwork(TestNet),
 		)
 
@@ -213,12 +205,11 @@ func TestClient_TransactionFastest(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidRequirements)
 	})
 
-	t.Run("valid - all four", func(t *testing.T) {
+	t.Run("valid - all three", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
@@ -234,12 +225,11 @@ func TestClient_TransactionFastest(t *testing.T) {
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
 	})
 
-	t.Run("mAPI not found - woc, mattercloud, nownodes", func(t *testing.T) {
+	t.Run("mAPI not found - woc, nownodes", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}), // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
@@ -260,7 +250,6 @@ func TestClient_TransactionFastest(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithMatterCloud(&matterCloudTxNotFound{}),   // NOT going to find the TX
 			WithNowNodes(&nowNodesTxNotFound{}),         // NOT going to find the TX
 		)
 
@@ -278,7 +267,6 @@ func TestClient_TransactionFastest(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithMatterCloud(&matterCloudTxOnChain{}),
 			WithNetwork(StressTestNet),
 		)
 
@@ -292,6 +280,6 @@ func TestClient_TransactionFastest(t *testing.T) {
 		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
 		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Contains(t, []string{ProviderWhatsOnChain, ProviderMatterCloud}, info.Provider)
+		assert.Contains(t, []string{ProviderWhatsOnChain}, info.Provider)
 	})
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bc"
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/tonicpow/go-minercraft"
@@ -37,7 +36,6 @@ type ChainService interface {
 
 // ProviderServices is the chainstate providers interface
 type ProviderServices interface {
-	MatterCloud() mattercloud.ClientInterface
 	Minercraft() minercraft.ClientInterface
 	NowNodes() nownodes.ClientInterface
 	WhatsOnChain() whatsonchain.ClientInterface

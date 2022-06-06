@@ -120,7 +120,6 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 - [libsv/go-bt](https://github.com/libsv/go-bt)
 - [mrz1836/go-cache](https://github.com/mrz1836/go-cache)
 - [mrz1836/go-logger](https://github.com/mrz1836/go-logger)
-- [mrz1836/go-mattercloud](https://github.com/mrz1836/go-mattercloud)
 - [mrz1836/go-nownodes](https://github.com/mrz1836/go-nownodes)
 - [mrz1836/go-whatsonchain](https://github.com/mrz1836/go-whatsonchain)
 - [newrelic/go-agent](https://github.com/newrelic/go-agent)

@@ -33,7 +33,7 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 
 // QueryTransaction will get the transaction info from all providers returning the "first" valid result
 //
-// Note: this is slow, but follows a specific order: mAPI -> WhatsOnChain -> MatterCloud -> NowNodes
+// Note: this is slow, but follows a specific order: mAPI -> WhatsOnChain -> NowNodes
 func (c *Client) QueryTransaction(
 	ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 ) (*TransactionInfo, error) {

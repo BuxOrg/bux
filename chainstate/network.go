@@ -1,7 +1,6 @@
 package chainstate
 
 import (
-	"github.com/mrz1836/go-mattercloud"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
@@ -31,20 +30,6 @@ func (n Network) WhatsOnChain() whatsonchain.NetworkType {
 		return whatsonchain.NetworkStn
 	default:
 		return whatsonchain.NetworkMain // Default if none is found, return main
-	}
-}
-
-// MatterCloud will return the MatterCloud network type
-func (n Network) MatterCloud() mattercloud.NetworkType {
-	switch n {
-	case MainNet:
-		return mattercloud.NetworkMain
-	case TestNet:
-		return mattercloud.NetworkTest
-	case StressTestNet:
-		return mattercloud.NetworkStn
-	default:
-		return mattercloud.NetworkMain // Default if none is found, return main
 	}
 }
 

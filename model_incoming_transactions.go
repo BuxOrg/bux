@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -250,7 +251,7 @@ func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransac
 
 	defer func() {
 		if err := recover(); err != nil {
-			incomingTx.Client().Logger().Error(ctx, fmt.Sprintf("panic occurred: %v", err))
+			incomingTx.Client().Logger().Error(ctx, fmt.Sprintf("panic occurred: %v - stack: %v", err, string(debug.Stack())))
 		}
 	}()
 

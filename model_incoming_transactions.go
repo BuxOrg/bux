@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -262,13 +263,29 @@ func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransac
 		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
-		// todo: check the error... try broadcasting the tx, and retry query?
+		// TX might not have been broadcasted yet? (race condition, or it was never broadcasted...)
+		if strings.Contains(err.Error(), "transaction not found using all chain providers") {
+			var provider string
 
+			// Broadcast and detect if there is a real error
+			if provider, err = incomingTx.Client().Chainstate().Broadcast(
+				ctx, incomingTx.ID, incomingTx.Hex, defaultQueryTxTimeout,
+			); err != nil {
+				bailAndSaveIncomingTransaction(ctx, incomingTx, "tx was not found using all providers, attempted broadcast, "+err.Error())
+				return err
+			}
+
+			// Broadcast was successful, update the record back to ready again...
+			incomingTx.Status = statusReady
+			incomingTx.StatusMessage = "tx was not found on-chain, attempting to broadcast using provider: " + provider
+			_ = incomingTx.Save(ctx)
+			return nil
+		}
+
+		// Actual error occurred
 		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
 		return err
 	}
-
-	// todo: validation (if mempool) - protect against 0 fee transactions?
 
 	// Create the new transaction model
 	transaction := newTransactionFromIncomingTransaction(incomingTx)

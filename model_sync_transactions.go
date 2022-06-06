@@ -388,6 +388,8 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
 	); err != nil {
 		return err
+	} else if transaction == nil {
+		return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
 	}
 
 	// Broadcast

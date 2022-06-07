@@ -24,7 +24,6 @@ require (
 	github.com/libsv/go-bt/v2 v2.1.0-beta.3
 	github.com/mrz1836/go-cache v0.6.5
 	github.com/mrz1836/go-logger v0.2.5
-	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.6
 	github.com/mrz1836/go-whatsonchain v0.10.4
 	github.com/newrelic/go-agent/v3 v3.16.1
@@ -35,7 +34,7 @@ require (
 	github.com/stretchr/testify v1.7.2
 	github.com/tidwall/gjson v1.14.1
 	github.com/tonicpow/go-minercraft v0.7.3
-	github.com/tonicpow/go-paymail v0.7.7
+	github.com/tonicpow/go-paymail v0.7.8
 	github.com/tryvium-travels/memongo v0.6.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d

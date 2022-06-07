@@ -11,7 +11,7 @@ require (
 	github.com/centrifugal/centrifuge-go v0.8.2
 	github.com/coocood/freecache v1.2.1
 	github.com/dolthub/go-mysql-server v0.11.1-0.20211214000816-612f47e4b4cf
-	github.com/fergusstrange/embedded-postgres v1.15.0
+	github.com/fergusstrange/embedded-postgres v1.16.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v1.8.8
@@ -24,7 +24,6 @@ require (
 	github.com/libsv/go-bt/v2 v2.1.0-beta.3
 	github.com/mrz1836/go-cache v0.6.5
 	github.com/mrz1836/go-logger v0.2.5
-	github.com/mrz1836/go-mattercloud v0.5.3
 	github.com/mrz1836/go-nownodes v0.0.6
 	github.com/mrz1836/go-whatsonchain v0.10.4
 	github.com/newrelic/go-agent/v3 v3.16.1

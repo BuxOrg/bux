@@ -154,6 +154,10 @@ func TestGetDestinationType(t *testing.T) {
 	t.Run("multisig - ScriptTypeMultiSig", func(t *testing.T) {
 		assert.Equal(t, bscript2.ScriptTypeMultiSig, GetDestinationType(multisigHex))
 	})
+
+	t.Run("stas - ScriptTypeTokenStas", func(t *testing.T) {
+		assert.Equal(t, ScriptTypeTokenStas, GetDestinationType(stas2Hex))
+	})
 }
 
 // TestGetAddressFromScript will test the method GetAddressFromScript()
@@ -175,4 +179,16 @@ func TestGetAddressFromScript(t *testing.T) {
 	t.Run("unknown", func(t *testing.T) {
 		assert.Equal(t, "", GetAddressFromScript("invalid-or-unknown-script"))
 	})
+}
+
+func BenchmarkIsP2PKH(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = IsP2PKH(p2pkhHex)
+	}
+}
+
+func BenchmarkGetDestinationTypeRegex(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = GetDestinationType(stas2Hex)
+	}
 }

@@ -102,6 +102,11 @@ func IsStas(lockingScript string) bool {
 	return StasRegexp.MatchString(lockingScript)
 }
 
+// IsRunJS Check whether the given string is a Run JS output
+func IsRunJS(lockingScript string) bool {
+	return StasRegexp.MatchString(lockingScript)
+}
+
 // IsMultiSig Check whether the given string is a multi-sig locking script
 func IsMultiSig(lockingScript string) bool {
 	script, err := bscript2.NewFromHexString(lockingScript)

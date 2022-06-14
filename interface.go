@@ -142,7 +142,9 @@ type TransactionService interface {
 		opts ...ModelOps) (*DraftTransaction, error)
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
+	RecordRawTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
+	recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 }
 
 // UTXOService is the utxo actions

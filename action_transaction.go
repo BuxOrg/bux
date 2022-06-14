@@ -107,6 +107,21 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 	return transaction, nil
 }
 
+// RecordRawTransaction will parse the transaction and save it into the Datastore directly, without any checks
+//
+// Only use this function when you know what you are doing!
+//
+// txHex is the raw transaction hex
+// opts are model options and can include "metadata"
+func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
+	opts ...ModelOps) (*Transaction, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
+
+	return c.recordTxHex(ctx, txHex, opts...)
+}
+
 // RecordMonitoredTransaction will parse the transaction and save it into the Datastore
 //
 // This function will try to record the transaction directly, without checking draft ids etc.
@@ -116,8 +131,12 @@ func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txH
 	// Check for existing NewRelic transaction
 	ctx = client.GetOrStartTxn(ctx, "record_monitored_transaction")
 
+	return client.recordTxHex(ctx, txHex, opts...)
+}
+
+func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
 	// Create the model & set the default options (gives options from client->model)
-	newOpts := client.DefaultModelOptions(append(opts, New())...)
+	newOpts := c.DefaultModelOptions(append(opts, New())...)
 	transaction := newTransaction(txHex, newOpts...)
 
 	// Ensure that we have a transaction id (created from the txHex)
@@ -128,7 +147,7 @@ func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txH
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyRecordTx, id), client.Cachestore(),
+		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

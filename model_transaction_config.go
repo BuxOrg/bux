@@ -284,13 +284,19 @@ func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface,
 		return err
 	}
 
+	// split the total output satoshis across all the paymail outputs given
+	outputValues, err := utils.SplitOutputValues(satoshis, len(destinationInfo.Outputs))
+	if err != nil {
+		return err
+	}
+
 	// Loop all received P2P outputs and build scripts
-	for _, out := range destinationInfo.Outputs {
+	for index, out := range destinationInfo.Outputs {
 		t.Scripts = append(
 			t.Scripts,
 			&ScriptOutput{
 				Address:    out.Address,
-				Satoshis:   t.Satoshis,
+				Satoshis:   outputValues[index],
 				Script:     out.Script,
 				ScriptType: utils.ScriptTypePubKeyHash,
 			},

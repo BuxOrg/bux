@@ -123,10 +123,8 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 	}
 
 	// Waiting for all requests to finish
-	go func() {
-		wg.Wait()
-		close(resultsChannel)
-	}()
+	wg.Wait()
+	close(resultsChannel)
 
 	return <-resultsChannel
 }

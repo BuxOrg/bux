@@ -83,11 +83,8 @@ func checkMonitorHeartbeat(ctx context.Context, client ClientInterface, lockID s
 		if int64(unixTime+defaultMonitorHeartbeatMax) > currentUnixTime {
 			client.Logger().Info(ctx, fmt.Sprintf("monitor has already been loaded using this lockID: %s last heartbeat: %d", lockID, unixTime))
 			return true, nil
-		} else { // Heartbeat failed the max (out of range) check for the last heart beat
-			client.Logger().Info(ctx, fmt.Sprintf("found monitor lockID: %s but heartbeat is out of range: %d vs %d", lockID, unixTime, currentUnixTime))
-
-			// Continue, and load the monitor...
 		}
+		client.Logger().Info(ctx, fmt.Sprintf("found monitor lockID: %s but heartbeat is out of range: %d vs %d", lockID, unixTime, currentUnixTime))
 	}
 	return false, nil
 }

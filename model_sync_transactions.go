@@ -398,18 +398,29 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Get the transaction
 	var transaction *Transaction
+	var incomingTransaction *IncomingTransaction
+	var txHex string
 	if transaction, err = getTransactionByID(
 		ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
 	); err != nil {
 		return err
 	} else if transaction == nil {
-		return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
+		// maybe this is only an incoming transaction, let's try to find that and broadcast
+		// the processing of incoming transactions should then pick it up in the next job run
+		if incomingTransaction, err = getIncomingTransactionByID(ctx, syncTx.ID, syncTx.GetOptions(false)...); err != nil {
+			return err
+		} else if incomingTransaction == nil {
+			return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
+		}
+		txHex = incomingTransaction.Hex
+	} else {
+		txHex = transaction.Hex
 	}
 
 	// Broadcast
 	var provider string
 	if provider, err = syncTx.Client().Chainstate().Broadcast(
-		ctx, syncTx.ID, transaction.Hex, defaultBroadcastTimeout,
+		ctx, syncTx.ID, txHex, defaultBroadcastTimeout,
 	); err != nil {
 		bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionBroadcast, provider, "broadcast error: "+err.Error(),
@@ -419,6 +430,19 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Create status message
 	message := "broadcast success"
+
+	// process the incoming transaction before finishing the sync
+	if incomingTransaction != nil {
+		// give the transaction some time to propagate through the network
+		time.Sleep(3 * time.Second)
+
+		// we don't need to handle the error here, this is only to speed up the processing
+		// job will pick it up later if needed
+		if err = processIncomingTransaction(ctx, incomingTransaction); err == nil {
+			// again ignore the error, if an error occurs the transaction will be set and will be processed further
+			transaction, _ = getTransactionByID(ctx, "", syncTx.ID, syncTx.GetOptions(false)...)
+		}
+	}
 
 	// Update the sync information
 	syncTx.BroadcastStatus = SyncStatusComplete
@@ -458,10 +482,14 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	notify(notifications.EventTypeBroadcast, syncTx)
 
 	// Notify any P2P paymail providers associated to the transaction
-	if syncTx.P2PStatus == SyncStatusReady {
-		return processP2PTransaction(ctx, syncTx, transaction)
-	} else if syncTx.P2PStatus == SyncStatusSkipped && syncTx.SyncStatus == SyncStatusReady {
-		return processSyncTransaction(ctx, syncTx, transaction)
+	// but only if we actually found the transaction in the transactions' collection, otherwise this was an incoming
+	// transaction that needed to be broadcast and was not successfully processed after the broadcast
+	if transaction != nil {
+		if syncTx.P2PStatus == SyncStatusReady {
+			return processP2PTransaction(ctx, syncTx, transaction)
+		} else if syncTx.P2PStatus == SyncStatusSkipped && syncTx.SyncStatus == SyncStatusReady {
+			return processSyncTransaction(ctx, syncTx, transaction)
+		}
 	}
 	return nil
 }

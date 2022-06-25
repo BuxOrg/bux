@@ -433,6 +433,9 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// process the incoming transaction before finishing the sync
 	if incomingTransaction != nil {
+		// give the transaction some time to propagate through the network
+		time.Sleep(3 * time.Second)
+
 		// we don't need to handle the error here, this is only to speed up the processing
 		// job will pick it up later if needed
 		if err = processIncomingTransaction(ctx, incomingTransaction); err == nil {

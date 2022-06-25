@@ -49,6 +49,23 @@ func newIncomingTransaction(txID, hex string, opts ...ModelOps) (tx *IncomingTra
 	return
 }
 
+// getIncomingTransactionByID will get the incoming transactions to process
+func getIncomingTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*IncomingTransaction, error) {
+	// Construct an empty tx
+	tx := newIncomingTransaction("", "", opts...)
+	tx.ID = id
+
+	// Get the record
+	if err := Get(ctx, tx, nil, false, defaultDatabaseReadTimeout, false); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return tx, nil
+}
+
 // getIncomingTransactionsToProcess will get the incoming transactions to process
 func getIncomingTransactionsToProcess(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps) ([]*IncomingTransaction, error) {

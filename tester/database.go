@@ -8,7 +8,6 @@ import (
 
 	"github.com/BuxOrg/bux/datastore"
 	sqle "github.com/dolthub/go-mysql-server"
-	"github.com/dolthub/go-mysql-server/auth"
 	"github.com/dolthub/go-mysql-server/memory"
 	"github.com/dolthub/go-mysql-server/server"
 	"github.com/dolthub/go-mysql-server/sql"
@@ -70,7 +69,8 @@ func CreateMongoServer(version string) (*memongo.Server, error) {
 }
 
 // CreateMySQL will make a new MySQL server
-func CreateMySQL(host, databaseName, username, password string, port uint32) (*server.Server, error) {
+// NOTE: not using username, password anymore since the mysql package removed "auth"
+func CreateMySQL(host, databaseName, _, _ string, port uint32) (*server.Server, error) {
 	engine := sqle.NewDefault(
 		sql.NewDatabaseProvider(
 			CreateMySQLTestDatabase(databaseName),
@@ -79,7 +79,8 @@ func CreateMySQL(host, databaseName, username, password string, port uint32) (*s
 	config := server.Config{
 		Protocol: "tcp",
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Auth:     auth.NewNativeSingle(username, password, auth.AllPermissions),
+		// This package is no longer found in: github.com/dolthub/go-mysql-server v0.12.0
+		// Auth:     auth.NewNativeSingle(username, password, auth.AllPermissions),
 	}
 	s, err := server.NewDefaultServer(config, engine)
 	if err != nil {

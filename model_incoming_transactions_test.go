@@ -54,7 +54,7 @@ func (ts *EmbeddedDBTestSuite) TestProcessIncomingTransaction() {
 			require.NotNil(t, tx)
 
 			// Process if found
-			err = processIncomingTransactions(tc.ctx, 5, WithClient(tc.client))
+			err = processIncomingTransactions(tc.ctx, nil, 5, WithClient(tc.client))
 			require.NoError(t, err)
 
 			// Check if the tx is found in the datastore

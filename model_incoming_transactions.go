@@ -9,6 +9,7 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
+	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/libsv/go-bt/v2"
 )
@@ -187,7 +188,7 @@ func (m *IncomingTransaction) AfterCreated(ctx context.Context) error {
 
 	// todo: this should be refactored into a task
 	// go func(incomingTx *IncomingTransaction) {
-	if err := processIncomingTransaction(context.Background(), m); err != nil {
+	if err := processIncomingTransaction(context.Background(), nil, m); err != nil {
 		m.Client().Logger().Error(ctx, "error processing incoming transaction: "+err.Error())
 	}
 	// }(m)
@@ -237,7 +238,7 @@ func (m *IncomingTransaction) RegisterTasks() error {
 }
 
 // processIncomingTransactions will process incoming transaction records
-func processIncomingTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
+func processIncomingTransactions(ctx context.Context, logClient logger.Interface, maxTransactions int, opts ...ModelOps) error {
 
 	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
 
@@ -251,10 +252,14 @@ func processIncomingTransactions(ctx context.Context, maxTransactions int, opts 
 		return nil
 	}
 
+	if logClient != nil {
+		logClient.Info(ctx, fmt.Sprintf("found %d incoming transactions to process", len(records)))
+	}
+
 	// Process the incoming transaction
 	for index := range records {
 		if err = processIncomingTransaction(
-			ctx, records[index],
+			ctx, logClient, records[index],
 		); err != nil {
 			return err
 		}
@@ -264,7 +269,7 @@ func processIncomingTransactions(ctx context.Context, maxTransactions int, opts 
 }
 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
-func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransaction) error {
+func processIncomingTransaction(ctx context.Context, logClient logger.Interface, incomingTx *IncomingTransaction) error {
 
 	// Successfully capture any panics, convert to readable string and log the error
 	defer func() {
@@ -293,6 +298,10 @@ func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransac
 		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
+		if logClient != nil {
+			logClient.Error(ctx, fmt.Sprintf("error finding transaction %s on chain: %s", incomingTx.ID, err.Error()))
+		}
+
 		// TX might not have been broadcasted yet? (race condition, or it was never broadcasted...)
 		if strings.Contains(err.Error(), "transaction not found using all chain providers") {
 			var provider string
@@ -315,6 +324,10 @@ func processIncomingTransaction(ctx context.Context, incomingTx *IncomingTransac
 		// Actual error occurred
 		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
 		return err
+	}
+
+	if logClient != nil {
+		logClient.Error(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
 	}
 
 	// Create the new transaction model

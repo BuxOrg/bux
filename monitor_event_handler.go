@@ -223,6 +223,14 @@ func (h *MonitorEventHandler) OnMessage(_ *centrifuge.Client, e centrifuge.Messa
 // OnDisconnect when disconnected
 func (h *MonitorEventHandler) OnDisconnect(_ *centrifuge.Client, _ centrifuge.DisconnectEvent) {
 	defer close(h.blockSyncChannel)
+	defer func(logger chainstate.Logger) {
+		ctx := context.Background()
+		rec := recover()
+		if rec != nil {
+			logger.Error(ctx, fmt.Sprintf("[MONITOR] Tried closing a closed channel: %v", rec))
+		}
+	}(h.logger)
+
 	h.monitor.Disconnected()
 }
 

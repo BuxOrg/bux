@@ -18,10 +18,8 @@ func (c *Client) validRequirement(requirement RequiredIn) bool {
 
 // checkRequirement will check to see if the requirement has been met
 func checkRequirement(requirement RequiredIn, id string, txInfo *TransactionInfo) bool {
-	if requirement == RequiredInMempool { // Good response, and only has TX and MinerID
-		if txInfo.ID == id && (len(txInfo.MinerID) > 0 || len(txInfo.BlockHash) > 0) {
-			return true
-		}
+	if requirement == RequiredInMempool { // Good response, and only has TX
+		return txInfo.ID == id
 	} else if requirement == RequiredOnChain { // Good response, found block hash
 		if len(txInfo.BlockHash) > 0 && txInfo.Confirmations > 0 {
 			return true

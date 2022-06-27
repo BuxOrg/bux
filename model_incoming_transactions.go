@@ -328,7 +328,9 @@ func processIncomingTransaction(ctx context.Context, logClient logger.Interface,
 			if txInfo, err = incomingTx.Client().Chainstate().QueryTransactionFastest(
 				ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 			); err != nil {
-				bailAndSaveIncomingTransaction(ctx, incomingTx, "tx was not found using all providers, attempted broadcast, "+err.Error())
+				incomingTx.Status = statusReady
+				incomingTx.StatusMessage = "tx was not found on-chain, attempting to broadcast using provider: " + provider
+				_ = incomingTx.Save(ctx)
 				return err
 			}
 		} else {

@@ -33,6 +33,18 @@ func Test_checkRequirement(t *testing.T) {
 		assert.Equal(t, true, success)
 	})
 
+	t.Run("found in mempool - whatsonchain", func(t *testing.T) {
+		success := checkRequirement(requiredInMempool, onChainExample1TxID, &TransactionInfo{
+			BlockHash:     "",
+			BlockHeight:   0,
+			Confirmations: 0,
+			ID:            onChainExample1TxID,
+			MinerID:       "",
+			Provider:      "whatsonchain",
+		})
+		assert.Equal(t, true, success)
+	})
+
 	t.Run("not in mempool - mAPI", func(t *testing.T) {
 		success := checkRequirement(requiredInMempool, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     "",

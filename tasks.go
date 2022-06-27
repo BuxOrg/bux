@@ -61,7 +61,7 @@ func taskProcessIncomingTransactions(ctx context.Context, logClient logger.Inter
 
 	logClient.Info(ctx, "running process incoming transaction(s) task...")
 
-	err := processIncomingTransactions(ctx, 10, opts...)
+	err := processIncomingTransactions(ctx, logClient, 10, opts...)
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
 		return nil
 	}

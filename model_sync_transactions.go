@@ -438,7 +438,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 		// we don't need to handle the error here, this is only to speed up the processing
 		// job will pick it up later if needed
-		if err = processIncomingTransaction(ctx, incomingTransaction); err == nil {
+		if err = processIncomingTransaction(ctx, nil, incomingTransaction); err == nil {
 			// again ignore the error, if an error occurs the transaction will be set and will be processed further
 			transaction, _ = getTransactionByID(ctx, "", syncTx.ID, syncTx.GetOptions(false)...)
 		}
@@ -539,6 +539,10 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 		); err != nil {
 			return err
 		}
+	}
+
+	if transaction == nil {
+		return ErrMissingTransaction
 	}
 
 	// Add additional information (if found on-chain)

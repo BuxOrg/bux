@@ -271,6 +271,10 @@ func processIncomingTransactions(ctx context.Context, logClient logger.Interface
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
 func processIncomingTransaction(ctx context.Context, logClient logger.Interface, incomingTx *IncomingTransaction) error {
 
+	if logClient != nil {
+		logClient.Info(ctx, fmt.Sprintf("processing incoming transaction: %v", incomingTx))
+	}
+
 	// Successfully capture any panics, convert to readable string and log the error
 	defer func() {
 		if err := recover(); err != nil {
@@ -302,8 +306,8 @@ func processIncomingTransaction(ctx context.Context, logClient logger.Interface,
 			logClient.Error(ctx, fmt.Sprintf("error finding transaction %s on chain: %s", incomingTx.ID, err.Error()))
 		}
 
-		// TX might not have been broadcasted yet? (race condition, or it was never broadcasted...)
-		if strings.Contains(err.Error(), "transaction not found using all chain providers") {
+		// TX might not have been broadcast yet? (race condition, or it was never broadcast...)
+		if errors.Is(err, chainstate.ErrTransactionNotFound) {
 			var provider string
 
 			// Broadcast and detect if there is a real error
@@ -314,16 +318,15 @@ func processIncomingTransaction(ctx context.Context, logClient logger.Interface,
 				return err
 			}
 
-			// Broadcast was successful, update the record back to ready again...
-			incomingTx.Status = statusReady
-			incomingTx.StatusMessage = "tx was not found on-chain, attempting to broadcast using provider: " + provider
-			_ = incomingTx.Save(ctx)
-			return nil
+			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
+			if logClient != nil {
+				logClient.Error(ctx, fmt.Sprintf("broadcast of transaction was successful using %s", provider))
+			}
+		} else {
+			// Actual error occurred
+			bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
+			return err
 		}
-
-		// Actual error occurred
-		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
-		return err
 	}
 
 	if logClient != nil {

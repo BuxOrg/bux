@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
@@ -321,6 +322,14 @@ func processIncomingTransaction(ctx context.Context, logClient logger.Interface,
 			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
 			if logClient != nil {
 				logClient.Error(ctx, fmt.Sprintf("broadcast of transaction was successful using %s", provider))
+			}
+			// allow propagation
+			time.Sleep(3 * time.Second)
+			if txInfo, err = incomingTx.Client().Chainstate().QueryTransactionFastest(
+				ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
+			); err != nil {
+				bailAndSaveIncomingTransaction(ctx, incomingTx, "tx was not found using all providers, attempted broadcast, "+err.Error())
+				return err
 			}
 		} else {
 			// Actual error occurred

@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/99designs/gqlgen v0.17.10
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/alicebob/miniredis/v2 v2.21.0
+	github.com/alicebob/miniredis/v2 v2.22.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
 	github.com/centrifugal/centrifuge-go v0.8.2

@@ -56,7 +56,7 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 }
 
 // getSpendableUtxos get all spendable utxos by page / pageSize
-func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, // nolint:unparam // this param will be used
+func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, //nolint:nolintlint,unparam // this param will be used
 	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Construct the conditions and results

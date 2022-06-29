@@ -113,7 +113,7 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 // saveToCache will save the model to the cache using the given key(s)
 //
 // ttl of 0 will cache forever
-func saveToCache(ctx context.Context, keys []string, model ModelInterface, ttl time.Duration) error { // nolint: unparam // this does not matter
+func saveToCache(ctx context.Context, keys []string, model ModelInterface, ttl time.Duration) error { //nolint:nolintlint,unparam // this does not matter
 	// NOTE: this check is in place in-case a model does not load its parent Client()
 	if model.Client() != nil {
 		for _, key := range keys {

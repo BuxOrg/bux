@@ -26,7 +26,7 @@ require (
 	github.com/mrz1836/go-logger v0.2.5
 	github.com/mrz1836/go-nownodes v0.0.6
 	github.com/mrz1836/go-whatsonchain v0.11.0
-	github.com/newrelic/go-agent/v3 v3.16.1
+	github.com/newrelic/go-agent/v3 v3.17.0
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible

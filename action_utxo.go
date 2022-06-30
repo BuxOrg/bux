@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
@@ -25,7 +24,7 @@ func (c *Client) GetUtxos(ctx context.Context, metadataConditions *Metadata,
 	}
 
 	// add the transaction linked to the utxos
-	enrichUtxoTransactions(ctx, utxos, c.DefaultModelOptions()...)
+	c.enrichUtxoTransactions(ctx, utxos)
 
 	return utxos, nil
 }
@@ -70,7 +69,7 @@ func (c *Client) GetUtxosByXpubID(ctx context.Context, xPubID string, metadata *
 	}
 
 	// add the transaction linked to the utxos
-	enrichUtxoTransactions(ctx, utxos, c.DefaultModelOptions()...)
+	c.enrichUtxoTransactions(ctx, utxos)
 
 	return utxos, nil
 }
@@ -99,7 +98,7 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 	var tx *Transaction
 	tx, err = getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
 	if err != nil {
-		fmt.Printf("ERROR: failed finding transaction related to utxo: %s\n", utxo.ID)
+		c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
 	} else {
 		utxo.Transaction = tx
 	}
@@ -108,11 +107,11 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 }
 
 // should this be optional in the results?
-func enrichUtxoTransactions(ctx context.Context, utxos []*Utxo, opts ...ModelOps) {
+func (c *Client) enrichUtxoTransactions(ctx context.Context, utxos []*Utxo) {
 	for index, utxo := range utxos {
-		tx, err := getTransactionByID(ctx, "", utxo.TransactionID, opts...)
+		tx, err := getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
 		if err != nil {
-			fmt.Printf("ERROR: failed finding transaction related to utxo: %s\n", utxo.ID)
+			c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
 		} else {
 			utxos[index].Transaction = tx
 		}

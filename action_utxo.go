@@ -23,6 +23,9 @@ func (c *Client) GetUtxos(ctx context.Context, metadataConditions *Metadata,
 		return nil, err
 	}
 
+	// add the transaction linked to the utxos
+	c.enrichUtxoTransactions(ctx, utxos)
+
 	return utxos, nil
 }
 
@@ -65,6 +68,9 @@ func (c *Client) GetUtxosByXpubID(ctx context.Context, xPubID string, metadata *
 		return nil, err
 	}
 
+	// add the transaction linked to the utxos
+	c.enrichUtxoTransactions(ctx, utxos)
+
 	return utxos, nil
 }
 
@@ -89,5 +95,25 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 		return nil, ErrXpubIDMisMatch
 	}
 
+	var tx *Transaction
+	tx, err = getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
+	if err != nil {
+		c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
+	} else {
+		utxo.Transaction = tx
+	}
+
 	return utxo, nil
+}
+
+// should this be optional in the results?
+func (c *Client) enrichUtxoTransactions(ctx context.Context, utxos []*Utxo) {
+	for index, utxo := range utxos {
+		tx, err := getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
+		if err != nil {
+			c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
+		} else {
+			utxos[index].Transaction = tx
+		}
+	}
 }

@@ -50,7 +50,7 @@ func (tx *txAccumulator) getGormTx() *gorm.DB {
 	return nil
 }
 
-func processConditions(tx buxWhereInterface, conditions map[string]interface{}, engine Engine, varNum *int, parentKey *string) map[string]interface{} { // nolint: unparam // ignore for now
+func processConditions(tx buxWhereInterface, conditions map[string]interface{}, engine Engine, varNum *int, parentKey *string) map[string]interface{} { //nolint:nolintlint,unparam // ignore for now
 
 	for key, condition := range conditions {
 		if key == "$and" {

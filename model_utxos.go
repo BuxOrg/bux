@@ -35,6 +35,10 @@ type Utxo struct {
 	DraftID      utils.NullString `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-;type:varchar(64);index;comment:Related draft id for reservations" bson:"draft_id,omitempty"`
 	ReservedAt   utils.NullTime   `json:"reserved_at" toml:"reserved_at" yaml:"reserved_at" gorm:"<-;comment:When it was reserved" bson:"reserved_at,omitempty"`
 	SpendingTxID utils.NullString `json:"spending_tx_id,omitempty" toml:"spending_tx_id" yaml:"spending_tx_id" gorm:"<-;type:char(64);index;comment:This is tx ID of the spend" bson:"spending_tx_id,omitempty"`
+
+	// Virtual field holding the original transaction the utxo originated from
+	// This is needed when signing a new transaction that spends the utxo
+	Transaction *Transaction `json:"transaction,omitempty" toml:"-" yaml:"-" gorm:"-" bson:"-"`
 }
 
 // newUtxo will start a new utxo model
@@ -52,7 +56,7 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 }
 
 // getSpendableUtxos get all spendable utxos by page / pageSize
-func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, // nolint:unparam // this param will be used
+func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, //nolint:nolintlint,unparam // this param will be used
 	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
 
 	// Construct the conditions and results

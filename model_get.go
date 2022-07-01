@@ -67,7 +67,7 @@ func getModelCount(
 	datastore datastore.ClientInterface,
 	model interface{},
 	conditions map[string]interface{},
-	timeout time.Duration, //nolint:unparam // default timeout is passed most of the time
+	timeout time.Duration, //nolint:nolintlint,unparam // default timeout is passed most of the time
 ) (int64, error) {
 	// Attempt to Get the model (by model fields & given conditions)
 	return datastore.GetModelCount(ctx, model, conditions, timeout)

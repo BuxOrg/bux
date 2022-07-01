@@ -284,7 +284,7 @@ func (m *PaymailAddress) migrateMySQL(client datastore.ClientInterface, tableNam
 		tx := client.Execute("CREATE UNIQUE INDEX " + idxName + " ON `" + tableName + "` (alias, domain)")
 		if tx.Error != nil {
 			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
-			return nil // nolint: nilerr // error is not needed
+			return nil //nolint:nolintlint,nilerr // error is not needed
 		}
 	}
 	return nil

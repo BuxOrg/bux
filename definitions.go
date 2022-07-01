@@ -23,7 +23,7 @@ const (
 	dustLimit                      = uint64(546)       // Dust limit
 	mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                        = "v0.2.32"         // bux version
+	version                        = "v0.2.33"         // bux version
 )
 
 // Defaults for task cron jobs (tasks)

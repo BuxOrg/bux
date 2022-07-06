@@ -14,7 +14,7 @@ require (
 	github.com/fergusstrange/embedded-postgres v1.17.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
-	github.com/gomodule/redigo v1.8.8
+	github.com/gomodule/redigo v1.8.9
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
@@ -54,7 +54,7 @@ require (
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
 	github.com/bsm/redislock v0.7.2 // indirect
 	github.com/capnm/sysinfo v0.0.0-20130621111458-5909a53897f3 // indirect
-	github.com/centrifugal/protocol v0.8.8 // indirect
+	github.com/centrifugal/protocol v0.8.9 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/d4l3k/messagediff v1.2.1 // indirect
@@ -97,8 +97,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.14 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
-	github.com/mrz1836/go-api-router v0.4.13 // indirect
-	github.com/mrz1836/go-parameters v0.2.8 // indirect
+	github.com/mrz1836/go-api-router v0.4.14 // indirect
+	github.com/mrz1836/go-parameters v0.2.9 // indirect
 	github.com/mrz1836/go-sanitize v1.1.5 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
@@ -130,11 +130,11 @@ require (
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220630215102-69896b714898 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
-	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
+	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.11 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
-	google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7 // indirect
+	google.golang.org/genproto v0.0.0-20220706132729-d86698d07c53 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
@@ -142,7 +142,7 @@ require (
 )
 
 // Issue with Ask Nancy on related packages
-replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.1
+replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 
 // Issue with v1.0.6 breaking changes
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4

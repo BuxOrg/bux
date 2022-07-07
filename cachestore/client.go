@@ -3,9 +3,9 @@ package cachestore
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/logger"
 	"github.com/coocood/freecache"
 	"github.com/mrz1836/go-cache"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -18,13 +18,13 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		debug           bool             // For extra logs and additional debug information
-		engine          Engine           // Cachestore engine (redis or mcache)
-		freecache       *freecache.Cache // Driver (client) for local in-memory storage
-		logger          logger.Interface // Internal logging
-		newRelicEnabled bool             // If NewRelic is enabled (parent application)
-		redis           *cache.Client    // Current redis client (read & write)
-		redisConfig     *RedisConfig     // Configuration for a new redis client
+		debug           bool                        // For extra logs and additional debug information
+		engine          Engine                      // Cachestore engine (redis or mcache)
+		freecache       *freecache.Cache            // Driver (client) for local in-memory storage
+		logger          zLogger.GormLoggerInterface // Internal logging
+		newRelicEnabled bool                        // If NewRelic is enabled (parent application)
+		redis           *cache.Client               // Current redis client (read & write)
+		redisConfig     *RedisConfig                // Configuration for a new redis client
 	}
 )
 
@@ -44,7 +44,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug(), 4)
+		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
 	}
 
 	// EMPTY! Engine was NOT set, show warning and use in-memory cache

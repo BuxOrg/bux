@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -194,7 +194,7 @@ func WithNetwork(network Network) ClientOps {
 }
 
 // WithLogger will set a custom logger
-func WithLogger(customLogger logger.Interface) ClientOps {
+func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger

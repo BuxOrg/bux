@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 // taskCleanupDraftTransactions will clean up all old expired draft transactions
-func taskCleanupDraftTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running cleanup draft transactions task...")
 
@@ -57,7 +57,7 @@ func taskCleanupDraftTransactions(ctx context.Context, logClient logger.Interfac
 }
 
 // taskProcessIncomingTransactions will process any incoming transactions found
-func taskProcessIncomingTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+func taskProcessIncomingTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running process incoming transaction(s) task...")
 
@@ -69,7 +69,7 @@ func taskProcessIncomingTransactions(ctx context.Context, logClient logger.Inter
 }
 
 // taskBroadcastTransactions will broadcast any transactions
-func taskBroadcastTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running broadcast transaction(s) task...")
 
@@ -81,7 +81,7 @@ func taskBroadcastTransactions(ctx context.Context, logClient logger.Interface, 
 }
 
 // taskNotifyP2P will notify any p2p paymail providers
-func taskNotifyP2P(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+func taskNotifyP2P(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running notify p2p paymail provider(s) task...")
 
@@ -93,7 +93,7 @@ func taskNotifyP2P(ctx context.Context, logClient logger.Interface, opts ...Mode
 }
 
 // taskSyncTransactions will sync any transactions
-func taskSyncTransactions(ctx context.Context, logClient logger.Interface, opts ...ModelOps) error {
+func taskSyncTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
 
 	logClient.Info(ctx, "running sync transaction(s) task...")
 
@@ -105,7 +105,7 @@ func taskSyncTransactions(ctx context.Context, logClient logger.Interface, opts 
 }
 
 // taskCheckActiveMonitor will check for an active Monitor locally and globally
-func taskCheckActiveMonitor(ctx context.Context, logClient logger.Interface, client ClientInterface) error {
+func taskCheckActiveMonitor(ctx context.Context, logClient zLogger.GormLoggerInterface, client ClientInterface) error {
 	logClient.Info(ctx, "running check active monitor task...")
 
 	cs := client.Cachestore()

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/coocood/freecache"
 	"github.com/mrz1836/go-cache"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -251,7 +251,7 @@ func TestWithLogger(t *testing.T) {
 
 	t.Run("test applying option", func(t *testing.T) {
 		options := &clientOptions{}
-		customClient := logger.NewLogger(true, 4)
+		customClient := zLogger.NewGormLogger(true, 4)
 		opt := WithLogger(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.logger)

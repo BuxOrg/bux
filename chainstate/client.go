@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/utils"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -22,12 +22,12 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config          *syncConfig      // Configuration for broadcasting and other chain-state actions
-		debug           bool             // For extra logs and additional debug information
-		logger          logger.Interface // Internal logger interface
-		monitor         MonitorService   // Monitor service
-		newRelicEnabled bool             // If NewRelic is enabled (parent application)
-		userAgent       string           // Custom user agent for outgoing HTTP Requests
+		config          *syncConfig                 // Configuration for broadcasting and other chain-state actions
+		debug           bool                        // For extra logs and additional debug information
+		logger          zLogger.GormLoggerInterface // Internal logger interface
+		monitor         MonitorService              // Monitor service
+		newRelicEnabled bool                        // If NewRelic is enabled (parent application)
+		userAgent       string                      // Custom user agent for outgoing HTTP Requests
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -77,7 +77,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug(), 4)
+		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
 	}
 
 	// Start Minercraft

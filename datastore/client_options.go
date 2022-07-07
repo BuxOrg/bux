@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -197,7 +197,7 @@ func WithMongoConnection(database *mongo.Database, tablePrefix string) ClientOps
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger logger.Interface) ClientOps {
+func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger

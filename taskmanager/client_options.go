@@ -3,7 +3,7 @@ package taskmanager
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/vmihailenco/taskq/v3"
 )
@@ -65,7 +65,7 @@ func WithTaskQ(config *taskq.QueueOptions, factory Factory) ClientOps {
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger logger.Interface) ClientOps {
+func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger

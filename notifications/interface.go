@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 // HTTPInterface is the HTTP client interface
@@ -17,6 +17,6 @@ type ClientInterface interface {
 	Debug(on bool)
 	GetWebhookEndpoint() string
 	IsDebug() bool
-	Logger() logger.Interface
+	Logger() zLogger.GormLoggerInterface
 	Notify(ctx context.Context, modelType string, eventType EventType, model interface{}, id string) error
 }

@@ -3,7 +3,7 @@ package taskmanager
 import (
 	"testing"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,7 +92,7 @@ func TestWithLogger(t *testing.T) {
 
 	t.Run("test applying option", func(t *testing.T) {
 		options := &clientOptions{}
-		customClient := logger.NewLogger(true, 4)
+		customClient := zLogger.NewGormLogger(true, 4)
 		opt := WithLogger(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.logger)

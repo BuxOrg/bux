@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -332,7 +332,7 @@ func TestWithLogger(t *testing.T) {
 
 	t.Run("test applying valid logger", func(t *testing.T) {
 		options := &clientOptions{}
-		l := logger.NewLogger(true, 4)
+		l := zLogger.NewGormLogger(true, 4)
 		opt := WithLogger(l)
 		opt(options)
 		assert.Equal(t, l, options.logger)

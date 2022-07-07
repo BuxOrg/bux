@@ -8,10 +8,10 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/libsv/go-bc"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/tonicpow/go-paymail"
 )
 
@@ -62,7 +62,7 @@ type ClientService interface {
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
 	HTTPClient() HTTPInterface
-	Logger() logger.Interface
+	Logger() zLogger.GormLoggerInterface
 	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface
 	Taskmanager() taskmanager.ClientInterface

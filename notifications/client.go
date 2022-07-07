@@ -1,6 +1,8 @@
 package notifications
 
-import "github.com/BuxOrg/bux/logger"
+import (
+	zLogger "github.com/mrz1836/go-logger"
+)
 
 // EventType event types thrown in Bux
 type EventType string
@@ -28,10 +30,10 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config     *notificationsConfig // Configuration for broadcasting and other chain-state actions
-		debug      bool                 // Debugging mode
-		httpClient HTTPInterface        // Custom HTTP client
-		logger     logger.Interface     // Custom logger interface
+		config     *notificationsConfig        // Configuration for broadcasting and other chain-state actions
+		debug      bool                        // Debugging mode
+		httpClient HTTPInterface               // Custom HTTP client
+		logger     zLogger.GormLoggerInterface // Custom logger interface
 	}
 
 	// syncConfig holds all the configuration about the different notifications
@@ -55,7 +57,7 @@ func NewClient(opts ...ClientOps) (ClientInterface, error) {
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = logger.NewLogger(client.IsDebug(), 4)
+		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
 	}
 
 	// Return the client
@@ -73,6 +75,6 @@ func (c *Client) Debug(on bool) {
 }
 
 // Logger get the logger
-func (c *Client) Logger() logger.Interface {
+func (c *Client) Logger() zLogger.GormLoggerInterface {
 	return c.options.logger
 }

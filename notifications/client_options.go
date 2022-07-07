@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/BuxOrg/bux/logger"
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 const (
@@ -40,7 +40,7 @@ func WithNotifications(webhookEndpoint string) ClientOps {
 }
 
 // WithLogger will set the logger
-func WithLogger(customLogger logger.Interface) ClientOps {
+func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
 	return func(c *clientOptions) {
 		c.logger = customLogger
 	}

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/utils"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
@@ -26,7 +26,7 @@ type Monitor struct {
 	handler                      MonitorHandler
 	loadMonitoredDestinations    bool
 	lockID                       string
-	logger                       logger.Interface
+	logger                       zLogger.GormLoggerInterface
 	maxNumberOfDestinations      int
 	mempoolSyncChannel           chan bool
 	monitorDays                  int
@@ -101,7 +101,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 
 	// Set logger if not set
 	if monitor.logger == nil {
-		monitor.logger = logger.NewLogger(options.Debug, 4)
+		monitor.logger = zLogger.NewGormLogger(options.Debug, 4)
 	}
 
 	// Switch on the filter type
@@ -112,7 +112,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitor.processor = NewBloomProcessor(uint(monitor.maxNumberOfDestinations), monitor.falsePositiveRate)
 	}
 
-	// Load the settings for debuggin and logging
+	// Load the settings for debugging and logging
 	monitor.processor.Debug(options.Debug)
 	monitor.processor.SetLogger(monitor.logger)
 	return

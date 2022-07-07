@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/BuxOrg/bux/logger"
 	"github.com/coocood/freecache"
 	"github.com/mrz1836/go-cache"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -109,7 +109,7 @@ func WithFreeCacheConnection(client *freecache.Cache) ClientOps {
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger logger.Interface) ClientOps {
+func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger

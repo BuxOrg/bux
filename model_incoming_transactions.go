@@ -10,9 +10,9 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/libsv/go-bt/v2"
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 // IncomingTransaction is an object representing the incoming (external) transaction (for pre-processing)
@@ -239,7 +239,8 @@ func (m *IncomingTransaction) RegisterTasks() error {
 }
 
 // processIncomingTransactions will process incoming transaction records
-func processIncomingTransactions(ctx context.Context, logClient logger.Interface, maxTransactions int, opts ...ModelOps) error {
+func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, maxTransactions int,
+	opts ...ModelOps) error {
 
 	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
 
@@ -270,7 +271,8 @@ func processIncomingTransactions(ctx context.Context, logClient logger.Interface
 }
 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
-func processIncomingTransaction(ctx context.Context, logClient logger.Interface, incomingTx *IncomingTransaction) error {
+func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLoggerInterface,
+	incomingTx *IncomingTransaction) error {
 
 	if logClient != nil {
 		logClient.Info(ctx, fmt.Sprintf("processing incoming transaction: %v", incomingTx))

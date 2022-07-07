@@ -10,12 +10,12 @@ import (
 	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/logger"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cache"
+	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
@@ -270,7 +270,7 @@ func WithHTTPClient(httpClient HTTPInterface) ClientOps {
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger logger.Interface) ClientOps {
+func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger
@@ -278,7 +278,7 @@ func WithLogger(customLogger logger.Interface) ClientOps {
 			// Enable the logger on all services
 			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(c.logger))
 			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(c.logger))
-			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{Interface: c.logger}))
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: c.logger}))
 			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(c.logger))
 			c.notifications.options = append(c.notifications.options, notifications.WithLogger(c.logger))
 		}

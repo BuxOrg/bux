@@ -23,7 +23,7 @@ require (
 	github.com/libsv/go-bt v1.0.4
 	github.com/libsv/go-bt/v2 v2.1.0-beta.4
 	github.com/mrz1836/go-cache v0.7.0
-	github.com/mrz1836/go-logger v0.3.0
+	github.com/mrz1836/go-logger v0.3.1
 	github.com/mrz1836/go-nownodes v0.0.6
 	github.com/mrz1836/go-whatsonchain v0.11.0
 	github.com/newrelic/go-agent/v3 v3.17.0

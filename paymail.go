@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/BuxOrg/bux/cachestore"
+	"github.com/mrz1836/go-cachestore"
 	"github.com/tonicpow/go-paymail"
 )
 

@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/utils"
 	magic "github.com/bitcoinschema/go-map"
 	"github.com/libsv/go-bt/v2/bscript"
+	"github.com/mrz1836/go-cachestore"
 	"github.com/tonicpow/go-paymail"
 )
 

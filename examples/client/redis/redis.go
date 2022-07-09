@@ -5,9 +5,9 @@ import (
 	"log"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/go-redis/redis/v8"
+	"github.com/mrz1836/go-cachestore"
 )
 
 func main() {

@@ -3,11 +3,11 @@ package bux
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/cachestore"
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/mrz1836/go-cachestore"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 )

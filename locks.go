@@ -3,7 +3,7 @@ package bux
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/cachestore"
+	"github.com/mrz1836/go-cachestore"
 )
 
 const (

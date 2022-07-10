@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-cachestore"
+	"github.com/mrz1836/go-datastore"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 )
@@ -50,6 +50,33 @@ func (c *Client) loadDatastore(ctx context.Context) (err error) {
 
 	// Load client (runs ALL options, IE: auto migrate models)
 	if c.options.dataStore.ClientInterface == nil {
+
+		// Add custom array and object fields
+		c.options.dataStore.options = append(
+			c.options.dataStore.options,
+			datastore.WithCustomFields(
+				[]string{ // Array fields
+					"xpub_in_ids",
+					"xpub_out_ids",
+				}, []string{ // Object fields
+					"xpub_metadata",
+					"xpub_output_value",
+				},
+			))
+
+		// Add custom mongo processor
+		c.options.dataStore.options = append(
+			c.options.dataStore.options,
+			datastore.WithCustomMongoConditionProcessor(processCustomFields),
+		)
+
+		// Add custom mongo indexes
+		c.options.dataStore.options = append(
+			c.options.dataStore.options,
+			datastore.WithCustomMongoIndexer(getMongoIndexes),
+		)
+
+		// Load the datastore client
 		c.options.dataStore.ClientInterface, err = datastore.NewClient(
 			ctx, c.options.dataStore.options...,
 		)

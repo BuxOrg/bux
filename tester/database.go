@@ -6,13 +6,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	sqle "github.com/dolthub/go-mysql-server"
 	"github.com/dolthub/go-mysql-server/memory"
 	"github.com/dolthub/go-mysql-server/server"
 	"github.com/dolthub/go-mysql-server/sql"
 	"github.com/dolthub/go-mysql-server/sql/information_schema"
 	embeddedPostgres "github.com/fergusstrange/embedded-postgres"
+	"github.com/mrz1836/go-datastore"
 	"github.com/tryvium-travels/memongo"
 )
 

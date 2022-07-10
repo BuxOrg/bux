@@ -3,7 +3,7 @@ package bux
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/datastore"
+	"github.com/mrz1836/go-datastore"
 )
 
 // GetDraftTransactions will get all the draft transactions from the Datastore

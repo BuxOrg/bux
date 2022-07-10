@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -17,6 +16,7 @@ import (
 	"github.com/libsv/go-bt/v2/sighash"
 	"github.com/libsv/go-bt/v2/unlocker"
 	"github.com/mrz1836/go-cache"
+	"github.com/mrz1836/go-datastore"
 	"github.com/rafaeljusto/redigomock"
 	"github.com/stretchr/testify/require"
 )

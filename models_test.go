@@ -4,9 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/mrz1836/go-datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -51,37 +50,37 @@ func TestModel_GetModelName(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty model", func(t *testing.T) {
-		assert.Nil(t, utils.GetModelName(nil))
+		assert.Nil(t, datastore.GetModelName(nil))
 	})
 
 	t.Run("base model names", func(t *testing.T) {
 
 		xPub := Xpub{}
-		assert.Equal(t, ModelXPub.String(), *utils.GetModelName(xPub))
+		assert.Equal(t, ModelXPub.String(), *datastore.GetModelName(xPub))
 
 		destination := Destination{}
-		assert.Equal(t, ModelDestination.String(), *utils.GetModelName(destination))
+		assert.Equal(t, ModelDestination.String(), *datastore.GetModelName(destination))
 
 		utxo := Utxo{}
-		assert.Equal(t, ModelUtxo.String(), *utils.GetModelName(utxo))
+		assert.Equal(t, ModelUtxo.String(), *datastore.GetModelName(utxo))
 
 		transaction := Transaction{}
-		assert.Equal(t, ModelTransaction.String(), *utils.GetModelName(transaction))
+		assert.Equal(t, ModelTransaction.String(), *datastore.GetModelName(transaction))
 
 		accessKey := AccessKey{}
-		assert.Equal(t, ModelAccessKey.String(), *utils.GetModelName(accessKey))
+		assert.Equal(t, ModelAccessKey.String(), *datastore.GetModelName(accessKey))
 
 		draftTx := DraftTransaction{}
-		assert.Equal(t, ModelDraftTransaction.String(), *utils.GetModelName(draftTx))
+		assert.Equal(t, ModelDraftTransaction.String(), *datastore.GetModelName(draftTx))
 
 		incomingTx := IncomingTransaction{}
-		assert.Equal(t, ModelIncomingTransaction.String(), *utils.GetModelName(incomingTx))
+		assert.Equal(t, ModelIncomingTransaction.String(), *datastore.GetModelName(incomingTx))
 
 		paymailAddress := PaymailAddress{}
-		assert.Equal(t, ModelPaymailAddress.String(), *utils.GetModelName(paymailAddress))
+		assert.Equal(t, ModelPaymailAddress.String(), *datastore.GetModelName(paymailAddress))
 
 		syncTx := SyncTransaction{}
-		assert.Equal(t, ModelSyncTransaction.String(), *utils.GetModelName(syncTx))
+		assert.Equal(t, ModelSyncTransaction.String(), *datastore.GetModelName(syncTx))
 	})
 }
 
@@ -90,36 +89,36 @@ func TestModel_GetModelTableName(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty model", func(t *testing.T) {
-		assert.Nil(t, utils.GetModelTableName(nil))
+		assert.Nil(t, datastore.GetModelTableName(nil))
 	})
 
 	t.Run("get model table names", func(t *testing.T) {
 		xPub := Xpub{}
-		assert.Equal(t, tableXPubs, *utils.GetModelTableName(xPub))
+		assert.Equal(t, tableXPubs, *datastore.GetModelTableName(xPub))
 
 		destination := Destination{}
-		assert.Equal(t, tableDestinations, *utils.GetModelTableName(destination))
+		assert.Equal(t, tableDestinations, *datastore.GetModelTableName(destination))
 
 		utxo := Utxo{}
-		assert.Equal(t, tableUTXOs, *utils.GetModelTableName(utxo))
+		assert.Equal(t, tableUTXOs, *datastore.GetModelTableName(utxo))
 
 		transaction := Transaction{}
-		assert.Equal(t, tableTransactions, *utils.GetModelTableName(transaction))
+		assert.Equal(t, tableTransactions, *datastore.GetModelTableName(transaction))
 
 		accessKey := AccessKey{}
-		assert.Equal(t, tableAccessKeys, *utils.GetModelTableName(accessKey))
+		assert.Equal(t, tableAccessKeys, *datastore.GetModelTableName(accessKey))
 
 		draftTx := DraftTransaction{}
-		assert.Equal(t, tableDraftTransactions, *utils.GetModelTableName(draftTx))
+		assert.Equal(t, tableDraftTransactions, *datastore.GetModelTableName(draftTx))
 
 		incomingTx := IncomingTransaction{}
-		assert.Equal(t, tableIncomingTransactions, *utils.GetModelTableName(incomingTx))
+		assert.Equal(t, tableIncomingTransactions, *datastore.GetModelTableName(incomingTx))
 
 		paymailAddress := PaymailAddress{}
-		assert.Equal(t, tablePaymailAddresses, *utils.GetModelTableName(paymailAddress))
+		assert.Equal(t, tablePaymailAddresses, *datastore.GetModelTableName(paymailAddress))
 
 		syncTx := SyncTransaction{}
-		assert.Equal(t, tableSyncTransactions, *utils.GetModelTableName(syncTx))
+		assert.Equal(t, tableSyncTransactions, *datastore.GetModelTableName(syncTx))
 	})
 }
 

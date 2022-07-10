@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	xtester "github.com/BuxOrg/bux/tester"
 	"github.com/jarcoal/httpmock"
 	"github.com/mrz1836/go-cache"
+	"github.com/mrz1836/go-datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-paymail"

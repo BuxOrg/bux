@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2"
 	"github.com/libsv/go-bt/v2/bscript"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -372,7 +373,7 @@ func TestTransaction_processInputs(t *testing.T) {
 							TransactionID: testTxID2,
 						},
 						XpubID: "test-xpub-id",
-						DraftID: utils.NullString{NullString: sql.NullString{
+						DraftID: customTypes.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testDraftID,
 						}},
@@ -412,11 +413,11 @@ func TestTransaction_processInputs(t *testing.T) {
 							TransactionID: testTxID2,
 						},
 						XpubID: "test-xpub-id",
-						SpendingTxID: utils.NullString{NullString: sql.NullString{
+						SpendingTxID: customTypes.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testTxID,
 						}},
-						DraftID: utils.NullString{NullString: sql.NullString{
+						DraftID: customTypes.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testDraftID2,
 						}},
@@ -474,7 +475,7 @@ func TestTransaction_processInputs(t *testing.T) {
 							TransactionID: testTxID2,
 						},
 						XpubID: "test-xpub-id",
-						DraftID: utils.NullString{NullString: sql.NullString{
+						DraftID: customTypes.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testDraftID2,
 						}},
@@ -537,7 +538,7 @@ func TestTransaction_processInputs(t *testing.T) {
 						},
 						ScriptPubKey: testSTASLockingScript,
 						XpubID:       "test-xpub-id",
-						DraftID: utils.NullString{NullString: sql.NullString{
+						DraftID: customTypes.NullString{NullString: sql.NullString{
 							Valid:  true,
 							String: testDraftID,
 						}},

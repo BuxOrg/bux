@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/libsv/go-bt/v2"
+	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 )
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/mrz1836/go-cachestore"
+	"github.com/mrz1836/go-datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-paymail"

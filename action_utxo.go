@@ -3,8 +3,8 @@ package bux
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
 )
 
 // GetUtxos will get all the utxos from the Datastore

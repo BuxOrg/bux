@@ -4,9 +4,9 @@ import (
 	"context"
 	"sort"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt"
+	"github.com/mrz1836/go-datastore"
 	"github.com/mrz1836/go-whatsonchain"
 )
 

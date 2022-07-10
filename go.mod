@@ -14,7 +14,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v1.8.9
-	github.com/iancoleman/strcase v0.2.0
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/libsv/go-bc v0.1.11
@@ -23,11 +22,11 @@ require (
 	github.com/libsv/go-bt/v2 v2.1.0-beta.4
 	github.com/mrz1836/go-cache v0.7.0
 	github.com/mrz1836/go-cachestore v0.1.0
+	github.com/mrz1836/go-datastore v0.1.0
 	github.com/mrz1836/go-logger v0.3.1
 	github.com/mrz1836/go-nownodes v0.0.6
 	github.com/mrz1836/go-whatsonchain v0.11.0
 	github.com/newrelic/go-agent/v3 v3.17.0
-	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
@@ -39,11 +38,7 @@ require (
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9-0.20211122085105-720ffc56ac4d
 	go.mongodb.org/mongo-driver v1.9.1
-	gorm.io/driver/mysql v1.3.4
-	gorm.io/driver/postgres v1.3.8
-	gorm.io/driver/sqlite v1.3.6
 	gorm.io/gorm v1.23.8
-	gorm.io/plugin/dbresolver v1.2.1
 )
 
 require (
@@ -75,6 +70,7 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -101,6 +97,7 @@ require (
 	github.com/mrz1836/go-sanitize v1.1.5 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
+	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.2 // indirect
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -136,6 +133,10 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/driver/mysql v1.3.4 // indirect
+	gorm.io/driver/postgres v1.3.8 // indirect
+	gorm.io/driver/sqlite v1.3.6 // indirect
+	gorm.io/plugin/dbresolver v1.2.1 // indirect
 )
 
 // Issue with Ask Nancy on related packages

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/libsv/go-bc"
+	"github.com/mrz1836/go-datastore"
 )
 
 // RecordBlockHeader will save a block header into the Datastore

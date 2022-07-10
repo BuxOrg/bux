@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 // NewDestination will get a new destination for an existing xPub
@@ -40,7 +40,7 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 	}
 
 	if monitor {
-		destination.Monitor = utils.NullTime{NullTime: sql.NullTime{
+		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
 			Valid: true,
 			Time:  time.Now(),
 		}}
@@ -80,7 +80,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 	// set the monitoring, passed down from the initiating function
 	// this will be set when calling NewDestination from http / graphql, but not for instance paymail
 	if monitor {
-		destination.Monitor = utils.NullTime{NullTime: sql.NullTime{
+		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
 			Valid: true,
 			Time:  time.Now(),
 		}}

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
+	"github.com/mrz1836/go-datastore"
 
 	"github.com/BuxOrg/bux"
 	"github.com/BuxOrg/bux/chainstate"

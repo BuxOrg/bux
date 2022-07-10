@@ -12,9 +12,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bc"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 // BlockHeader is an object representing the BitCoin block header
@@ -25,15 +26,15 @@ type BlockHeader struct {
 	Model `bson:",inline"`
 
 	// Model specific fields
-	ID                string         `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the block hash" bson:"_id"`
-	Height            uint32         `json:"height" toml:"height" yaml:"height" gorm:"<-create;uniqueIndex;comment:This is the block height" bson:"height"`
-	Time              uint32         `json:"time" toml:"time" yaml:"time" gorm:"<-create;index;comment:This is the time the block was mined" bson:"time"`
-	Nonce             uint32         `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;comment:This is the nonce" bson:"nonce"`
-	Version           uint32         `json:"version" toml:"version" yaml:"version" gorm:"<-create;comment:This is the version" bson:"version"`
-	HashPreviousBlock string         `json:"hash_previous_block" toml:"hash_previous_block" yaml:"hash_previous_block" gorm:"<-:create;type:char(64);index;comment:This is the hash of the previous block" bson:"hash_previous_block"`
-	HashMerkleRoot    string         `json:"hash_merkle_root" toml:"hash_merkle_root" yaml:"hash_merkle_root" gorm:"<-;type:char(64);index;comment:This is the hash of the merkle root" bson:"hash_merkle_root"`
-	Bits              string         `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;comment:This is the block difficulty" bson:"bits"`
-	Synced            utils.NullTime `json:"synced" toml:"synced" yaml:"synced" gorm:"type:timestamp;index;comment:This is when the block was last synced to the bux server" bson:"synced,omitempty"`
+	ID                string               `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the block hash" bson:"_id"`
+	Height            uint32               `json:"height" toml:"height" yaml:"height" gorm:"<-create;uniqueIndex;comment:This is the block height" bson:"height"`
+	Time              uint32               `json:"time" toml:"time" yaml:"time" gorm:"<-create;index;comment:This is the time the block was mined" bson:"time"`
+	Nonce             uint32               `json:"nonce" toml:"nonce" yaml:"nonce" gorm:"<-create;comment:This is the nonce" bson:"nonce"`
+	Version           uint32               `json:"version" toml:"version" yaml:"version" gorm:"<-create;comment:This is the version" bson:"version"`
+	HashPreviousBlock string               `json:"hash_previous_block" toml:"hash_previous_block" yaml:"hash_previous_block" gorm:"<-:create;type:char(64);index;comment:This is the hash of the previous block" bson:"hash_previous_block"`
+	HashMerkleRoot    string               `json:"hash_merkle_root" toml:"hash_merkle_root" yaml:"hash_merkle_root" gorm:"<-;type:char(64);index;comment:This is the hash of the merkle root" bson:"hash_merkle_root"`
+	Bits              string               `json:"bits" toml:"bits" yaml:"bits" gorm:"<-:create;comment:This is the block difficulty" bson:"bits"`
+	Synced            customTypes.NullTime `json:"synced" toml:"synced" yaml:"synced" gorm:"type:timestamp;index;comment:This is when the block was last synced to the bux server" bson:"synced,omitempty"`
 }
 
 // newBlockHeader will start a new block header model
@@ -382,7 +383,7 @@ func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string,
 			Height:            height,
 			ID:                row[0],
 			Nonce:             nonce,
-			Synced:            utils.NullTime{NullTime: sql.NullTime{Valid: true, Time: syncedTime}},
+			Synced:            customTypes.NullTime{NullTime: sql.NullTime{Valid: true, Time: syncedTime}},
 			Time:              uint32(timeField.Unix()),
 			Version:           ver,
 		}

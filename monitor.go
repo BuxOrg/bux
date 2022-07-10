@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
 )
 
 // destinationMonitor is the struct of responses for Monitoring

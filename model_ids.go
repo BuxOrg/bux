@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/BuxOrg/bux/datastore"
+	"github.com/mrz1836/go-datastore"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )

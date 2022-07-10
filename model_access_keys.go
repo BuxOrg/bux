@@ -6,9 +6,10 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 // AccessKey is an object representing an access key model
@@ -24,9 +25,9 @@ type AccessKey struct {
 	Model `bson:",inline"`
 
 	// Model specific fields
-	ID        string         `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the unique access key id" bson:"_id"`
-	XpubID    string         `json:"xpub_id" toml:"xpub_id" yaml:"hash" gorm:"<-:create;type:char(64);index;comment:This is the related xPub id" bson:"xpub_id"`
-	RevokedAt utils.NullTime `json:"revoked_at" toml:"revoked_at" yaml:"revoked_at" gorm:"<-;comment:When the key was revoked" bson:"revoked_at,omitempty"`
+	ID        string               `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the unique access key id" bson:"_id"`
+	XpubID    string               `json:"xpub_id" toml:"xpub_id" yaml:"hash" gorm:"<-:create;type:char(64);index;comment:This is the related xPub id" bson:"xpub_id"`
+	RevokedAt customTypes.NullTime `json:"revoked_at" toml:"revoked_at" yaml:"revoked_at" gorm:"<-;comment:When the key was revoked" bson:"revoked_at,omitempty"`
 
 	// Private fields
 	Key string `json:"key" gorm:"-" bson:"-"` // Used on "CREATE", shown to the user "once" only
@@ -43,7 +44,7 @@ func newAccessKey(xPubID string, opts ...ModelOps) *AccessKey {
 		ID:     id,
 		Model:  *NewBaseModel(ModelAccessKey, opts...),
 		XpubID: xPubID,
-		RevokedAt: utils.NullTime{NullTime: sql.NullTime{
+		RevokedAt: customTypes.NullTime{NullTime: sql.NullTime{
 			Valid: false,
 		}},
 		Key: hex.EncodeToString(privateKey.Serialise()),

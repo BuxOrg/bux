@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
@@ -17,6 +16,7 @@ import (
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2"
 	"github.com/libsv/go-bt/v2/bscript"
+	"github.com/mrz1836/go-datastore"
 	"github.com/pkg/errors"
 )
 

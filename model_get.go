@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/mrz1836/go-cachestore"
+	"github.com/mrz1836/go-datastore"
 )
 
 // Get will retrieve a model from the Cachestore or Datastore using the provided conditions

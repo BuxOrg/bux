@@ -3,12 +3,12 @@ package bux
 import (
 	"testing"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/DATA-DOG/go-sqlmock"
 	bscript2 "github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-cache"
+	"github.com/mrz1836/go-datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

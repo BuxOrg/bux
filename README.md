@@ -45,8 +45,8 @@
 
 #### BUX: Out-of-the-box Features:
 - xPub & UTXO State Management (state, balance, utxos, destinations)
-- Bring your own Database ([MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), [SQLite](https://www.sqlite.org), [Mongo](https://www.mongodb.com/) or [interface](datastore/interface.go) your own)
-- Caching ([FreeCache](https://github.com/github.com/coocood/freecache), [Redis](https://redis.io/) or [interface](cachestore/interface.go) your own)
+- Bring your own Database ([MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), [SQLite](https://www.sqlite.org), [Mongo](https://www.mongodb.com/) or [interface](https://github.com/mrz1836/go-datastore/blob/master/interface.go) your own)
+- Caching ([FreeCache](https://github.com/github.com/coocood/freecache), [Redis](https://redis.io/) or [interface](https://github.com/mrz1836/go-cachestore/blob/master/interface.go) your own)
 - Task Management ([TaskQ](https://github.com/vmihailenco/taskq) or [interface](taskmanager/interface.go) your own)
 - Transaction Syncing (queue, broadcast, push to mempool or on-chain, or [interface](chainstate/interface.go) your own)
 - Future plugins using [BRFC standards](http://bsvalias.org/01-brfc-specifications.html)
@@ -119,6 +119,8 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 - [libsv/go-bk](https://github.com/libsv/go-bk)
 - [libsv/go-bt](https://github.com/libsv/go-bt)
 - [mrz1836/go-cache](https://github.com/mrz1836/go-cache)
+- [mrz1836/go-cachestore](https://github.com/mrz1836/go-cachestore)
+- [mrz1836/go-datastore](https://github.com/mrz1836/go-datastore)
 - [mrz1836/go-logger](https://github.com/mrz1836/go-logger)
 - [mrz1836/go-nownodes](https://github.com/mrz1836/go-nownodes)
 - [mrz1836/go-whatsonchain](https://github.com/mrz1836/go-whatsonchain)

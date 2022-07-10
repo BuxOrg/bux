@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
 )
 
 // RecordTransaction will parse the transaction and save it into the Datastore

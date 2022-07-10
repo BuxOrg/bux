@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
+	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 )
 

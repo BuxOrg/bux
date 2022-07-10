@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 // Destination is an object representing a BitCoin destination (address, script, etc)
@@ -20,15 +21,15 @@ type Destination struct {
 	Model `bson:",inline"`
 
 	// Model specific fields
-	ID            string         `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the hash of the locking script" bson:"_id"`
-	XpubID        string         `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
-	LockingScript string         `json:"locking_script" toml:"locking_script" yaml:"locking_script" gorm:"<-:create;type:text;comment:This is Bitcoin output script in hex" bson:"locking_script"`
-	Type          string         `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:text;comment:Type of output" bson:"type"`
-	Chain         uint32         `json:"chain" toml:"chain" yaml:"chain" gorm:"<-:create;type:int;comment:This is the (chain)/num location of the address related to the xPub" bson:"chain"`
-	Num           uint32         `json:"num" toml:"num" yaml:"num" gorm:"<-:create;type:int;comment:This is the chain/(num) location of the address related to the xPub" bson:"num"`
-	Address       string         `json:"address" toml:"address" yaml:"address" gorm:"<-:create;type:varchar(35);index;comment:This is the BitCoin address" bson:"address"`
-	DraftID       string         `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-:create;type:varchar(64);index;comment:This is the related draft id (if internal tx)" bson:"draft_id,omitempty"`
-	Monitor       utils.NullTime `json:"monitor" toml:"monitor" yaml:"monitor" gorm:";index;comment:When this address was last used for an external transaction, for monitoring" bson:"monitor,omitempty"`
+	ID            string               `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the hash of the locking script" bson:"_id"`
+	XpubID        string               `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
+	LockingScript string               `json:"locking_script" toml:"locking_script" yaml:"locking_script" gorm:"<-:create;type:text;comment:This is Bitcoin output script in hex" bson:"locking_script"`
+	Type          string               `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:text;comment:Type of output" bson:"type"`
+	Chain         uint32               `json:"chain" toml:"chain" yaml:"chain" gorm:"<-:create;type:int;comment:This is the (chain)/num location of the address related to the xPub" bson:"chain"`
+	Num           uint32               `json:"num" toml:"num" yaml:"num" gorm:"<-:create;type:int;comment:This is the chain/(num) location of the address related to the xPub" bson:"num"`
+	Address       string               `json:"address" toml:"address" yaml:"address" gorm:"<-:create;type:varchar(35);index;comment:This is the BitCoin address" bson:"address"`
+	DraftID       string               `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-:create;type:varchar(64);index;comment:This is the related draft id (if internal tx)" bson:"draft_id,omitempty"`
+	Monitor       customTypes.NullTime `json:"monitor" toml:"monitor" yaml:"monitor" gorm:";index;comment:When this address was last used for an external transaction, for monitoring" bson:"monitor,omitempty"`
 }
 
 // newDestination will start a new Destination model for a locking script

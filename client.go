@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-cachestore"
+	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-paymail"

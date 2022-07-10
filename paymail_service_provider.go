@@ -12,6 +12,7 @@ import (
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2/bscript"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 )
@@ -217,7 +218,7 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 
 	// Only on for basic address resolution, not enabled for p2p
 	if monitor {
-		destination.Monitor = utils.NullTime{NullTime: sql.NullTime{
+		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
 			Valid: true,
 			Time:  time.Now(),
 		}}

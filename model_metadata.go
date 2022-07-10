@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/BuxOrg/bux/datastore"
+	"github.com/mrz1836/go-datastore"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"gorm.io/gorm"

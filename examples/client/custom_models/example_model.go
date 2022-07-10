@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
 )
 
 // Example is an example model

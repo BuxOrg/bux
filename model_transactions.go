@@ -5,10 +5,10 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt/v2"
+	"github.com/mrz1836/go-datastore"
 )
 
 // TransactionBase is the same fields share between multiple transaction models

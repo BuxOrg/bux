@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 	"github.com/pkg/errors"
 )
 
@@ -27,14 +28,14 @@ type Utxo struct {
 	UtxoPointer `bson:",inline"`
 
 	// Model specific fields
-	ID           string           `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the sha256 hash of the (<txid>|vout)" bson:"_id"`
-	XpubID       string           `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
-	Satoshis     uint64           `json:"satoshis" toml:"satoshis" yaml:"satoshis" gorm:"<-:create;type:uint;comment:This is the amount of satoshis in the output" bson:"satoshis"`
-	ScriptPubKey string           `json:"script_pub_key" toml:"script_pub_key" yaml:"script_pub_key" gorm:"<-:create;type:text;comment:This is the script pub key" bson:"script_pub_key"`
-	Type         string           `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:varchar(32);comment:Type of output" bson:"type"`
-	DraftID      utils.NullString `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-;type:varchar(64);index;comment:Related draft id for reservations" bson:"draft_id,omitempty"`
-	ReservedAt   utils.NullTime   `json:"reserved_at" toml:"reserved_at" yaml:"reserved_at" gorm:"<-;comment:When it was reserved" bson:"reserved_at,omitempty"`
-	SpendingTxID utils.NullString `json:"spending_tx_id,omitempty" toml:"spending_tx_id" yaml:"spending_tx_id" gorm:"<-;type:char(64);index;comment:This is tx ID of the spend" bson:"spending_tx_id,omitempty"`
+	ID           string                 `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the sha256 hash of the (<txid>|vout)" bson:"_id"`
+	XpubID       string                 `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
+	Satoshis     uint64                 `json:"satoshis" toml:"satoshis" yaml:"satoshis" gorm:"<-:create;type:uint;comment:This is the amount of satoshis in the output" bson:"satoshis"`
+	ScriptPubKey string                 `json:"script_pub_key" toml:"script_pub_key" yaml:"script_pub_key" gorm:"<-:create;type:text;comment:This is the script pub key" bson:"script_pub_key"`
+	Type         string                 `json:"type" toml:"type" yaml:"type" gorm:"<-:create;type:varchar(32);comment:Type of output" bson:"type"`
+	DraftID      customTypes.NullString `json:"draft_id" toml:"draft_id" yaml:"draft_id" gorm:"<-;type:varchar(64);index;comment:Related draft id for reservations" bson:"draft_id,omitempty"`
+	ReservedAt   customTypes.NullTime   `json:"reserved_at" toml:"reserved_at" yaml:"reserved_at" gorm:"<-;comment:When it was reserved" bson:"reserved_at,omitempty"`
+	SpendingTxID customTypes.NullString `json:"spending_tx_id,omitempty" toml:"spending_tx_id" yaml:"spending_tx_id" gorm:"<-;type:char(64);index;comment:This is tx ID of the spend" bson:"spending_tx_id,omitempty"`
 
 	// Virtual field holding the original transaction the utxo originated from
 	// This is needed when signing a new transaction that spends the utxo

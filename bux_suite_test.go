@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/dolthub/go-mysql-server/server"
 	embeddedPostgres "github.com/fergusstrange/embedded-postgres"
+	"github.com/mrz1836/go-datastore"
 	"github.com/mrz1836/go-logger"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

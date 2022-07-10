@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
 )
 
 // GetPaymailAddress will get a paymail address model

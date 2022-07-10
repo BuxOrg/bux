@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/BuxOrg/bux/datastore"
-	"github.com/BuxOrg/bux/utils"
+	"github.com/mrz1836/go-datastore"
+	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 var defaultPageSize = 25
@@ -24,7 +24,7 @@ type Model struct {
 
 	// https://gorm.io/docs/indexes.html
 	// DeletedAt gorm.DeletedAt `json:"deleted_at" toml:"deleted_at" yaml:"deleted_at" (@mrz: this was the original type)
-	DeletedAt utils.NullTime `json:"deleted_at" toml:"deleted_at" yaml:"deleted_at" gorm:"index;comment:The time the record was marked as deleted" bson:"deleted_at,omitempty"`
+	DeletedAt customTypes.NullTime `json:"deleted_at" toml:"deleted_at" yaml:"deleted_at" gorm:"index;comment:The time the record was marked as deleted" bson:"deleted_at,omitempty"`
 
 	// Private fields
 	client        ClientInterface // Interface of the parent Client that loaded this bux model

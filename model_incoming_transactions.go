@@ -323,7 +323,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 
 			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
 			if logClient != nil {
-				logClient.Error(ctx, fmt.Sprintf("broadcast of transaction was successful using %s", provider))
+				logClient.Info(ctx, fmt.Sprintf("broadcast of transaction was successful using %s", provider))
 			}
 			// allow propagation
 			time.Sleep(3 * time.Second)
@@ -343,7 +343,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	}
 
 	if logClient != nil {
-		logClient.Error(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
+		logClient.Info(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
 	}
 
 	// Create the new transaction model

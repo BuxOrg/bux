@@ -129,10 +129,14 @@ func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]
 	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*SyncTransaction, error) {
 
 	if queryParams == nil {
-		queryParams = &datastore.QueryParams{}
+		queryParams = &datastore.QueryParams{
+			OrderByField:  createdAtField,
+			SortDirection: datastore.SortAsc,
+		}
+	} else if queryParams.OrderByField == "" || queryParams.SortDirection == "" {
+		queryParams.OrderByField = createdAtField
+		queryParams.SortDirection = datastore.SortAsc
 	}
-	queryParams.OrderByField = idField
-	queryParams.SortDirection = datastore.SortAsc
 
 	// Get the records
 	var models []SyncTransaction
@@ -346,8 +350,8 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 	queryParams := &datastore.QueryParams{
 		Page:          1,
 		PageSize:      maxTransactions,
-		OrderByField:  "created_at",
-		SortDirection: "asc",
+		OrderByField:  createdAtField,
+		SortDirection: datastore.SortAsc,
 	}
 
 	// Get x records

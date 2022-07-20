@@ -7,7 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
-	github.com/centrifugal/centrifuge-go v0.8.3
+	github.com/centrifugal/centrifuge-go v0.9.0
 	github.com/coocood/freecache v1.2.1
 	github.com/dolthub/go-mysql-server v0.12.0
 	github.com/fergusstrange/embedded-postgres v1.17.0

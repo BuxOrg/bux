@@ -14,7 +14,7 @@ import (
 // TransactionBase is the same fields share between multiple transaction models
 type TransactionBase struct {
 	ID  string `json:"id" toml:"id" yaml:"id" gorm:"<-:create;type:char(64);primaryKey;comment:This is the unique id (hash of the transaction hex)" bson:"_id"`
-	Hex string `json:"hex" toml:"hex" yaml:"hex" gorm:"<-:create;type:text;comment:This is the raw transaction hex" bson:"hex"`
+	Hex string `json:"hex" toml:"hex" yaml:"hex" gorm:"<-:create;type:longtext;comment:This is the raw transaction hex" bson:"hex"`
 
 	// Private for internal use
 	parsedTx *bt.Tx `gorm:"-" bson:"-"` // The go-bt version of the transaction

@@ -233,6 +233,15 @@ reserveUtxoLoop:
 		return nil, ErrNotEnoughUtxos
 	}
 
+	// check whether an utxo was used twice, this is not valid
+	usedUtxos := make([]string, 0)
+	for _, utxo := range *utxos {
+		if utils.StringInSlice(utxo.ID, usedUtxos) {
+			return nil, ErrDuplicateUTXOs
+		}
+		usedUtxos = append(usedUtxos, utxo.ID)
+	}
+
 	return *utxos, nil
 }
 

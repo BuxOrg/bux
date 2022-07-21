@@ -369,7 +369,13 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 	// final sanity check
 	inputValue := uint64(0)
+	usedUtxos := make([]string, 0)
 	for _, input := range m.Configuration.Inputs {
+		// check whether an utxo was used twice, this is not valid
+		if utils.StringInSlice(input.Utxo.ID, usedUtxos) {
+			return ErrDuplicateUTXOs
+		}
+		usedUtxos = append(usedUtxos, input.Utxo.ID)
 		inputValue += input.Satoshis
 	}
 	outputValue := uint64(0)

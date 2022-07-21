@@ -125,53 +125,53 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 	for {
 		if !h.blockSyncOn {
 			return nil
+		}
+
+		// get all block headers that have not been marked as synced
+		blockHeaders, err := h.buxClient.GetUnsyncedBlockHeaders(ctx)
+		if err != nil {
+			h.logger.Error(ctx, err.Error())
 		} else {
-			// get all block headers that have not been marked as synced
-			blockHeaders, err := h.buxClient.GetUnsyncedBlockHeaders(ctx)
-			if err != nil {
-				h.logger.Error(ctx, err.Error())
-			} else {
-				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] processing block headers: %d", len(blockHeaders)))
-				for _, blockHeader := range blockHeaders {
-					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Processing block %d: %s", blockHeader.Height, blockHeader.ID))
-					handler := &blockSubscriptionHandler{
-						buxClient: h.buxClient,
-						ctx:       ctx,
-						debug:     h.debug,
-						logger:    h.logger,
-						monitor:   h.monitor,
-					}
-					handler.wg.Add(1)
+			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] processing block headers: %d", len(blockHeaders)))
+			for _, blockHeader := range blockHeaders {
+				h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Processing block %d: %s", blockHeader.Height, blockHeader.ID))
+				handler := &blockSubscriptionHandler{
+					buxClient: h.buxClient,
+					ctx:       ctx,
+					debug:     h.debug,
+					logger:    h.logger,
+					monitor:   h.monitor,
+				}
+				handler.wg.Add(1)
 
-					var subscription *centrifuge.Subscription
-					subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
-					if err != nil {
+				var subscription *centrifuge.Subscription
+				subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
+				if err != nil {
+					h.logger.Error(ctx, err.Error())
+				} else {
+					h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
+					subscription.OnPublish(handler)
+					subscription.OnUnsubscribe(handler)
+
+					if err = subscription.Subscribe(); err != nil {
 						h.logger.Error(ctx, err.Error())
+						handler.wg.Done()
 					} else {
-						h.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting block subscription: %v", subscription))
-						subscription.OnPublish(handler)
-						subscription.OnUnsubscribe(handler)
+						h.logger.Info(ctx, "[MONITOR] Waiting for wait group to finish")
+						handler.wg.Wait()
 
-						if err = subscription.Subscribe(); err != nil {
+						// save that block header has been synced
+						blockHeader.Synced.Valid = true
+						blockHeader.Synced.Time = time.Now()
+						if err = blockHeader.Save(ctx); err != nil {
 							h.logger.Error(ctx, err.Error())
-							handler.wg.Done()
-						} else {
-							h.logger.Info(ctx, "[MONITOR] Waiting for wait group to finish")
-							handler.wg.Wait()
-
-							// save that block header has been synced
-							blockHeader.Synced.Valid = true
-							blockHeader.Synced.Time = time.Now()
-							if err = blockHeader.Save(ctx); err != nil {
-								h.logger.Error(ctx, err.Error())
-							}
 						}
 					}
 				}
 			}
-
-			time.Sleep(defaultSleepForNewBlockHeaders)
 		}
+
+		time.Sleep(defaultSleepForNewBlockHeaders)
 	}
 }
 

@@ -832,6 +832,33 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].To)
 		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[1].Satoshis)
 	})
+
+	t.Run("duplicate inputs", func(t *testing.T) {
+		ctx, client, deferMe := initSimpleTestCase(t)
+		defer deferMe()
+
+		opts := append(client.DefaultModelOptions(), New())
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 12, 1225, opts...)
+		err := utxo.Save(ctx)
+		require.NoError(t, err)
+
+		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
+			FromUtxos: []*UtxoPointer{{
+				TransactionID: utxo.TransactionID,
+				OutputIndex:   utxo.OutputIndex,
+			}, {
+				TransactionID: utxo.TransactionID,
+				OutputIndex:   utxo.OutputIndex,
+			}},
+			Outputs: []*TransactionOutput{{
+				To:       testExternalAddress,
+				Satoshis: 1500,
+			}},
+		}, append(client.DefaultModelOptions(), New())...)
+
+		err = draftTransaction.createTransactionHex(ctx)
+		require.ErrorIs(t, err, ErrDuplicateUTXOs)
+	})
 }
 
 // TestDraftTransaction_setChangeDestination setting the change destination

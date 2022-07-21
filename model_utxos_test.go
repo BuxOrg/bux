@@ -284,6 +284,27 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, utxos, 4)
 	})
+
+	t.Run("duplicate inputs", func(t *testing.T) {
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		defer deferMe()
+
+		opts := append(client.DefaultModelOptions(), New())
+		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 12, 1225, opts...)
+		err := utxo.Save(ctx)
+		require.NoError(t, err)
+
+		fromUtxos := []*UtxoPointer{{
+			TransactionID: utxo.TransactionID,
+			OutputIndex:   utxo.OutputIndex,
+		}, {
+			TransactionID: utxo.TransactionID,
+			OutputIndex:   utxo.OutputIndex,
+		}}
+
+		_, err = reserveUtxos(ctx, testXPubID, testDraftID2, 2200, 0.05, fromUtxos, client.DefaultModelOptions()...)
+		require.ErrorIs(t, err, ErrDuplicateUTXOs)
+	})
 }
 
 // TestUtxo_GetSpendableUtxos get spendable utxos

@@ -88,6 +88,9 @@ var ErrTransactionFeeInvalid = errors.New("transaction fee is invalid")
 // ErrMissingUTXOsSpendable is when there are no utxos found from the "spendable utxos"
 var ErrMissingUTXOsSpendable = errors.New("no utxos found using spendable")
 
+// ErrDuplicateUTXOs is when a transaction is created using the same utxo more than once
+var ErrDuplicateUTXOs = errors.New("duplicate utxos found")
+
 // ErrPaymailAddressIsInvalid is when the paymail address is NOT alias@domain.com
 var ErrPaymailAddressIsInvalid = errors.New("paymail address is invalid")
 

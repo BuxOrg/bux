@@ -1263,7 +1263,7 @@ func TestDraftTransaction_addOutputsToTx(t *testing.T) {
 	})
 }
 
-func createDraftTransactionFromHex(hex string, inInfo []interface{}) (*DraftTransaction, *bt.Tx, error) {
+func createDraftTransactionFromHex(hex string, inInfo []interface{}, feeUnit *utils.FeeUnit) (*DraftTransaction, *bt.Tx, error) {
 	tx, err := bt.NewTxFromString(hex)
 	if err != nil {
 		return nil, nil, err
@@ -1320,7 +1320,7 @@ func createDraftTransactionFromHex(hex string, inInfo []interface{}) (*DraftTran
 	draftConfig := &TransactionConfig{
 		ChangeDestinations: []*Destination{{}}, // set to not nil, otherwise will be overwritten when processing
 		Fee:                0,
-		FeeUnit:            chainstate.DefaultFee,
+		FeeUnit:            feeUnit,
 		Inputs:             inputs,
 		Outputs:            outputs,
 	}
@@ -1343,15 +1343,17 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 		err = json.Unmarshal(byteValue, &testData)
 		require.NoError(t, err)
 
-		feeUnit := utils.FeeUnit{
-			Satoshis: 1,
-			Bytes:    2,
-		}
-
 		for _, inTx := range testData["rawTransactions"].([]interface{}) {
 			in := inTx.(map[string]interface{})
 			txID := in["txId"].(string)
-			draftTransaction, tx, err2 := createDraftTransactionFromHex(in["hex"].(string), in["inputs"].([]interface{}))
+			var feeUnit *utils.FeeUnit
+			if _, ok := in["feeUnit"]; ok {
+				b, _ := json.Marshal(in["feeUnit"])
+				_ = json.Unmarshal(b, &feeUnit)
+			} else {
+				feeUnit = chainstate.DefaultFee
+			}
+			draftTransaction, tx, err2 := createDraftTransactionFromHex(in["hex"].(string), in["inputs"].([]interface{}), feeUnit)
 			require.NoError(t, err2)
 			assert.Equal(t, txID, tx.TxID())
 			assert.IsType(t, DraftTransaction{}, *draftTransaction)
@@ -1368,7 +1370,7 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 
 			realSize := uint64(float64(len(in["hex"].(string))) / 2)
 			sizeEstimate := draftTransaction.estimateSize()
-			feeEstimate := draftTransaction.estimateFee(&feeUnit, 0)
+			feeEstimate := draftTransaction.estimateFee(feeUnit, 0)
 			assert.GreaterOrEqual(t, sizeEstimate, realSize)
 			assert.GreaterOrEqual(t, feeEstimate, realFee)
 		}

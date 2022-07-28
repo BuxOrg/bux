@@ -145,11 +145,13 @@ type TransactionService interface {
 	RecordRawTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
 	recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
+	RevertTransaction(ctx context.Context, id string) error
 }
 
 // UTXOService is the utxo actions
 type UTXOService interface {
 	GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex uint32) (*Utxo, error)
+	GetUtxoByTransactionID(ctx context.Context, txID string, outputIndex uint32) (*Utxo, error)
 	GetUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error)
 	GetUtxosCount(ctx context.Context, metadata *Metadata,

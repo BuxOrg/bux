@@ -106,6 +106,33 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 	return utxo, nil
 }
 
+// GetUtxoByTransactionID will get a single utxo based on the tx ID and the outputIndex
+func (c *Client) GetUtxoByTransactionID(ctx context.Context, txID string, outputIndex uint32) (*Utxo, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_utxo")
+
+	// Get the utxos
+	utxo, err := getUtxo(
+		ctx, txID, outputIndex, c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return nil, err
+	} else if utxo == nil {
+		return nil, ErrMissingUtxo
+	}
+
+	var tx *Transaction
+	tx, err = getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
+	if err != nil {
+		c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
+	} else {
+		utxo.Transaction = tx
+	}
+
+	return utxo, nil
+}
+
 // should this be optional in the results?
 func (c *Client) enrichUtxoTransactions(ctx context.Context, utxos []*Utxo) {
 	for index, utxo := range utxos {

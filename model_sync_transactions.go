@@ -70,6 +70,26 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 	}
 }
 
+// GetSyncTransactionByID will get a sync transaction
+func GetSyncTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*SyncTransaction, error) {
+
+	// Get the records by status
+	txs, err := getSyncTransactionsByConditions(ctx,
+		map[string]interface{}{
+			idField: id,
+		},
+		nil, opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(txs) != 1 {
+		return nil, nil
+	}
+
+	return txs[0], nil
+}
+
 // getTransactionsToBroadcast will get the sync transactions to broadcast
 func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps) ([]*SyncTransaction, error) {

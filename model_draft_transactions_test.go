@@ -1511,9 +1511,10 @@ func TestDraftTransaction_SignInputs(t *testing.T) {
 }
 
 func initSimpleTestCase(t *testing.T) (context.Context, ClientInterface, func()) {
-	ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+	ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 
 	xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
+	xPub.CurrentBalance = 100000
 	err := xPub.Save(ctx)
 	require.NoError(t, err)
 

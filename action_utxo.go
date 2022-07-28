@@ -110,9 +110,9 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 func (c *Client) GetUtxoByTransactionID(ctx context.Context, txID string, outputIndex uint32) (*Utxo, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_utxo")
+	ctx = c.GetOrStartTxn(ctx, "get_utxo_by_transaction_id")
 
-	// Get the utxos
+	// Get the utxo
 	utxo, err := getUtxo(
 		ctx, txID, outputIndex, c.DefaultModelOptions()...,
 	)

@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/mrz1836/go-cachestore"
@@ -25,19 +26,33 @@ func getCapabilities(ctx context.Context, cs cachestore.ClientInterface, client 
 	}
 
 	// Get SRV record (domain can be different!)
+	var response *paymail.CapabilitiesResponse
 	srv, err := client.GetSRVRecord(
 		paymail.DefaultServiceName, paymail.DefaultProtocol, domain,
 	)
 	if err != nil {
-		return nil, err
-	}
+		// Error returned was a real error
+		if !strings.Contains(err.Error(), "zero SRV records found") { // This error is from no SRV record being found
+			return nil, err
+		}
 
-	// Get the capabilities
-	var response *paymail.CapabilitiesResponse
-	if response, err = client.GetCapabilities(
-		srv.Target, int(srv.Port),
-	); err != nil {
-		return nil, err
+		// Try to get capabilities without the SRV record
+		// 'Should no record be returned, a paymail client should assume a host of <domain>.<tld> and a port of 443.'
+		// http://bsvalias.org/02-01-host-discovery.html
+
+		// Get the capabilities via target
+		if response, err = client.GetCapabilities(
+			domain, paymail.DefaultPort,
+		); err != nil {
+			return nil, err
+		}
+	} else {
+		// Get the capabilities via SRV record
+		if response, err = client.GetCapabilities(
+			srv.Target, int(srv.Port),
+		); err != nil {
+			return nil, err
+		}
 	}
 
 	// Save to cachestore

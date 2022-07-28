@@ -2,8 +2,12 @@ package bux
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
+	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 )
@@ -350,4 +354,136 @@ func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id strin
 	}
 
 	return transaction, nil
+}
+
+// RevertTransaction will revert a transaction created in the Bux database, but only if it has not
+// yet been synced on-chain and the utxos have not been spent.
+// All utxos that are reverted will be marked as deleted (and spent)
+func (c *Client) RevertTransaction(ctx context.Context, id string) error {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "revert_transaction_by_id")
+
+	// Get the transaction
+	transaction, err := c.GetTransaction(ctx, "", id)
+	if err != nil {
+		return err
+	}
+
+	// make sure the transaction is coming from Bux
+	if transaction.DraftID == "" {
+		return errors.New("not a bux originating transaction, cannot revert")
+	}
+
+	var draftTransaction *DraftTransaction
+	if draftTransaction, err = c.GetDraftTransactionByID(ctx, transaction.DraftID, c.DefaultModelOptions()...); err != nil {
+		return err
+	}
+	if draftTransaction == nil {
+		return errors.New("could not find the draft transaction for this transaction, cannot revert")
+	}
+
+	// check whether transaction is not already on chain
+	var info *chainstate.TransactionInfo
+	if info, err = c.Chainstate().QueryTransaction(ctx, transaction.ID, chainstate.RequiredInMempool, 30*time.Second); err != nil {
+		if !errors.Is(err, chainstate.ErrTransactionNotFound) {
+			return err
+		}
+	}
+	if info != nil {
+		return errors.New("transaction was found on-chain, cannot revert")
+	}
+
+	// check that the utxos of this transaction have not been spent
+	// this transaction needs to be the tip of the chain
+	conditions := &map[string]interface{}{
+		"transaction_id": transaction.ID,
+	}
+	var utxos []*Utxo
+	if utxos, err = c.GetUtxos(ctx, nil, conditions, nil, c.DefaultModelOptions()...); err != nil {
+		return err
+	}
+	for _, utxo := range utxos {
+		if utxo.SpendingTxID.Valid {
+			return errors.New("utxo of this transaction has been spent, cannot revert")
+		}
+	}
+
+	//
+	// Revert transaction and all related elements
+	//
+
+	// mark output utxos as deleted (no way to delete from Bux yet)
+	for _, utxo := range utxos {
+		utxo.enrich(ModelUtxo, c.DefaultModelOptions()...)
+		utxo.SpendingTxID.Valid = true
+		utxo.SpendingTxID.String = "deleted"
+		utxo.DeletedAt.Valid = true
+		utxo.DeletedAt.Time = time.Now()
+		if err = utxo.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// remove output values of transaction from all xpubs
+	var xpub *Xpub
+	for xpubID, outputValue := range transaction.XpubOutputValue {
+		if xpub, err = c.GetXpubByID(ctx, xpubID); err != nil {
+			return err
+		}
+		if outputValue > 0 {
+			xpub.CurrentBalance -= uint64(outputValue)
+		} else {
+			xpub.CurrentBalance += uint64(math.Abs(float64(outputValue)))
+		}
+
+		if err = xpub.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// set any inputs (spent utxos) used in this transaction back to not spent
+	var utxo *Utxo
+	for _, input := range draftTransaction.Configuration.Inputs {
+		if utxo, err = c.GetUtxoByTransactionID(ctx, input.TransactionID, input.OutputIndex); err != nil {
+			return err
+		}
+		utxo.SpendingTxID.Valid = false
+		utxo.SpendingTxID.String = ""
+		if err = utxo.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// cancel sync transaction
+	var syncTransaction *SyncTransaction
+	if syncTransaction, err = GetSyncTransactionByID(ctx, transaction.ID, c.DefaultModelOptions()...); err != nil {
+		return err
+	}
+	syncTransaction.BroadcastStatus = SyncStatusCanceled
+	syncTransaction.P2PStatus = SyncStatusCanceled
+	syncTransaction.SyncStatus = SyncStatusCanceled
+	if err = syncTransaction.Save(ctx); err != nil {
+		return err
+	}
+
+	// revert transaction
+	// this takes the transaction out of any possible list view of the owners of the xpubs,
+	// but keeps a record of what went down
+	if transaction.Metadata == nil {
+		transaction.Metadata = Metadata{}
+	}
+	transaction.Metadata["XpubInIDs"] = transaction.XpubInIDs
+	transaction.Metadata["XpubOutIDs"] = transaction.XpubOutIDs
+	transaction.Metadata["XpubOutputValue"] = transaction.XpubOutputValue
+	transaction.XpubInIDs = IDs{"reverted"}
+	transaction.XpubOutIDs = IDs{"reverted"}
+	transaction.XpubOutputValue = XpubOutputValue{"reverted": 0}
+	transaction.DeletedAt.Valid = true
+	transaction.DeletedAt.Time = time.Now()
+	if err = transaction.Save(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }

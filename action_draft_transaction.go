@@ -6,6 +6,23 @@ import (
 	"github.com/mrz1836/go-datastore"
 )
 
+// GetDraftTransactionByID will get a draft transaction from the Datastore
+func (c *Client) GetDraftTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*DraftTransaction, error) {
+
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_draft_transactions")
+
+	// Get the draft transactions
+	draftTransaction, err := getDraftTransactionID(
+		ctx, "", id, c.DefaultModelOptions(opts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return draftTransaction, nil
+}
+
 // GetDraftTransactions will get all the draft transactions from the Datastore
 func (c *Client) GetDraftTransactions(ctx context.Context, metadataConditions *Metadata,
 	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*DraftTransaction, error) {
@@ -14,7 +31,7 @@ func (c *Client) GetDraftTransactions(ctx context.Context, metadataConditions *M
 	ctx = c.GetOrStartTxn(ctx, "get_draft_transactions")
 
 	// Get the draft transactions
-	accessKeys, err := getDraftTransactions(
+	draftTransactions, err := getDraftTransactions(
 		ctx, metadataConditions, conditions, queryParams,
 		c.DefaultModelOptions(opts...)...,
 	)
@@ -22,7 +39,7 @@ func (c *Client) GetDraftTransactions(ctx context.Context, metadataConditions *M
 		return nil, err
 	}
 
-	return accessKeys, nil
+	return draftTransactions, nil
 }
 
 // GetDraftTransactionsCount will get a count of all the draft transactions from the Datastore

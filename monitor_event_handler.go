@@ -222,7 +222,7 @@ func (h *MonitorEventHandler) OnMessage(_ *centrifuge.Client, e centrifuge.Messa
 
 // OnDisconnect when disconnected
 func (h *MonitorEventHandler) OnDisconnect(_ *centrifuge.Client, _ centrifuge.DisconnectEvent) {
-	h.blockSyncOn = true
+	h.blockSyncOn = false
 
 	defer func(logger chainstate.Logger) {
 		ctx := context.Background()

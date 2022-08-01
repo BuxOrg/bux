@@ -121,12 +121,12 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 
 // ProcessBlocks processes all transactions in blocks that have not yet been synced
 func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrifuge.Client, blockChannel chan bool) error {
-	h.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessBlocks start"))
+	h.logger.Info(ctx, "[MONITOR] ProcessBlocks start")
 	for {
 		// Check if channel has been closed
 		select {
 		case <-blockChannel:
-			h.logger.Info(ctx, fmt.Sprintf("[MONITOR] block sync channel closed, stopping ProcessBlocks"))
+			h.logger.Info(ctx, "[MONITOR] block sync channel closed, stopping ProcessBlocks")
 			return nil
 		default:
 			// get all block headers that have not been marked as synced

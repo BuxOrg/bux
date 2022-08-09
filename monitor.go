@@ -1,13 +1,15 @@
 package bux
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
+	"os"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 )
@@ -58,60 +60,41 @@ func loadMonitoredDestinations(ctx context.Context, client ClientInterface, moni
 	return nil
 }
 
-// checkMonitorHeartbeat will check for a Monitor heartbeat key and detect if it's locked or not
-func checkMonitorHeartbeat(ctx context.Context, client ClientInterface, lockID string) (bool, error) {
-
-	// Make sure cachestore is loaded (safety check)
-	cs := client.Cachestore()
-	if cs == nil {
-		return false, nil
-	}
-
-	// Check if there is already a monitor loaded using this unique lock id & detect last heartbeat
-	lastHeartBeatString, _ := cs.Get(ctx, fmt.Sprintf(lockKeyMonitorLockID, lockID))
-	if len(lastHeartBeatString) > 0 { // Monitor has already loaded with this LockID
-
-		currentUnixTime := time.Now().UTC().Unix()
-
-		// Convert the heartbeat and then compare
-		unixTime, err := strconv.Atoi(lastHeartBeatString)
-		if err != nil {
-			return false, err
-		}
-
-		// Heartbeat is good - skip loading the monitor
-		if int64(unixTime+defaultMonitorHeartbeatMax) > currentUnixTime {
-			client.Logger().Info(ctx, fmt.Sprintf("monitor has already been loaded using this lockID: %s last heartbeat: %d", lockID, unixTime))
-			return true, nil
-		}
-		client.Logger().Info(ctx, fmt.Sprintf("found monitor lockID: %s but heartbeat is out of range: %d vs %d", lockID, unixTime, currentUnixTime))
-	}
-	return false, nil
-}
-
 // startDefaultMonitor will create a handler, start monitor, and store the first heartbeat
 func startDefaultMonitor(ctx context.Context, client ClientInterface, monitor chainstate.MonitorService) error {
 
-	// Create a handler and load destinations if option has been set
-	handler := NewMonitorHandler(ctx, client, monitor)
 	if client.Chainstate().Monitor().LoadMonitoredDestinations() {
 		if err := loadMonitoredDestinations(ctx, client, monitor); err != nil {
 			return err
 		}
 	}
 
-	// Start the monitor
-	if err := monitor.Start(ctx, &handler); err != nil {
+	// var closeSub func() error
+	// TODO do we need to close the sub?
+	_, err := client.Cluster().Subscribe(cluster.DestinationNew, func(data string) {
+		if err := monitor.Processor().Add(utils.P2PKHRegexpString, data); err != nil {
+			client.Logger().Error(ctx, "could not add destination to monitor")
+		}
+	})
+	if err != nil {
 		return err
 	}
 
-	// Set the cache-key lock for this monitor (with a heartbeat time of now)
-	if len(monitor.GetLockID()) > 0 {
-		return client.Cachestore().Set(
-			ctx,
-			fmt.Sprintf(lockKeyMonitorLockID, monitor.GetLockID()),
-			fmt.Sprintf("%d", time.Now().UTC().Unix()),
-		)
+	if monitor.IsDebug() {
+		// capture keyboard input and allow start and stop of the monitor
+		go func() {
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				text := scanner.Text()
+				fmt.Printf("KEYBOARD input: %s\n", text)
+				if text == "e" {
+					if err = monitor.Stop(ctx); err != nil {
+						fmt.Printf("ERROR: %s\n", err.Error())
+					}
+				}
+			}
+		}()
 	}
+
 	return nil
 }

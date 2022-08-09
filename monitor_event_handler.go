@@ -18,22 +18,23 @@ import (
 
 // MonitorEventHandler for handling transaction events from a monitor
 type MonitorEventHandler struct {
-	blockSyncChannel    chan bool
-	buxClient           ClientInterface
-	ctx                 context.Context
-	debug               bool
-	limit               *limiter.ConcurrencyLimiter
-	logger              chainstate.Logger
-	monitor             chainstate.MonitorService
+	blockSyncChannel chan bool
+	buxClient        ClientInterface
+	ctx              context.Context
+	debug            bool
+	limit            *limiter.ConcurrencyLimiter
+	logger           chainstate.Logger
+	monitor          chainstate.MonitorService
 }
 
 type blockSubscriptionHandler struct {
-	buxClient ClientInterface
-	ctx       context.Context
-	debug     bool
-	logger    chainstate.Logger
-	monitor   chainstate.MonitorService
-	wg        sync.WaitGroup
+	buxClient    ClientInterface
+	ctx          context.Context
+	debug        bool
+	logger       chainstate.Logger
+	monitor      chainstate.MonitorService
+	wg           sync.WaitGroup
+	unsubscribed bool
 }
 
 func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
@@ -61,11 +62,15 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 	}
 }
 
-func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, _ centrifuge.UnsubscribeEvent) {
+func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, e centrifuge.UnsubscribeEvent) {
 
 	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %s", subscription.Channel()))
+
 	// close wait group
-	b.wg.Done()
+	if !b.unsubscribed {
+		b.wg.Done()
+		b.unsubscribed = true
+	}
 }
 
 // NewMonitorHandler create a new monitor handler
@@ -94,19 +99,19 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 		}
 	}
 
-		if h.monitor.GetProcessMempoolOnConnect() {
-			h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
-			go func() {
-				if err := h.monitor.ProcessMempool(h.ctx); err != nil {
-					h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
-				}
-			}()
-		}
+	if h.monitor.GetProcessMempoolOnConnect() {
+		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
+		go func() {
+			if err := h.monitor.ProcessMempool(h.ctx); err != nil {
+				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
+			}
+		}()
+	}
 
-		h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCK HEADERS")
-		if err := h.ProcessBlockHeaders(h.ctx, client); err != nil {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
-		}
+	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCK HEADERS")
+	if err := h.ProcessBlockHeaders(h.ctx, client); err != nil {
+		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing block headers: %s", err.Error()))
+	}
 
 	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCKS")
 	h.blockSyncChannel = make(chan bool)
@@ -144,7 +149,6 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 						logger:    h.logger,
 						monitor:   h.monitor,
 					}
-					handler.wg.Add(1)
 
 					var subscription *centrifuge.Subscription
 					subscription, err = client.NewSubscription("block:sync:" + blockHeader.ID)
@@ -155,12 +159,14 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 						subscription.OnPublish(handler)
 						subscription.OnUnsubscribe(handler)
 
+						handler.wg.Add(1)
 						if err = subscription.Subscribe(); err != nil {
 							h.logger.Error(ctx, err.Error())
-							handler.wg.Done()
 						} else {
 							h.logger.Info(ctx, "[MONITOR] Waiting for wait group to finish")
 							handler.wg.Wait()
+
+							_ = subscription.Close()
 
 							// save that block header has been synced
 							blockHeader.Synced.Valid = true

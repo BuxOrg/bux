@@ -3,7 +3,6 @@ package chainstate
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
@@ -28,11 +27,13 @@ type Monitor struct {
 	lockID                       string
 	logger                       zLogger.GormLoggerInterface
 	maxNumberOfDestinations      int
+	mempoolSyncChannelActive     bool
 	mempoolSyncChannel           chan bool
 	monitorDays                  int
 	processMempoolOnConnect      bool
 	processor                    MonitorProcessor
 	saveTransactionsDestinations bool
+	onStop                       func()
 }
 
 // MonitorOptions options for starting this monitorConfig
@@ -93,7 +94,6 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		loadMonitoredDestinations:    options.LoadMonitoredDestinations,
 		lockID:                       options.LockID,
 		maxNumberOfDestinations:      options.MaxNumberOfDestinations,
-		mempoolSyncChannel:           make(chan bool),
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
@@ -204,12 +204,11 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 			return err
 		}
 
-		// TODO: This is overkill right now, but gives us a chance to parallelize this stuff
-		var done sync.WaitGroup
-		done.Add(1)
-
+		// create a new channel to control this go routine
+		m.mempoolSyncChannel = make(chan bool)
+		m.mempoolSyncChannelActive = true
 		// run the processing of the txs in a different thread
-		go func() {
+		go func(mempoolSyncChannel chan bool) {
 			if m.debug {
 				m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool mempoolTxs: %d\n", len(mempoolTxs)))
 			}
@@ -242,7 +241,7 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 					}
 					// While processing all the batches, check if channel is closed
 					select {
-					case <-m.mempoolSyncChannel:
+					case <-mempoolSyncChannel:
 						return
 					default:
 
@@ -288,10 +287,7 @@ func (m *Monitor) ProcessMempool(ctx context.Context) error {
 					}
 				}
 			}
-			done.Done()
-		}()
-		done.Wait()
-		m.mempoolSyncChannel <- true
+		}(m.mempoolSyncChannel)
 	}
 
 	return nil
@@ -308,7 +304,7 @@ func (m *Monitor) SetChainstateOptions(options *clientOptions) {
 }
 
 // Start open a socket to the service provider and monitorConfig transactions
-func (m *Monitor) Start(ctx context.Context, handler MonitorHandler) error {
+func (m *Monitor) Start(ctx context.Context, handler MonitorHandler, onStop func()) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
@@ -319,6 +315,8 @@ func (m *Monitor) Start(ctx context.Context, handler MonitorHandler) error {
 		}
 	}
 
+	m.onStop = onStop
+
 	return m.client.Connect()
 }
 
@@ -326,8 +324,16 @@ func (m *Monitor) Start(ctx context.Context, handler MonitorHandler) error {
 func (m *Monitor) Stop(ctx context.Context) error {
 	m.logger.Info(ctx, "[MONITOR] Stopping monitor...")
 	if m.IsConnected() { // Only close if still connected
-		defer close(m.mempoolSyncChannel)
+		if m.mempoolSyncChannelActive {
+			close(m.mempoolSyncChannel)
+			m.mempoolSyncChannelActive = false
+		}
 		return m.client.Disconnect()
 	}
+
+	if m.onStop != nil {
+		m.onStop()
+	}
+
 	return nil
 }

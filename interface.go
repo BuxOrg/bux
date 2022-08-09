@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/libsv/go-bc"
@@ -59,6 +60,7 @@ type BlockHeaderService interface {
 // ClientService is the client related services
 type ClientService interface {
 	Cachestore() cachestore.ClientInterface
+	Cluster() cluster.ClientInterface
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
 	HTTPClient() HTTPInterface

@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/mrz1836/go-datastore"
@@ -102,35 +101,4 @@ func taskSyncTransactions(ctx context.Context, logClient zLogger.GormLoggerInter
 		return nil
 	}
 	return err
-}
-
-// taskCheckActiveMonitor will check for an active Monitor locally and globally
-func taskCheckActiveMonitor(ctx context.Context, logClient zLogger.GormLoggerInterface, client ClientInterface) error {
-	logClient.Info(ctx, "running check active monitor task...")
-
-	cs := client.Cachestore()
-	m := client.Chainstate().Monitor()
-	if cs != nil && m != nil { // Do we have a cachestore and Monitor?
-
-		// Do we have an active Monitor and socket connection? (locally we are the primary monitor)
-		if m.IsConnected() { // Set a new heartbeat timestamp for the active monitor
-			return cs.Set(ctx, fmt.Sprintf(lockKeyMonitorLockID, m.GetLockID()), fmt.Sprintf("%d", time.Now().UTC().Unix()))
-		}
-
-		// todo: add a MachineID to detect multi-machines using same LockID?
-
-		// Check for an active Monitor (globally) (we are not the primary monitor potentially)
-		locked, err := checkMonitorHeartbeat(ctx, client, m.GetLockID())
-		if err != nil {
-			return err
-		} else if locked {
-			return nil
-		}
-
-		// Start the monitor! - Starts the monitor and creates a long-lasting lock
-		return startDefaultMonitor(ctx, client, m)
-	}
-
-	// No cachestore or monitor found, just ignore
-	return nil
 }

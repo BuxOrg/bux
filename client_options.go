@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/coocood/freecache"
@@ -48,6 +49,10 @@ func defaultClientOptions() *clientOptions {
 			broadcastInstant: true, // Enabled by default for new users
 			paymailP2P:       true, // Enabled by default for new users
 			syncOnChain:      true, // Enabled by default for new users
+		},
+
+		cluster: &clusterOptions{
+			options: []cluster.ClientOps{},
 		},
 
 		// Blank cache config
@@ -558,6 +563,37 @@ func WithCronService(cronService taskmanager.CronService) ClientOps {
 	return func(c *clientOptions) {
 		if cronService != nil && c.taskManager != nil {
 			c.taskManager.options = append(c.taskManager.options, taskmanager.WithCronService(cronService))
+		}
+	}
+}
+
+// -----------------------------------------------------------------
+// CLUSTER
+// -----------------------------------------------------------------
+
+// WithClusterRedis will set the cluster coordinator to use redis
+func WithClusterRedis(redisOptions *redis.Options) ClientOps {
+	return func(c *clientOptions) {
+		if redisOptions != nil {
+			c.cluster.options = append(c.cluster.options, cluster.WithRedis(redisOptions))
+		}
+	}
+}
+
+// WithClusterKeyPrefix will set the cluster key prefix to use for all keys in the cluster coordinator
+func WithClusterKeyPrefix(prefix string) ClientOps {
+	return func(c *clientOptions) {
+		if prefix != "" {
+			c.cluster.options = append(c.cluster.options, cluster.WithKeyPrefix(prefix))
+		}
+	}
+}
+
+// WithClusterClient will set the cluster options on the client
+func WithClusterClient(clusterClient cluster.ClientInterface) ClientOps {
+	return func(c *clientOptions) {
+		if clusterClient != nil {
+			c.cluster.ClientInterface = clusterClient
 		}
 	}
 }

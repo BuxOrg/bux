@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-cachestore"
@@ -26,6 +27,7 @@ type (
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
 		cacheStore            *cacheStoreOptions          // Configuration options for Cachestore (ristretto, redis, etc.)
+		cluster               *clusterOptions             // Configuration options for the cluster coordinator
 		chainstate            *chainstateOptions          // Configuration options for Chainstate (broadcast, sync, etc.)
 		dataStore             *dataStoreOptions           // Configuration options for the DataStore (MySQL, etc.)
 		debug                 bool                        // If the client is in debug mode
@@ -57,6 +59,13 @@ type (
 	cacheStoreOptions struct {
 		cachestore.ClientInterface                        // Client for Cachestore
 		options                    []cachestore.ClientOps // List of options
+	}
+
+	// clusterOptions holds the cluster configuration for Bux clusters
+	// at the moment we only support redis as the cluster coordinator
+	clusterOptions struct {
+		cluster.ClientInterface
+		options []cluster.ClientOps // List of options
 	}
 
 	// dataStoreOptions holds the data storage configuration and client
@@ -134,6 +143,11 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Load the Cachestore client
 	var err error
 	if err = client.loadCache(ctx); err != nil {
+		return nil, err
+	}
+
+	// Load the cluster coordinator
+	if err = client.loadCluster(ctx); err != nil {
 		return nil, err
 	}
 
@@ -229,6 +243,14 @@ func (c *Client) AddModels(ctx context.Context, autoMigrate bool, models ...inte
 func (c *Client) Cachestore() cachestore.ClientInterface {
 	if c.options.cacheStore != nil && c.options.cacheStore.ClientInterface != nil {
 		return c.options.cacheStore.ClientInterface
+	}
+	return nil
+}
+
+// Cluster will return the cluster coordinator client
+func (c *Client) Cluster() cluster.ClientInterface {
+	if c.options.cluster != nil && c.options.cluster.ClientInterface != nil {
+		return c.options.cluster.ClientInterface
 	}
 	return nil
 }

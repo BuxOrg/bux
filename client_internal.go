@@ -2,8 +2,11 @@ package bux
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-cachestore"
@@ -19,6 +22,17 @@ func (c *Client) loadCache(ctx context.Context) (err error) {
 	if c.options.cacheStore.ClientInterface == nil {
 		c.options.cacheStore.ClientInterface, err = cachestore.NewClient(ctx, c.options.cacheStore.options...)
 	}
+	return
+}
+
+// loadCluster will load the cluster coordinator
+func (c *Client) loadCluster(ctx context.Context) (err error) {
+
+	// Load if a custom interface was NOT provided
+	if c.options.cluster.ClientInterface == nil {
+		c.options.cluster.ClientInterface, err = cluster.NewClient(ctx, c.options.cluster.options...)
+	}
+
 	return
 }
 
@@ -125,21 +139,49 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 		return // No monitor, exit!
 	}
 
-	// Detect if the monitor has been loaded already (Looking for a LockID, Cachestore & last heartbeat)
-	lockID := monitor.GetLockID()
-	if len(lockID) > 0 {
-		var locked bool
-		if locked, err = checkMonitorHeartbeat(ctx, c, lockID); err != nil { // Locally and global check
-			return
-		} else if locked { // Monitor found using LockID and heartbeat is in range
-			return
-		}
-
-		// Monitor might be found using LockID but the heartbeat failed (closed? disconnected? bad state?)
-	}
+	// Create a handler and load destinations if option has been set
+	handler := NewMonitorHandler(ctx, c, monitor)
 
 	// Start the default monitor
-	return startDefaultMonitor(ctx, c, monitor)
+	if err = startDefaultMonitor(ctx, c, monitor); err != nil {
+		return err
+	}
+
+	lockKey := c.options.cluster.GetClusterPrefix() + lockKeyMonitorLockID
+	lockID := monitor.GetLockID()
+	go func() {
+		var currentLock string
+		for {
+			if currentLock, err = c.Cachestore().WriteLockWithSecret(ctx, lockKey, lockID, defaultMonitorLockTTL); err != nil {
+				// do nothing really, we just didn't get the lock
+				if monitor.IsDebug() {
+					monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] failed getting lock for monitor: %s: %e", lockID, err))
+				}
+			}
+
+			if lockID == currentLock {
+				// Start the monitor, if not connected
+				if !monitor.IsConnected() {
+					if err = monitor.Start(ctx, &handler, func() {
+						_, err = c.Cachestore().ReleaseLock(ctx, lockKeyMonitorLockID, lockID)
+					}); err != nil {
+						monitor.Logger().Error(ctx, fmt.Sprintf("[MONITOR] ERROR: failed starting monitor: %e", err))
+					}
+				}
+			} else {
+				// first close any monitor if running
+				if monitor.IsConnected() {
+					if err = monitor.Stop(ctx); err != nil {
+						monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] ERROR: failed stopping monitor: %e", err))
+					}
+				}
+			}
+
+			time.Sleep(defaultMonitorSleep)
+		}
+	}()
+
+	return nil
 }
 
 // runModelMigrations will run the model Migrate() method for all models

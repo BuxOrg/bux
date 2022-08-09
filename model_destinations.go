@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/mrz1836/go-datastore"
@@ -341,20 +341,13 @@ func (m *Destination) BeforeCreating(_ context.Context) error {
 func (m *Destination) AfterCreated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
-	if m.Monitor.Valid {
-		monitor := m.Client().Chainstate().Monitor()
-		if monitor != nil {
-			m.DebugLog(fmt.Sprintf("adding destination to monitor: %s", m.LockingScript))
-			if err := monitor.Add(
-				utils.P2PKHRegexpString, m.LockingScript,
-			); err != nil {
-				m.Client().Logger().Error(ctx, fmt.Sprintf("failed adding destination to monitor: %s", err.Error()))
-			}
-		}
+	err := m.client.Cluster().Publish(cluster.DestinationNew, m.LockingScript)
+	if err != nil {
+		return err
 	}
 
 	// Store in the cache
-	if err := saveToCache(
+	if err = saveToCache(
 		ctx, []string{
 			fmt.Sprintf(cacheKeyDestinationModel, m.GetID()),
 			fmt.Sprintf(cacheKeyDestinationModelByAddress, m.Address),
@@ -443,39 +436,4 @@ func (m *Destination) AfterDeleted(ctx context.Context) error {
 
 	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
 	return nil
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *Destination) RegisterTasks() error {
-
-	// No task manager loaded?
-	tm := m.Client().Taskmanager()
-	if tm == nil {
-		return nil
-	}
-
-	// Register the task locally (cron task - set the defaults)
-	monitorTask := m.Name() + "_monitor"
-	ctx := context.Background()
-
-	// Register the task
-	if err := tm.RegisterTask(&taskmanager.Task{
-		Name:       monitorTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskCheckActiveMonitor(ctx, client.Logger(), client); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+monitorTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Run the task periodically
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(monitorTask),
-		TaskName:       monitorTask,
-	})
 }

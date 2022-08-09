@@ -114,6 +114,6 @@ type MonitorService interface {
 	ProcessMempool(ctx context.Context) error
 	Processor() MonitorProcessor
 	SaveDestinations() bool
-	Start(ctx context.Context, handler MonitorHandler) error
+	Start(ctx context.Context, handler MonitorHandler, onStop func()) error
 	Stop(ctx context.Context) error
 }

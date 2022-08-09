@@ -57,7 +57,9 @@ func main() {
 	handler := bux.NewMonitorHandler(context.Background(), client, m)
 
 	// Start
-	if err = m.Start(context.Background(), &handler); err != nil {
+	if err = m.Start(context.Background(), &handler, func() {
+		// callback when the monitor stops
+	}); err != nil {
 		log.Fatalf(err.Error())
 	}
 

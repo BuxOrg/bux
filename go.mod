@@ -139,6 +139,9 @@ require (
 	gorm.io/plugin/dbresolver v1.2.2 // indirect
 )
 
+// Issue with using wrong version of Redigo
+replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9
+
 // Issue with Ask Nancy on related packages
 replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 

@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -154,7 +155,7 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 			if currentLock, err = c.Cachestore().WriteLockWithSecret(ctx, lockKey, lockID, defaultMonitorLockTTL); err != nil {
 				// do nothing really, we just didn't get the lock
 				if monitor.IsDebug() {
-					monitor.Logger().Info(ctx, "[MONITOR] failed getting lock for monitor: %s: %w", lockID, err)
+					monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] failed getting lock for monitor: %s: %w", lockID, err))
 				}
 			}
 
@@ -164,14 +165,14 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 					if err = monitor.Start(ctx, &handler, func() {
 						_, err = c.Cachestore().ReleaseLock(ctx, lockKeyMonitorLockID, lockID)
 					}); err != nil {
-						monitor.Logger().Info(ctx, "[MONITOR] ERROR: failed starting monitor: %w", err)
+						monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] ERROR: failed starting monitor: %w", err))
 					}
 				}
 			} else {
 				// first close any monitor if running
 				if monitor.IsConnected() {
 					if err = monitor.Stop(ctx); err != nil {
-						monitor.Logger().Info(ctx, "[MONITOR] ERROR: failed stopping monitor: %w", err)
+						monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] ERROR: failed stopping monitor: %w", err))
 					}
 				}
 			}

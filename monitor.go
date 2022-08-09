@@ -69,9 +69,10 @@ func startDefaultMonitor(ctx context.Context, client ClientInterface, monitor ch
 		}
 	}
 
-	// var closeSub func() error
-	// TODO do we need to close the sub?
 	_, err := client.Cluster().Subscribe(cluster.DestinationNew, func(data string) {
+		if monitor.IsDebug() {
+			monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] added %s destination to monitor: %s", utils.P2PKHRegexpString, data))
+		}
 		if err := monitor.Processor().Add(utils.P2PKHRegexpString, data); err != nil {
 			client.Logger().Error(ctx, "could not add destination to monitor")
 		}

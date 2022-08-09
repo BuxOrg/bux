@@ -49,8 +49,9 @@ func NewClient(ctx context.Context, opts ...ClientOps) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		pubSubClient.debug = client.options.debug
-		pubSubClient.prefix = client.options.prefix
+		pubSubClient.debug = client.IsDebug()
+		pubSubClient.logger = client.options.logger
+		pubSubClient.prefix = client.GetClusterPrefix()
 		client.pubSubService = pubSubClient
 	} else {
 		pubSubClient, err := NewMemoryPubSub(ctx)
@@ -58,8 +59,9 @@ func NewClient(ctx context.Context, opts ...ClientOps) (*Client, error) {
 			return nil, err
 		}
 
-		pubSubClient.debug = client.options.debug
-		pubSubClient.prefix = client.options.prefix
+		pubSubClient.debug = client.IsDebug()
+		pubSubClient.logger = client.options.logger
+		pubSubClient.prefix = client.GetClusterPrefix()
 		client.pubSubService = pubSubClient
 	}
 

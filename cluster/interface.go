@@ -1,5 +1,7 @@
 package cluster
 
+import zLogger "github.com/mrz1836/go-logger"
+
 // Coordinator the coordinators supported in cluster mode
 type Coordinator string
 
@@ -27,6 +29,7 @@ type ClientInterface interface {
 }
 
 type pubSubService interface {
+	Logger() zLogger.GormLoggerInterface
 	Subscribe(channel Channel, callback func(data string)) (func() error, error)
 	Publish(channel Channel, data string) error
 }

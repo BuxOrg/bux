@@ -2,6 +2,8 @@ package cluster
 
 import (
 	"context"
+
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 // MemoryPubSub struct
@@ -9,6 +11,7 @@ type MemoryPubSub struct {
 	ctx       context.Context
 	callbacks map[string]func(data string)
 	debug     bool
+	logger    zLogger.GormLoggerInterface
 	prefix    string
 }
 
@@ -20,6 +23,11 @@ func NewMemoryPubSub(ctx context.Context) (*MemoryPubSub, error) {
 	return &MemoryPubSub{
 		ctx: ctx,
 	}, nil
+}
+
+// Logger returns the logger to use
+func (m *MemoryPubSub) Logger() zLogger.GormLoggerInterface {
+	return m.logger
 }
 
 // Subscribe to a channel

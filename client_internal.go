@@ -165,7 +165,7 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 					if err = monitor.Start(ctx, &handler, func() {
 						_, err = c.Cachestore().ReleaseLock(ctx, lockKeyMonitorLockID, lockID)
 					}); err != nil {
-						monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] ERROR: failed starting monitor: %e", err))
+						monitor.Logger().Error(ctx, fmt.Sprintf("[MONITOR] ERROR: failed starting monitor: %e", err))
 					}
 				}
 			} else {

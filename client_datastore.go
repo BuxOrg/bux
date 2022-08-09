@@ -28,7 +28,7 @@ func processCustomFields(conditions *map[string]interface{}) {
 
 // processXpubOutputValueConditions will process xpub_output_value
 func processXpubOutputValueConditions(conditions *map[string]interface{}) {
-	m, _ := json.Marshal((*conditions)["xpub_output_value"]) // nolint: errchkjson // this check might break the current code
+	m, _ := json.Marshal((*conditions)["xpub_output_value"]) //nolint:errchkjson // this check might break the current code
 	var r map[string]interface{}
 	_ = json.Unmarshal(m, &r)
 
@@ -56,7 +56,7 @@ func processXpubOutputValueConditions(conditions *map[string]interface{}) {
 // processXpubMetadataConditions will process xpub_metadata
 func processXpubMetadataConditions(conditions *map[string]interface{}) {
 	// marshal / unmarshal into standard map[string]interface{}
-	m, _ := json.Marshal((*conditions)["xpub_metadata"]) // nolint: errchkjson // this check might break the current code
+	m, _ := json.Marshal((*conditions)["xpub_metadata"]) //nolint:errchkjson // this check might break the current code
 	var r map[string]interface{}
 	_ = json.Unmarshal(m, &r)
 

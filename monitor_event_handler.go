@@ -31,6 +31,7 @@ type blockSubscriptionHandler struct {
 	buxClient    ClientInterface
 	ctx          context.Context
 	debug        bool
+	errors       []error
 	logger       chainstate.Logger
 	monitor      chainstate.MonitorService
 	wg           sync.WaitGroup
@@ -44,6 +45,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 		// block subscription
 		tx, err := b.monitor.Processor().FilterTransactionPublishEvent(e.Data)
 		if err != nil {
+			b.errors = append(b.errors, err)
 			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] Error processing block data: %s", err.Error()))
 		}
 
@@ -53,6 +55,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 
 		if _, err = recordMonitoredTransaction(b.ctx, b.buxClient, tx); err != nil {
 			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+			b.errors = append(b.errors, err)
 			return
 		}
 
@@ -168,11 +171,13 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 
 							_ = subscription.Close()
 
-							// save that block header has been synced
-							blockHeader.Synced.Valid = true
-							blockHeader.Synced.Time = time.Now()
-							if err = blockHeader.Save(ctx); err != nil {
-								h.logger.Error(ctx, err.Error())
+							if len(handler.errors) <= 0 {
+								// save that block header has been synced
+								blockHeader.Synced.Valid = true
+								blockHeader.Synced.Time = time.Now()
+								if err = blockHeader.Save(ctx); err != nil {
+									h.logger.Error(ctx, err.Error())
+								}
 							}
 						}
 					}
@@ -261,26 +266,7 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 // OnPublish on publish event
 func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
 	channelName := subscription.Channel()
-	if strings.HasPrefix(channelName, "block:sync:") {
-		// block subscription
-		tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
-		if err != nil {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx: %v", err))
-			return
-		}
-
-		if tx == "" {
-			return
-		}
-		if _, err = recordMonitoredTransaction(h.ctx, h.buxClient, tx); err != nil {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
-			return
-		}
-
-		if h.debug {
-			h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
-		}
-	} else if strings.HasPrefix(channelName, "block:headers:history:") {
+	if strings.HasPrefix(channelName, "block:headers:history:") {
 		bi := whatsonchain.BlockInfo{}
 		err := json.Unmarshal(e.Data, &bi)
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -25,6 +26,12 @@ type BloomProcessor struct {
 type BloomProcessorFilter struct {
 	Filter *boom.StableBloomFilter
 	regex  *regexp.Regexp
+}
+
+// TxInfo wrapped WhatsOnChain transaction info object
+type TxInfo struct {
+	whatsonchain.TxInfo
+	Error string `json:"error"`
 }
 
 // NewBloomProcessor initialize a new bloom processor
@@ -134,18 +141,20 @@ func (p *BloomProcessor) Reload(regexString string, items []string) (err error) 
 
 // FilterTransactionPublishEvent check whether a filter matches a tx event
 func (p *BloomProcessor) FilterTransactionPublishEvent(eData []byte) (string, error) {
-	transaction := whatsonchain.TxInfo{}
-	_ = json.Unmarshal(eData, &transaction) // todo: missing error check
+	transaction := TxInfo{}
+	if err := json.Unmarshal(eData, &transaction); err != nil {
+		return "", err
+	}
+
+	if transaction.Error != "" {
+		return "", errors.New(transaction.Error)
+	}
 
 	for _, f := range p.filters {
 		lockingScripts := f.regex.FindAllString(string(eData), -1)
 		for _, ls := range lockingScripts {
 			if passes := f.Filter.Test([]byte(ls)); passes {
-				tx := whatsonchain.TxInfo{}
-				if err := json.Unmarshal(eData, &tx); err != nil {
-					return "", err
-				}
-				return tx.Hex, nil
+				return transaction.Hex, nil
 			}
 		}
 	}

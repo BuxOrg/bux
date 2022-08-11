@@ -266,26 +266,7 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 // OnPublish on publish event
 func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
 	channelName := subscription.Channel()
-	if strings.HasPrefix(channelName, "block:sync:") {
-		// block subscription
-		tx, err := h.monitor.Processor().FilterTransactionPublishEvent(e.Data)
-		if err != nil {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx: %v", err))
-			return
-		}
-
-		if tx == "" {
-			return
-		}
-		if _, err = recordMonitoredTransaction(h.ctx, h.buxClient, tx); err != nil {
-			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
-			return
-		}
-
-		if h.debug {
-			h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %v", tx))
-		}
-	} else if strings.HasPrefix(channelName, "block:headers:history:") {
+	if strings.HasPrefix(channelName, "block:headers:history:") {
 		bi := whatsonchain.BlockInfo{}
 		err := json.Unmarshal(e.Data, &bi)
 		if err != nil {

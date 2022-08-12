@@ -229,7 +229,7 @@ func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Tran
 	return transaction, nil
 }
 
-// GetTransaction will get a transaction from the Datastore by tx ID
+// GetTransactionByID will get a transaction from the Datastore by tx ID
 // uses GetTransaction
 func (c *Client) GetTransactionByID(ctx context.Context, txID string) (*Transaction, error) {
 

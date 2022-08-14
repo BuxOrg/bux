@@ -132,6 +132,8 @@ type PaymailService interface {
 // TransactionService is the transaction actions
 type TransactionService interface {
 	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
+	GetTransactionByID(ctx context.Context, txID string) (*Transaction, error)
+	GetTransactionByHex(ctx context.Context, hex string) (*Transaction, error)
 	GetTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error)
 	GetTransactionsCount(ctx context.Context, metadata *Metadata,

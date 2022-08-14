@@ -9,6 +9,7 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bt"
 	"github.com/mrz1836/go-datastore"
 )
 
@@ -226,6 +227,25 @@ func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Tran
 	}
 
 	return transaction, nil
+}
+
+// GetTransactionByID will get a transaction from the Datastore by tx ID
+// uses GetTransaction
+func (c *Client) GetTransactionByID(ctx context.Context, txID string) (*Transaction, error) {
+
+	return c.GetTransaction(ctx, "", txID)
+}
+
+// GetTransactionByHex will get a transaction from the Datastore by its full hex string
+// uses GetTransaction
+func (c *Client) GetTransactionByHex(ctx context.Context, hex string) (*Transaction, error) {
+
+	tx, err := bt.NewTxFromString(hex)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.GetTransaction(ctx, "", tx.GetTxID())
 }
 
 // GetTransactions will get all the transactions from the Datastore

@@ -105,7 +105,8 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 	if h.monitor.GetProcessMempoolOnConnect() {
 		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
 		go func() {
-			if err := h.monitor.ProcessMempool(h.ctx); err != nil {
+			ctx := context.Background()
+			if err := h.monitor.ProcessMempool(ctx); err != nil {
 				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
 			}
 		}()
@@ -119,7 +120,8 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCKS")
 	h.blockSyncChannel = make(chan bool)
 	go func() {
-		if err := h.ProcessBlocks(h.ctx, client, h.blockSyncChannel); err != nil {
+		ctx := context.Background()
+		if err := h.ProcessBlocks(ctx, client, h.blockSyncChannel); err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing blocks: %s", err.Error()))
 		}
 	}()

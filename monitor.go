@@ -54,7 +54,10 @@ func loadMonitoredDestinations(ctx context.Context, client ClientInterface, moni
 
 	// Debug line
 	if client.IsDebug() && client.Logger() != nil {
-		client.Logger().Info(ctx, fmt.Sprintf("[MONITOR] Added %d destinations to monitor", len(destinations)))
+		client.Logger().Info(ctx, fmt.Sprintf(
+			"[MONITOR] Added %d destinations to monitor with hash %s",
+			len(destinations), monitor.Processor().GetHash(),
+		))
 	}
 
 	return nil

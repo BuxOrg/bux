@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -286,10 +287,12 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
 				return
 			}
+			merkleRoot, _ := hex.DecodeString(bi.MerkleRoot)
+			previousBlockHash, _ := hex.DecodeString(bi.PreviousBlockHash)
 			bh := bc.BlockHeader{
 				Bits:           []byte(bi.Bits),
-				HashMerkleRoot: []byte(bi.MerkleRoot),
-				HashPrevBlock:  []byte(bi.PreviousBlockHash),
+				HashMerkleRoot: merkleRoot,
+				HashPrevBlock:  previousBlockHash,
 				Nonce:          uint32(bi.Nonce),
 				Time:           uint32(bi.Time),
 				Version:        uint32(bi.Version),
@@ -392,9 +395,11 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Clien
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
 		return
 	}
+	merkleRoot, _ := hex.DecodeString(bi.MerkleRoot)
+	previousBlockHash, _ := hex.DecodeString(bi.PreviousBlockHash)
 	bh := bc.BlockHeader{
-		HashPrevBlock:  []byte(bi.PreviousBlockHash),
-		HashMerkleRoot: []byte(bi.MerkleRoot),
+		HashPrevBlock:  previousBlockHash,
+		HashMerkleRoot: merkleRoot,
 		Nonce:          uint32(bi.Nonce),
 		Version:        uint32(bi.Version),
 		Time:           uint32(bi.Time),

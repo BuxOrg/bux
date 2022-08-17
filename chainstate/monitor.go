@@ -34,6 +34,7 @@ type Monitor struct {
 	processor                    MonitorProcessor
 	saveTransactionsDestinations bool
 	onStop                       func()
+	allowUnknownTransactions     bool
 }
 
 // MonitorOptions options for starting this monitorConfig
@@ -49,6 +50,7 @@ type MonitorOptions struct {
 	ProcessMempoolOnConnect     bool    `json:"process_mempool_on_connect"`
 	ProcessorType               string  `json:"processor_type"`
 	SaveTransactionDestinations bool    `json:"save_transaction_destinations"`
+	AllowUnknownTransactions    bool    `json:"allow_unknown_transactions"` // whether to allow transactions that do not have an xpub_in_id or xpub_out_id
 }
 
 // checkDefaults will check for missing values and set default values
@@ -97,6 +99,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		monitorDays:                  options.MonitorDays,
 		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
+		allowUnknownTransactions:     options.AllowUnknownTransactions,
 	}
 
 	// Set logger if not set
@@ -182,6 +185,11 @@ func (m *Monitor) IsDebug() bool {
 // LoadMonitoredDestinations gets where we want to add the monitored destinations from the database into the processor
 func (m *Monitor) LoadMonitoredDestinations() bool {
 	return m.loadMonitoredDestinations
+}
+
+// AllowUnknownTransactions gets whether we allow recording transactions with no relation to our xpubs
+func (m *Monitor) AllowUnknownTransactions() bool {
+	return m.allowUnknownTransactions
 }
 
 // Logger gets the current logger

@@ -352,11 +352,11 @@ func (h *MonitorEventHandler) OnServerLeave(_ *centrifuge.Client, e centrifuge.S
 }
 
 // OnServerPublish on server publish event
-func (h *MonitorEventHandler) OnServerPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+func (h *MonitorEventHandler) OnServerPublish(c *centrifuge.Client, e centrifuge.ServerPublishEvent) {
 	h.logger.Info(h.ctx, fmt.Sprintf("[MONITOR] Server publish to channel %s with data %v", e.Channel, string(e.Data)))
 	// todo make this configurable
-	// h.onServerPublishLinear(nil, e)
-	h.onServerPublishParallel(nil, e)
+	// h.onServerPublishLinear(c, e)
+	h.onServerPublishParallel(c, e)
 }
 
 func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
@@ -435,11 +435,10 @@ func (h *MonitorEventHandler) onServerPublishLinear(c *centrifuge.Client, e cent
 	}
 }
 
-func (h *MonitorEventHandler) onServerPublishParallel(_ *centrifuge.Client, e centrifuge.ServerPublishEvent) {
+func (h *MonitorEventHandler) onServerPublishParallel(c *centrifuge.Client, e centrifuge.ServerPublishEvent) {
 	_, err := h.limit.Execute(func() {
-		h.onServerPublishLinear(nil, e)
+		h.onServerPublishLinear(c, e)
 	})
-
 	if err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR failed to start goroutine: %v", err))
 	}

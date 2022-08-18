@@ -137,7 +137,33 @@ func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txH
 	// Check for existing NewRelic transaction
 	ctx = client.GetOrStartTxn(ctx, "record_monitored_transaction")
 
-	return client.recordTxHex(ctx, txHex, opts...)
+	transaction, err := client.recordTxHex(ctx, txHex, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if transaction.BlockHash == "" {
+		// Create the sync transaction model
+		sync := newSyncTransaction(
+			transaction.GetID(),
+			transaction.Client().DefaultSyncConfig(),
+			transaction.GetOptions(true)...,
+		)
+		sync.BroadcastStatus = SyncStatusSkipped
+		sync.P2PStatus = SyncStatusSkipped
+
+		// Use the same metadata
+		sync.Metadata = transaction.Metadata
+
+		// If all the options are skipped, do not make a new model (ignore the record)
+		if !sync.isSkipped() {
+			if err = sync.Save(ctx); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return transaction, nil
 }
 
 func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
@@ -158,6 +184,17 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 	defer unlock()
 	if err != nil {
 		return nil, err
+	}
+
+	// run before create to see whether xpub_in_ids or xpub_out_ids is set
+	if err = transaction.BeforeCreating(ctx); err != nil {
+		return nil, err
+	}
+
+	// do not register transactions we have nothing to do with
+	allowUnknown := c.options.chainstate.Monitor().AllowUnknownTransactions()
+	if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
+		return nil, nil
 	}
 
 	// Process & save the transaction model

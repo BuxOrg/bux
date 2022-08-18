@@ -110,6 +110,7 @@ type MonitorService interface {
 	IsConnected() bool
 	IsDebug() bool
 	LoadMonitoredDestinations() bool
+	AllowUnknownTransactions() bool
 	Logger() Logger
 	ProcessMempool(ctx context.Context) error
 	Processor() MonitorProcessor

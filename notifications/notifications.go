@@ -1,3 +1,4 @@
+// Package notifications is a basic internal notifications module
 package notifications
 
 import (

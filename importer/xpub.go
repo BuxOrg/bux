@@ -1,3 +1,4 @@
+// Package importer handles importing an xPub
 package importer
 
 /*

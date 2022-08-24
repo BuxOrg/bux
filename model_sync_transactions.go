@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -32,6 +34,9 @@ type SyncTransaction struct {
 	BroadcastStatus SyncStatus           `json:"broadcast_status" toml:"broadcast_status" yaml:"broadcast_status" gorm:"<-;type:varchar(10);index;comment:This is the status of the broadcast" bson:"broadcast_status"`
 	P2PStatus       SyncStatus           `json:"p2p_status" toml:"p2p_status" yaml:"p2p_status" gorm:"<-;column:p2p_status;type:varchar(10);index;comment:This is the status of the p2p paymail requests" bson:"p2p_status"`
 	SyncStatus      SyncStatus           `json:"sync_status" toml:"sync_status" yaml:"sync_status" gorm:"<-;type:varchar(10);index;comment:This is the status of the on-chain sync" bson:"sync_status"`
+
+	// internal fields
+	transaction *Transaction
 }
 
 // newSyncTransaction will start a new model (config is required)
@@ -92,7 +97,7 @@ func GetSyncTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*
 
 // getTransactionsToBroadcast will get the sync transactions to broadcast
 func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps) ([]*SyncTransaction, error) {
+	opts ...ModelOps) (map[string][]*SyncTransaction, error) {
 
 	// Get the records by status
 	txs, err := getSyncTransactionsByConditions(
@@ -105,7 +110,31 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 	if err != nil {
 		return nil, err
 	}
-	return txs, nil
+
+	// group transactions by xpub and return including the tx itself
+	txsByXpub := make(map[string][]*SyncTransaction)
+	for _, tx := range txs {
+		var txModel *Transaction
+		txModel, err = getTransactionByID(ctx, "", tx.ID, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		tx.transaction = txModel
+		xPubID := "" // fallback if we have no input xpubs
+		if len(txModel.XpubInIDs) > 0 {
+			// use the first xpub for the grouping
+			// in most cases when we are broadcasting, there should be only 1 xpub in
+			xPubID = txModel.XpubInIDs[0]
+		}
+
+		if txsByXpub[xPubID] == nil {
+			txsByXpub[xPubID] = make([]*SyncTransaction, 0)
+		}
+		txsByXpub[xPubID] = append(txsByXpub[xPubID], tx)
+	}
+
+	return txsByXpub, nil
 }
 
 // getTransactionsToNotifyP2P will get the sync transactions to notify p2p paymail providers
@@ -374,24 +403,41 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 		SortDirection: datastore.SortAsc,
 	}
 
-	// Get x records
-	records, err := getTransactionsToBroadcast(
+	// Get maxTransactions records, grouped by xpub
+	txsByXpub, err := getTransactionsToBroadcast(
 		ctx, queryParams, opts...,
 	)
 	if err != nil {
 		return err
-	} else if len(records) == 0 {
+	} else if len(txsByXpub) == 0 {
 		return nil
 	}
 
-	// Process the incoming transaction
-	for index := range records {
-		if err = processBroadcastTransaction(
-			ctx, records[index],
-		); err != nil {
-			return err
-		}
+	wg := new(sync.WaitGroup)
+	// we limit the number of concurrent broadcasts to the number of cpus*2, since there is lots of IO wait
+	limit := make(chan bool, runtime.NumCPU()*2)
+
+	// Process the transactions per xpub, in parallel
+	for xPubID := range txsByXpub {
+		limit <- true // limit the number of routines running at the same time
+		wg.Add(1)
+		go func(xPubID string) {
+			defer wg.Done()
+			defer func() { <-limit }()
+
+			for _, tx := range txsByXpub[xPubID] {
+				if err = processBroadcastTransaction(
+					ctx, tx,
+				); err != nil {
+					tx.Client().Logger().Error(ctx,
+						fmt.Sprintf("error running broadcast tx for xpub %s, tx %s: %s", xPubID, tx.ID, err.Error()),
+					)
+					return // stop processing transactions for this xpub if we found an error
+				}
+			}
+		}(xPubID)
 	}
+	wg.Wait()
 
 	return nil
 }
@@ -424,21 +470,27 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	var transaction *Transaction
 	var incomingTransaction *IncomingTransaction
 	var txHex string
-	if transaction, err = getTransactionByID(
-		ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
-	); err != nil {
-		return err
-	} else if transaction == nil {
-		// maybe this is only an incoming transaction, let's try to find that and broadcast
-		// the processing of incoming transactions should then pick it up in the next job run
-		if incomingTransaction, err = getIncomingTransactionByID(ctx, syncTx.ID, syncTx.GetOptions(false)...); err != nil {
-			return err
-		} else if incomingTransaction == nil {
-			return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
-		}
-		txHex = incomingTransaction.Hex
-	} else {
+	if syncTx.transaction != nil {
+		// the transaction has already been retrieved and added to the syncTx object, just use that
+		transaction = syncTx.transaction
 		txHex = transaction.Hex
+	} else {
+		if transaction, err = getTransactionByID(
+			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
+		); err != nil {
+			return err
+		} else if transaction == nil {
+			// maybe this is only an incoming transaction, let's try to find that and broadcast
+			// the processing of incoming transactions should then pick it up in the next job run
+			if incomingTransaction, err = getIncomingTransactionByID(ctx, syncTx.ID, syncTx.GetOptions(false)...); err != nil {
+				return err
+			} else if incomingTransaction == nil {
+				return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
+			}
+			txHex = incomingTransaction.Hex
+		} else {
+			txHex = transaction.Hex
+		}
 	}
 
 	// Broadcast

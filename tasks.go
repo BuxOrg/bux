@@ -72,7 +72,7 @@ func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLogger
 
 	logClient.Info(ctx, "running broadcast transaction(s) task...")
 
-	err := processBroadcastTransactions(ctx, 10, opts...)
+	err := processBroadcastTransactions(ctx, 1000, opts...)
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
 		return nil
 	}

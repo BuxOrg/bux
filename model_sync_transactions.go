@@ -114,18 +114,17 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 	// group transactions by xpub and return including the tx itself
 	txsByXpub := make(map[string][]*SyncTransaction)
 	for _, tx := range txs {
-		var txModel *Transaction
-		txModel, err = getTransactionByID(ctx, "", tx.ID, opts...)
-		if err != nil {
+		if tx.transaction, err = getTransactionByID(
+			ctx, "", tx.ID, opts...,
+		); err != nil {
 			return nil, err
 		}
 
-		tx.transaction = txModel
 		xPubID := "" // fallback if we have no input xpubs
-		if len(txModel.XpubInIDs) > 0 {
+		if len(tx.transaction.XpubInIDs) > 0 {
 			// use the first xpub for the grouping
 			// in most cases when we are broadcasting, there should be only 1 xpub in
-			xPubID = txModel.XpubInIDs[0]
+			xPubID = tx.transaction.XpubInIDs[0]
 		}
 
 		if txsByXpub[xPubID] == nil {

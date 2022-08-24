@@ -25,7 +25,7 @@ func (c *Client) NewXpub(ctx context.Context, xPubKey string, opts ...ModelOps) 
 	)
 
 	// Save the model
-	if err := xPub.Save(ctx); err != nil {
+	if err := xPub.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -87,7 +87,7 @@ func (c *Client) UpdateXpubMetadata(ctx context.Context, xPubID string, metadata
 	xPub.UpdateMetadata(metadata)
 
 	// Save the model
-	if err = xPub.Save(ctx); err != nil {
+	if err = xPub.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 

@@ -376,7 +376,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdateDestinationMetadata() {
 			assert.Equal(t, "new-value-2", destination.Metadata["test-key-new-2"])
 			assert.Equal(t, "new-value-5", destination.Metadata["test-key-new-5"])
 
-			err = destination.Save(tc.ctx)
+			err = destination.Save(tc.ctx, nil)
 			require.NoError(t, err)
 
 			// make sure it was saved

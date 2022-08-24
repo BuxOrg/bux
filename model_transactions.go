@@ -364,7 +364,7 @@ func (m *Transaction) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *Transaction) Save(ctx context.Context) (err error) {
+func (m *Transaction) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
 
 	// Prepare the metadata
 	if len(m.Metadata) > 0 {
@@ -387,7 +387,7 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 		}
 	}
 
-	return Save(ctx, m)
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID
@@ -569,7 +569,7 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 	if m.draftTransaction != nil {
 		m.draftTransaction.Status = DraftStatusComplete
 		m.draftTransaction.FinalTxID = m.ID
-		if err := m.draftTransaction.Save(ctx); err != nil {
+		if err := m.draftTransaction.Save(ctx, nil); err != nil {
 			return err
 		}
 	}

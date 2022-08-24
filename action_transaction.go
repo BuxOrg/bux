@@ -63,7 +63,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 			incomingTx := newIncomingTransaction(
 				transaction.ID, txHex, newOpts...,
 			)
-			if err = incomingTx.Save(ctx); err != nil {
+			if err = incomingTx.Save(ctx, nil); err != nil {
 				return nil, err
 			}
 
@@ -83,7 +83,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 
 			// If all the options are skipped, do not make a new model (ignore the record)
 			if !sync.isSkipped() {
-				if err = sync.Save(ctx); err != nil {
+				if err = sync.Save(ctx, nil); err != nil {
 					return nil, err
 				}
 			}
@@ -104,7 +104,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 	}
 
 	// Process & save the transaction model
-	if err = transaction.Save(ctx); err != nil {
+	if err = transaction.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -142,7 +142,7 @@ func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txH
 		return nil, err
 	}
 
-	if transaction.BlockHash == "" {
+	if transaction != nil && transaction.BlockHash == "" {
 		// Create the sync transaction model
 		sync := newSyncTransaction(
 			transaction.GetID(),
@@ -157,7 +157,7 @@ func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txH
 
 		// If all the options are skipped, do not make a new model (ignore the record)
 		if !sync.isSkipped() {
-			if err = sync.Save(ctx); err != nil {
+			if err = sync.Save(ctx, nil); err != nil {
 				return nil, err
 			}
 		}
@@ -192,13 +192,19 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 	}
 
 	// do not register transactions we have nothing to do with
-	allowUnknown := c.options.chainstate.Monitor().AllowUnknownTransactions()
-	if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-		return nil, nil
+	monitor := c.options.chainstate.Monitor()
+	if monitor != nil {
+		allowUnknown := monitor.AllowUnknownTransactions()
+		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
+			return nil, nil
+		}
 	}
 
+	// reset utxos, these will be created again during saving
+	transaction.utxos = nil
+
 	// Process & save the transaction model
-	if err = transaction.Save(ctx); err != nil {
+	if err = transaction.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -235,7 +241,7 @@ func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *
 	)
 
 	// Save the model
-	if err = draftTransaction.Save(ctx); err != nil {
+	if err = draftTransaction.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -406,7 +412,7 @@ func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id strin
 	}
 
 	// Save the model
-	if err = transaction.Save(ctx); err != nil {
+	if err = transaction.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -477,7 +483,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 		utxo.SpendingTxID.String = "deleted"
 		utxo.DeletedAt.Valid = true
 		utxo.DeletedAt.Time = time.Now()
-		if err = utxo.Save(ctx); err != nil {
+		if err = utxo.Save(ctx, nil); err != nil {
 			return err
 		}
 	}
@@ -494,7 +500,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 			xpub.CurrentBalance += uint64(math.Abs(float64(outputValue)))
 		}
 
-		if err = xpub.Save(ctx); err != nil {
+		if err = xpub.Save(ctx, nil); err != nil {
 			return err
 		}
 	}
@@ -507,7 +513,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 		}
 		utxo.SpendingTxID.Valid = false
 		utxo.SpendingTxID.String = ""
-		if err = utxo.Save(ctx); err != nil {
+		if err = utxo.Save(ctx, nil); err != nil {
 			return err
 		}
 	}
@@ -520,7 +526,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	syncTransaction.BroadcastStatus = SyncStatusCanceled
 	syncTransaction.P2PStatus = SyncStatusCanceled
 	syncTransaction.SyncStatus = SyncStatusCanceled
-	if err = syncTransaction.Save(ctx); err != nil {
+	if err = syncTransaction.Save(ctx, nil); err != nil {
 		return err
 	}
 
@@ -538,7 +544,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	transaction.XpubOutputValue = XpubOutputValue{"reverted": 0}
 	transaction.DeletedAt.Valid = true
 	transaction.DeletedAt.Time = time.Now()
-	if err = transaction.Save(ctx); err != nil {
+	if err = transaction.Save(ctx, nil); err != nil {
 		return err
 	}
 

@@ -115,7 +115,7 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, public
 	paymailAddress.PublicName = publicName
 
 	// Save the model
-	if err = paymailAddress.Save(ctx); err != nil {
+	if err = paymailAddress.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 	return paymailAddress, nil
@@ -149,7 +149,7 @@ func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts 
 	paymailAddress.DeletedAt.Valid = true
 	paymailAddress.DeletedAt.Time = time.Now()
 
-	return paymailAddress.Save(ctx)
+	return paymailAddress.Save(ctx, nil)
 }
 
 // UpdatePaymailAddressMetadata will update the metadata in an existing paymail address
@@ -171,7 +171,7 @@ func (c *Client) UpdatePaymailAddressMetadata(ctx context.Context, address strin
 	paymailAddress.UpdateMetadata(metadata)
 
 	// Save the model
-	if err = paymailAddress.Save(ctx); err != nil {
+	if err = paymailAddress.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -204,7 +204,7 @@ func (c *Client) UpdatePaymailAddress(ctx context.Context, address, publicName, 
 	}
 
 	// Save the model
-	if err = paymailAddress.Save(ctx); err != nil {
+	if err = paymailAddress.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 

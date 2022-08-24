@@ -53,7 +53,7 @@ func TestXpub_getXpub(t *testing.T) {
 		defer deferMe()
 
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		gXPub, gErr := getXpub(ctx, testXPub, client.DefaultModelOptions()...)
@@ -85,7 +85,7 @@ func TestXpub_getNewDestination(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub("test", client.DefaultModelOptions()...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		metaData := map[string]interface{}{
@@ -99,7 +99,7 @@ func TestXpub_getNewDestination(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		metaData := map[string]interface{}{
@@ -122,7 +122,7 @@ func TestXpub_getNewDestination(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		metaData := map[string]interface{}{
@@ -148,7 +148,7 @@ func TestXpub_childModels(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, client.DefaultModelOptions()...)
@@ -163,7 +163,7 @@ func TestXpub_childModels(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		_, err = xPub.getNewDestination(ctx, utils.ChainExternal, utils.ScriptTypePubKeyHash, client.DefaultModelOptions()...)
@@ -285,7 +285,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 			xPub := newXpub(testXPub, append(tc.client.DefaultModelOptions(), New())...)
 			require.NotNil(t, xPub)
 
-			err := xPub.Save(tc.ctx)
+			err := xPub.Save(tc.ctx, nil)
 			require.NoError(t, err)
 
 			var xPub2 *Xpub
@@ -316,7 +316,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 			xPub := newXpub("bad-key-val", append(tc.client.DefaultModelOptions(), New())...)
 			require.NotNil(t, xPub)
 
-			err := xPub.Save(tc.ctx)
+			err := xPub.Save(tc.ctx, nil)
 			require.Error(t, err)
 		})
 	}
@@ -351,7 +351,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
 		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
 
-		err := xPub.Save(tc.ctx)
+		err := xPub.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
@@ -390,7 +390,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
 		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
 
-		err := xPub.Save(tc.ctx)
+		err := xPub.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
@@ -427,7 +427,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
 		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
 
-		err := xPub.Save(tc.ctx)
+		err := xPub.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()

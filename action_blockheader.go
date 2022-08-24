@@ -39,7 +39,7 @@ func (c *Client) RecordBlockHeader(ctx context.Context, hash string, height uint
 	}
 
 	// Process & save the transaction model
-	if err = blockHeader.Save(ctx); err != nil {
+	if err = blockHeader.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 

@@ -167,8 +167,8 @@ func (m *AccessKey) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *AccessKey) Save(ctx context.Context) error {
-	return Save(ctx, m)
+func (m *AccessKey) Save(ctx context.Context, tx *datastore.Transaction) error {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID

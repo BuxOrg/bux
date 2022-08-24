@@ -33,7 +33,7 @@ func (ts *EmbeddedDBTestSuite) TestProcessIncomingTransaction() {
 			xPub := newXpub(xPubKey, append(tc.client.DefaultModelOptions(), New())...)
 			require.NotNil(t, xPub)
 
-			err = xPub.Save(tc.ctx)
+			err = xPub.Save(tc.ctx, nil)
 			require.NoError(t, err)
 
 			// Create a destination
@@ -43,7 +43,7 @@ func (ts *EmbeddedDBTestSuite) TestProcessIncomingTransaction() {
 			require.NotNil(t, destination)
 
 			// Save the updated xPub and new destination
-			err = xPub.Save(tc.ctx)
+			err = xPub.Save(tc.ctx, nil)
 			require.NoError(t, err)
 
 			// Record an external incoming tx

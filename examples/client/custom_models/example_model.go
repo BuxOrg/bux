@@ -42,8 +42,8 @@ func (e *Example) GetModelTableName() string {
 }
 
 // Save the model
-func (e *Example) Save(ctx context.Context) (err error) {
-	return bux.Save(ctx, e)
+func (e *Example) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
+	return bux.Save(ctx, e, tx)
 }
 
 // GetID will get the ID

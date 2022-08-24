@@ -207,7 +207,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_UpdateXpubMetadata() {
 			assert.Equal(t, "new-value", xPub.Metadata["test-key-new"])
 			assert.Equal(t, "new-value-2", xPub.Metadata["test-key-new-2"])
 
-			err = xPub.Save(tc.ctx)
+			err = xPub.Save(tc.ctx, nil)
 			require.NoError(t, err)
 
 			// make sure it was saved

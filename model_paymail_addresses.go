@@ -197,8 +197,8 @@ func (m *PaymailAddress) GetModelTableName() string {
 }
 
 // Save the model
-func (m *PaymailAddress) Save(ctx context.Context) (err error) {
-	return Save(ctx, m)
+func (m *PaymailAddress) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID

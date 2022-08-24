@@ -196,7 +196,7 @@ func TestDestination_getDestinationByID(t *testing.T) {
 		defer deferMe()
 
 		destination := newDestination(testXPubID, testLockingScript, client.DefaultModelOptions()...)
-		err := destination.Save(ctx)
+		err := destination.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		gDestination, gErr := getDestinationByID(ctx, destination.ID, client.DefaultModelOptions()...)
@@ -228,7 +228,7 @@ func TestDestination_getDestinationByAddress(t *testing.T) {
 		defer deferMe()
 
 		destination := newDestination(testXPubID, testLockingScript, client.DefaultModelOptions()...)
-		err := destination.Save(ctx)
+		err := destination.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		gDestination, gErr := getDestinationByAddress(ctx, testExternalAddress, client.DefaultModelOptions()...)
@@ -260,7 +260,7 @@ func TestDestination_getDestinationByLockingScript(t *testing.T) {
 		defer deferMe()
 
 		destination := newDestination(testXPubID, testLockingScript, client.DefaultModelOptions()...)
-		err := destination.Save(ctx)
+		err := destination.Save(ctx, nil)
 		assert.NoError(t, err)
 
 		gDestination, gErr := getDestinationByLockingScript(ctx, testLockingScript, client.DefaultModelOptions()...)
@@ -453,7 +453,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
 		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
 
-		err := destination.Save(tc.ctx)
+		err := destination.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
@@ -500,7 +500,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
 		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
 
-		err := destination.Save(tc.ctx)
+		err := destination.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()
@@ -545,7 +545,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// @mrz: this is only testing a SET cmd is fired, not the data being set (that is tested elsewhere)
 		setCmd := tc.redisConn.GenericCommand(cache.SetCommand).Expect("ok")
 
-		err := destination.Save(tc.ctx)
+		err := destination.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		err = tc.MockSQLDB.ExpectationsWereMet()

@@ -312,8 +312,8 @@ func (m *Destination) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *Destination) Save(ctx context.Context) (err error) {
-	return Save(ctx, m)
+func (m *Destination) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the model ID

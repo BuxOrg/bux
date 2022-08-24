@@ -225,7 +225,7 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	}
 
 	// Create the new destination
-	if err = destination.Save(ctx); err != nil {
+	if err = destination.Save(ctx, nil); err != nil {
 		return nil, "", nil, err
 	}
 

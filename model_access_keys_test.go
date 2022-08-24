@@ -41,7 +41,7 @@ func Test_newAccessKey(t *testing.T) {
 			}),
 		)...)
 		assert.Equal(t, 64, len(key.Key))
-		err := key.Save(ctx)
+		err := key.Save(ctx, nil)
 		id := key.ID
 		require.NoError(t, err)
 
@@ -61,7 +61,7 @@ func Test_newAccessKey(t *testing.T) {
 
 		key := newAccessKey(testXPubID, append(client.DefaultModelOptions(), New())...)
 		assert.Equal(t, 64, len(key.Key))
-		err := key.Save(ctx)
+		err := key.Save(ctx, nil)
 		id := key.ID
 		require.NoError(t, err)
 
@@ -74,7 +74,7 @@ func Test_newAccessKey(t *testing.T) {
 		// revoke the key
 		accessKey.RevokedAt.Valid = true
 		accessKey.RevokedAt.Time = time.Now()
-		err = accessKey.Save(ctx)
+		err = accessKey.Save(ctx, nil)
 		require.NoError(t, err)
 
 		var revokedKey *AccessKey
@@ -100,7 +100,7 @@ func TestAccessKey_GetAccessKey(t *testing.T) {
 		defer deferMe()
 		opts := client.DefaultModelOptions()
 		ak := newAccessKey(testXPubID, append(opts, New())...)
-		txErr := ak.Save(ctx)
+		txErr := ak.Save(ctx, nil)
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak.Key)
 
@@ -128,12 +128,12 @@ func TestAccessKey_GetAccessKeys(t *testing.T) {
 		defer deferMe()
 		opts := client.DefaultModelOptions()
 		ak := newAccessKey(testXPubID, append(opts, New())...)
-		txErr := ak.Save(ctx)
+		txErr := ak.Save(ctx, nil)
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak.Key)
 
 		ak2 := newAccessKey(testXPubID, append(opts, New())...)
-		txErr = ak2.Save(ctx)
+		txErr = ak2.Save(ctx, nil)
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak2.Key)
 
@@ -153,12 +153,12 @@ func TestAccessKey_GetAccessKeys(t *testing.T) {
 		defer deferMe()
 		opts := client.DefaultModelOptions()
 		ak := newAccessKey(testXPubID, append(opts, New(), WithMetadata("test-key", "test-value-1"))...)
-		txErr := ak.Save(ctx)
+		txErr := ak.Save(ctx, nil)
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak.Key)
 
 		ak2 := newAccessKey(testXPubID, append(opts, New(), WithMetadata("test-key", "test-value-2"))...)
-		txErr = ak2.Save(ctx)
+		txErr = ak2.Save(ctx, nil)
 		require.NoError(t, txErr)
 		assert.NotEqual(t, "", ak2.Key)
 

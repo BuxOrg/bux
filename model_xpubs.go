@@ -154,8 +154,8 @@ func (m *Xpub) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *Xpub) Save(ctx context.Context) error {
-	return Save(ctx, m)
+func (m *Xpub) Save(ctx context.Context, tx *datastore.Transaction) error {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID

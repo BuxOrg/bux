@@ -47,7 +47,7 @@ func TestNewPaymail(t *testing.T) {
 		)
 		p.PublicName = "Tester"
 		p.Avatar = "img url"
-		err = p.Save(ctx)
+		err = p.Save(ctx, nil)
 		require.NoError(t, err)
 
 		p2 := newPaymail(

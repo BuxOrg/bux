@@ -130,7 +130,7 @@ func (ts *EmbeddedDBTestSuite) createXpubModels(tc *TestingClient, t *testing.T,
 		xPub.CurrentBalance = 125000
 		xPub.NextExternalNum = 12
 		xPub.NextInternalNum = 37
-		err = xPub.Save(tc.ctx)
+		err = xPub.Save(tc.ctx, nil)
 		require.NoError(t, err)
 	}
 }

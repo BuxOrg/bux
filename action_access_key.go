@@ -39,7 +39,7 @@ func (c *Client) NewAccessKey(ctx context.Context, rawXpubKey string, opts ...Mo
 	)
 
 	// Save the model
-	if err = accessKey.Save(ctx); err != nil {
+	if err = accessKey.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -207,7 +207,7 @@ func (c *Client) RevokeAccessKey(ctx context.Context, rawXpubKey, id string, opt
 	accessKey.RevokedAt.Time = time.Now()
 
 	// Save the model
-	if err = accessKey.Save(ctx); err != nil {
+	if err = accessKey.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 

@@ -134,8 +134,8 @@ func (m *DraftTransaction) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *DraftTransaction) Save(ctx context.Context) (err error) {
-	if err = Save(ctx, m); err != nil {
+func (m *DraftTransaction) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
+	if err = Save(ctx, m, tx); err != nil {
 
 		m.DebugLog("save tx error: " + err.Error())
 
@@ -251,19 +251,26 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		); err != nil {
 			return err
 		}
-		for _, utxo := range spendableUtxos {
-			// Reserve the utxos
-			utxo.DraftID.Valid = true
-			utxo.DraftID.String = m.ID
-			utxo.ReservedAt.Valid = true
-			utxo.ReservedAt.Time = time.Now().UTC()
 
-			// Save the UTXO
-			if err = utxo.Save(ctx); err != nil {
-				return err
+		if err = m.client.Datastore().NewTx(ctx, func(tx *datastore.Transaction) error {
+			for _, utxo := range spendableUtxos {
+				// Reserve the utxos
+				utxo.DraftID.Valid = true
+				utxo.DraftID.String = m.ID
+				utxo.ReservedAt.Valid = true
+				utxo.ReservedAt.Time = time.Now().UTC()
+
+				// Save the UTXO
+				if err = utxo.Save(ctx, tx); err != nil {
+					_ = tx.Rollback()
+					return err
+				}
+
+				m.Configuration.Outputs[0].Satoshis += utxo.Satoshis
 			}
-
-			m.Configuration.Outputs[0].Satoshis += utxo.Satoshis
+			return tx.Commit()
+		}); err != nil {
+			return err
 		}
 
 		// Get the inputUtxos (in bt.UTXO format) and the total amount of satoshis from the utxos
@@ -677,7 +684,7 @@ func (m *DraftTransaction) setChangeDestinations(ctx context.Context, numberOfDe
 		}
 
 		destination.DraftID = m.ID
-		if err = destination.Save(ctx); err != nil {
+		if err = destination.Save(ctx, nil); err != nil {
 			return err
 		}
 
@@ -765,7 +772,7 @@ func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
 			utxos[index].DraftID.Valid = false
 			utxos[index].ReservedAt.Time = time.Time{}
 			utxos[index].ReservedAt.Valid = false
-			if err = utxos[index].Save(ctx); err != nil {
+			if err = utxos[index].Save(ctx, nil); err != nil {
 				return err
 			}
 		}

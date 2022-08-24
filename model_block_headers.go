@@ -145,8 +145,8 @@ func getLastBlockHeader(ctx context.Context, opts ...ModelOps) (*BlockHeader, er
 }
 
 // Save will save the model into the Datastore
-func (m *BlockHeader) Save(ctx context.Context) (err error) {
-	return Save(ctx, m)
+func (m *BlockHeader) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
+	return Save(ctx, m, tx)
 }
 
 // GetHash will get the hash of the block header

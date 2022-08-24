@@ -119,8 +119,8 @@ func (m *IncomingTransaction) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *IncomingTransaction) Save(ctx context.Context) error {
-	return Save(ctx, m)
+func (m *IncomingTransaction) Save(ctx context.Context, tx *datastore.Transaction) error {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID
@@ -332,7 +332,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 			); err != nil {
 				incomingTx.Status = statusReady
 				incomingTx.StatusMessage = "tx was not found on-chain, attempting to broadcast using provider: " + provider
-				_ = incomingTx.Save(ctx)
+				_ = incomingTx.Save(ctx, nil)
 				return err
 			}
 		} else {
@@ -361,7 +361,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	}
 
 	// Save (add) the transaction (should NOT error)
-	if err = transaction.Save(ctx); err != nil {
+	if err = transaction.Save(ctx, nil); err != nil {
 		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
 		return err
 	}
@@ -369,7 +369,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	// Update (or delete?) the incoming transaction record
 	incomingTx.Status = statusComplete
 	incomingTx.StatusMessage = message
-	if err = incomingTx.Save(ctx); err != nil {
+	if err = incomingTx.Save(ctx, nil); err != nil {
 		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
 		return err
 	}
@@ -382,5 +382,5 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 func bailAndSaveIncomingTransaction(ctx context.Context, incomingTx *IncomingTransaction, errorMessage string) {
 	incomingTx.Status = statusError
 	incomingTx.StatusMessage = errorMessage
-	_ = incomingTx.Save(ctx)
+	_ = incomingTx.Save(ctx, nil)
 }

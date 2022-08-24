@@ -312,7 +312,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		defer deferMe()
 
 		accessKey := newAccessKey(testXPubID, append(client.DefaultModelOptions(), New())...)
-		err = accessKey.Save(ctx)
+		err = accessKey.Save(ctx, nil)
 		require.NoError(t, err)
 
 		var authData *AuthPayload
@@ -341,7 +341,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		defer deferMe()
 
 		accessKey := newAccessKey(testXPubID, append(client.DefaultModelOptions(), New())...)
-		err = accessKey.Save(ctx)
+		err = accessKey.Save(ctx, nil)
 		require.NoError(t, err)
 
 		var authData *AuthPayload

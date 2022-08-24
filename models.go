@@ -57,7 +57,7 @@ type ModelInterface interface {
 	NotNew()
 	RawXpub() string
 	RegisterTasks() error
-	Save(ctx context.Context) (err error)
+	Save(ctx context.Context, tx *datastore.Transaction) (err error)
 	SetOptions(opts ...ModelOps)
 	SetRecordTime(bool)
 	UpdateMetadata(metadata Metadata)

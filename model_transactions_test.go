@@ -118,7 +118,7 @@ func TestTransaction_getTransactionByID(t *testing.T) {
 		defer deferMe()
 		opts := client.DefaultModelOptions()
 		tx := newTransaction(testTxHex, append(opts, New())...)
-		txErr := tx.Save(ctx)
+		txErr := tx.Save(ctx, nil)
 		require.NoError(t, txErr)
 
 		transaction, err := getTransactionByID(ctx, testXPubID, testTxID, client.DefaultModelOptions()...)
@@ -146,7 +146,7 @@ func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 		opts := client.DefaultModelOptions()
 		tx := newTransaction(testTxHex, append(opts, New())...)
 		tx.XpubInIDs = append(tx.XpubInIDs, testXPubID)
-		txErr := tx.Save(ctx)
+		txErr := tx.Save(ctx, nil)
 		require.NoError(t, txErr)
 
 		transactions, err := getTransactionsByXpubID(ctx, testXPubID, nil, nil, nil, opts...)
@@ -636,7 +636,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
-		err := transaction.Save(tc.ctx)
+		err := transaction.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		var transaction2 *Transaction
@@ -669,20 +669,20 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		destination := newDestination(xPub.GetID(), ls.String(), append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, destination)
 
-		err := destination.Save(tc.ctx)
+		err := destination.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		ls2 := parsedTx.Outputs[1].LockingScript
 		destination2 := newDestination(xPub2.GetID(), ls2.String(), append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, destination2)
 
-		err = destination2.Save(tc.ctx)
+		err = destination2.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
-		err = transaction.Save(tc.ctx)
+		err = transaction.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		// check whether the XpubOutIDs were set properly
@@ -728,14 +728,14 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		destination := newDestination(xPub.GetID(), ls.String(), append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, destination)
 
-		err := destination.Save(tc.ctx)
+		err := destination.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		// add the IN transaction
 		transactionIn := newTransaction(testTxInHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transactionIn)
 
-		err = transactionIn.Save(tc.ctx)
+		err = transactionIn.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		var utxoIn *Utxo
@@ -756,7 +756,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		draftTransaction := newDraftTransaction(
 			xPub.rawXpubKey, draftConfig, append(tc.client.DefaultModelOptions(), New())...,
 		)
-		err = draftTransaction.Save(tc.ctx)
+		err = draftTransaction.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		// this transaction should spend the utxo of the IN transaction
@@ -765,7 +765,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		require.NotNil(t, transactionIn)
 		transaction.DraftID = draftTransaction.ID
 
-		err = transaction.Save(tc.ctx)
+		err = transaction.Save(tc.ctx, nil)
 		require.NoError(t, err)
 
 		// check whether the XpubInIDs were set properly

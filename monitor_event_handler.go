@@ -178,7 +178,7 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 								// save that block header has been synced
 								blockHeader.Synced.Valid = true
 								blockHeader.Synced.Time = time.Now()
-								if err = blockHeader.Save(ctx); err != nil {
+								if err = blockHeader.Save(ctx, nil); err != nil {
 									h.logger.Error(ctx, err.Error())
 								}
 							}

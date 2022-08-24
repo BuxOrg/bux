@@ -47,7 +47,7 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 	}
 
 	// Save the destination
-	if err = destination.Save(ctx); err != nil {
+	if err = destination.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -87,7 +87,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 	}
 
 	// Save the destination
-	if err := destination.Save(ctx); err != nil {
+	if err := destination.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -252,7 +252,7 @@ func (c *Client) UpdateDestinationMetadataByID(ctx context.Context, xPubID, id s
 
 	// Update and save the model
 	destination.UpdateMetadata(metadata)
-	if err = destination.Save(ctx); err != nil {
+	if err = destination.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -274,7 +274,7 @@ func (c *Client) UpdateDestinationMetadataByLockingScript(ctx context.Context, x
 
 	// Update and save the metadata
 	destination.UpdateMetadata(metadata)
-	if err = destination.Save(ctx); err != nil {
+	if err = destination.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -296,7 +296,7 @@ func (c *Client) UpdateDestinationMetadataByAddress(ctx context.Context, xPubID,
 
 	// Update and save the metadata
 	destination.UpdateMetadata(metadata)
-	if err = destination.Save(ctx); err != nil {
+	if err = destination.Save(ctx, nil); err != nil {
 		return nil, err
 	}
 

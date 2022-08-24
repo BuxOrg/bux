@@ -46,7 +46,7 @@ func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLog
 		if timeNow.After(models[index].ExpiresAt) {
 			models[index].enrich(ModelDraftTransaction, opts...)
 			models[index].Status = DraftStatusExpired
-			if err = models[index].Save(ctx); err != nil {
+			if err = models[index].Save(ctx, nil); err != nil {
 				return err
 			}
 		}

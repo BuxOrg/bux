@@ -198,8 +198,8 @@ func (m *SyncTransaction) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *SyncTransaction) Save(ctx context.Context) error {
-	return Save(ctx, m)
+func (m *SyncTransaction) Save(ctx context.Context, tx *datastore.Transaction) error {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID
@@ -495,7 +495,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	}
 
 	// Update the sync transaction record
-	if err = syncTx.Save(ctx); err != nil {
+	if err = syncTx.Save(ctx, nil); err != nil {
 		bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionBroadcast, "internal", err.Error(),
 		)
@@ -577,7 +577,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 	message := "transaction was found on-chain by " + txInfo.Provider
 
 	// Save the transaction (should NOT error)
-	if err = transaction.Save(ctx); err != nil {
+	if err = transaction.Save(ctx, nil); err != nil {
 		bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionSync, "internal", err.Error(),
 		)
@@ -595,7 +595,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 	})
 
 	// Update the sync transaction record
-	if err = syncTx.Save(ctx); err != nil {
+	if err = syncTx.Save(ctx, nil); err != nil {
 		bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, syncActionSync, "internal", err.Error())
 		return err
 	}
@@ -694,7 +694,7 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 
 	// Save the record
 	syncTx.P2PStatus = SyncStatusComplete
-	if err = syncTx.Save(ctx); err != nil {
+	if err = syncTx.Save(ctx, nil); err != nil {
 		bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionP2P, "internal", err.Error(),
 		)
@@ -728,7 +728,7 @@ func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, st
 		Provider:      provider,
 		StatusMessage: message,
 	})
-	_ = syncTx.Save(ctx)
+	_ = syncTx.Save(ctx, nil)
 }
 
 // notifyPaymailProviders will notify any associated Paymail providers

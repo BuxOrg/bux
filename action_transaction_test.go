@@ -87,7 +87,7 @@ func Test_RevertTransaction(t *testing.T) {
 			append(client.DefaultModelOptions(), New())...,
 		)
 		// this gets inputs etc.
-		err := draftTransaction.Save(ctx)
+		err := draftTransaction.Save(ctx, nil)
 		require.NoError(t, err)
 
 		var hex string
@@ -113,7 +113,7 @@ func Test_RevertTransaction(t *testing.T) {
 
 		testXPub2 := "xpub661MyMwAqRbcFGX8a3K99DKPZahQBj1z8DsMTE7gqKtYj9yaWv45nkjHYcWdwUcQkGdZMv62HVKNCF4MNqXK2oiRKcfSE7U7iu5hAcyMzUS"
 		xPub := newXpub(testXPub2, append(client.DefaultModelOptions(), New())...)
-		err := xPub.Save(ctx)
+		err := xPub.Save(ctx, nil)
 		require.NoError(t, err)
 
 		var destination *Destination
@@ -121,7 +121,7 @@ func Test_RevertTransaction(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, destination)
 
-		err = destination.Save(ctx)
+		err = destination.Save(ctx, nil)
 		require.NoError(t, err)
 
 		// we need a draft transaction, otherwise we cannot revert
@@ -142,7 +142,7 @@ func Test_RevertTransaction(t *testing.T) {
 			append(client.DefaultModelOptions(), New())...,
 		)
 		// this gets inputs etc.
-		err = draftTransaction.Save(ctx)
+		err = draftTransaction.Save(ctx, nil)
 		require.NoError(t, err)
 
 		var hex string
@@ -209,7 +209,7 @@ func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, 
 		append(client.DefaultModelOptions(), New())...,
 	)
 	// this gets inputs etc.
-	err := draftTransaction.Save(ctx)
+	err := draftTransaction.Save(ctx, nil)
 	require.NoError(t, err)
 
 	var xPriv *bip32.ExtendedKey
@@ -327,24 +327,24 @@ func initBenchmarkData(b *testing.B) (context.Context, ClientInterface, *Xpub, *
 		b.Fail()
 	}
 	destination := newDestination(xPub.GetID(), testLockingScript, opts...)
-	if err = destination.Save(ctx); err != nil {
+	if err = destination.Save(ctx, nil); err != nil {
 		b.Fail()
 	}
 
 	utxo := newUtxo(xPub.GetID(), testTxID, testLockingScript, 1, 122500, opts...)
-	if err = utxo.Save(ctx); err != nil {
+	if err = utxo.Save(ctx, nil); err != nil {
 		b.Fail()
 	}
 	utxo = newUtxo(xPub.GetID(), testTxID, testLockingScript, 2, 122500, opts...)
-	if err = utxo.Save(ctx); err != nil {
+	if err = utxo.Save(ctx, nil); err != nil {
 		b.Fail()
 	}
 	utxo = newUtxo(xPub.GetID(), testTxID, testLockingScript, 3, 122500, opts...)
-	if err = utxo.Save(ctx); err != nil {
+	if err = utxo.Save(ctx, nil); err != nil {
 		b.Fail()
 	}
 	utxo = newUtxo(xPub.GetID(), testTxID, testLockingScript, 4, 122500, opts...)
-	if err = utxo.Save(ctx); err != nil {
+	if err = utxo.Save(ctx, nil); err != nil {
 		b.Fail()
 	}
 

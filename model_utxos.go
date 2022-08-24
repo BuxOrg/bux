@@ -119,8 +119,9 @@ func unReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOp
 	}
 
 	// Get the records
+	ds := NewBaseModel(ModelNameEmpty, opts...).Client().Datastore()
 	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		ctx, ds,
 		&models, conditions, nil, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
@@ -129,15 +130,21 @@ func unReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOp
 		return err
 	}
 
-	// Loop and un-reserve
-	for index := range models {
-		utxo := models[index]
-		utxo.enrich(ModelUtxo, opts...)
-		utxo.DraftID.Valid = false
-		utxo.ReservedAt.Valid = false
-		if err := utxo.Save(ctx); err != nil {
-			return err
+	if err := ds.NewTx(ctx, func(tx *datastore.Transaction) error {
+		// Loop and un-reserve
+		for index := range models {
+			utxo := models[index]
+			utxo.enrich(ModelUtxo, opts...)
+			utxo.DraftID.Valid = false
+			utxo.ReservedAt.Valid = false
+			if err := utxo.Save(ctx, tx); err != nil {
+				_ = tx.Rollback()
+				return err
+			}
 		}
+		return tx.Commit()
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -174,54 +181,61 @@ func reserveUtxos(ctx context.Context, xPubID, draftID string,
 		}
 	}
 
-reserveUtxoLoop:
-	for {
-		var freeUtxos []*Utxo
-		if freeUtxos, err = getSpendableUtxos(
-			ctx, xPubID, utils.ScriptTypePubKeyHash, queryParams, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
-		); err != nil {
-			return nil, err
-		}
+	if err = m.client.Datastore().NewTx(ctx, func(tx *datastore.Transaction) error {
 
-		if len(freeUtxos) == 0 {
-			break reserveUtxoLoop
-		}
-
-		// Set vars
-		size := utils.GetInputSizeForType(utils.ScriptTypePubKeyHash)
-
-		// Loop the returned utxos
-		for _, utxo := range freeUtxos {
-
-			// Set the values on the UTXO
-			utxo.DraftID.Valid = true
-			utxo.DraftID.String = draftID
-			utxo.ReservedAt.Valid = true
-			utxo.ReservedAt.Time = time.Now().UTC()
-
-			// Accumulate the reserved satoshis
-			reservedSatoshis += utxo.Satoshis
-
-			// Save the UTXO
-			// todo: should occur in 1 DB transaction
-			if err = utxo.Save(ctx); err != nil {
-				return nil, err
+	reserveUtxoLoop:
+		for {
+			var freeUtxos []*Utxo
+			if freeUtxos, err = getSpendableUtxos(
+				ctx, xPubID, utils.ScriptTypePubKeyHash, queryParams, fromUtxos, opts..., // todo: allow reservation of utxos by a different utxo destination type
+			); err != nil {
+				return err
 			}
 
-			// Add the utxo to the final slice
-			*utxos = append(*utxos, utxo)
+			if len(freeUtxos) == 0 {
+				break reserveUtxoLoop
+			}
 
-			// add fee for this new input
-			feeNeeded += uint64(float64(size) * feePerByte)
-			if reservedSatoshis >= (satoshis + feeNeeded) {
+			// Set vars
+			size := utils.GetInputSizeForType(utils.ScriptTypePubKeyHash)
+
+			// Loop the returned utxos
+			for _, utxo := range freeUtxos {
+
+				// Set the values on the UTXO
+				utxo.DraftID.Valid = true
+				utxo.DraftID.String = draftID
+				utxo.ReservedAt.Valid = true
+				utxo.ReservedAt.Time = time.Now().UTC()
+
+				// Accumulate the reserved satoshis
+				reservedSatoshis += utxo.Satoshis
+
+				// Save the UTXO
+				if err = utxo.Save(ctx, tx); err != nil {
+					_ = tx.Rollback()
+					return err
+				}
+
+				// Add the utxo to the final slice
+				*utxos = append(*utxos, utxo)
+
+				// add fee for this new input
+				feeNeeded += uint64(float64(size) * feePerByte)
+				if reservedSatoshis >= (satoshis + feeNeeded) {
+					break reserveUtxoLoop
+				}
+			}
+
+			if queryParams.PageSize == 0 {
+				// break the loop if we are not paginating
 				break reserveUtxoLoop
 			}
 		}
 
-		if queryParams.PageSize == 0 {
-			// break the loop if we are not paginating
-			break reserveUtxoLoop
-		}
+		return tx.Commit()
+	}); err != nil {
+		return nil, err
 	}
 
 	if reservedSatoshis < satoshis {
@@ -375,8 +389,8 @@ func (m *Utxo) GetModelTableName() string {
 }
 
 // Save will save the model into the Datastore
-func (m *Utxo) Save(ctx context.Context) (err error) {
-	return Save(ctx, m)
+func (m *Utxo) Save(ctx context.Context, tx *datastore.Transaction) (err error) {
+	return Save(ctx, m, tx)
 }
 
 // GetID will get the ID

@@ -3,7 +3,7 @@ package taskmanager
 import (
 	"context"
 
-	"github.com/vmihailenco/taskq/v3"
+	taskq "github.com/vmihailenco/taskq/v3"
 )
 
 // TaskService is the task related methods

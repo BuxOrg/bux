@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis_rate/v9"
-	"github.com/vmihailenco/taskq/v3"
+	taskq "github.com/vmihailenco/taskq/v3"
 	"github.com/vmihailenco/taskq/v3/memqueue"
 	"github.com/vmihailenco/taskq/v3/redisq"
 )

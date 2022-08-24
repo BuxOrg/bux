@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/vmihailenco/taskq/v3"
+	taskq "github.com/vmihailenco/taskq/v3"
 )
 
 // taskManagerMock is a base for an empty task manager

@@ -20,7 +20,7 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
-	"github.com/vmihailenco/taskq/v3"
+	taskq "github.com/vmihailenco/taskq/v3"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

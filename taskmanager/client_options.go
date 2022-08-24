@@ -5,7 +5,7 @@ import (
 
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/vmihailenco/taskq/v3"
+	taskq "github.com/vmihailenco/taskq/v3"
 )
 
 // ClientOps allow functional options to be supplied

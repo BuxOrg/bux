@@ -120,7 +120,7 @@ func (c *Client) loadPaymailClient() (err error) {
 // loadTaskmanager will load the TaskManager and start the TaskManager client
 func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 	// Load if a custom interface was NOT provided
-	if c.options.taskManager.ClientInterface == nil {
+	if c.options.taskManager.ClientInterface == nil { //nolint:typecheck // false positive
 		c.options.taskManager.ClientInterface, err = taskmanager.NewClient(
 			ctx, c.options.taskManager.options...,
 		)

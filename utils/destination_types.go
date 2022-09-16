@@ -211,7 +211,7 @@ func GetAddressFromScript(lockingScript string) (address string) {
 	} else if scriptType == ScriptTypeTokenStas {
 		// stas is just a normal PubKeyHash with more data appended
 		address, _ = bitcoin.GetAddressFromScript(lockingScript[:50])
-	} else if scriptType == ScriptTypeTokenSensible {
+		// } else if scriptType == ScriptTypeTokenSensible {
 		// sensible tokens do not have the receiving address in the token output, but in another output
 		// sensible does not seem to be a utxo protocol, but an output protocol (all outputs of the tx matter)
 		// TODO how to save the utxo for the token in Bux?

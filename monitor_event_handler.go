@@ -80,12 +80,13 @@ func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscr
 // NewMonitorHandler create a new monitor handler
 func NewMonitorHandler(ctx context.Context, buxClient ClientInterface, monitor chainstate.MonitorService) MonitorEventHandler {
 	return MonitorEventHandler{
-		buxClient: buxClient,
-		ctx:       ctx,
-		debug:     monitor.IsDebug(),
-		limit:     limiter.NewConcurrencyLimiter(runtime.NumCPU()),
-		logger:    monitor.Logger(),
-		monitor:   monitor,
+		blockSyncChannel: make(chan bool),
+		buxClient:        buxClient,
+		ctx:              ctx,
+		debug:            monitor.IsDebug(),
+		limit:            limiter.NewConcurrencyLimiter(runtime.NumCPU()),
+		logger:           monitor.Logger(),
+		monitor:          monitor,
 	}
 }
 

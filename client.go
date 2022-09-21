@@ -453,7 +453,7 @@ func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
 	}
 
 	// Ensure task manager has been loaded
-	if c.Taskmanager() == nil || c.options.taskManager.cronTasks == nil { //nolint:typecheck // false positive
+	if c.Taskmanager() == nil || c.options.taskManager.cronTasks == nil {
 		return ErrTaskManagerNotLoaded
 	} else if len(c.options.taskManager.cronTasks) == 0 {
 		return taskmanager.ErrNoTasksFound
@@ -488,7 +488,7 @@ func (c *Client) SetNotificationsClient(client notifications.ClientInterface) {
 
 // Taskmanager will return the Taskmanager if it exists
 func (c *Client) Taskmanager() taskmanager.ClientInterface {
-	if c.options.taskManager != nil && c.options.taskManager.ClientInterface != nil { //nolint:typecheck // false positive
+	if c.options.taskManager != nil && c.options.taskManager.ClientInterface != nil {
 		return c.options.taskManager.ClientInterface
 	}
 	return nil

@@ -5,6 +5,7 @@ package chainstate
 
 import (
 	"context"
+	"strings"
 	"time"
 )
 
@@ -28,7 +29,12 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 	c.DebugLog("tx_hex: " + txHex)
 
 	// Broadcast or die
-	return c.broadcast(ctx, id, txHex, timeout)
+	successProviders, errorProviders, err := c.broadcast(ctx, id, txHex, timeout)
+	if len(successProviders) > 0 {
+		c.DebugLog("Failed broadcast on: " + strings.Join(errorProviders, ","))
+		return strings.Join(successProviders, ","), nil
+	}
+	return ProviderAll, err
 }
 
 // QueryTransaction will get the transaction info from all providers returning the "first" valid result

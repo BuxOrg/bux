@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,11 +38,15 @@ func TestClient_Broadcast_Success(t *testing.T) {
 			WithNowNodes(&nowNodesTxNotFound{}),         // Not found
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // Not Found
 		)
-		provider, err := c.Broadcast(
+		providers, err := c.Broadcast(
 			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
 		)
 		require.NoError(t, err)
-		assert.Equal(t, minercraft.MinerTaal, provider)
+		miners := strings.Split(providers, ",")
+		assert.Contains(t, miners, minercraft.MinerTaal)
+		assert.Contains(t, miners, minercraft.MinerMempool)
+		assert.Contains(t, miners, minercraft.MinerGorillaPool)
+		assert.Contains(t, miners, minercraft.MinerMatterpool)
 	})
 
 	t.Run("broadcast - success (WhatsOnChain)", func(t *testing.T) {

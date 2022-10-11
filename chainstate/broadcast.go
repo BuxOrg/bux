@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
@@ -44,6 +45,11 @@ var (
 	*/
 )
 
+type broadcastError struct {
+	Error    error
+	Provider string
+}
+
 // doesErrorContain will look at a string for a list of strings
 func doesErrorContain(err string, messages []string) bool {
 	lower := strings.ToLower(err)
@@ -58,82 +64,127 @@ func doesErrorContain(err string, messages []string) bool {
 // broadcast will broadcast using a standard strategy
 //
 // NOTE: if successful (in-mempool), no error will be returned
-func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration) (provider string, err error) {
+func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration) (successProviders []string, errorProviders []string, err error) {
 
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// Set the error messages
-	var errorMessages []string
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	errorChannel := make(chan broadcastError)
 
 	// First: try all mAPI miners (Only supported on main and test right now)
 	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
 		if c.Network() == MainNet || c.Network() == TestNet {
 			for index := range c.options.config.mAPI.broadcastMiners {
-				if c.options.config.mAPI.broadcastMiners[index] != nil {
+				miner := c.options.config.mAPI.broadcastMiners[index]
+				if miner != nil {
+					wg.Add(1)
+					go func(miner *Miner) {
+						defer wg.Done()
 
-					// Broadcast using mAPI
-					provider = c.options.config.mAPI.broadcastMiners[index].Miner.Name
-					if err = broadcastMAPI(
-						ctxWithCancel, c, c.options.config.mAPI.broadcastMiners[index].Miner, id, hex,
-					); err == nil { // Success response!
-						return
-					}
+						// Broadcast using mAPI
+						provider := miner.Miner.Name
+						var bErr error
+						if bErr = broadcastMAPI(
+							ctxWithCancel, c, miner.Miner, id, hex,
+						); bErr != nil {
+							// Check error response for "questionable errors"
+							if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
+								bErr = checkInMempool(ctx, c, id, bErr.Error(), timeout)
+							}
 
-					// Check error response for "questionable errors"
-					if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-						err = checkInMempool(ctx, c, id, err.Error(), timeout)
-						return // Success, found in mempool (or on-chain)
-					}
+							if bErr != nil {
+								errorChannel <- broadcastError{bErr, provider}
+							}
+						}
 
-					// Provider error?
-					errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
+						if bErr == nil {
+							mu.Lock()
+							successProviders = append(successProviders, provider)
+							mu.Unlock()
+						}
+					}(miner)
 				}
 			}
 		}
 	}
 
 	// Try next provider: WhatsOnChain
-	if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
-		provider = ProviderWhatsOnChain
-		if err = broadcastWhatsOnChain(ctx, c, id, hex); err != nil {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 
-			// Check error response for (TX FAILURE)
-			if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-				err = checkInMempool(ctx, c, id, err.Error(), timeout)
-				return // Success, found in mempool (or on-chain)
-			}
-
-			// Provider error?
-			errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
-		} else { // Success!
-			return
-		}
-	}
-
-	// Try next provider: NowNodes
-	if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
-		if c.NowNodes() != nil { // Only if NowNodes is loaded (requires API key)
-			provider = ProviderNowNodes
-			if err = broadcastNowNodes(ctx, c, id, id, hex); err != nil {
-
+		if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
+			provider := ProviderWhatsOnChain
+			var bErr error
+			if bErr = broadcastWhatsOnChain(ctx, c, id, hex); bErr != nil {
 				// Check error response for (TX FAILURE)
-				if doesErrorContain(err.Error(), broadcastQuestionableErrors) {
-					err = checkInMempool(ctx, c, id, err.Error(), timeout)
-					return // Success, found in mempool (or on-chain)
+				if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
+					bErr = checkInMempool(ctx, c, id, bErr.Error(), timeout)
 				}
 
-				// Provider error?
-				errorMessages = storeErrorMessage(c, errorMessages, err.Error(), provider)
-			} else { // Success!
-				return
+				if bErr != nil {
+					errorChannel <- broadcastError{bErr, provider}
+				}
+			}
+
+			if bErr == nil {
+				mu.Lock()
+				successProviders = append(successProviders, provider)
+				mu.Unlock()
 			}
 		}
+	}()
+
+	// Try next provider: NowNodes
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
+			if c.NowNodes() != nil { // Only if NowNodes is loaded (requires API key)
+				provider := ProviderNowNodes
+				var bErr error
+				if bErr = broadcastNowNodes(ctx, c, id, id, hex); bErr != nil {
+
+					// Check error response for (TX FAILURE)
+					if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
+						bErr = checkInMempool(ctx, c, id, bErr.Error(), timeout)
+					}
+
+					if bErr != nil {
+						errorChannel <- broadcastError{bErr, provider}
+					}
+				}
+
+				if bErr == nil {
+					mu.Lock()
+					successProviders = append(successProviders, provider)
+					mu.Unlock()
+				}
+			}
+		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errorChannel)
+	}()
+
+	var errorMessages []string
+	for chanErr := range errorChannel {
+		errorMessages = storeErrorMessage(c, errorMessages, chanErr.Error.Error(), chanErr.Provider)
+		errorProviders = append(errorProviders, chanErr.Provider)
 	}
 
-	// Final error - all failures
-	return ProviderAll, errors.New("broadcast failed on all providers, errors: " + strings.Join(errorMessages, ","))
+	if len(successProviders) > 0 {
+		// return success if someone got the transaction properly into mempool
+		return successProviders, errorProviders, nil
+	}
+
+	return nil, errorProviders, errors.New("broadcast failed on some providers, errors: " + strings.Join(errorMessages, ","))
 }
 
 // storeErrorMessage will append the error and log it out

@@ -391,8 +391,8 @@ github.com/mrz1836/go-datastore v0.1.8 h1:sL/JF+EeRrTHqAxh/DRkldRL6idcNE38WfcgyN
 github.com/mrz1836/go-datastore v0.1.8/go.mod h1:SCKS524bI3K4S2ck2VjA1qiTfv/9/HoWyoeXu5Zn8M0=
 github.com/mrz1836/go-logger v0.3.1 h1:I0MleBuec5gy76dD0M8k8w9F1271NXR8CfwytWeBiVc=
 github.com/mrz1836/go-logger v0.3.1/go.mod h1:wvnL9EjhtiMOgABtr0Q8EwO4YNVTBTDMLlvKAXjSEy0=
-github.com/mrz1836/go-nownodes v0.0.7 h1:E0C1NwQEXnOxmn1yW6cFFTnlUqDc8eCHCMIXNLQhZTI=
-github.com/mrz1836/go-nownodes v0.0.7/go.mod h1:pB8ZHDkTCb7IHudgopKVKOKzta8qLHYbfcwmU8gPV5Q=
+github.com/mrz1836/go-nownodes v0.0.8 h1:aQ/PF6hcFE58tIPgnpCOaSnQhQbuJJ/ywDYTepYWiFY=
+github.com/mrz1836/go-nownodes v0.0.8/go.mod h1:U7RoRWxmGYp2RlX3zklJkNVTfLHgLgcGS2bDMKg1Vp4=
 github.com/mrz1836/go-parameters v0.2.9 h1:Aqh0wPXYIn5sEsEv7FQI/Mr+hu/gYaQxBT3l7bRt46U=
 github.com/mrz1836/go-parameters v0.2.9/go.mod h1:GEdOPlL+jDhIPPQ3SDWoMwsboiwXIdVsOHy5PPLzz9E=
 github.com/mrz1836/go-sanitize v1.1.5 h1:LOywG3ijK/B/D9ik3hsniyIzA1JVZlM2wmp3Q/CBk88=

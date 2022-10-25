@@ -24,7 +24,7 @@ require (
 	github.com/mrz1836/go-cachestore v0.1.4
 	github.com/mrz1836/go-datastore v0.1.8
 	github.com/mrz1836/go-logger v0.3.1
-	github.com/mrz1836/go-nownodes v0.0.7
+	github.com/mrz1836/go-nownodes v0.0.8
 	github.com/mrz1836/go-whatsonchain v0.11.0
 	github.com/newrelic/go-agent/v3 v3.19.2
 	github.com/pkg/errors v0.9.1

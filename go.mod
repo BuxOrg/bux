@@ -38,7 +38,7 @@ require (
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
 	go.mongodb.org/mongo-driver v1.11.0
-	gorm.io/gorm v1.24.1-0.20221019064659-5dd2bb482755
+	gorm.io/gorm v1.24.1
 )
 
 require (
@@ -59,14 +59,13 @@ require (
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
-	github.com/gocraft/dbr/v2 v2.7.2 // indirect
-	github.com/gofrs/uuid v4.3.0+incompatible // indirect
+	github.com/gocraft/dbr/v2 v2.7.3 // indirect
+	github.com/gofrs/uuid v4.3.1+incompatible // indirect
 	github.com/gojektech/heimdall/v6 v6.1.0 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/flatbuffers v22.9.29+incompatible // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/flatbuffers v22.10.26+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -85,12 +84,12 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.11 // indirect
+	github.com/klauspost/compress v1.15.12 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matryer/respond v1.0.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/montanaflynn/stats v0.6.6 // indirect
@@ -122,16 +121,16 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	go.opentelemetry.io/otel v1.7.0 // indirect
-	go.opentelemetry.io/otel/trace v1.7.0 // indirect
+	go.opentelemetry.io/otel v1.11.1 // indirect
+	go.opentelemetry.io/otel/trace v1.11.1 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	golang.org/x/tools v0.1.12 // indirect
-	google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55 // indirect
+	golang.org/x/tools v0.2.0 // indirect
+	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

@@ -511,6 +511,9 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 		// Use the same metadata
 		sync.Metadata = m.Metadata
 
+		// set this transaction on the sync transaction object. This is needed for the first broadcast
+		sync.transaction = m
+
 		// If all the options are skipped, do not make a new model (ignore the record)
 		if !sync.isSkipped() {
 			m.syncTransaction = sync

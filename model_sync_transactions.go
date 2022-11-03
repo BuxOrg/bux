@@ -469,7 +469,7 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	var transaction *Transaction
 	var incomingTransaction *IncomingTransaction
 	var txHex string
-	if syncTx.transaction != nil {
+	if syncTx.transaction != nil && syncTx.transaction.Hex != "" {
 		// the transaction has already been retrieved and added to the syncTx object, just use that
 		transaction = syncTx.transaction
 		txHex = transaction.Hex

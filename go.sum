@@ -405,8 +405,8 @@ github.com/mrz1836/go-sanitize v1.1.5 h1:LOywG3ijK/B/D9ik3hsniyIzA1JVZlM2wmp3Q/C
 github.com/mrz1836/go-sanitize v1.1.5/go.mod h1:HnnbbJTcBhbr770WyRL4SA95I4FFOnGg/RTLJybsuN8=
 github.com/mrz1836/go-validate v0.2.0 h1:F8AcgJRW0B/hUNFAXijrN/EGqYlAIkIIpMDkIMMRUho=
 github.com/mrz1836/go-validate v0.2.0/go.mod h1:IoGAb4rTAL6KgAxOiWL4ICwLqxGbKCKT1GyaSuE/4bk=
-github.com/mrz1836/go-whatsonchain v0.11.0 h1:40SDVeRFWN2S625RQMuSldvunRcKpAa90SqlA8882TA=
-github.com/mrz1836/go-whatsonchain v0.11.0/go.mod h1:FUV52CJ+FcKk08DHJYnwlK6x431rA5xnLFmLQty0vo0=
+github.com/mrz1836/go-whatsonchain v0.12.0 h1:OKCP59qQ3WC1usFxWx50iOiRA2g66HZ9YXMEttRKUxQ=
+github.com/mrz1836/go-whatsonchain v0.12.0/go.mod h1:Mak17/JjwOwaV7p+hfqnBlTvm528pE1AXdejDp+frTs=
 github.com/newrelic/go-agent/v3 v3.0.0/go.mod h1:H28zDNUC0U/b7kLoY4EFOhuth10Xu/9dchozUiOseQQ=
 github.com/newrelic/go-agent/v3 v3.18.2/go.mod h1:BFJOlbZWRlPTXKYIC1TTTtQKTnYntEJaU0VU507hDc0=
 github.com/newrelic/go-agent/v3 v3.20.0 h1:AiV7kFr4kUQZcoZt45zW+W2+iZE0TUsk5S8Uhk5jnsM=
@@ -758,8 +758,8 @@ golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220907062415-87db552b00fd/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.1.0 h1:kunALQeHf1/185U1i0GOB/fy1IPRDDpuoOOqRReG57U=
-golang.org/x/sys v0.1.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.2.0 h1:ljd4t30dBnAvMZaQCevtY0xLLD0A+bRZXbgLMLU1F/A=
+golang.org/x/sys v0.2.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=

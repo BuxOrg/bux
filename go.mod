@@ -7,7 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14
-	github.com/centrifugal/centrifuge-go v0.9.0
+	github.com/centrifugal/centrifuge-go v0.9.3
 	github.com/coocood/freecache v1.2.3
 	github.com/dolthub/go-mysql-server v0.14.0
 	github.com/fergusstrange/embedded-postgres v1.19.0
@@ -25,7 +25,7 @@ require (
 	github.com/mrz1836/go-datastore v0.1.9
 	github.com/mrz1836/go-logger v0.3.1
 	github.com/mrz1836/go-nownodes v0.0.8
-	github.com/mrz1836/go-whatsonchain v0.11.0
+	github.com/mrz1836/go-whatsonchain v0.12.0
 	github.com/newrelic/go-agent/v3 v3.20.0
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
@@ -127,7 +127,7 @@ require (
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect

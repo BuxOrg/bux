@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2/bscript"
+	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
@@ -144,13 +146,12 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	metadata[p2pMetadataField] = p2pTx.MetaData
 	metadata[ReferenceIDField] = p2pTx.Reference
 
-	// todo: check if tx already exists, then gracefully respond?
-
 	// Record the transaction
 	transaction, err := p.client.RecordTransaction(
 		ctx, "", p2pTx.Hex, "", []ModelOps{WithMetadatas(metadata)}...,
 	)
-	if err != nil {
+	// do not return an error if we already have the transaction
+	if err != nil && !errors.Is(err, datastore.ErrDuplicateKey) {
 		return nil, err
 	}
 

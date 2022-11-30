@@ -194,7 +194,7 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 	// do not register transactions we have nothing to do with
 	allowUnknown := c.options.chainstate.Monitor().AllowUnknownTransactions()
 	if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-		return nil, nil
+		return nil, ErrTransactionUnknown
 	}
 
 	// Process & save the transaction model

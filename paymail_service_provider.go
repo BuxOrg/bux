@@ -12,6 +12,7 @@ import (
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
+	"github.com/libsv/go-bt/v2"
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
@@ -155,10 +156,23 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 		return nil, err
 	}
 
+	// we need to set the tx ID here, since our transaction will be empty if we already had it in the DB
+	txID := ""
+	if transaction != nil {
+		txID = transaction.ID
+	} else {
+		var btTx *bt.Tx
+		btTx, err = bt.NewTxFromString(p2pTx.Hex)
+		if err != nil {
+			return nil, err
+		}
+		txID = btTx.TxID()
+	}
+
 	// Return the response from the p2p request
 	return &paymail.P2PTransactionPayload{
 		Note: p2pTx.MetaData.Note,
-		TxID: transaction.ID,
+		TxID: txID,
 	}, nil
 }
 

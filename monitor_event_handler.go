@@ -14,6 +14,7 @@ import (
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/korovkin/limiter"
 	"github.com/libsv/go-bc"
+	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-whatsonchain"
 )
 
@@ -55,7 +56,14 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 		}
 
 		if _, err = recordMonitoredTransaction(b.ctx, b.buxClient, tx); err != nil {
-			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
+			var btTx *bt.Tx
+			btTx, err = bt.NewTxFromString(tx)
+			if err != nil {
+				b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR could not parse transaction: %v", err))
+				return
+			}
+
+			b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx %s: %v", btTx.TxID(), err))
 			b.errors = append(b.errors, err)
 			return
 		}

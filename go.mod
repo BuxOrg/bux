@@ -3,7 +3,7 @@ module github.com/BuxOrg/bux
 go 1.18
 
 require (
-	github.com/99designs/gqlgen v0.17.20
+	github.com/99designs/gqlgen v0.17.21
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.0-alpha.3
 	github.com/bitcoinschema/go-map v0.0.14

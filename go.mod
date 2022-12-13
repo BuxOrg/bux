@@ -22,7 +22,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.1.1
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.1.5
-	github.com/mrz1836/go-datastore v0.1.10
+	github.com/mrz1836/go-datastore v0.1.11
 	github.com/mrz1836/go-logger v0.3.1
 	github.com/mrz1836/go-nownodes v0.0.8
 	github.com/mrz1836/go-whatsonchain v0.12.0
@@ -58,7 +58,7 @@ require (
 	github.com/dolthub/vitess v0.0.0-20221031111135-9aad77e7b39f // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gocraft/dbr/v2 v2.7.3 // indirect
 	github.com/gofrs/uuid v4.3.1+incompatible // indirect
 	github.com/gojektech/heimdall/v6 v6.1.0 // indirect
@@ -78,14 +78,14 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.1 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.12.0 // indirect
+	github.com/jackc/pgtype v1.13.0 // indirect
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.12 // indirect
+	github.com/klauspost/compress v1.15.13 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -118,8 +118,8 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
-	github.com/xdg-go/stringprep v1.0.3 // indirect
+	github.com/xdg-go/scram v1.1.2 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.opentelemetry.io/otel v1.11.1 // indirect
@@ -139,7 +139,7 @@ require (
 	gorm.io/driver/mysql v1.4.4 // indirect
 	gorm.io/driver/postgres v1.4.5 // indirect
 	gorm.io/driver/sqlite v1.4.3 // indirect
-	gorm.io/plugin/dbresolver v1.3.0 // indirect
+	gorm.io/plugin/dbresolver v1.4.0 // indirect
 )
 
 // Issue with redislock package

@@ -2,7 +2,7 @@
 > Bitcoin UTXO & xPub Management Engine
 
 [![Release](https://img.shields.io/github/release-pre/BuxOrg/bux.svg?logo=github&style=flat&v=2)](https://github.com/BuxOrg/bux/releases)
-[![Build Status](https://img.shields.io/github/workflow/status/BuxOrg/bux/run-go-tests?logo=github&v=2)](https://github.com/BuxOrg/bux/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/BuxOrg/bux/run-tests.yml?branch=master&v=2)](https://github.com/BuxOrg/bux/actions)
 [![Report](https://goreportcard.com/badge/github.com/BuxOrg/bux?style=flat&v=2)](https://goreportcard.com/report/github.com/BuxOrg/bux)
 [![codecov](https://codecov.io/gh/BuxOrg/bux/branch/master/graph/badge.svg?v=2)](https://codecov.io/gh/BuxOrg/bux)
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/BuxOrg/bux&style=flat&v=2)](https://mergify.com)

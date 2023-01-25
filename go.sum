@@ -53,7 +53,7 @@ github.com/afex/hystrix-go v0.0.0-20180209013831-27fae8d30f1a/go.mod h1:SkGFH1ia
 github.com/agnivade/levenshtein v1.0.1/go.mod h1:CURSv5d9Uaml+FovSIICkLbAUZ9S4RqaHDIsdSBg7lM=
 github.com/agnivade/levenshtein v1.1.1/go.mod h1:veldBMzWxcCG2ZvUTKD2kJNRdCk5hVbJomOvKkmgYbo=
 github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a h1:HbKu58rmZpUGpz5+4FfNmIU+FmZg2P3Xaj2v2bfNWmk=
-github.com/alicebob/miniredis/v2 v2.23.1 h1:jR6wZggBxwWygeXcdNyguCOCIjPsZyNUNlAkTx2fu0U=
+github.com/alicebob/miniredis/v2 v2.30.0 h1:uA3uhDbCxfO9+DI/DuGeAMr9qI+noVWwGPNTFuKID5M=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNgfBlViaCIJKLlCJ6/fmUseuG0wVQ=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883/go.mod h1:rCTlJbsFo29Kk6CurOXKm700vrz8f0KW0JNfpkRJY/8=
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0/go.mod h1:t2tdKJDJF9BV14lnkjHmOQgcvEKgtqs5a1N3LNdJhGE=
@@ -324,8 +324,8 @@ github.com/mrz1836/go-api-router v0.5.0 h1:c1T47uuQl+4UE20Q3PJoTkYAeF6qb14zFHRfD
 github.com/mrz1836/go-api-router v0.5.0/go.mod h1:30bzDZMWc7Jx82YMNn7pbwJbXqfKbOW7NYbsKewO9A4=
 github.com/mrz1836/go-cache v0.8.0 h1:+vBuTa9+aQ5rBj5c3pHFECOzTbQ6ocyo36UdFKrSFpw=
 github.com/mrz1836/go-cache v0.8.0/go.mod h1:J/dAcNjByP33eIo/h2U3JnL+B9iAifS1PiVqQTz9fLY=
-github.com/mrz1836/go-cachestore v0.1.6 h1:cx/KxwsUtsuwHsrD9QJJ7cafzXnwStohtKL/LkgXYiw=
-github.com/mrz1836/go-cachestore v0.1.6/go.mod h1:/ND2S9BxmXGEUKhge1CH2svMTm33PhJrcIGgFrPuOR4=
+github.com/mrz1836/go-cachestore v0.2.0 h1:lQ228SMo9QWiu0D6hnX9Ja110ruajToErJlu6VreFCU=
+github.com/mrz1836/go-cachestore v0.2.0/go.mod h1:NAeSJjmrcJj58iCpTaafpdsZDtAnBhWF8D+xdqPK9PE=
 github.com/mrz1836/go-datastore v0.2.0 h1:HXaoarbJmBh2jco0Pn/gm/ZhNAZdEQa22fNZRJzaO9k=
 github.com/mrz1836/go-datastore v0.2.0/go.mod h1:bJae8A5tyq7IOn6j9Cc6u6+7QMtNH++aP9gCNKg6sb0=
 github.com/mrz1836/go-logger v0.3.1 h1:I0MleBuec5gy76dD0M8k8w9F1271NXR8CfwytWeBiVc=

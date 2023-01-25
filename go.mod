@@ -137,17 +137,17 @@ require (
 	gorm.io/plugin/dbresolver v1.4.0 // indirect
 )
 
-// Issue with redislock package
+// Issue with redislock package - related to taskq
 replace github.com/bsm/redislock => github.com/bsm/redislock v0.7.2
 
 // Issue with using wrong version of Redigo
 replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9
 
-// embedded_test.go:31 - error intializing gzip reader from /tmp/210883606: gzip: invalid header
+// embedded_test.go:31 - error intializing gzip reader from /tmp/210883606: gzip: invalid header (Issue it GitHub Actions)
 replace github.com/tryvium-travels/memongo => github.com/tryvium-travels/memongo v0.6.1
 
 // Issue with Ask Nancy on related packages
-replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
+replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 
 // Issue with v1.0.6 breaking changes
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4

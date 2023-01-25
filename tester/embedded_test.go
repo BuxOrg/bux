@@ -17,7 +17,8 @@ const (
 	testDatabasePassword = "tester-pw"
 	testDatabasePort2    = 23903
 	testDatabaseUser     = "tester"
-	testMongoVersion     = "4.2.1"
+	//testMongoVersion     = "4.2.1"
+	testMongoVersion = "5.0.0"
 )
 
 // TestCreateMongoServer will test the method CreateMongoServer()

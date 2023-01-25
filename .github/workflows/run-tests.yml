@@ -11,8 +11,6 @@ on:
   push:
     branches:
       - "*"
-  # schedule:
-  #  - cron: '1 4 * * *'
 
 jobs:
   yamllint:

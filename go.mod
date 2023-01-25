@@ -143,6 +143,9 @@ replace github.com/bsm/redislock => github.com/bsm/redislock v0.7.2
 // Issue with using wrong version of Redigo
 replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9
 
+// embedded_test.go:31 - error intializing gzip reader from /tmp/210883606: gzip: invalid header
+// replace github.com/tryvium-travels/memongo => github.com/tryvium-travels/memongo v0.6.1
+
 // Issue with Ask Nancy on related packages
 replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 

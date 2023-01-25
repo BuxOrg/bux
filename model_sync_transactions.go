@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"runtime"
@@ -14,6 +15,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
 	"github.com/tonicpow/go-paymail"
@@ -120,6 +122,17 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 			return nil, err
 		}
 
+		var parentsBroadcast bool
+		parentsBroadcast, err = areParentsBroadcast(ctx, tx, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		if !parentsBroadcast {
+			// if all parents are not broadcast, then we cannot broadcast this tx
+			continue
+		}
+
 		xPubID := "" // fallback if we have no input xpubs
 		if len(tx.transaction.XpubInIDs) > 0 {
 			// use the first xpub for the grouping
@@ -134,6 +147,42 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 	}
 
 	return txsByXpub, nil
+}
+
+func areParentsBroadcast(ctx context.Context, syncTx *SyncTransaction, opts ...ModelOps) (bool, error) {
+
+	tx, err := getTransactionByID(ctx, "", syncTx.ID, opts...)
+	if err != nil {
+		return false, err
+	}
+
+	if tx == nil {
+		return false, ErrMissingTransaction
+	}
+
+	// get the sync transaction of all inputs
+	var btTx *bt.Tx
+	btTx, err = bt.NewTxFromString(tx.Hex)
+	if err != nil {
+		return false, err
+	}
+
+	// check that all inputs we handled have been broadcast, or are not handled by Bux
+	parentsBroadcast := true
+	for _, input := range btTx.Inputs {
+		var parentTx *SyncTransaction
+		previousTxID := hex.EncodeToString(bt.ReverseBytes(input.PreviousTxID()))
+		parentTx, err = GetSyncTransactionByID(ctx, previousTxID, opts...)
+		if err != nil {
+			return false, err
+		}
+		// if we have a sync transaction, and it is not complete, then we cannot broadcast
+		if parentTx != nil && parentTx.BroadcastStatus != SyncStatusComplete {
+			parentsBroadcast = false
+		}
+	}
+
+	return parentsBroadcast, nil
 }
 
 // getTransactionsToNotifyP2P will get the sync transactions to notify p2p paymail providers

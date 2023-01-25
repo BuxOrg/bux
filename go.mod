@@ -33,7 +33,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/gjson v1.14.4
 	github.com/tonicpow/go-minercraft v0.9.0
-	github.com/tonicpow/go-paymail v0.8.1
+	github.com/tonicpow/go-paymail v0.8.2
 	github.com/tryvium-travels/memongo v0.6.1
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
@@ -91,7 +91,7 @@ require (
 	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/mrz1836/go-api-router v0.5.0 // indirect
 	github.com/mrz1836/go-parameters v0.2.9 // indirect
-	github.com/mrz1836/go-sanitize v1.1.5 // indirect
+	github.com/mrz1836/go-sanitize v1.2.0 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.3 // indirect
@@ -107,7 +107,7 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/ugorji/go/codec v1.2.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
@@ -125,7 +125,7 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
-	golang.org/x/tools v0.4.0 // indirect
+	golang.org/x/tools v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20230123190316-2c411cf9d197 // indirect
 	google.golang.org/grpc v1.52.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

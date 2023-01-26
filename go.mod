@@ -43,7 +43,7 @@ require (
 
 require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
-	github.com/bitcoinschema/go-bob v0.3.0 // indirect
+	github.com/bitcoinschema/go-bob v0.3.1 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
 	github.com/bsm/redislock v0.8.2 // indirect
@@ -60,7 +60,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gocraft/dbr/v2 v2.7.3 // indirect
-	github.com/gofrs/uuid v4.3.1+incompatible // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gojektech/heimdall/v6 v6.1.0 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -127,7 +127,7 @@ require (
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20230125152338-dcaf20b6aeaa // indirect
-	google.golang.org/grpc v1.52.1 // indirect
+	google.golang.org/grpc v1.52.3 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -156,4 +156,4 @@ replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
 replace github.com/centrifugal/centrifuge-go => github.com/centrifugal/centrifuge-go v0.8.3
 
 // Bad version of go-bob, failing tests etc
-replace github.com/bitcoinschema/go-bob => github.com/bitcoinschema/go-bob v0.1.11
+replace github.com/bitcoinschema/go-bob => github.com/bitcoinschema/go-bob v0.2.1

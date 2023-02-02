@@ -18,7 +18,7 @@ const (
 	testDatabasePort2    = 23903
 	testDatabaseUser     = "tester"
 	//testMongoVersion     = "4.2.1"
-	testMongoVersion = "5.0.0"
+	testMongoVersion = "5.0.14"
 )
 
 // TestCreateMongoServer will test the method CreateMongoServer()

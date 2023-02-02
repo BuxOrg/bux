@@ -22,7 +22,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.1.1
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.2.0
-	github.com/mrz1836/go-datastore v0.2.0
+	github.com/mrz1836/go-datastore v0.2.1
 	github.com/mrz1836/go-logger v0.3.1
 	github.com/mrz1836/go-nownodes v0.0.8
 	github.com/mrz1836/go-whatsonchain v0.12.1
@@ -34,7 +34,7 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/tonicpow/go-minercraft v0.9.0
 	github.com/tonicpow/go-paymail v0.8.2
-	github.com/tryvium-travels/memongo v0.8.0
+	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
 	go.mongodb.org/mongo-driver v1.11.1
@@ -46,7 +46,7 @@ require (
 	github.com/bitcoinschema/go-bob v0.3.1 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
-	github.com/bsm/redislock v0.8.2 // indirect
+	github.com/bsm/redislock v0.9.0 // indirect
 	github.com/capnm/sysinfo v0.0.0-20130621111458-5909a53897f3 // indirect
 	github.com/centrifugal/protocol v0.9.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
@@ -117,8 +117,8 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	go.opentelemetry.io/otel v1.11.2 // indirect
-	go.opentelemetry.io/otel/trace v1.11.2 // indirect
+	go.opentelemetry.io/otel v1.12.0 // indirect
+	go.opentelemetry.io/otel/trace v1.12.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
@@ -126,7 +126,7 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.5.0 // indirect
-	google.golang.org/genproto v0.0.0-20230125152338-dcaf20b6aeaa // indirect
+	google.golang.org/genproto v0.0.0-20230131230820-1c016267d619 // indirect
 	google.golang.org/grpc v1.52.3 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
@@ -134,7 +134,7 @@ require (
 	gorm.io/driver/mysql v1.4.5 // indirect
 	gorm.io/driver/postgres v1.4.6 // indirect
 	gorm.io/driver/sqlite v1.4.4 // indirect
-	gorm.io/plugin/dbresolver v1.4.0 // indirect
+	gorm.io/plugin/dbresolver v1.4.1 // indirect
 )
 
 // Issue with redislock package - related to taskq
@@ -144,7 +144,7 @@ replace github.com/bsm/redislock => github.com/bsm/redislock v0.7.2
 replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9
 
 // embedded_test.go:31 - error intializing gzip reader from /tmp/210883606: gzip: invalid header (Issue it GitHub Actions)
-replace github.com/tryvium-travels/memongo => github.com/tryvium-travels/memongo v0.6.1
+//replace github.com/tryvium-travels/memongo => github.com/tryvium-travels/memongo v0.6.1
 
 // Issue with Ask Nancy on related packages
 replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3

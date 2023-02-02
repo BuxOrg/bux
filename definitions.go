@@ -23,7 +23,7 @@ const (
 	defaultUserAgent               = "bux: " + version // Default user agent
 	dustLimit                      = uint64(546)       // Dust limit
 	//mongoTestVersion               = "4.2.1"           // Mongo Testing Version
-	mongoTestVersion  = "5.0.14"  // Mongo Testing Version
+	mongoTestVersion  = "6.0.4"   // Mongo Testing Version
 	sqliteTestVersion = "3.37.0"  // SQLite Testing Version (dummy version for now)
 	version           = "v0.4.17" // bux version
 )

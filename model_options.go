@@ -1,5 +1,7 @@
 package bux
 
+import "encoding/json"
+
 // ModelOps allow functional options to be supplied
 // that overwrite default model options
 type ModelOps func(m *Model)
@@ -58,6 +60,18 @@ func WithMetadatas(metadata map[string]interface{}) ModelOps {
 			for key, value := range metadata {
 				m.Metadata[key] = value
 			}
+		}
+	}
+}
+
+// WithMetadataFromJSON will add the metadata record to the model
+func WithMetadataFromJSON(jsonData []byte) ModelOps {
+	return func(m *Model) {
+		if len(jsonData) > 0 {
+			if m.Metadata == nil {
+				m.Metadata = make(Metadata)
+			}
+			_ = json.Unmarshal(jsonData, &m.Metadata)
 		}
 	}
 }

@@ -40,6 +40,23 @@ func TestWithMetadata(t *testing.T) {
 	})
 }
 
+// TestWithMetadataFromJSON will test the method WithMetadataFromJSON()
+func TestWithMetadataFromJSON(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Get opts", func(t *testing.T) {
+		opt := WithMetadataFromJSON([]byte(`{"key": "value"}`))
+		assert.IsType(t, *new(ModelOps), opt)
+	})
+
+	t.Run("apply opts", func(t *testing.T) {
+		opt := WithMetadataFromJSON([]byte(`{"key": "value"}`))
+		m := new(Model)
+		m.SetOptions(opt)
+		assert.Equal(t, "value", m.Metadata["key"])
+	})
+}
+
 // TestWithXPub will test the method WithXPub()
 func TestWithXPub(t *testing.T) {
 	t.Parallel()

@@ -29,7 +29,7 @@ type BloomProcessorFilter struct {
 }
 
 // TxInfo wrapped WhatsOnChain transaction info object
-type TxInfo struct {
+type TxInfo struct { //nolint:musttag // this is a false positive
 	whatsonchain.TxInfo
 	Error string `json:"error"`
 }

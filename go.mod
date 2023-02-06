@@ -14,7 +14,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/jarcoal/httpmock v1.2.0
+	github.com/jarcoal/httpmock v1.3.0
 	github.com/korovkin/limiter v0.0.0-20230101005513-bfac7ca56b5a
 	github.com/libsv/go-bc v0.1.11
 	github.com/libsv/go-bk v0.1.6

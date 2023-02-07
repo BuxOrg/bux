@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.24
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.2
-	github.com/bitcoinschema/go-map v0.0.14
+	github.com/bitcoinschema/go-map v0.0.15
 	github.com/centrifugal/centrifuge-go v0.9.4
 	github.com/coocood/freecache v1.2.3
 	github.com/dolthub/go-mysql-server v0.14.0
@@ -14,7 +14,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/jarcoal/httpmock v1.2.0
+	github.com/jarcoal/httpmock v1.3.0
 	github.com/korovkin/limiter v0.0.0-20230101005513-bfac7ca56b5a
 	github.com/libsv/go-bc v0.1.11
 	github.com/libsv/go-bk v0.1.6
@@ -43,7 +43,7 @@ require (
 
 require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
-	github.com/bitcoinschema/go-bob v0.3.1 // indirect
+	github.com/bitcoinschema/go-bpu v0.0.3 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
 	github.com/bsm/redislock v0.9.0 // indirect
@@ -89,8 +89,8 @@ require (
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
-	github.com/mrz1836/go-api-router v0.5.0 // indirect
-	github.com/mrz1836/go-parameters v0.2.9 // indirect
+	github.com/mrz1836/go-api-router v0.5.1 // indirect
+	github.com/mrz1836/go-parameters v0.3.0 // indirect
 	github.com/mrz1836/go-sanitize v1.2.0 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
@@ -123,7 +123,7 @@ require (
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20230202175211-008b39050e57 // indirect

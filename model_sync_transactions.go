@@ -62,7 +62,7 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 	}
 
 	// Sync
-	ss := SyncStatusPending
+	ss := SyncStatusReady
 	if !config.SyncOnChain {
 		ss = SyncStatusSkipped
 	}
@@ -490,7 +490,7 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 	return nil
 }
 
-// processBroadcastTransaction will process the sync transaction record, or save the failure
+// processBroadcastTransaction will process a sync transaction record and broadcast it
 func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 
 	// Successfully capture any panics, convert to readable string and log the error

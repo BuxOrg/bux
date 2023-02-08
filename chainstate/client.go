@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
@@ -206,6 +207,9 @@ func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
 		// Get the policy quote using the miner
 		quote, err := c.Minercraft().PolicyQuote(ctx, c.options.config.mAPI.broadcastMiners[i].Miner)
 		if err != nil {
+			if strings.Contains(err.Error(), "validation errors") { // todo: fix issue with Taal - do they require an api key?
+				return nil
+			}
 			return err
 		}
 

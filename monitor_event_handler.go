@@ -56,10 +56,10 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 		}
 
 		if _, err = recordMonitoredTransaction(b.ctx, b.buxClient, tx); err != nil {
-			var btTx *bt.Tx
-			btTx, err = bt.NewTxFromString(tx)
-			if err != nil {
-				b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR could not parse transaction: %v", err))
+			// must not override err
+			btTx, btErr := bt.NewTxFromString(tx)
+			if btErr != nil {
+				b.logger.Error(b.ctx, fmt.Sprintf("[MONITOR] ERROR could not parse transaction: %v", btErr))
 				return
 			}
 

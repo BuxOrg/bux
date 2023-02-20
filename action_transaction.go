@@ -25,8 +25,8 @@ import (
 // draftID is the unique draft id from a previously started New() transaction (draft_transaction.ID)
 // opts are model options and can include "metadata"
 func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
-	opts ...ModelOps) (*Transaction, error) {
-
+	opts ...ModelOps,
+) (*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "record_transaction")
 
@@ -119,8 +119,8 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 // txHex is the raw transaction hex
 // opts are model options and can include "metadata"
 func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
-	opts ...ModelOps) (*Transaction, error) {
-
+	opts ...ModelOps,
+) (*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
@@ -130,10 +130,11 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 // RecordMonitoredTransaction will parse the transaction and save it into the Datastore
 //
 // This function will try to record the transaction directly, without checking draft ids etc.
+//
 //nolint:nolintlint,unparam,gci // opts is the way, but not yet being used
 func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txHex string,
-	opts ...ModelOps) (*Transaction, error) {
-
+	opts ...ModelOps,
+) (*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = client.GetOrStartTxn(ctx, "record_monitored_transaction")
 
@@ -191,10 +192,14 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 		return nil, err
 	}
 
-	// do not register transactions we have nothing to do with
-	allowUnknown := c.options.chainstate.Monitor().AllowUnknownTransactions()
-	if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-		return nil, ErrTransactionUnknown
+	monitor := c.options.chainstate.Monitor()
+
+	if monitor != nil {
+		// do not register transactions we have nothing to do with
+		allowUnknown := monitor.AllowUnknownTransactions()
+		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
+			return nil, ErrTransactionUnknown
+		}
 	}
 
 	// Process & save the transaction model
@@ -214,8 +219,8 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 // metadata is added to the model
 // opts are additional model options to be applied
 func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *TransactionConfig,
-	opts ...ModelOps) (*DraftTransaction, error) {
-
+	opts ...ModelOps,
+) (*DraftTransaction, error) {
 	// Check for existing NewRelic draftTransaction
 	ctx = c.GetOrStartTxn(ctx, "new_transaction")
 
@@ -248,7 +253,6 @@ func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *
 // ctx is the context
 // testTxID is the transaction ID
 func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error) {
-
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
 
@@ -269,14 +273,12 @@ func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Tran
 // GetTransactionByID will get a transaction from the Datastore by tx ID
 // uses GetTransaction
 func (c *Client) GetTransactionByID(ctx context.Context, txID string) (*Transaction, error) {
-
 	return c.GetTransaction(ctx, "", txID)
 }
 
 // GetTransactionByHex will get a transaction from the Datastore by its full hex string
 // uses GetTransaction
 func (c *Client) GetTransactionByHex(ctx context.Context, hex string) (*Transaction, error) {
-
 	tx, err := bt.NewTxFromString(hex)
 	if err != nil {
 		return nil, err
@@ -287,8 +289,8 @@ func (c *Client) GetTransactionByHex(ctx context.Context, hex string) (*Transact
 
 // GetTransactions will get all the transactions from the Datastore
 func (c *Client) GetTransactions(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
-
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transactions")
 
@@ -306,8 +308,8 @@ func (c *Client) GetTransactions(ctx context.Context, metadataConditions *Metada
 
 // GetTransactionsAggregate will get a count of all transactions per aggregate column from the Datastore
 func (c *Client) GetTransactionsAggregate(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
-
+	conditions *map[string]interface{}, aggregateColumn string, opts ...ModelOps,
+) (map[string]interface{}, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transactions")
 
@@ -325,8 +327,8 @@ func (c *Client) GetTransactionsAggregate(ctx context.Context, metadataCondition
 
 // GetTransactionsCount will get a count of all the transactions from the Datastore
 func (c *Client) GetTransactionsCount(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
-
+	conditions *map[string]interface{}, opts ...ModelOps,
+) (int64, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transactions_count")
 
@@ -349,8 +351,8 @@ func (c *Client) GetTransactionsCount(ctx context.Context, metadataConditions *M
 // metadataConditions is added to the request for searching
 // conditions is added the request for searching
 func (c *Client) GetTransactionsByXpubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
-	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Transaction, error) {
-
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams,
+) ([]*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
 
@@ -369,8 +371,8 @@ func (c *Client) GetTransactionsByXpubID(ctx context.Context, xPubID string, met
 
 // GetTransactionsByXpubIDCount will get the count of all transactions matching the search criteria
 func (c *Client) GetTransactionsByXpubIDCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
-	conditions *map[string]interface{}) (int64, error) {
-
+	conditions *map[string]interface{},
+) (int64, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "count_transactions")
 
@@ -387,8 +389,8 @@ func (c *Client) GetTransactionsByXpubIDCount(ctx context.Context, xPubID string
 
 // UpdateTransactionMetadata will update the metadata in an existing transaction
 func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id string,
-	metadata Metadata) (*Transaction, error) {
-
+	metadata Metadata,
+) (*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_transaction_by_id")
 
@@ -417,7 +419,6 @@ func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id strin
 // yet been synced on-chain and the utxos have not been spent.
 // All utxos that are reverted will be marked as deleted (and spent)
 func (c *Client) RevertTransaction(ctx context.Context, id string) error {
-
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "revert_transaction_by_id")
 

@@ -23,7 +23,7 @@ require (
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.2.0
 	github.com/mrz1836/go-datastore v0.2.3
-	github.com/mrz1836/go-logger v0.3.1
+	github.com/mrz1836/go-logger v0.3.2
 	github.com/mrz1836/go-nownodes v0.0.8
 	github.com/mrz1836/go-whatsonchain v0.12.1
 	github.com/newrelic/go-agent/v3 v3.20.3

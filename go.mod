@@ -33,7 +33,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/gjson v1.14.4
 	github.com/tonicpow/go-minercraft v0.9.1
-	github.com/tonicpow/go-paymail v0.8.3
+	github.com/tonicpow/go-paymail v0.8.4
 	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
@@ -86,12 +86,12 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matryer/respond v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
-	github.com/miekg/dns v1.1.50 // indirect
+	github.com/miekg/dns v1.1.51 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/mrz1836/go-api-router v0.5.1 // indirect
-	github.com/mrz1836/go-parameters v0.3.0 // indirect
-	github.com/mrz1836/go-sanitize v1.2.0 // indirect
+	github.com/mrz1836/go-parameters v0.3.1 // indirect
+	github.com/mrz1836/go-sanitize v1.2.1 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.3 // indirect
@@ -107,7 +107,7 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/ugorji/go/codec v1.2.9 // indirect
+	github.com/ugorji/go/codec v1.2.10 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
@@ -126,7 +126,7 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
-	google.golang.org/genproto v0.0.0-20230216225411-c8e22ba71e44 // indirect
+	google.golang.org/genproto v0.0.0-20230227214838-9b19f0bdc514 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect

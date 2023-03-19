@@ -74,7 +74,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 	}
 }
 
-func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, e centrifuge.UnsubscribeEvent) {
+func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, _ centrifuge.UnsubscribeEvent) {
 
 	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %s", subscription.Channel()))
 

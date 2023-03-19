@@ -12,28 +12,6 @@ import (
 	"github.com/tonicpow/go-minercraft"
 )
 
-// todo: finish these unit tests!
-
-// TestClient_Close will test the method Close()
-func TestClient_Close(t *testing.T) {
-	// finish test
-}
-
-// TestClient_Debug will test the method Debug()
-func TestClient_Debug(t *testing.T) {
-	// finish test
-}
-
-// TestClient_IsDebug will test the method IsDebug()
-func TestClient_IsDebug(t *testing.T) {
-	// finish test
-}
-
-// TestClient_DebugLog will test the method DebugLog()
-func TestClient_DebugLog(t *testing.T) {
-	// finish test
-}
-
 // TestNewClient will test the method NewClient()
 func TestNewClient(t *testing.T) {
 	t.Parallel()

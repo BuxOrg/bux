@@ -77,16 +77,6 @@ func TestClient_Version(t *testing.T) {
 	})
 }
 
-// TestClient_loadCache will test the method loadCache()
-func TestClient_loadCache(t *testing.T) {
-	// finish test
-}
-
-// TestClient_loadDatastore will test the method loadDatastore()
-func TestClient_loadDatastore(t *testing.T) {
-	// finish test
-}
-
 // TestClient_Cachestore will test the method Cachestore()
 func TestClient_Cachestore(t *testing.T) {
 	t.Parallel()
@@ -133,16 +123,6 @@ func TestClient_Datastore(t *testing.T) {
 		assert.NotNil(t, tc.Datastore())
 		assert.IsType(t, &datastore.Client{}, tc.Datastore())
 	})
-}
-
-// TestClient_AddModels will test the method AddModels()
-func TestClient_AddModels(t *testing.T) {
-	// finish test
-}
-
-// TestClient_Close will test the method Close()
-func TestClient_Close(t *testing.T) {
-	// finish test
 }
 
 // TestClient_PaymailClient will test the method PaymailClient()

@@ -7,18 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// todo: finish unit tests!
-
-// TestAnyTime_Match will test the method Match()
-func TestAnyTime_Match(t *testing.T) {
-	// finish test
-}
-
-// TestAnyGUID_Match will test the method Match()
-func TestAnyGUID_Match(t *testing.T) {
-	// finish test
-}
-
 // TestSQLiteTestConfig will test the method SQLiteTestConfig()
 func TestSQLiteTestConfig(t *testing.T) {
 	t.Parallel()

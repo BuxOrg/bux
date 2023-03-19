@@ -124,21 +124,6 @@ func TestDestination_GetID(t *testing.T) {
 	})
 }
 
-// TestDestination_BeforeCreating will test the method BeforeCreating()
-func TestDestination_BeforeCreating(t *testing.T) {
-	// finish test
-}
-
-// TestDestination_Save will test the method Save()
-func TestDestination_Save(t *testing.T) {
-	// finish test
-}
-
-// TestDestination_setLockingScriptForAddress will test the method setLockingScriptForAddress()
-func TestDestination_setLockingScriptForAddress(t *testing.T) {
-	// finish test
-}
-
 // TestDestination_setAddress will test the method setAddress()
 func TestDestination_setAddress(t *testing.T) {
 

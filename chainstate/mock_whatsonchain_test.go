@@ -244,7 +244,7 @@ type whatsOnChainInMempool struct {
 	whatsOnChainBase
 }
 
-func (w *whatsOnChainInMempool) BroadcastTx(_ context.Context, hex string) (string, error) {
+func (w *whatsOnChainInMempool) BroadcastTx(_ context.Context, _ string) (string, error) {
 	return "", errors.New("unexpected response code 500: 257: txn-already-known")
 }
 

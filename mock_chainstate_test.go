@@ -79,7 +79,7 @@ func (c *chainStateBase) WhatsOnChain() whatsonchain.ClientInterface {
 	return nil
 }
 
-func (c *chainStateBase) RefreshFeeQuotes(ctx context.Context) error {
+func (c *chainStateBase) RefreshFeeQuotes(_ context.Context) error {
 	return nil
 }
 

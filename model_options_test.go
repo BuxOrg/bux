@@ -91,11 +91,6 @@ func TestWithEncryptionKey(t *testing.T) {
 	})
 }
 
-// TestWithClient will test the method WithClient()
-func TestWithClient(t *testing.T) {
-	// finish test
-}
-
 // TestWithMetadatas will test the method WithMetadatas()
 func TestWithMetadatas(t *testing.T) {
 	t.Parallel()

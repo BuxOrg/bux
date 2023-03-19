@@ -241,7 +241,7 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 }
 
 func (m *minerCraftTxOnChain) QueryTransaction(_ context.Context, miner *minercraft.Miner,
-	txID string, opts ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
+	txID string, _ ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
 
 	if txID == onChainExample1TxID && miner.Name == minerTaal.Name {
 		sig := "304402207ede387e82db1ac38e4286b0a967b4fe1c8446c413b3785ccf86b56009439b39022043931eae02d7337b039f109be41dbd44d0472abd10ed78d7e434824ea8ab01da"
@@ -554,7 +554,7 @@ func (m *minerCraftTxNotFound) SubmitTransaction(_ context.Context, miner *miner
 }
 
 func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minercraft.Miner,
-	_ string, opts ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
+	_ string, _ ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
 
 	if miner.Name == minerTaal.Name {
 		sig := "304402201aae61ec65500cf38af48e552c0ea0c62c7937805a99ff6b2dc62bad1a23c183022027a0bb97890f92d41e7b333e8f3dec106aedcd16b782f2f8b46501e104104322"

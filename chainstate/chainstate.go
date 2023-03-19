@@ -10,7 +10,7 @@ import (
 )
 
 // MonitorBlockHeaders will start up a block headers monitor
-func (c *Client) MonitorBlockHeaders(ctx context.Context) error {
+func (c *Client) MonitorBlockHeaders(_ context.Context) error {
 	return nil
 }
 

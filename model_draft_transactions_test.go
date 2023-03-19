@@ -208,11 +208,6 @@ func TestDraftTransaction_getDraftTransactionID(t *testing.T) {
 	})
 }
 
-// TestDraftTransaction_processOutputs process the outputs of the transaction config
-func TestDraftTransaction_processOutputs(t *testing.T) {
-	// todo implement test for this using mock paymail client
-}
-
 // TestDraftTransaction_createTransaction create a transaction hex
 func TestDraftTransaction_createTransaction(t *testing.T) {
 

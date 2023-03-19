@@ -539,9 +539,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	transaction.XpubOutputValue = XpubOutputValue{"reverted": 0}
 	transaction.DeletedAt.Valid = true
 	transaction.DeletedAt.Time = time.Now()
-	if err = transaction.Save(ctx); err != nil {
-		return err
-	}
+	err = transaction.Save(ctx)
 
-	return nil
+	return err
 }

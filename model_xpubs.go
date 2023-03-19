@@ -205,11 +205,8 @@ func (m *Xpub) incrementBalance(ctx context.Context, balanceIncrement int64) err
 	m.CurrentBalance = uint64(newBalance)
 
 	// Fire the after update
-	if err = m.AfterUpdated(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	err = m.AfterUpdated(ctx)
+	return err
 }
 
 // incrementNextNum will atomically update the num of the given chain of the xPub and return it

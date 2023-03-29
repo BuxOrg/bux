@@ -272,8 +272,8 @@ github.com/korovkin/limiter v0.0.0-20230307205149-3d4b2b34c99d/go.mod h1:3NeYeWw
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
-github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
+github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
@@ -291,8 +291,9 @@ github.com/libsv/go-bk v0.1.6/go.mod h1:khJboDoH18FPUaZlzRFKzlVN84d4YfdmlDtdX4LA
 github.com/libsv/go-bt v1.0.4 h1:2Css5lfomk/J97tM5Gk56Lp+tTK6xWYnmHNc/fGO6lE=
 github.com/libsv/go-bt v1.0.4/go.mod h1:AfXoLFYEbY/TvCq/84xTce2xGjPUuC5imokHmcykF2k=
 github.com/libsv/go-bt/v2 v2.1.0-beta.2.0.20211221142324-0d686850c5e0/go.mod h1:KbBf6ugGNMtVwtCSUtlSAHoVhbAie4hu2VM97d1ZL8I=
-github.com/libsv/go-bt/v2 v2.1.1 h1:mhE1re2uEOCPTm9vKVtvTcmc2htVFrw2Qna3k9jdbGg=
 github.com/libsv/go-bt/v2 v2.1.1/go.mod h1:mdzxtlFZ3Ht8gVCyMJOEza6+xMmpiAfF6Whv8+PDqNI=
+github.com/libsv/go-bt/v2 v2.2.0 h1:iP9ytmA8If9DHIJZo353P4lmBY4aESOV+taNlhrhCeE=
+github.com/libsv/go-bt/v2 v2.2.0/go.mod h1:CaLwbbbZZsV/Enaaqd4mCGUIGTlNgVbQtK6fnSYpeh4=
 github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/matryer/respond v1.0.1 h1:RSG07jdn32pH46t4UO1TnpnKlR/ayIpEa4aiK2f9k1U=

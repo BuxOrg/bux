@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.27
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.3
-	github.com/bitcoinschema/go-map v0.0.16
+	github.com/bitcoinschema/go-map v0.0.17
 	github.com/centrifugal/centrifuge-go v0.9.4
 	github.com/coocood/freecache v1.2.3
 	github.com/dolthub/go-mysql-server v0.14.0
@@ -43,7 +43,7 @@ require (
 
 require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
-	github.com/bitcoinschema/go-bpu v0.0.6 // indirect
+	github.com/bitcoinschema/go-bpu v0.0.8 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
 	github.com/bsm/redislock v0.9.1 // indirect

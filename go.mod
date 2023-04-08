@@ -147,7 +147,7 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9
 //replace github.com/tryvium-travels/memongo => github.com/tryvium-travels/memongo v0.6.1
 
 // Issue with Ask Nancy on related packages
-replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
+replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.5.0
 
 // Issue with v1.0.6 breaking changes
 replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4

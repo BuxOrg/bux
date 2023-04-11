@@ -19,7 +19,7 @@ require (
 	github.com/libsv/go-bc v0.1.11
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
-	github.com/libsv/go-bt/v2 v2.2.0
+	github.com/libsv/go-bt/v2 v2.2.1
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.2.0
 	github.com/mrz1836/go-datastore v0.3.0

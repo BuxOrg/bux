@@ -21,7 +21,8 @@ type MemoryPubSub struct {
 func NewMemoryPubSub(ctx context.Context) (*MemoryPubSub, error) {
 
 	return &MemoryPubSub{
-		ctx: ctx,
+		ctx:       ctx,
+		callbacks: make(map[string]func(data string)),
 	}, nil
 }
 

@@ -69,6 +69,7 @@ type Transaction struct {
 	transactionService transactionInterface `gorm:"-" bson:"-"` // Used for interfacing methods
 	utxos              []Utxo               `gorm:"-" bson:"-"` // json:"destinations,omitempty"
 	xPubID             string               `gorm:"-" bson:"-"` // XPub of the user registering this transaction
+	beforeCreateCalled bool                 `gorm:"-" bson:"-"` // Private information that the transaction lifecycle method BeforeCreate was already called
 }
 
 // newTransactionBase creates the standard transaction model base
@@ -451,6 +452,11 @@ func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Transaction) BeforeCreating(ctx context.Context) error {
 
+	if m.beforeCreateCalled {
+		m.DebugLog("skipping: " + m.Name() + " BeforeCreating hook, because already called")
+		return nil
+	}
+
 	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
 
 	// Test for required field(s)
@@ -543,6 +549,7 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 	}
 
 	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.beforeCreateCalled = true
 	return nil
 }
 

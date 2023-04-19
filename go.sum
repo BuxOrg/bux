@@ -102,10 +102,10 @@ github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 h1:fAjc9m62+UWV/WA
 github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13/go.mod h1:SqUrOPUnsFjfmXRMNPybcSiG0BgUW2AuFH8PAnS2iTw=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
-github.com/dolthub/go-mysql-server v0.14.0 h1:Igw9J19cVghGDqifP79TiFpRCawP3aK8O0qfM+s9Z30=
-github.com/dolthub/go-mysql-server v0.14.0/go.mod h1:KtpU4Sf7J+SIat/nxoA733QTn3tdL34NtoGxEBFcTsA=
-github.com/dolthub/vitess v0.0.0-20221031111135-9aad77e7b39f h1:2sNrQiE4pcdgCNp09RTOsmNeepgN5rL+ep8NF8Faw9U=
-github.com/dolthub/vitess v0.0.0-20221031111135-9aad77e7b39f/go.mod h1:oVFIBdqMFEkt4Xz2fzFJBNtzKhDEjwdCF0dzde39iKs=
+github.com/dolthub/go-mysql-server v0.15.0 h1:K2Pq9FMDcJSUSSdHu9WMNKoW87IiE0KQ8BpfA00sw6g=
+github.com/dolthub/go-mysql-server v0.15.0/go.mod h1:hjNxEOnhn4WrCw0lMNpA4LU+lwdS79JjLSnLHyVy5m4=
+github.com/dolthub/vitess v0.0.0-20230407173322-ae1622f38e94 h1:As3/5XDEthX6rvA+Dbiutxo965AdVhxa937j2OGSaog=
+github.com/dolthub/vitess v0.0.0-20230407173322-ae1622f38e94/go.mod h1:IyoysiiOzrIs7QsEHC+yVF0yRQ6W70GXyCXqtI2vVTs=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

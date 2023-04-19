@@ -9,7 +9,7 @@ require (
 	github.com/bitcoinschema/go-map v0.0.17
 	github.com/centrifugal/centrifuge-go v0.9.4
 	github.com/coocood/freecache v1.2.3
-	github.com/dolthub/go-mysql-server v0.14.0
+	github.com/dolthub/go-mysql-server v0.15.0
 	github.com/fergusstrange/embedded-postgres v1.21.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
@@ -55,7 +55,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dolthub/vitess v0.0.0-20221031111135-9aad77e7b39f // indirect
+	github.com/dolthub/vitess v0.0.0-20230407173322-ae1622f38e94 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect

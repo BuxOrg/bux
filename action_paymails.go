@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
@@ -97,6 +98,15 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, public
 
 	// Get the xPub (make sure it exists)
 	_, err := getXpubWithCache(ctx, c, xPubKey, "", c.DefaultModelOptions()...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the paymail address already exists
+	paymail, err := getPaymailAddress(ctx, address, opts...)
+	if paymail != nil {
+		return nil, errors.New("paymail address already exists")
+	}
 	if err != nil {
 		return nil, err
 	}

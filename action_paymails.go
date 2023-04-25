@@ -103,9 +103,12 @@ func (c *Client) NewPaymailAddress(ctx context.Context, xPubKey, address, public
 	}
 
 	// Check if the paymail address already exists
-	paymail, _ := getPaymailAddress(ctx, address, opts...)
+	paymail, err := getPaymailAddress(ctx, address, opts...)
 	if paymail != nil {
 		return nil, errors.New("paymail address already exists")
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	// Start the new paymail address model

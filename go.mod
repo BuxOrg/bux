@@ -37,7 +37,7 @@ require (
 	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
-	go.mongodb.org/mongo-driver v1.11.4
+	go.mongodb.org/mongo-driver v1.11.5
 	gorm.io/gorm v1.25.0
 )
 

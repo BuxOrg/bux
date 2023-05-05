@@ -310,8 +310,8 @@ github.com/mrz1836/go-cache v0.8.0 h1:+vBuTa9+aQ5rBj5c3pHFECOzTbQ6ocyo36UdFKrSFp
 github.com/mrz1836/go-cache v0.8.0/go.mod h1:J/dAcNjByP33eIo/h2U3JnL+B9iAifS1PiVqQTz9fLY=
 github.com/mrz1836/go-cachestore v0.2.0 h1:lQ228SMo9QWiu0D6hnX9Ja110ruajToErJlu6VreFCU=
 github.com/mrz1836/go-cachestore v0.2.0/go.mod h1:NAeSJjmrcJj58iCpTaafpdsZDtAnBhWF8D+xdqPK9PE=
-github.com/mrz1836/go-datastore v0.3.0 h1:Io4ZnkGH3HaMmFnXLVtlN2UEaJfN8j2WfPC8jugyp3s=
-github.com/mrz1836/go-datastore v0.3.0/go.mod h1:f4+LPZqQ+uF3G+rM5x7rJErqD3kWNlk/kWTHR80WXZg=
+github.com/mrz1836/go-datastore v0.3.1 h1:6ripXjENx+8PvWvn7xVP3M85TQF1OO/8M9u3IwLQeU4=
+github.com/mrz1836/go-datastore v0.3.1/go.mod h1:J6TvtrJANHpw3pwjcHkcZLpM0UO8v7pSLi0pAn2hDkY=
 github.com/mrz1836/go-logger v0.3.2 h1:bjd23NwVaLWncXgXAyxAwWLQ02of0Ci3iJIZZEakkFU=
 github.com/mrz1836/go-logger v0.3.2/go.mod h1:8gWPdqxOAFNJOHDXS2ducgsokUOf0wWtAAM3LXPrhYo=
 github.com/mrz1836/go-nownodes v0.0.8 h1:aQ/PF6hcFE58tIPgnpCOaSnQhQbuJJ/ywDYTepYWiFY=
@@ -325,8 +325,8 @@ github.com/mrz1836/go-validate v0.2.0/go.mod h1:IoGAb4rTAL6KgAxOiWL4ICwLqxGbKCKT
 github.com/mrz1836/go-whatsonchain v0.12.2 h1:aqqBK4Oi4TOB5kTSsNElKJhOUOKbs8X0J1zgM9yVO5E=
 github.com/mrz1836/go-whatsonchain v0.12.2/go.mod h1:tkHmnUDVCLCgitHrmtjW1u8RBHGDK01sQYBiJze4rfQ=
 github.com/newrelic/go-agent/v3 v3.0.0/go.mod h1:H28zDNUC0U/b7kLoY4EFOhuth10Xu/9dchozUiOseQQ=
-github.com/newrelic/go-agent/v3 v3.21.0 h1:KpkoW6PnSVzEDEO0W/C9LZEZZGwAb+a9g5DN8ifvt4Y=
-github.com/newrelic/go-agent/v3 v3.21.0/go.mod h1:rT6ZUxJc5rQbWLyCtjqQCOcfb01lKRFbc1yMQkcboWM=
+github.com/newrelic/go-agent/v3 v3.21.1 h1:nSLaQK+w/BHPUEpkPB+fX3ikgaRR2qyQiTECrcY+AmQ=
+github.com/newrelic/go-agent/v3 v3.21.1/go.mod h1:AGagR69YHzamnvfxq9aDHnImvZwxr7C+4w7UN0Bm3UM=
 github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 h1:7OyJ+5MXP8YppKsWAdrdB8z5Ei3skk86ONJ+Vb9fSlo=
 github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1/go.mod h1:CkLa4BKOGaiFbWHsv7zOspG+zXrfjsNXDxsDGvdhT+s=
 github.com/newrelic/go-agent/v3/integrations/nrmongo v1.0.3 h1:ot8oT86p9BLc1n1tnCsT1oGls0EpnRBxzD0RkE7RaL0=

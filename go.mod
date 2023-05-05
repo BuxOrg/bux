@@ -22,11 +22,11 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.1
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.2.0
-	github.com/mrz1836/go-datastore v0.3.0
+	github.com/mrz1836/go-datastore v0.3.1
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/mrz1836/go-nownodes v0.0.8
 	github.com/mrz1836/go-whatsonchain v0.12.2
-	github.com/newrelic/go-agent/v3 v3.21.0
+	github.com/newrelic/go-agent/v3 v3.21.1
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
@@ -37,7 +37,7 @@ require (
 	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
-	go.mongodb.org/mongo-driver v1.11.4
+	go.mongodb.org/mongo-driver v1.11.6
 	gorm.io/gorm v1.25.0
 )
 

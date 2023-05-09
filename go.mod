@@ -22,7 +22,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.1
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.2.0
-	github.com/mrz1836/go-datastore v0.3.1
+	github.com/mrz1836/go-datastore v0.4.0
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/mrz1836/go-nownodes v0.1.0
 	github.com/mrz1836/go-whatsonchain v0.12.2
@@ -121,7 +121,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.15.1 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect

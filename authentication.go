@@ -46,8 +46,12 @@ func (c *Client) AuthenticateRequest(ctx context.Context, req *http.Request, adm
 		}
 	} else if authAccessKey != "" {
 		xPubOrAccessKey = authAccessKey
+		pubAccKey, err := bitcoin.PubKeyFromPrivateKeyString(xPubOrAccessKey, true)
+		if err != nil {
+			return req, ErrAuthAccessKeyNotFound
+		}
 
-		accessKey, err := getAccessKey(ctx, utils.Hash(authAccessKey), c.DefaultModelOptions()...)
+		accessKey, err := getAccessKey(ctx, utils.Hash(pubAccKey), c.DefaultModelOptions()...)
 		if err != nil {
 			return req, err
 		}

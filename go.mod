@@ -22,7 +22,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.1
 	github.com/mrz1836/go-cache v0.8.0
 	github.com/mrz1836/go-cachestore v0.2.0
-	github.com/mrz1836/go-datastore v0.4.1
+	github.com/mrz1836/go-datastore v0.4.2
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/mrz1836/go-nownodes v0.1.0
 	github.com/mrz1836/go-whatsonchain v0.12.2

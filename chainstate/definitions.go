@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bc"
 )
 
 // Chainstate configuration defaults
@@ -52,19 +53,18 @@ const (
 
 // TransactionInfo is the universal information about the transaction found from a chain provider
 type TransactionInfo struct {
-	BlockHash     string `json:"block_hash,omitempty"`    // mAPI, WOC
-	BlockHeight   int64  `json:"block_height"`            // mAPI, WOC
-	Confirmations int64  `json:"confirmations,omitempty"` // mAPI, WOC
-	ID            string `json:"id"`                      // Transaction ID (Hex)
-	MinerID       string `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
-	Provider      string `json:"provider,omitempty"`      // Provider is our internal source
+	BlockHash     string          `json:"block_hash,omitempty"`    // mAPI, WOC
+	BlockHeight   int64           `json:"block_height"`            // mAPI, WOC
+	Confirmations int64           `json:"confirmations,omitempty"` // mAPI, WOC
+	ID            string          `json:"id"`                      // Transaction ID (Hex)
+	MinerID       string          `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
+	Provider      string          `json:"provider,omitempty"`      // Provider is our internal source
+	MerkleProof   *bc.MerkleProof `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY
 }
 
-var (
-	// DefaultFee is used when a fee has not been set by the user
-	// This default is currently accepted by all BitcoinSV miners (500/1000) (4.25.22)
-	DefaultFee = &utils.FeeUnit{
-		Satoshis: 1,
-		Bytes:    2,
-	}
-)
+// DefaultFee is used when a fee has not been set by the user
+// This default is currently accepted by all BitcoinSV miners (500/1000) (4.25.22)
+var DefaultFee = &utils.FeeUnit{
+	Satoshis: 1,
+	Bytes:    2,
+}

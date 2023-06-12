@@ -12,20 +12,21 @@ import (
 )
 
 // chainStateBase is the base interface / methods
-type chainStateBase struct {
-}
+type chainStateBase struct{}
 
 func (c *chainStateBase) Broadcast(context.Context, string, string, time.Duration) (string, error) {
 	return "", nil
 }
 
 func (c *chainStateBase) QueryTransaction(context.Context, string,
-	chainstate.RequiredIn, time.Duration) (*chainstate.TransactionInfo, error) {
+	chainstate.RequiredIn, time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	return nil, nil
 }
 
 func (c *chainStateBase) QueryTransactionFastest(context.Context, string, chainstate.RequiredIn,
-	time.Duration) (*chainstate.TransactionInfo, error) {
+	time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	return nil, nil
 }
 
@@ -92,8 +93,8 @@ func (c *chainStateEverythingInMempool) Broadcast(context.Context, string, strin
 }
 
 func (c *chainStateEverythingInMempool) QueryTransaction(_ context.Context, id string,
-	_ chainstate.RequiredIn, _ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ chainstate.RequiredIn, _ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	minerID, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     "",
@@ -106,8 +107,8 @@ func (c *chainStateEverythingInMempool) QueryTransaction(_ context.Context, id s
 }
 
 func (c *chainStateEverythingInMempool) QueryTransactionFastest(_ context.Context, id string, _ chainstate.RequiredIn,
-	_ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	minerID, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     "",
@@ -127,9 +128,13 @@ func (c *chainStateEverythingOnChain) Monitor() chainstate.MonitorService {
 	return nil
 }
 
-func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id string,
-	_ chainstate.RequiredIn, _ time.Duration) (*chainstate.TransactionInfo, error) {
+func (c *chainStateEverythingOnChain) Pulse() chainstate.PulseService {
+	return nil
+}
 
+func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id string,
+	_ chainstate.RequiredIn, _ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	hash, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     hash,
@@ -142,8 +147,8 @@ func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id str
 }
 
 func (c *chainStateEverythingOnChain) QueryTransactionFastest(_ context.Context, id string, _ chainstate.RequiredIn,
-	_ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	hash, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     hash,
@@ -152,5 +157,20 @@ func (c *chainStateEverythingOnChain) QueryTransactionFastest(_ context.Context,
 		ID:            id,
 		MinerID:       "",
 		Provider:      "whatsonchain",
+	}, nil
+}
+
+func (c *chainStateEverythingOnChain) QueryMAPITransaction(_ context.Context, id string, _ chainstate.RequiredIn,
+	_ time.Duration,
+) (*chainstate.TransactionInfo, error) {
+	hash, _ := utils.RandomHex(32)
+	return &chainstate.TransactionInfo{
+		BlockHash:     hash,
+		BlockHeight:   600000,
+		Confirmations: 10,
+		ID:            id,
+		MinerID:       "",
+		Provider:      "TAAL",
+		MerkleProof:   nil,
 	}, nil
 }

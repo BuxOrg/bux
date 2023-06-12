@@ -22,7 +22,7 @@ const (
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
 	defaultUserAgent               = "bux: " + version // Default user agent
 	dustLimit                      = uint64(546)       // Dust limit
-	//mongoTestVersion               = "4.2.1"           // Mongo Testing Version
+	// mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	mongoTestVersion  = "6.0.4"  // Mongo Testing Version
 	sqliteTestVersion = "3.37.0" // SQLite Testing Version (dummy version for now)
 	version           = "v0.5.1" // bux version
@@ -54,22 +54,20 @@ const (
 	ModelXPub                ModelName = "xpub"
 )
 
-var (
-	// AllModelNames is a list of all models
-	AllModelNames = []ModelName{
-		ModelAccessKey,
-		ModelBlockHeader,
-		ModelDestination,
-		ModelIncomingTransaction,
-		ModelMetadata,
-		ModelPaymailAddress,
-		ModelPaymailAddress,
-		ModelSyncTransaction,
-		ModelTransaction,
-		ModelUtxo,
-		ModelXPub,
-	}
-)
+// AllModelNames is a list of all models
+var AllModelNames = []ModelName{
+	ModelAccessKey,
+	ModelBlockHeader,
+	ModelDestination,
+	ModelIncomingTransaction,
+	ModelMetadata,
+	ModelPaymailAddress,
+	ModelPaymailAddress,
+	ModelSyncTransaction,
+	ModelTransaction,
+	ModelUtxo,
+	ModelXPub,
+}
 
 // Internal table names
 const (
@@ -108,6 +106,7 @@ const (
 	typeField            = "type"
 	xPubIDField          = "xpub_id"
 	xPubMetadataField    = "xpub_metadata"
+	merkleProof          = "merkle_proof"
 
 	// Universal statuses
 	statusCanceled   = "canceled"
@@ -146,59 +145,55 @@ const (
 	cacheKeyXpubModel                       = "xpub-id-%s"                    // model-id-<xpub_id>
 )
 
-var (
+// BaseModels is the list of models for loading the engine and AutoMigration (defaults)
+var BaseModels = []interface{}{
+	// Base extended HD-key table
+	&Xpub{
+		Model: *NewBaseModel(ModelXPub),
+	},
 
-	// BaseModels is the list of models for loading the engine and AutoMigration (defaults)
-	BaseModels = []interface{}{
+	// Access keys (extend access from xPub)
+	&AccessKey{
+		Model: *NewBaseModel(ModelAccessKey),
+	},
 
-		// Base extended HD-key table
-		&Xpub{
-			Model: *NewBaseModel(ModelXPub),
-		},
+	// Draft transactions are created before the final transaction is completed
+	&DraftTransaction{
+		Model: *NewBaseModel(ModelDraftTransaction),
+	},
 
-		// Access keys (extend access from xPub)
-		&AccessKey{
-			Model: *NewBaseModel(ModelAccessKey),
-		},
+	// Incoming transactions (external & unknown) (related to Transaction & Draft)
+	&IncomingTransaction{
+		Model: *NewBaseModel(ModelIncomingTransaction),
+	},
 
-		// Draft transactions are created before the final transaction is completed
-		&DraftTransaction{
-			Model: *NewBaseModel(ModelDraftTransaction),
-		},
+	// Finalized transactions (related to Draft)
+	&Transaction{
+		Model: *NewBaseModel(ModelTransaction),
+	},
 
-		// Incoming transactions (external & unknown) (related to Transaction & Draft)
-		&IncomingTransaction{
-			Model: *NewBaseModel(ModelIncomingTransaction),
-		},
+	// Block Headers as received by the BitCoin network
+	&BlockHeader{
+		Model: *NewBaseModel(ModelBlockHeader),
+	},
 
-		// Finalized transactions (related to Draft)
-		&Transaction{
-			Model: *NewBaseModel(ModelTransaction),
-		},
+	// Sync configuration for transactions (on-chain) (related to Transaction)
+	&SyncTransaction{
+		Model: *NewBaseModel(ModelSyncTransaction),
+	},
 
-		// Block Headers as received by the BitCoin network
-		&BlockHeader{
-			Model: *NewBaseModel(ModelBlockHeader),
-		},
+	// Various types of destinations (common is: P2PKH Address)
+	&Destination{
+		Model: *NewBaseModel(ModelDestination),
+	},
 
-		// Sync configuration for transactions (on-chain) (related to Transaction)
-		&SyncTransaction{
-			Model: *NewBaseModel(ModelSyncTransaction),
-		},
+	// Unspent outputs from known transactions
+	&Utxo{
+		Model: *NewBaseModel(ModelUtxo),
+	},
 
-		// Various types of destinations (common is: P2PKH Address)
-		&Destination{
-			Model: *NewBaseModel(ModelDestination),
-		},
-
-		// Unspent outputs from known transactions
-		&Utxo{
-			Model: *NewBaseModel(ModelUtxo),
-		},
-
-		// Paymail addresses related to XPubs (automatically added when paymail is enabled)
-		/*&PaymailAddress{
-			Model: *NewBaseModel(ModelPaymailAddress),
-		},*/
-	}
-)
+	// Paymail addresses related to XPubs (automatically added when paymail is enabled)
+	/*&PaymailAddress{
+		Model: *NewBaseModel(ModelPaymailAddress),
+	},*/
+}

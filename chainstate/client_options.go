@@ -19,7 +19,6 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
-
 	// Create the default miners
 	bm, qm := defaultMiners()
 
@@ -43,7 +42,6 @@ func defaultClientOptions() *clientOptions {
 
 // defaultMiners will return the miners for default configuration
 func defaultMiners() (broadcastMiners []*Miner, queryMiners []*Miner) {
-
 	// Set the broadcast miners
 	miners, _ := minercraft.DefaultMiners()
 
@@ -226,6 +224,15 @@ func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {
 		if len(providers) > 0 {
 			c.config.excludedProviders = providers
+		}
+	}
+}
+
+// WithPulse will set a Pulse Agent
+func WithPulse(ctx context.Context, pulse *PulseOptions) ClientOps {
+	return func(c *clientOptions) {
+		if pulse != nil {
+			c.pulseAgent = NewPulse(ctx, pulse)
 		}
 	}
 }

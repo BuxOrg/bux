@@ -29,6 +29,7 @@ type (
 		monitor         MonitorService              // Monitor service
 		newRelicEnabled bool                        // If NewRelic is enabled (parent application)
 		userAgent       string                      // Custom user agent for outgoing HTTP Requests
+		pulseAgent      PulseService                // Pulse agent for informing about the creation of new blocks
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -64,7 +65,6 @@ type (
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
 func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) {
-
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 
@@ -193,9 +193,13 @@ func (c *Client) QueryMiners() []*Miner {
 	return c.options.config.mAPI.queryMiners
 }
 
+// Pulse will return the Pulse client
+func (c *Client) Pulse() PulseService {
+	return c.options.pulseAgent
+}
+
 // RefreshFeeQuotes will update all fee quotes for all broadcasting miners in mAPI
 func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
-
 	// Loop all broadcast miners
 	for i := range c.options.config.mAPI.broadcastMiners {
 

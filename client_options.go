@@ -31,10 +31,8 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
-
 	// Set the default options
 	return &clientOptions{
-
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
 		itc: true,
 
@@ -161,7 +159,6 @@ func (o *clientOptions) addModels(list string, models ...interface{}) {
 
 // DefaultModelOptions will set any default model options (from Client options->model)
 func (c *Client) DefaultModelOptions(opts ...ModelOps) []ModelOps {
-
 	// Set the Client from the bux.Client onto the model
 	opts = append(opts, WithClient(c))
 
@@ -458,9 +455,9 @@ func WithPaymailClient(client paymail.ClientInterface) ClientOps {
 
 // WithPaymailSupport will set the configuration for Paymail support (as a server)
 func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string,
-	domainValidation, senderValidation bool) ClientOps {
+	domainValidation, senderValidation bool,
+) ClientOps {
 	return func(c *clientOptions) {
-
 		// Add generic capabilities
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithP2PCapabilities())
 
@@ -702,6 +699,15 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 	return func(c *clientOptions) {
 		if customNotifications != nil {
 			c.notifications.ClientInterface = customNotifications
+		}
+	}
+}
+
+// WithPulse will set Pulse Agent
+func WithPulse(ctx context.Context, pulseOptions *chainstate.PulseOptions) ClientOps {
+	return func(c *clientOptions) {
+		if pulseOptions != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithPulse(ctx, pulseOptions))
 		}
 	}
 }

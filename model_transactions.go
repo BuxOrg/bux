@@ -56,6 +56,7 @@ type Transaction struct {
 	TotalValue      uint64          `json:"total_value" toml:"total_value" yaml:"total_value" gorm:"<-create;type:bigint" bson:"total_value,omitempty"`
 	XpubMetadata    XpubMetadata    `json:"-" toml:"xpub_metadata" gorm:"<-;type:json;xpub_id specific metadata" bson:"xpub_metadata,omitempty"`
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
+	MerkleProof     MerkleProof     `json:"merkle_proof" toml:"merkle_proof" yaml:"merkle_proof" gorm:"<-create;type:text;comment:Merkle Proof payload from mAPI" bson:"merkle_proof,omitempty"`
 
 	// Virtual Fields
 	OutputValue int64                `json:"output_value" toml:"-" yaml:"-" gorm:"-" bson:"-,omitempty"`
@@ -109,7 +110,6 @@ func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (tx *Tra
 
 // newTransactionFromIncomingTransaction will start a new transaction model using an incomingTx
 func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Transaction {
-
 	// Create the base
 	tx := newTransactionBase(incomingTx.Hex, incomingTx.GetOptions(true)...)
 	tx.TransactionBase.parsedTx = incomingTx.TransactionBase.parsedTx
@@ -134,7 +134,6 @@ func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Tra
 
 // getTransactionByID will get the model from a given transaction ID
 func getTransactionByID(ctx context.Context, xPubID, txID string, opts ...ModelOps) (*Transaction, error) {
-
 	// Construct an empty tx
 	tx := newTransaction("", opts...)
 	tx.ID = txID
@@ -160,8 +159,8 @@ func (m *Transaction) setXPubID() {
 
 // getTransactions will get all the transactions with the given conditions
 func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
 	modelItems := make([]*Transaction, 0)
 	if err := getModelsByConditions(ctx, ModelTransaction, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
@@ -172,8 +171,8 @@ func getTransactions(ctx context.Context, metadata *Metadata, conditions *map[st
 
 // getTransactionsAggregate will get a count of all transactions per aggregate column with the given conditions
 func getTransactionsAggregate(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
-
+	aggregateColumn string, opts ...ModelOps,
+) (map[string]interface{}, error) {
 	modelItems := make([]*Transaction, 0)
 	results, err := getModelsAggregateByConditions(
 		ctx, ModelTransaction, &modelItems, metadata, conditions, aggregateColumn, opts...,
@@ -187,14 +186,15 @@ func getTransactionsAggregate(ctx context.Context, metadata *Metadata, condition
 
 // getTransactionsCount will get a count of all the transactions with the given conditions
 func getTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	opts ...ModelOps) (int64, error) {
+	opts ...ModelOps,
+) (int64, error) {
 	return getModelCountByConditions(ctx, ModelTransaction, Transaction{}, metadata, conditions, opts...)
 }
 
 // getTransactionsCountByXpubID will get the count of all the models for a given xpub ID
 func getTransactionsCountByXpubID(ctx context.Context, xPubID string, metadata *Metadata,
-	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
-
+	conditions *map[string]interface{}, opts ...ModelOps,
+) (int64, error) {
 	dbConditions := processDBConditions(xPubID, conditions, metadata)
 
 	return getTransactionsCountInternal(ctx, dbConditions, opts...)
@@ -203,16 +203,16 @@ func getTransactionsCountByXpubID(ctx context.Context, xPubID string, metadata *
 // getTransactionsByXpubID will get all the models for a given xpub ID
 func getTransactionsByXpubID(ctx context.Context, xPubID string,
 	metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
 	dbConditions := processDBConditions(xPubID, conditions, metadata)
 
 	return getTransactionsInternal(ctx, dbConditions, xPubID, queryParams, opts...)
 }
 
 func processDBConditions(xPubID string, conditions *map[string]interface{},
-	metadata *Metadata) map[string]interface{} {
-
+	metadata *Metadata,
+) map[string]interface{} {
 	dbConditions := map[string]interface{}{
 		"$or": []map[string]interface{}{{
 			"xpub_in_ids": xPubID,
@@ -280,10 +280,44 @@ func processDBConditions(xPubID string, conditions *map[string]interface{},
 	return dbConditions
 }
 
+// getTransactionsWithoutMerkleProof get all transactions with Null Merkle Proof
+// NOTE: this function should only be used internally, it allows to query the whole transaction table
+func getTransactionsWithoutMerkleProof(ctx context.Context, conditions map[string]interface{}, xPubID string,
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
+	var models []Transaction
+	if err := getModels(
+		ctx,
+		NewBaseModel(ModelTransaction, opts...).Client().Datastore(),
+		&models,
+		map[string]interface{}{
+			merkleProof: nil,
+		},
+		nil,
+		defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Loop and enrich
+	transactions := make([]*Transaction, 0)
+	for index := range models {
+		models[index].enrich(ModelTransaction, opts...)
+		tx := &models[index]
+		transactions = append(transactions, tx)
+	}
+
+	return transactions, nil
+}
+
 // getTransactionsInternal get all transactions for the given conditions
 // NOTE: this function should only be used internally, it allows to query the whole transaction table
 func getTransactionsInternal(ctx context.Context, conditions map[string]interface{}, xPubID string,
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error) {
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
 	var models []Transaction
 	if err := getModels(
 		ctx,
@@ -313,8 +347,8 @@ func getTransactionsInternal(ctx context.Context, conditions map[string]interfac
 
 // getTransactionsCountInternal get a count of all transactions for the given conditions
 func getTransactionsCountInternal(ctx context.Context, conditions map[string]interface{},
-	opts ...ModelOps) (int64, error) {
-
+	opts ...ModelOps,
+) (int64, error) {
 	count, err := getModelCount(
 		ctx,
 		NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
@@ -366,7 +400,6 @@ func (m *Transaction) GetModelTableName() string {
 
 // Save will save the model into the Datastore
 func (m *Transaction) Save(ctx context.Context) (err error) {
-
 	// Prepare the metadata
 	if len(m.Metadata) > 0 {
 		// set the metadata to be xpub specific, but only if we have a valid xpub ID
@@ -398,7 +431,6 @@ func (m *Transaction) GetID() string {
 
 // setID will set the ID from the transaction hex
 func (m *Transaction) setID() (err error) {
-
 	// Parse the hex (if not already parsed)
 	if m.TransactionBase.parsedTx == nil {
 		if m.TransactionBase.parsedTx, err = bt.NewTxFromString(m.Hex); err != nil {
@@ -414,7 +446,6 @@ func (m *Transaction) setID() (err error) {
 
 // getValue calculates the value of the transaction
 func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
-
 	// Parse the outputs
 	for _, output := range m.TransactionBase.parsedTx.Outputs {
 		outputValue += output.Satoshis
@@ -451,7 +482,6 @@ func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Transaction) BeforeCreating(ctx context.Context) error {
-
 	if m.beforeCreateCalled {
 		m.DebugLog("skipping: " + m.Name() + " BeforeCreating hook, because already called")
 		return nil
@@ -475,7 +505,6 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 
 	// 	m.xPubID is the xpub of the user registering the transaction
 	if len(m.xPubID) > 0 && len(m.DraftID) > 0 {
-
 		// Only get the draft if we haven't already
 		if m.draftTransaction == nil {
 			if m.draftTransaction, err = getDraftTransactionID(
@@ -615,7 +644,6 @@ func (m *Transaction) AfterDeleted(_ context.Context) error {
 
 // ChildModels will get any related sub models
 func (m *Transaction) ChildModels() (childModels []ModelInterface) {
-
 	// Add the UTXOs if found
 	for index := range m.utxos {
 		childModels = append(childModels, &m.utxos[index])
@@ -631,7 +659,6 @@ func (m *Transaction) ChildModels() (childModels []ModelInterface) {
 
 // processUtxos will process the inputs and outputs for UTXOs
 func (m *Transaction) processUtxos(ctx context.Context) error {
-
 	if err := m.processInputs(ctx); err != nil {
 		return err
 	}
@@ -641,7 +668,6 @@ func (m *Transaction) processUtxos(ctx context.Context) error {
 
 // processTxOutputs will process the transaction outputs
 func (m *Transaction) processOutputs(ctx context.Context) (err error) {
-
 	// Pre-build the options
 	opts := m.GetOptions(false)
 	newOpts := append(opts, New())
@@ -698,7 +724,6 @@ func (m *Transaction) isExternal() bool {
 
 // processTxInputs will process the transaction inputs
 func (m *Transaction) processInputs(ctx context.Context) (err error) {
-
 	// Pre-build the options
 	opts := m.GetOptions(false)
 	client := m.Client()
@@ -707,7 +732,6 @@ func (m *Transaction) processInputs(ctx context.Context) (err error) {
 
 	// check whether we are spending an internal utxo
 	for index := range m.TransactionBase.parsedTx.Inputs {
-
 		// todo: optimize this SQL SELECT to get all utxos in one query?
 		if utxo, err = m.transactionService.getUtxo(ctx,
 			hex.EncodeToString(m.TransactionBase.parsedTx.Inputs[index].PreviousTxID()),
@@ -763,7 +787,6 @@ func (m *Transaction) processInputs(ctx context.Context) (err error) {
 
 // IsXpubAssociated will check if this key is associated to this transaction
 func (m *Transaction) IsXpubAssociated(rawXpubKey string) bool {
-
 	// Hash the raw key
 	xPubID := utils.Hash(rawXpubKey)
 	return m.IsXpubIDAssociated(xPubID)
@@ -793,7 +816,6 @@ func (m *Transaction) IsXpubIDAssociated(xPubID string) bool {
 
 // Display filter the model for display
 func (m *Transaction) Display() interface{} {
-
 	// In case it was not set
 	m.setXPubID()
 
@@ -826,7 +848,6 @@ func (m *Transaction) Display() interface{} {
 
 // Migrate model specific migration on startup
 func (m *Transaction) Migrate(client datastore.ClientInterface) error {
-
 	tableName := client.GetTableName(tableTransactions)
 	if client.Engine() == datastore.MySQL {
 		if err := m.migrateMySQL(client, tableName); err != nil {
@@ -843,7 +864,6 @@ func (m *Transaction) Migrate(client datastore.ClientInterface) error {
 
 // migratePostgreSQL is specific migration SQL for Postgresql
 func (m *Transaction) migratePostgreSQL(client datastore.ClientInterface, tableName string) error {
-
 	tx := client.Execute(`CREATE INDEX IF NOT EXISTS idx_` + tableName + `_xpub_in_ids ON ` +
 		tableName + ` USING gin (xpub_in_ids jsonb_ops)`)
 	if tx.Error != nil {
@@ -860,7 +880,6 @@ func (m *Transaction) migratePostgreSQL(client datastore.ClientInterface, tableN
 
 // migrateMySQL is specific migration SQL for MySQL
 func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName string) error {
-
 	idxName := "idx_" + tableName + "_xpub_in_ids"
 	idxExists, err := client.IndexExists(tableName, idxName)
 	if err != nil {
@@ -903,7 +922,6 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 //
 // This is used to validate if an external transaction should be recorded into the engine
 func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface, opts ...ModelOps) bool {
-
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
 	lockingScript := ""
 	for index := range m.parsedTx.Outputs {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/centrifugal/centrifuge-go"
+	centrifuge_pulse "github.com/centrifugal/centrifuge-go/0.9.6"
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
@@ -30,6 +31,9 @@ type ChainService interface {
 		ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 	) (*TransactionInfo, error)
 	QueryTransactionFastest(
+		ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
+	) (*TransactionInfo, error)
+	QueryMAPITransaction(
 		ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 	) (*TransactionInfo, error)
 }
@@ -62,6 +66,7 @@ type ClientInterface interface {
 	Monitor() MonitorService
 	Network() Network
 	QueryTimeout() time.Duration
+	Pulse() PulseService
 }
 
 // MonitorClient interface
@@ -117,4 +122,51 @@ type MonitorService interface {
 	SaveDestinations() bool
 	Start(ctx context.Context, handler MonitorHandler, onStop func()) error
 	Stop(ctx context.Context) error
+}
+
+// PulseService for monitoring of a creation of new blocks
+type PulseService interface {
+	Connected()
+	Disconnected()
+	IsConnected() bool
+	IsDebug() bool
+	Logger() Logger
+	Start(ctx context.Context, handler PulseHandler) error
+	Stop(ctx context.Context) error
+}
+
+// PulseSubscriptionHandler interface
+type PulseSubscriptionHandler interface {
+	OnPublication(centrifuge_pulse.PublicationEvent)
+	OnSubscribing(centrifuge_pulse.SubscribingEvent)
+	OnSubscribed(centrifuge_pulse.SubscribedEvent)
+	OnUnsubscribed(centrifuge_pulse.UnsubscribedEvent)
+	OnSubscriptionError(centrifuge_pulse.SubscriptionErrorEvent)
+	OnSubscriptionJoin(e centrifuge_pulse.JoinEvent)
+	OnSubscriptionLeave(e centrifuge_pulse.LeaveEvent)
+}
+
+// PulseHandler interface
+type PulseHandler interface {
+	OnConnecting(centrifuge_pulse.ConnectingEvent)
+	OnConnected(centrifuge_pulse.ConnectedEvent)
+	OnDisconnected(centrifuge_pulse.DisconnectedEvent)
+	OnMessage(centrifuge_pulse.MessageEvent)
+	OnError(centrifuge_pulse.ErrorEvent)
+	OnServerPublication(centrifuge_pulse.ServerPublicationEvent)
+	OnServerSubscribed(centrifuge_pulse.ServerSubscribedEvent)
+	OnServerSubscribing(centrifuge_pulse.ServerSubscribingEvent)
+	OnServerUnsubscribed(centrifuge_pulse.ServerUnsubscribedEvent)
+	OnServerJoin(centrifuge_pulse.ServerJoinEvent)
+	OnServerLeave(centrifuge_pulse.ServerLeaveEvent)
+	SetPulse(pulse *Pulse)
+	PulseSubscriptionHandler
+}
+
+// PulseMonitorClient interface
+type PulseMonitorClient interface {
+	Connect() error
+	Disconnect() error
+	Subscribe(PulseSubscriptionHandler) error
+	Unsubscribe() error
 }

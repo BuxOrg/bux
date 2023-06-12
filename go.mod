@@ -8,6 +8,7 @@ require (
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.3
 	github.com/bitcoinschema/go-map v0.0.17
 	github.com/centrifugal/centrifuge-go v0.9.6
+	github.com/centrifugal/centrifuge-go/0.9.6 v0.0.0-00010101000000-000000000000
 	github.com/coocood/freecache v1.2.3
 	github.com/dolthub/go-mysql-server v0.15.0
 	github.com/fergusstrange/embedded-postgres v1.22.0
@@ -160,3 +161,6 @@ replace github.com/centrifugal/protocol => github.com/centrifugal/protocol v0.9.
 
 // Bad version of go-bob, failing tests etc
 replace github.com/bitcoinschema/go-bob => github.com/bitcoinschema/go-bob v0.2.1
+
+// centrifuge-go 0.9.6 required for integration with pulse
+replace github.com/centrifugal/centrifuge-go/0.9.6 => github.com/centrifugal/centrifuge-go v0.9.6

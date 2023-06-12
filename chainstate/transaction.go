@@ -13,8 +13,8 @@ import (
 
 // query will try ALL providers in order and return the first "valid" response based on requirements
 func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
-	timeout time.Duration) *TransactionInfo {
-
+	timeout time.Duration,
+) *TransactionInfo {
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -60,8 +60,8 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 
 // fastestQuery will try ALL providers on once and return the fastest "valid" response based on requirements
 func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn RequiredIn,
-	timeout time.Duration) *TransactionInfo {
-
+	timeout time.Duration,
+) *TransactionInfo {
 	// The channel for the internal results
 	resultsChannel := make(
 		chan *TransactionInfo,
@@ -131,10 +131,36 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 	return <-resultsChannel
 }
 
+// query will try ONLY mAPI and return the first "valid" response based on requirements
+func (c *Client) queryOnlyMAPI(ctx context.Context, id string, requiredIn RequiredIn,
+	timeout time.Duration,
+) *TransactionInfo {
+	// Create a context (to cancel or timeout)
+	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
+		if c.Network() == MainNet || c.Network() == TestNet {
+			for index := range c.options.config.mAPI.queryMiners {
+				if c.options.config.mAPI.queryMiners[index] != nil {
+					if res, err := queryMAPI(
+						ctxWithCancel, c, c.options.config.mAPI.queryMiners[index].Miner, id,
+					); err == nil && checkRequirement(requiredIn, id, res) {
+						return res
+					}
+				}
+			}
+		}
+	}
+
+	// No transaction information found
+	return nil
+}
+
 // queryMAPI will submit a query transaction request to a miner using mAPI
 func queryMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id string) (*TransactionInfo, error) {
 	client.DebugLog("executing request in mapi using miner: " + miner.Name)
-	if resp, err := client.Minercraft().QueryTransaction(ctx, miner, id); err != nil {
+	if resp, err := client.Minercraft().QueryTransaction(ctx, miner, id, minercraft.WithQueryMerkleProof()); err != nil {
 		client.DebugLog("error executing request in mapi using miner: " + miner.Name + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && resp.Query.ReturnResult == mAPISuccess && strings.EqualFold(resp.Query.TxID, id) {
@@ -145,6 +171,7 @@ func queryMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Mi
 			ID:            resp.Query.TxID,
 			MinerID:       resp.Query.MinerID,
 			Provider:      miner.Name,
+			MerkleProof:   resp.Query.MerkleProof,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

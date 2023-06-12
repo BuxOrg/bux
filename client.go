@@ -123,7 +123,6 @@ type (
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
 func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) {
-
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 
@@ -195,6 +194,13 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		}
 	}
 
+	// Load the pulse monitor
+	if client.options.chainstate.Pulse() != nil {
+		if err = client.loadPulse(ctx); err != nil {
+			return nil, err
+		}
+	}
+
 	// Default paymail server config (generic capabilities and domain check disabled)
 	if client.options.paymail.serverConfig.Configuration == nil {
 		if err = client.loadDefaultPaymailConfig(); err != nil {
@@ -208,7 +214,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 // AddModels will add additional models to the client
 func (c *Client) AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error {
-
 	// Store the models locally in the client
 	c.options.addModels(modelList, models...)
 
@@ -265,7 +270,6 @@ func (c *Client) Chainstate() chainstate.ClientInterface {
 
 // Close will safely close any open connections (cache, datastore, etc.)
 func (c *Client) Close(ctx context.Context) error {
-
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("close_all").End()
 	}
@@ -320,7 +324,6 @@ func (c *Client) Datastore() datastore.ClientInterface {
 
 // Debug will toggle the debug mode (for all resources)
 func (c *Client) Debug(on bool) {
-
 	// Set the flag on the current client
 	c.options.debug = on
 
@@ -444,7 +447,6 @@ func (c *Client) Logger() zLogger.GormLoggerInterface {
 
 // ModifyTaskPeriod will modify a cron task's duration period from the default
 func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
-
 	// Basic validation on parameters
 	if len(name) == 0 {
 		return taskmanager.ErrMissingTaskName

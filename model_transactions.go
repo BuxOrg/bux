@@ -632,8 +632,11 @@ func (m *Transaction) ChildModels() (childModels []ModelInterface) {
 // processUtxos will process the inputs and outputs for UTXOs
 func (m *Transaction) processUtxos(ctx context.Context) error {
 
-	if err := m.processInputs(ctx); err != nil {
-		return err
+	// Input should be processed only for outcomming transactions
+	if m.draftTransaction != nil {
+		if err := m.processInputs(ctx); err != nil {
+			return err
+		}
 	}
 
 	return m.processOutputs(ctx)
@@ -673,11 +676,15 @@ func (m *Transaction) processOutputs(ctx context.Context) (err error) {
 				}
 				m.XpubOutputValue[destination.XpubID] += int64(amount)
 
+				utxo, _ := m.client.GetUtxoByTransactionID(ctx, m.ID, uint32(index))
+				if utxo == nil {
+					utxo = newUtxo(
+						destination.XpubID, m.ID, txLockingScript, uint32(index),
+						amount, newOpts...,
+					)
+				}
 				// Append the UTXO model
-				m.utxos = append(m.utxos, *newUtxo(
-					destination.XpubID, m.ID, txLockingScript, uint32(index),
-					amount, newOpts...,
-				))
+				m.utxos = append(m.utxos, *utxo)
 
 				// Add the xPub ID
 				if !utils.StringInSlice(destination.XpubID, m.XpubOutIDs) {

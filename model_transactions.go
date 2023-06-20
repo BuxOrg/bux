@@ -632,7 +632,7 @@ func (m *Transaction) ChildModels() (childModels []ModelInterface) {
 // processUtxos will process the inputs and outputs for UTXOs
 func (m *Transaction) processUtxos(ctx context.Context) error {
 
-	// Input should be processed only for outcomming transactions
+	// Input should be processed only for outgoing transactions
 	if m.draftTransaction != nil {
 		if err := m.processInputs(ctx); err != nil {
 			return err

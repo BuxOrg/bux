@@ -349,6 +349,12 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	// Create the new transaction model
 	transaction := newTransactionFromIncomingTransaction(incomingTx)
 
+	// Get the transaction by ID
+	if tx, _ := getTransactionByID(
+		ctx, transaction.rawXpubKey, transaction.TransactionBase.ID, transaction.client.DefaultModelOptions()...,
+	); tx != nil {
+		transaction = tx
+	}
 	// Add additional information (if found on-chain)
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
 	transaction.BlockHash = txInfo.BlockHash

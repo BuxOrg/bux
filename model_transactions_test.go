@@ -264,11 +264,12 @@ func TestTransaction_GetModelName(t *testing.T) {
 }
 
 // TestTransaction_processOutputs will test the method processConfigOutputs()
-func TestTransaction_processOutputs(t *testing.T) {
-	// t.Parallel()
+func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
+	ts.T().Run("no outputs", func(t *testing.T) {
+		tc := ts.genericDBClient(t, datastore.SQLite, true)
+		defer tc.Close(tc.ctx)
 
-	t.Run("no outputs", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{}
@@ -280,8 +281,11 @@ func TestTransaction_processOutputs(t *testing.T) {
 		assert.Nil(t, transaction.XpubOutIDs)
 	})
 
-	t.Run("no outputs", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+	ts.T().Run("no outputs", func(t *testing.T) {
+		tc := ts.genericDBClient(t, datastore.SQLite, true)
+		defer tc.Close(tc.ctx)
+
+		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{
@@ -307,8 +311,11 @@ func TestTransaction_processOutputs(t *testing.T) {
 		assert.Equal(t, "utxo", childModels[0].Name())
 	})
 
-	t.Run("STAS token", func(t *testing.T) {
-		transaction := newTransaction(testSTAStxHex, New())
+	ts.T().Run("STAS token", func(t *testing.T) {
+		tc := ts.genericDBClient(t, datastore.SQLite, true)
+		defer tc.Close(tc.ctx)
+
+		transaction := newTransaction(testSTAStxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{

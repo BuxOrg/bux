@@ -381,8 +381,6 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 			for key, value := range m.Metadata {
 				m.XpubMetadata[m.xPubID][key] = value
 			}
-			// todo will this overwrite the global metadata ?
-			m.Metadata = nil
 		} else {
 			m.DebugLog("xPub id is missing from transaction, cannot store metadata")
 		}

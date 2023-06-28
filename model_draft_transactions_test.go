@@ -265,9 +265,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, testXPubID, draftTransaction.Configuration.ChangeDestinations[0].XpubID)
 		assert.Equal(t, draftTransaction.ID, draftTransaction.Configuration.ChangeDestinations[0].DraftID)
-		assert.Equal(t, uint64(98886), draftTransaction.Configuration.ChangeSatoshis)
+		assert.Equal(t, uint64(98988), draftTransaction.Configuration.ChangeSatoshis)
 
-		assert.Equal(t, uint64(114), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(12), draftTransaction.Configuration.Fee)
 		assert.Equal(t, chainstate.DefaultFee, draftTransaction.Configuration.FeeUnit)
 
 		assert.Equal(t, 1, len(draftTransaction.Configuration.Inputs))
@@ -276,7 +276,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 		assert.Equal(t, 2, len(draftTransaction.Configuration.Outputs))
 		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(98886), draftTransaction.Configuration.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98988), draftTransaction.Configuration.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.ChangeDestinations[0].LockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
 		var btTx *bt.Tx
@@ -291,7 +291,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(1000), btTx.Outputs[0].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[0].Scripts[0].Script, btTx.Outputs[0].LockingScript.String())
 
-		assert.Equal(t, uint64(98886), btTx.Outputs[1].Satoshis)
+		assert.Equal(t, uint64(98988), btTx.Outputs[1].Satoshis)
 		assert.Equal(t, draftTransaction.Configuration.Outputs[1].Scripts[0].Script, btTx.Outputs[1].LockingScript.String())
 
 		var gUtxo *Utxo
@@ -328,14 +328,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo.To)
-		assert.Equal(t, uint64(96), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(10), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 1)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(99904), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(99990), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
-		assert.Equal(t, uint64(99904), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(99990), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
 
 	t.Run("fee calculation - MAP", func(t *testing.T) {
@@ -531,14 +531,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo.To)
-		assert.Equal(t, uint64(244), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(25), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 3)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(339756), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(339975), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
-		assert.Equal(t, uint64(339756), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(339975), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
 
 	t.Run("send to all - selected utxos", func(t *testing.T) {
@@ -582,14 +582,14 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.SendAllTo.To)
-		assert.Equal(t, uint64(170), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(17), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(239830), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(239983), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Len(t, draftTransaction.Configuration.Outputs[0].Scripts, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
-		assert.Equal(t, uint64(239830), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(239983), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
 	})
 
 	t.Run("include utxos - tokens", func(t *testing.T) {
@@ -641,7 +641,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, testXPubID, draftTransaction.XpubID)
 		assert.Equal(t, DraftStatusDraft, draftTransaction.Status)
-		assert.Equal(t, uint64(1200), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(120), draftTransaction.Configuration.Fee)
 		assert.Len(t, draftTransaction.Configuration.Inputs, 2)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 3)
 
@@ -662,7 +662,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(564), draftTransaction.Configuration.Outputs[1].Scripts[0].Satoshis)
 		assert.Equal(t, testSTASLockingScript, draftTransaction.Configuration.Outputs[1].Scripts[0].Script)
 
-		assert.Equal(t, uint64(97800), draftTransaction.Configuration.Outputs[2].Satoshis)
+		assert.Equal(t, uint64(98880), draftTransaction.Configuration.Outputs[2].Satoshis)
 	})
 
 	t.Run("SendAllTo", func(t *testing.T) {
@@ -683,8 +683,8 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 1)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(99904), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(96), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(99990), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(10), draftTransaction.Configuration.Fee)
 	})
 
 	t.Run("SendAllTo + output", func(t *testing.T) {
@@ -709,8 +709,8 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 2)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(98887), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(113), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(98988), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(12), draftTransaction.Configuration.Fee)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[1].To)
 		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[1].Satoshis)
 	})
@@ -747,8 +747,8 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 3)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(98842), draftTransaction.Configuration.Outputs[0].Satoshis)
-		assert.Equal(t, uint64(158), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(98984), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(16), draftTransaction.Configuration.Fee)
 		assert.Equal(t, testExternalAddress, draftTransaction.Configuration.Outputs[1].To)
 		assert.Equal(t, uint64(1000), draftTransaction.Configuration.Outputs[1].Satoshis)
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[2].To)
@@ -819,11 +819,11 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, draftTransaction.Configuration.Outputs, 2)
 		assert.Equal(t, "mrzz@handcash.io", draftTransaction.Configuration.Outputs[0].To)
-		assert.Equal(t, uint64(26751), draftTransaction.Configuration.Outputs[0].Satoshis)
+		assert.Equal(t, uint64(26944), draftTransaction.Configuration.Outputs[0].Satoshis)
 		assert.Equal(t, "16fkwYn8feXEbK7iCTg5KMx9Rx9GzZ9HuE", draftTransaction.Configuration.Outputs[0].Scripts[0].Address)
 		assert.Equal(t, "76a9143e2d1d795f8acaa7957045cc59376177eb04a3c588ac", draftTransaction.Configuration.Outputs[0].Scripts[0].Script)
-		assert.Equal(t, uint64(26751), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
-		assert.Equal(t, uint64(215), draftTransaction.Configuration.Fee)
+		assert.Equal(t, uint64(26944), draftTransaction.Configuration.Outputs[0].Scripts[0].Satoshis)
+		assert.Equal(t, uint64(22), draftTransaction.Configuration.Fee)
 		assert.Equal(t, "", draftTransaction.Configuration.Outputs[1].To)
 		assert.Equal(t, uint64(0), draftTransaction.Configuration.Outputs[1].Satoshis)
 	})

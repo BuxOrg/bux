@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-nownodes"
@@ -46,6 +47,7 @@ type MinercraftServices interface {
 	BroadcastMiners() []*Miner
 	QueryMiners() []*Miner
 	RefreshFeeQuotes(ctx context.Context) error
+	FeeUnit() *utils.FeeUnit
 }
 
 // ClientInterface is the chainstate client interface

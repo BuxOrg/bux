@@ -67,12 +67,10 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 	// todo: make this more intelligent or allow the config to dictate the miner selection
 	if config.FeeUnit == nil {
 		if c := draft.Client(); c != nil {
-			if miners := c.Chainstate().BroadcastMiners(); len(miners) > 0 {
-				draft.Configuration.FeeUnit = miners[0].FeeUnit
-				return draft
-			}
+			draft.Configuration.FeeUnit = c.Chainstate().FeeUnit()
+		} else {
+			draft.Configuration.FeeUnit = chainstate.DefaultFee
 		}
-		draft.Configuration.FeeUnit = chainstate.DefaultFee
 	}
 	return draft
 }
@@ -293,7 +291,11 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		var reservedUtxos []*Utxo
 		feePerByte := float64(m.Configuration.FeeUnit.Satoshis / m.Configuration.FeeUnit.Bytes)
 
-		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit, 0) + dustLimit
+		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit, 0)
+		if reserveSatoshis <= dustLimit {
+			m.client.Logger().Error(ctx, "amount of satoshis to send less than the dust limit")
+			return ErrOutputValueTooLow
+		}
 		if reservedUtxos, err = reserveUtxos(
 			ctx, m.XpubID, m.ID, reserveSatoshis, feePerByte, m.Configuration.FromUtxos, opts...,
 		); err != nil {

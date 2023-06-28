@@ -4,7 +4,7 @@
       "txId": "0a2e034d994bc3d8e62cb739e07beeb4e27a069552e7a2288dfcef9031d2f4e8",
       "inputs": [
         {
-          "satoshis": 10977,
+          "satoshis": 10788,
           "locking_script": "76a9140325fd884ebc318de7306b2a799809b9e4c2704e88ac"
         }
       ],
@@ -154,7 +154,7 @@
           "locking_script": "76a91498c6501d663a524c208cb4f3a8678d6183f0a38688ac"
         },
         {
-          "satoshis": 65920,
+          "satoshis": 63476,
           "locking_script": "76a91498c6501d663a524c208cb4f3a8678d6183f0a38688ac"
         }
       ],
@@ -164,7 +164,7 @@
       "txId": "25162607a84aff166df721d63517e1d438cefb1c73160f7940d875d19a54728b",
       "inputs": [
         {
-          "satoshis": 76400,
+          "satoshis": 76217,
           "locking_script": "76a9140325fd884ebc318de7306b2a799809b9e4c2704e88ac"
         }
       ],
@@ -174,7 +174,7 @@
       "txId": "790c20c048baa78b44eb2403fe3d623f7e47ccbb6c5725ec7f104452caf2c723",
       "inputs": [
         {
-          "satoshis": 54838162,
+          "satoshis": 54837958,
           "locking_script": "76a914f8ce3ac50c80f5fe7045d6ff3186de1aeb090b5588ac"
         }
       ],
@@ -184,7 +184,7 @@
       "txId": "30f45559e8eb5311e5c69cdcf680021efc4f306295f4d84434cb19f061ee80de",
       "inputs": [
         {
-          "satoshis": 64307,
+          "satoshis": 64042,
           "locking_script": "76a91467215c72668f175c4bfb7663b4500639dd4ca99688ac"
         },
         {
@@ -198,7 +198,7 @@
       "txId": "1526279d935942f9f4441c0feff041956e4ab3ac4fd14ce5103446a1ae11039d",
       "inputs": [
         {
-          "satoshis": 49158,
+          "satoshis": 48827,
           "locking_script": "76a91467215c72668f175c4bfb7663b4500639dd4ca99688ac"
         },
         {

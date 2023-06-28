@@ -154,3 +154,7 @@ func (c *chainStateEverythingOnChain) QueryTransactionFastest(_ context.Context,
 		Provider:      "whatsonchain",
 	}, nil
 }
+
+func (c *chainStateEverythingOnChain) FeeUnit() *utils.FeeUnit {
+	return chainstate.DefaultFee
+}

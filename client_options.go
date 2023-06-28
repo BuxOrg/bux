@@ -705,3 +705,10 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 		}
 	}
 }
+
+// WithMapiFeeQuotes will set usage of mapi fee quotes instead of default fees
+func WithMapiFeeQuotes() ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithMapiFeeQuotes())
+	}
+}

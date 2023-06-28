@@ -30,6 +30,7 @@ func defaultClientOptions() *clientOptions {
 			mAPI: &mAPIConfig{
 				broadcastMiners: bm,
 				queryMiners:     qm,
+				feeUnit:         DefaultFee,
 			},
 			minercraft:   nil,
 			network:      MainNet,
@@ -227,5 +228,12 @@ func WithExcludedProviders(providers []string) ClientOps {
 		if len(providers) > 0 {
 			c.config.excludedProviders = providers
 		}
+	}
+}
+
+// WithMapiFeeQuotes will set mapiFeeQuotesEnabled flag as true
+func WithMapiFeeQuotes() ClientOps {
+	return func(c *clientOptions) {
+		c.config.mAPI.mapiFeeQuotesEnabled = true
 	}
 }

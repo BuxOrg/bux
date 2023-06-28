@@ -758,7 +758,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 
 		draftConfig := &TransactionConfig{
 			Outputs: []*TransactionOutput{{
-				Satoshis: 100,
+				Satoshis: 202,
 				To:       testExternalAddress,
 			}},
 		}
@@ -936,7 +936,7 @@ func TestEndToEndTransaction(t *testing.T) {
 
 		// Check that the transaction was saved
 		assert.Equal(t, draftTransaction.ID, finalTx.DraftID)
-		assert.Equal(t, uint64(4886), finalTx.TotalValue)
-		assert.Equal(t, uint64(114), finalTx.Fee)
+		assert.Equal(t, uint64(4988), finalTx.TotalValue)
+		assert.Equal(t, uint64(12), finalTx.Fee)
 	})
 }

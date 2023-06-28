@@ -2,8 +2,8 @@ package chainstate
 
 import (
 	"context"
-	"errors"
-	"strings"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
@@ -47,8 +47,10 @@ type (
 
 	// mAPIConfig is specific for mAPI configuration
 	mAPIConfig struct {
-		broadcastMiners []*Miner // List of loaded miners for broadcasting
-		queryMiners     []*Miner // List of loaded miners for querying transactions
+		broadcastMiners      []*Miner       // List of loaded miners for broadcasting
+		queryMiners          []*Miner       // List of loaded miners for querying transactions
+		feeUnit              *utils.FeeUnit // The lowest fees among all miners
+		mapiFeeQuotesEnabled bool           // If set, feeUnit will be updated with fee quotes from miner's mAPI
 	}
 
 	// Miner is the internal chainstate miner (wraps Minercraft miner with more information)
@@ -193,37 +195,62 @@ func (c *Client) QueryMiners() []*Miner {
 	return c.options.config.mAPI.queryMiners
 }
 
+// FeeUnit will return feeUnit
+func (c *Client) FeeUnit() *utils.FeeUnit {
+	return c.options.config.mAPI.feeUnit
+}
+
+func (c *Client) isMapiFeeQuotesEnabled() bool {
+	return c.options.config.mAPI.mapiFeeQuotesEnabled
+}
+
 // RefreshFeeQuotes will update all fee quotes for all broadcasting miners in mAPI
 func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
+	ctxWithCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
+	var wg sync.WaitGroup
 	// Loop all broadcast miners
-	for i := range c.options.config.mAPI.broadcastMiners {
-
-		// Skip if recently updated (quotes usually don't change that often)
-		if c.options.config.mAPI.broadcastMiners[i].FeeLastChecked.After(time.Now().UTC().Add(-defaultFeeLastCheckIgnore)) {
-			continue
-		}
-
-		// Get the policy quote using the miner
-		quote, err := c.Minercraft().PolicyQuote(ctx, c.options.config.mAPI.broadcastMiners[i].Miner)
-		if err != nil {
-			if strings.Contains(err.Error(), "validation errors") { // todo: fix issue with Taal - do they require an api key?
-				return nil
+	for index := range c.options.config.mAPI.broadcastMiners {
+		wg.Add(1)
+		go func(
+			ctx context.Context, client *Client,
+			wg *sync.WaitGroup, miner *Miner,
+		) {
+			defer wg.Done()
+			// Get the fee quote using the miner
+			// Switched from policyQuote to feeQuote as gorillapool doesn't have such endpoint
+			quote, err := c.Minercraft().FeeQuote(ctx, miner.Miner)
+			if err != nil {
+				client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s", miner.Miner.Name))
+				return
 			}
-			return err
-		}
 
-		// Get the fee and set the fee
-		fee := quote.Quote.GetFee(minercraft.FeeTypeData) // todo: data for now, since it usually is more expensive (if different)
-		if fee == nil {
-			return errors.New("fee is missing from miner response")
-		}
-		c.options.config.mAPI.broadcastMiners[i].FeeUnit = &utils.FeeUnit{
-			Satoshis: fee.MiningFee.Satoshis,
-			Bytes:    fee.MiningFee.Bytes,
-		}
-		c.options.config.mAPI.broadcastMiners[i].FeeLastChecked = time.Now().UTC()
+			// Get the fee and set the fee
+			fee := quote.Quote.GetFee(minercraft.FeeTypeData)
+			if fee == nil {
+				client.options.logger.Error(ctx, fmt.Sprintf("Fee is missing in %s's FeeQuote response", miner.Miner.Name))
+				return
+			}
+			miner.FeeUnit = &utils.FeeUnit{
+				Satoshis: fee.MiningFee.Satoshis,
+				Bytes:    fee.MiningFee.Bytes,
+			}
+			miner.FeeLastChecked = time.Now().UTC()
+		}(ctxWithCancel, c, &wg, c.options.config.mAPI.broadcastMiners[index])
 	}
-
+	wg.Wait()
+	c.SetLowestFees()
 	return nil
+}
+
+// SetLowestFees takes the lowest fees among all miners and sets them as the feeUnit for future transactions
+func (c *Client) SetLowestFees() {
+	minFees := DefaultFee
+	for _, m := range c.options.config.mAPI.broadcastMiners {
+		if float64(minFees.Satoshis)/float64(minFees.Bytes) > float64(m.FeeUnit.Satoshis)/float64(m.FeeUnit.Bytes) {
+			minFees = m.FeeUnit
+		}
+	}
+	c.options.config.mAPI.feeUnit = minFees
 }

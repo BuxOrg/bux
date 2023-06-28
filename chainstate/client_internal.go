@@ -78,8 +78,12 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 		return ErrMissingQueryMiners
 	}
 
-	// Load the quote fees
-	return c.RefreshFeeQuotes(ctx)
+	// Refresh the fee quotes with data from mAPI
+	if c.isMapiFeeQuotesEnabled() {
+		return c.RefreshFeeQuotes(ctx)
+	}
+
+	return nil
 }
 
 // startWhatsOnChain will start WhatsOnChain (if no custom client is found)

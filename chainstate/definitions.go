@@ -62,9 +62,10 @@ type TransactionInfo struct {
 
 var (
 	// DefaultFee is used when a fee has not been set by the user
-	// This default is currently accepted by all BitcoinSV miners (500/1000) (4.25.22)
+	// This default is currently accepted by all BitcoinSV miners (50/1000) (7.27.23)
+	// Actual TAAL FeeUnit - 1/1000, GorillaPool - 50/1000 (7.27.23)
 	DefaultFee = &utils.FeeUnit{
 		Satoshis: 1,
-		Bytes:    2,
+		Bytes:    20,
 	}
 )

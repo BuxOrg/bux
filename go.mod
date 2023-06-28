@@ -109,7 +109,7 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.5 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.6 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
@@ -156,4 +156,5 @@ replace github.com/centrifugal/centrifuge-go => github.com/centrifugal/centrifug
 replace github.com/centrifugal/protocol => github.com/centrifugal/protocol v0.9.1
 
 // Issue: go.mongodb.org/mongo-driver/x/bsonx: cannot find module providing package go.mongodb.org/mongo-driver/x/bsonx
+// Need to convert bsonx to bsoncore
 replace go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.7

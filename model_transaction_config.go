@@ -181,7 +181,7 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 
 // processPaymailOutput will detect how to process the Paymail output given
 func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, defaultFromSender, defaultNote string) error {
+	paymailClient paymail.ClientInterface, fromPaymail, defaultNote string) error {
 
 	// Standardize the paymail address (break into parts)
 	alias, domain, paymailAddress := paymail.SanitizePaymail(t.To)
@@ -215,14 +215,14 @@ func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore
 	success, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
 	if success {
 		return t.processPaymailViaP2P(
-			paymailClient, p2pDestinationURL, p2pSubmitTxURL,
+			paymailClient, p2pDestinationURL, p2pSubmitTxURL, fromPaymail,
 		)
 	}
 
 	// Default is resolving using the deprecated address resolution method
 	return t.processPaymailViaAddressResolution(
 		ctx, cacheStore, paymailClient, capabilities,
-		defaultFromSender, defaultNote,
+		fromPaymail, defaultNote,
 	)
 }
 
@@ -267,7 +267,7 @@ func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Conte
 }
 
 // processPaymailViaP2P will process the output for P2P Paymail resolution
-func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string) error {
+func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string, fromPaymail string) error {
 
 	// todo: this is a hack since paymail providers will complain if satoshis are empty (SendToAll has 0 satoshi)
 	satoshis := t.Satoshis
@@ -307,6 +307,7 @@ func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface,
 	t.PaymailP4.ReceiveEndpoint = p2pSubmitTxURL
 	t.PaymailP4.ReferenceID = destinationInfo.Reference
 	t.PaymailP4.ResolutionType = ResolutionTypeP2P
+	t.PaymailP4.FromPaymail = fromPaymail
 
 	return nil
 }

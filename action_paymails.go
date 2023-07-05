@@ -69,7 +69,7 @@ func (c *Client) GetPaymailAddressesByXPubID(ctx context.Context, xPubID string,
 	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*PaymailAddress, error) {
 
 	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_transaction")
+	ctx = c.GetOrStartTxn(ctx, "get_paymail_by_xpub")
 
 	if conditions == nil {
 		*conditions = make(map[string]interface{})

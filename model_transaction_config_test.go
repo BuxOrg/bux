@@ -331,7 +331,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, satoshis, out.Satoshis)
 		assert.Equal(t, testAlias+"@"+testDomain, out.To)
-		assert.Equal(t, "", out.PaymailP4.FromPaymail)
+		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
 		assert.Equal(t, testAlias, out.PaymailP4.Alias)
 		assert.Equal(t, testDomain, out.PaymailP4.Domain)
 		assert.Equal(t, "", out.PaymailP4.Note)

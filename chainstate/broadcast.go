@@ -45,11 +45,6 @@ var (
 	*/
 )
 
-type broadcastError struct {
-	Error    error
-	Provider string
-}
-
 // doesErrorContain will look at a string for a list of strings
 func doesErrorContain(err string, messages []string) bool {
 	lower := strings.ToLower(err)
@@ -64,127 +59,107 @@ func doesErrorContain(err string, messages []string) bool {
 // broadcast will broadcast using a standard strategy
 //
 // NOTE: if successful (in-mempool), no error will be returned
-func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration) (successProviders []string, errorProviders []string, err error) {
-
+// NOTE: function register fastest successful broadcast into 'completeChannel' so client doesn't need to wait for other providers
+func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration, completeChannel, errorChannel chan string) {
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex
-	errorChannel := make(chan broadcastError)
+
+	resultsChannel := make(chan broadcastResult)
+	status := broadcastStatus{complete: false, syncChannel: completeChannel}
 
 	// First: try all mAPI miners (Only supported on main and test right now)
-	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
-		if c.Network() == MainNet || c.Network() == TestNet {
-			for index := range c.options.config.mAPI.broadcastMiners {
-				miner := c.options.config.mAPI.broadcastMiners[index]
-				if miner != nil {
-					wg.Add(1)
-					go func(miner *Miner) {
-						defer wg.Done()
+	if shouldBroadcastWithMAPI(c) {
+		for index := range c.options.config.mAPI.broadcastMiners { // why not for _, miner := range (...) ?
+			miner := c.options.config.mAPI.broadcastMiners[index]
+			if miner != nil {
+				wg.Add(1)
+				go func(miner *Miner) {
+					defer wg.Done()
 
-						// Broadcast using mAPI
-						provider := miner.Miner.Name
-						var bErr error
-						if bErr = broadcastMAPI(
-							ctxWithCancel, c, miner.Miner, id, hex,
-						); bErr != nil {
-							// Check error response for "questionable errors"
-							if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
-								bErr = checkInMempool(ctx, c, id, bErr.Error(), timeout)
-							}
+					provider := mapiBroadcastProvider{
+						miner: miner,
+						id:    id,
+						hex:   hex,
+					}
 
-							if bErr != nil {
-								errorChannel <- broadcastError{bErr, provider}
-							}
-						}
-
-						if bErr == nil {
-							mu.Lock()
-							successProviders = append(successProviders, provider)
-							mu.Unlock()
-						}
-					}(miner)
-				}
+					broadcastToProvider(provider, id,
+						c, ctxWithCancel, ctx, timeout,
+						resultsChannel, &status)
+				}(miner)
 			}
 		}
 	}
 
 	// Try next provider: WhatsOnChain
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	if shouldBroadcastToWhatsOnChain(c) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
-			provider := ProviderWhatsOnChain
-			var bErr error
-			if bErr = broadcastWhatsOnChain(ctx, c, id, hex); bErr != nil {
-				// Check error response for (TX FAILURE)
-				if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
-					bErr = checkInMempool(ctx, c, id, bErr.Error(), timeout)
-				}
-
-				if bErr != nil {
-					errorChannel <- broadcastError{bErr, provider}
-				}
+			provider := whatsOnChainBroadcastProvider{
+				id:  id,
+				hex: hex,
 			}
 
-			if bErr == nil {
-				mu.Lock()
-				successProviders = append(successProviders, provider)
-				mu.Unlock()
-			}
-		}
-	}()
+			broadcastToProvider(provider, id,
+				c, ctx /* why ctx without timeout? */, ctx, timeout,
+				resultsChannel, &status)
+		}()
+	}
 
 	// Try next provider: NowNodes
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	if shouldBroadcastToNowNodes(c) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
-			if c.NowNodes() != nil { // Only if NowNodes is loaded (requires API key)
-				provider := ProviderNowNodes
-				var bErr error
-				if bErr = broadcastNowNodes(ctx, c, id, id, hex); bErr != nil {
-
-					// Check error response for (TX FAILURE)
-					if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
-						bErr = checkInMempool(ctx, c, id, bErr.Error(), timeout)
-					}
-
-					if bErr != nil {
-						errorChannel <- broadcastError{bErr, provider}
-					}
-				}
-
-				if bErr == nil {
-					mu.Lock()
-					successProviders = append(successProviders, provider)
-					mu.Unlock()
-				}
+			provider := nowNodesBroadcastProvider{
+				uniqueID: id,
+				txID:     id,
+				hex:      hex,
 			}
-		}
-	}()
+
+			broadcastToProvider(provider, id,
+				c, ctx /* why ctx without timeout? */, ctx, timeout,
+				resultsChannel, &status)
+		}()
+	}
 
 	go func() {
 		wg.Wait()
-		close(errorChannel)
+		close(resultsChannel)
+		status.dispose()
 	}()
 
 	var errorMessages []string
-	for chanErr := range errorChannel {
-		errorMessages = storeErrorMessage(c, errorMessages, chanErr.Error.Error(), chanErr.Provider)
-		errorProviders = append(errorProviders, chanErr.Provider)
+	for result := range resultsChannel {
+		if result.isError {
+			errorMessages = storeErrorMessage(c, errorMessages, result.err.Error(), result.provider)
+		}
+		// log smth on success?
+		// successProviders = append(successProviders, result.provider)
 	}
 
-	if len(successProviders) > 0 {
-		// return success if someone got the transaction properly into mempool
-		return successProviders, errorProviders, nil
+	if !status.success && len(errorMessages) > 0 {
+		errorChannel <- strings.Join(errorMessages, ", ")
 	}
+}
 
-	return nil, errorProviders, errors.New("broadcast failed on some providers, errors: " + strings.Join(errorMessages, ","))
+func shouldBroadcastWithMAPI(c *Client) bool {
+	return !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) &&
+		(c.Network() == MainNet || c.Network() == TestNet)
+}
+
+func shouldBroadcastToWhatsOnChain(c *Client) bool {
+	return !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders)
+}
+
+func shouldBroadcastToNowNodes(c *Client) bool {
+	return !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) &&
+		c.NowNodes() != nil // Only if NowNodes is loaded (requires API key)
 }
 
 // storeErrorMessage will append the error and log it out
@@ -194,9 +169,129 @@ func storeErrorMessage(client ClientInterface, errorMessages []string, errorMess
 	return errorMessages
 }
 
+// struct handle communication with client - returns first successful broadcast
+type broadcastStatus struct {
+	mu          *sync.Mutex
+	complete    bool
+	success     bool
+	syncChannel chan string
+}
+
+func (g *broadcastStatus) tryCompleteWithSuccess(fastestProvider string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if !g.complete {
+		g.complete = true
+		g.success = true
+
+		g.syncChannel <- fastestProvider
+		close(g.syncChannel)
+	}
+
+	// g.mu.Unlock() is done by defer
+}
+
+func (g *broadcastStatus) dispose() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if !g.complete {
+		g.complete = true
+		close(g.syncChannel) // have to close the channel here to not block client
+	}
+
+	// g.mu.Unlock() is done by defer
+}
+
+// result of single broadcast to provider
+type broadcastResult struct {
+	isError  bool
+	err      error
+	provider string
+}
+
+func newErrorResult(err error, provider string) broadcastResult {
+	return broadcastResult{isError: true, err: err, provider: provider}
+}
+
+func newSuccessResult(provider string) broadcastResult {
+	return broadcastResult{isError: false, provider: provider}
+}
+
+// generic broadcast provider
+type txBroadcastProvider interface {
+	getName() string
+	broadcast(ctx context.Context, c *Client) error
+}
+
+func broadcastToProvider(provider txBroadcastProvider, id string,
+	c *Client, ctx, fallbackCtx context.Context, timeout time.Duration,
+	resultsChannel chan broadcastResult, status *broadcastStatus,
+) {
+	bErr := provider.broadcast(ctx, c)
+
+	if bErr != nil {
+		// check in Mempool as fallback - if transaction is there -> GREAT SUCCESS
+		// Check error response for "questionable errors"/(TX FAILURE)
+		if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
+			bErr = checkInMempool(fallbackCtx, c, id, bErr.Error(), timeout)
+		}
+
+		if bErr != nil {
+			resultsChannel <- newErrorResult(bErr, provider.getName())
+		}
+	}
+
+	// successful broadcast or found in mempool
+	if bErr == nil {
+		status.tryCompleteWithSuccess(provider.getName())
+		resultsChannel <- newSuccessResult(provider.getName())
+	}
+}
+
+type mapiBroadcastProvider struct {
+	miner   *Miner
+	id, hex string
+}
+
+func (provider mapiBroadcastProvider) getName() string {
+	return provider.miner.Miner.Name
+}
+
+// Broadcast using mAPI
+func (provider mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
+	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.id, provider.hex)
+}
+
+type whatsOnChainBroadcastProvider struct {
+	id, hex string
+}
+
+func (provider whatsOnChainBroadcastProvider) getName() string {
+	return ProviderWhatsOnChain
+}
+
+// Broadcast using WhatsOnChain
+func (provider whatsOnChainBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
+	return broadcastWhatsOnChain(ctx, c, provider.id, provider.hex)
+}
+
+type nowNodesBroadcastProvider struct {
+	uniqueID, txID, hex string
+}
+
+func (provider nowNodesBroadcastProvider) getName() string {
+	return ProviderNowNodes
+}
+
+// Broadcast using NowNodes
+func (provider nowNodesBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
+	return broadcastNowNodes(ctx, c, provider.uniqueID, provider.txID, provider.hex)
+}
+
 // checkInMempool is a quick check to see if the tx is in mempool (or on-chain)
-func checkInMempool(ctx context.Context, client ClientInterface, id, errorMessage string,
-	timeout time.Duration) error {
+func checkInMempool(ctx context.Context, client ClientInterface, id, errorMessage string, timeout time.Duration) error {
 	if _, err := client.QueryTransaction(
 		ctx, id, requiredInMempool, timeout,
 	); err != nil {
@@ -207,7 +302,6 @@ func checkInMempool(ctx context.Context, client ClientInterface, id, errorMessag
 
 // broadcastMAPI will broadcast a transaction to a miner using mAPI
 func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id, hex string) error {
-
 	client.DebugLog("executing broadcast request in mapi using miner: " + miner.Name)
 
 	resp, err := client.Minercraft().SubmitTransaction(ctx, miner, &minercraft.Transaction{

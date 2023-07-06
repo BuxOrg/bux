@@ -9,7 +9,7 @@ require (
 	github.com/bitcoinschema/go-map v0.1.0
 	github.com/centrifugal/centrifuge-go v0.9.6
 	github.com/coocood/freecache v1.2.3
-	github.com/dolthub/go-mysql-server v0.15.0
+	github.com/dolthub/go-mysql-server v0.16.0
 	github.com/fergusstrange/embedded-postgres v1.23.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
@@ -55,7 +55,10 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dolthub/vitess v0.0.0-20230407173322-ae1622f38e94 // indirect
+	github.com/dolthub/flatbuffers/v23 v23.3.3-dh.2 // indirect
+	github.com/dolthub/go-icu-regex v0.0.0-20230524105445-af7e7991c97e // indirect
+	github.com/dolthub/jsonpath v0.0.2-0.20230525180605-8dc13778fd72 // indirect
+	github.com/dolthub/vitess v0.0.0-20230622172940-39f2d1480fcb // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
@@ -66,7 +69,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -95,7 +97,6 @@ require (
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.1.0 // indirect
-	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/onsi/gomega v1.20.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
@@ -105,8 +106,10 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.6 // indirect

@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-nownodes"
-	"github.com/tonicpow/go-minercraft"
 )
 
 var (
@@ -45,17 +43,6 @@ var (
 	*/
 )
 
-// doesErrorContain will look at a string for a list of strings
-func doesErrorContain(err string, messages []string) bool {
-	lower := strings.ToLower(err)
-	for _, str := range messages {
-		if strings.Contains(lower, str) {
-			return true
-		}
-	}
-	return false
-}
-
 // broadcast will broadcast using a standard strategy
 //
 // NOTE: if successful (in-mempool), no error will be returned
@@ -68,64 +55,16 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	var wg sync.WaitGroup
 
 	resultsChannel := make(chan broadcastResult)
-	status := broadcastStatus{complete: false, syncChannel: completeChannel}
+	status := newBroadcastStatus(completeChannel)
 
-	// First: try all mAPI miners (Only supported on main and test right now)
-	if shouldBroadcastWithMAPI(c) {
-		for index := range c.options.config.mAPI.broadcastMiners { // why not for _, miner := range (...) ?
-			miner := c.options.config.mAPI.broadcastMiners[index]
-			if miner != nil {
-				wg.Add(1)
-				go func(miner *Miner) {
-					defer wg.Done()
-
-					provider := mapiBroadcastProvider{
-						miner: miner,
-						id:    id,
-						hex:   hex,
-					}
-
-					broadcastToProvider(provider, id,
-						c, ctxWithCancel, ctx, timeout,
-						resultsChannel, &status)
-				}(miner)
-			}
-		}
-	}
-
-	// Try next provider: WhatsOnChain
-	if shouldBroadcastToWhatsOnChain(c) {
+	for _, provider := range createActiveProviders(c, id, hex) {
 		wg.Add(1)
-		go func() {
+		go func(pvdr txBroadcastProvider) {
 			defer wg.Done()
-
-			provider := whatsOnChainBroadcastProvider{
-				id:  id,
-				hex: hex,
-			}
-
-			broadcastToProvider(provider, id,
-				c, ctx /* why ctx without timeout? */, ctx, timeout,
-				resultsChannel, &status)
-		}()
-	}
-
-	// Try next provider: NowNodes
-	if shouldBroadcastToNowNodes(c) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			provider := nowNodesBroadcastProvider{
-				uniqueID: id,
-				txID:     id,
-				hex:      hex,
-			}
-
-			broadcastToProvider(provider, id,
-				c, ctx /* why ctx without timeout? */, ctx, timeout,
-				resultsChannel, &status)
-		}()
+			broadcastToProvider(pvdr, id,
+				c, ctxWithCancel, ctx, timeout,
+				resultsChannel, status)
+		}(provider)
 	}
 
 	go func() {
@@ -148,9 +87,41 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	}
 }
 
+func createActiveProviders(c *Client, id, hex string) []txBroadcastProvider {
+	providers := make([]txBroadcastProvider, 0, 10)
+
+	if shouldBroadcastWithMAPI(c) {
+		for _, miner := range c.options.config.mAPI.broadcastMiners {
+			if miner == nil {
+				continue
+			}
+
+			pvdr := mapiBroadcastProvider{miner: miner, id: id, hex: hex}
+			providers = append(providers, &pvdr)
+		}
+	}
+
+	if shouldBroadcastToWhatsOnChain(c) {
+		pvdr := whatsOnChainBroadcastProvider{id: id, hex: hex}
+		providers = append(providers, &pvdr)
+	}
+
+	if shouldBroadcastToNowNodes(c) {
+		pvdr := nowNodesBroadcastProvider{
+			uniqueID: id,
+			txID:     id,
+			hex:      hex,
+		}
+
+		providers = append(providers, &pvdr)
+	}
+
+	return providers
+}
+
 func shouldBroadcastWithMAPI(c *Client) bool {
 	return !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) &&
-		(c.Network() == MainNet || c.Network() == TestNet)
+		(c.Network() == MainNet || c.Network() == TestNet) // Only supported on main and test right now
 }
 
 func shouldBroadcastToWhatsOnChain(c *Client) bool {
@@ -160,69 +131,6 @@ func shouldBroadcastToWhatsOnChain(c *Client) bool {
 func shouldBroadcastToNowNodes(c *Client) bool {
 	return !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) &&
 		c.NowNodes() != nil // Only if NowNodes is loaded (requires API key)
-}
-
-// storeErrorMessage will append the error and log it out
-func storeErrorMessage(client ClientInterface, errorMessages []string, errorMessage, provider string) []string {
-	errorMessages = append(errorMessages, provider+": "+errorMessage)
-	client.DebugLog("broadcast error: " + errorMessage + " from provider: " + provider)
-	return errorMessages
-}
-
-// struct handle communication with client - returns first successful broadcast
-type broadcastStatus struct {
-	mu          *sync.Mutex
-	complete    bool
-	success     bool
-	syncChannel chan string
-}
-
-func (g *broadcastStatus) tryCompleteWithSuccess(fastestProvider string) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
-	if !g.complete {
-		g.complete = true
-		g.success = true
-
-		g.syncChannel <- fastestProvider
-		close(g.syncChannel)
-	}
-
-	// g.mu.Unlock() is done by defer
-}
-
-func (g *broadcastStatus) dispose() {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
-	if !g.complete {
-		g.complete = true
-		close(g.syncChannel) // have to close the channel here to not block client
-	}
-
-	// g.mu.Unlock() is done by defer
-}
-
-// result of single broadcast to provider
-type broadcastResult struct {
-	isError  bool
-	err      error
-	provider string
-}
-
-func newErrorResult(err error, provider string) broadcastResult {
-	return broadcastResult{isError: true, err: err, provider: provider}
-}
-
-func newSuccessResult(provider string) broadcastResult {
-	return broadcastResult{isError: false, provider: provider}
-}
-
-// generic broadcast provider
-type txBroadcastProvider interface {
-	getName() string
-	broadcast(ctx context.Context, c *Client) error
 }
 
 func broadcastToProvider(provider txBroadcastProvider, id string,
@@ -250,46 +158,6 @@ func broadcastToProvider(provider txBroadcastProvider, id string,
 	}
 }
 
-type mapiBroadcastProvider struct {
-	miner   *Miner
-	id, hex string
-}
-
-func (provider mapiBroadcastProvider) getName() string {
-	return provider.miner.Miner.Name
-}
-
-// Broadcast using mAPI
-func (provider mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.id, provider.hex)
-}
-
-type whatsOnChainBroadcastProvider struct {
-	id, hex string
-}
-
-func (provider whatsOnChainBroadcastProvider) getName() string {
-	return ProviderWhatsOnChain
-}
-
-// Broadcast using WhatsOnChain
-func (provider whatsOnChainBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastWhatsOnChain(ctx, c, provider.id, provider.hex)
-}
-
-type nowNodesBroadcastProvider struct {
-	uniqueID, txID, hex string
-}
-
-func (provider nowNodesBroadcastProvider) getName() string {
-	return ProviderNowNodes
-}
-
-// Broadcast using NowNodes
-func (provider nowNodesBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastNowNodes(ctx, c, provider.uniqueID, provider.txID, provider.hex)
-}
-
 // checkInMempool is a quick check to see if the tx is in mempool (or on-chain)
 func checkInMempool(ctx context.Context, client ClientInterface, id, errorMessage string, timeout time.Duration) error {
 	if _, err := client.QueryTransaction(
@@ -300,85 +168,9 @@ func checkInMempool(ctx context.Context, client ClientInterface, id, errorMessag
 	return nil
 }
 
-// broadcastMAPI will broadcast a transaction to a miner using mAPI
-func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id, hex string) error {
-	client.DebugLog("executing broadcast request in mapi using miner: " + miner.Name)
-
-	resp, err := client.Minercraft().SubmitTransaction(ctx, miner, &minercraft.Transaction{
-		CallBackEncryption: "", // todo: allow customizing the payload
-		CallBackToken:      "",
-		CallBackURL:        "",
-		DsCheck:            false,
-		MerkleFormat:       "",
-		MerkleProof:        false,
-		RawTx:              hex,
-	})
-	if err != nil {
-		client.DebugLog("error executing request in mapi using miner: " + miner.Name + " failed: " + err.Error())
-		return err
-	}
-
-	// Something went wrong - got back an id that does not match
-	if resp == nil || !strings.EqualFold(resp.Results.TxID, id) {
-		return errors.New("returned tx id [" + resp.Results.TxID + "] does not match given tx id [" + id + "]")
-	}
-
-	// mAPI success of broadcast
-	if resp.Results.ReturnResult == mAPISuccess {
-		return nil
-	}
-
-	// Check error message (for success error message)
-	if doesErrorContain(resp.Results.ResultDescription, broadcastSuccessErrors) {
-		return nil
-	}
-
-	// We got a potential real error message?
-	return errors.New(resp.Results.ResultDescription)
-}
-
-// broadcastWhatsOnChain will broadcast a transaction to WhatsOnChain
-func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex string) error {
-	client.DebugLog("executing broadcast request for " + ProviderWhatsOnChain)
-
-	txID, err := client.WhatsOnChain().BroadcastTx(ctx, hex)
-	if err != nil {
-
-		// Check error message (for success error message)
-		if doesErrorContain(err.Error(), broadcastSuccessErrors) {
-			return nil
-		}
-		return err
-	}
-
-	// Something went wrong - got back an id that does not match
-	if !strings.EqualFold(txID, id) {
-		return errors.New("returned tx id [" + txID + "] does not match given tx id [" + id + "]")
-	}
-
-	// Success
-	return nil
-}
-
-// broadcastNowNodes will broadcast a transaction to NowNodes
-func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, txID, hex string) error {
-	client.DebugLog("executing broadcast request for " + ProviderNowNodes)
-
-	result, err := client.NowNodes().SendRawTransaction(ctx, nownodes.BSV, hex, uniqueID)
-	if err != nil {
-
-		// Check error message (for success error message)
-		if doesErrorContain(err.Error(), broadcastSuccessErrors) {
-			return nil
-		}
-		return err
-	}
-
-	// Something went wrong - got back an id that does not match
-	if !strings.EqualFold(result.Result, txID) {
-		return errors.New("returned tx id [" + result.Result + "] does not match given tx id [" + txID + "]")
-	}
-
-	// Success
-	return nil
+// storeErrorMessage will append the error and log it out
+func storeErrorMessage(client ClientInterface, errorMessages []string, errorMessage, provider string) []string {
+	errorMessages = append(errorMessages, provider+": "+errorMessage)
+	client.DebugLog("broadcast error: " + errorMessage + " from provider: " + provider)
+	return errorMessages
 }

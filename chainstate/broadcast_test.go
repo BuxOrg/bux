@@ -43,10 +43,13 @@ func TestClient_Broadcast_Success(t *testing.T) {
 		)
 		require.NoError(t, err)
 		miners := strings.Split(providers, ",")
-		assert.Contains(t, miners, minercraft.MinerTaal)
-		assert.Contains(t, miners, minercraft.MinerMempool)
-		assert.Contains(t, miners, minercraft.MinerGorillaPool)
-		assert.Contains(t, miners, minercraft.MinerMatterpool)
+
+		assert.GreaterOrEqual(t, len(miners), 1)
+
+		assert.True(t, containsAtLeastOneElement(miners, minercraft.MinerTaal, minercraft.MinerMempool, minercraft.MinerGorillaPool, minercraft.MinerMatterpool))
+
+		assert.NotContains(t, miners, ProviderWhatsOnChain)
+		assert.NotContains(t, miners, ProviderNowNodes)
 	})
 
 	t.Run("broadcast - success (WhatsOnChain)", func(t *testing.T) {
@@ -75,6 +78,69 @@ func TestClient_Broadcast_Success(t *testing.T) {
 		)
 		require.NoError(t, err)
 		assert.Equal(t, ProviderNowNodes, provider)
+	})
+
+	t.Run("broadcast - success (NowNodes timeouts)", func(t *testing.T) {
+		c := NewTestClient(
+			context.Background(), t,
+			WithNowNodes(&nowNodesBroadcastTimeout{}),         // Timeout
+			WithWhatsOnChain(&whatsOnChainBroadcastSuccess{}), // Success
+			WithMinercraft(&minerCraftBroadcastSuccess{}),     // Success
+		)
+		providers, err := c.Broadcast(
+			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
+		)
+		require.NoError(t, err)
+		miners := strings.Split(providers, ",")
+
+		assert.GreaterOrEqual(t, len(miners), 1)
+
+		assert.True(t, containsAtLeastOneElement(miners, minercraft.MinerTaal, minercraft.MinerMempool, minercraft.MinerGorillaPool, minercraft.MinerMatterpool, ProviderWhatsOnChain))
+
+		assert.NotContains(t, miners, ProviderNowNodes)
+	})
+
+	t.Run("broadcast - success (WhatsOnChain timeouts)", func(t *testing.T) {
+		c := NewTestClient(
+			context.Background(), t,
+			WithWhatsOnChain(&whatsOnChainBroadcastTimeout{}), // Timeout
+			WithNowNodes(&nowNodesBroadcastSuccess{}),         // Success
+			WithMinercraft(&minerCraftBroadcastSuccess{}),     // Success
+		)
+		providers, err := c.Broadcast(
+			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
+		)
+		require.NoError(t, err)
+		miners := strings.Split(providers, ",")
+
+		assert.GreaterOrEqual(t, len(miners), 1)
+
+		assert.True(t, containsAtLeastOneElement(miners, minercraft.MinerTaal, minercraft.MinerMempool, minercraft.MinerGorillaPool, minercraft.MinerMatterpool, ProviderNowNodes))
+
+		assert.NotContains(t, miners, ProviderWhatsOnChain)
+	})
+
+	t.Run("broadcast - success (mAPI timeouts)", func(t *testing.T) {
+		c := NewTestClient(
+			context.Background(), t,
+			WithMinercraft(&minerCraftBroadcastTimeout{}),     // Timeout
+			WithWhatsOnChain(&whatsOnChainBroadcastSuccess{}), // Success
+			WithNowNodes(&nowNodesBroadcastSuccess{}),         // Success
+		)
+		providers, err := c.Broadcast(
+			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
+		)
+		require.NoError(t, err)
+		miners := strings.Split(providers, ",")
+
+		assert.GreaterOrEqual(t, len(miners), 1)
+
+		assert.True(t, containsAtLeastOneElement(miners, ProviderWhatsOnChain, ProviderNowNodes))
+
+		assert.NotContains(t, miners, minercraft.MinerTaal)
+		assert.NotContains(t, miners, minercraft.MinerMempool)
+		assert.NotContains(t, miners, minercraft.MinerGorillaPool)
+		assert.NotContains(t, miners, minercraft.MinerMatterpool)
 	})
 }
 
@@ -209,4 +275,21 @@ func TestClient_Broadcast(t *testing.T) {
 		require.Error(t, err)
 		assert.Equal(t, ProviderAll, provider)
 	})
+}
+
+func containsAtLeastOneElement(coll1 []string, coll2 ...string) bool {
+	m := make(map[string]bool)
+
+	for _, element := range coll1 {
+		m[element] = true
+	}
+
+	// Check if any element from bool  is present in the set
+	for _, element := range coll2 {
+		if m[element] {
+			return true
+		}
+	}
+
+	return false
 }

@@ -42,14 +42,23 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 		return nil, ErrMissingTxHex
 	}
 
-	// Create the lock and set the release for after the function completes
-	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
+	var (
+		unlock func()
+		err    error
 	)
-	defer unlock()
-	if err != nil {
-		return nil, err
+	// Create the lock and set the release for after the function completes
+	// Waits for the moment when the transaction is unlocked and creates a new lock
+	// Relevant for bux to bux transactions, as we have 1 tx but need to record 2 txs - outgoing and incoming
+	for {
+		unlock, err = newWriteLock(
+			ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
+		)
+		if err == nil {
+			break
+		}
+		time.Sleep(time.Second * 1)
 	}
+	defer unlock()
 
 	// OPTION: check incoming transactions (if enabled, will add to queue for checking on-chain)
 	if !c.IsITCEnabled() {

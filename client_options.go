@@ -18,6 +18,7 @@ import (
 	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/tonicpow/go-minercraft"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 	taskq "github.com/vmihailenco/taskq/v3"
@@ -710,5 +711,21 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 func WithMapiFeeQuotes() ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithMapiFeeQuotes())
+	}
+}
+
+// WithOverridenMAPIConfig will override mApi config with custom data(custom token, endpoints and etc.)
+func WithOverridenMAPIConfig(miners []*minercraft.Miner) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithOverridenMAPIConfig(miners))
+	}
+}
+
+// WithMinercraft will set custom minercraft client
+func WithMinercraft(minercraft minercraft.ClientInterface) ClientOps {
+	return func(c *clientOptions) {
+		if minercraft != nil {
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraft(minercraft))
+		}
 	}
 }

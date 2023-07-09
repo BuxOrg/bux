@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -67,6 +68,7 @@ func DefaultClientOpts(debug, shared bool) []ClientOps {
 		WithTaskQ(tqc, taskmanager.FactoryMemory),
 		WithSQLite(tester.SQLiteTestConfig(debug, shared)),
 		WithChainstateOptions(false, false, false, false),
+		WithMinercraft(&chainstate.MinerCraftBase{}),
 	)
 	if debug {
 		opts = append(opts, WithDebugging())

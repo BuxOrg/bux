@@ -46,7 +46,7 @@ type ProviderServices interface {
 type MinercraftServices interface {
 	BroadcastMiners() []*Miner
 	QueryMiners() []*Miner
-	RefreshFeeQuotes(ctx context.Context) error
+	ValidateMiners(ctx context.Context)
 	FeeUnit() *utils.FeeUnit
 }
 

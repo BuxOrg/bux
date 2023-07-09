@@ -68,6 +68,8 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 		)
 	}
 
+	c.ValidateMiners(ctx)
+
 	// Check for broadcast miners
 	if len(c.BroadcastMiners()) == 0 {
 		return ErrMissingBroadcastMiners
@@ -76,11 +78,6 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 	// Check for query miners
 	if len(c.QueryMiners()) == 0 {
 		return ErrMissingQueryMiners
-	}
-
-	// Refresh the fee quotes with data from mAPI
-	if c.isMapiFeeQuotesEnabled() {
-		return c.RefreshFeeQuotes(ctx)
 	}
 
 	return nil

@@ -7,7 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.4
 	github.com/bitcoinschema/go-map v0.1.0
-	github.com/centrifugal/centrifuge-go v0.9.6
+	github.com/centrifugal/centrifuge-go v0.10.0
 	github.com/coocood/freecache v1.2.3
 	github.com/dolthub/go-mysql-server v0.16.0
 	github.com/fergusstrange/embedded-postgres v1.23.0
@@ -82,7 +82,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.16.6 // indirect
+	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -106,7 +106,7 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
-	github.com/tetratelabs/wazero v1.1.0 // indirect
+	github.com/tetratelabs/wazero v1.2.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
@@ -122,15 +122,15 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.opentelemetry.io/otel v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect
-	golang.org/x/crypto v0.10.0 // indirect
-	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/net v0.11.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
-	golang.org/x/tools v0.10.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230626202813-9b080da550b3 // indirect
-	google.golang.org/grpc v1.56.1 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/tools v0.11.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230706204954-ccb25ca9f130 // indirect
+	google.golang.org/grpc v1.56.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -145,12 +145,6 @@ replace github.com/bsm/redislock => github.com/bsm/redislock v0.7.2
 
 // Issue with using wrong version of Redigo
 replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9
-
-// Issue with Ask Nancy on related packages
-// replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.5.0
-
-// Issue with v1.0.6 breaking changes
-// replace github.com/libsv/go-bt => github.com/libsv/go-bt v1.0.4
 
 // Breaking changes - needs a full refactor in WOC and BUX
 replace github.com/centrifugal/centrifuge-go => github.com/centrifugal/centrifuge-go v0.8.3

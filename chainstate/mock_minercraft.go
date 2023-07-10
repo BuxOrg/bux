@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/libsv/go-bk/envelope"
+	"github.com/libsv/go-bt/v2"
 	"github.com/tonicpow/go-minercraft"
 )
 
@@ -45,9 +46,9 @@ var (
 	}
 )
 
-type minerCraftBase struct{}
+type MinerCraftBase struct{}
 
-func (m *minerCraftBase) AddMiner(miner minercraft.Miner) error {
+func (m *MinerCraftBase) AddMiner(miner minercraft.Miner) error {
 	existingMiner := m.MinerByName(miner.Name)
 	if existingMiner != nil {
 		return fmt.Errorf("miner %s already exists", miner.Name)
@@ -57,19 +58,28 @@ func (m *minerCraftBase) AddMiner(miner minercraft.Miner) error {
 	return nil
 }
 
-func (m *minerCraftBase) BestQuote(context.Context, string, string) (*minercraft.FeeQuoteResponse, error) {
+func (m *MinerCraftBase) BestQuote(context.Context, string, string) (*minercraft.FeeQuoteResponse, error) {
 	return nil, nil
 }
 
-func (m *minerCraftBase) FastestQuote(context.Context, time.Duration) (*minercraft.FeeQuoteResponse, error) {
+func (m *MinerCraftBase) FastestQuote(context.Context, time.Duration) (*minercraft.FeeQuoteResponse, error) {
 	return nil, nil
 }
 
-func (m *minerCraftBase) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
-	return nil, nil
+func (m *MinerCraftBase) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
+	return &minercraft.FeeQuoteResponse{
+		Quote: &minercraft.FeePayload{
+			Fees: []*bt.Fee{
+				{
+					FeeType:   bt.FeeTypeData,
+					MiningFee: bt.FeeUnit(*DefaultFee),
+				},
+			},
+		},
+	}, nil
 }
 
-func (m *minerCraftBase) MinerByID(minerID string) *minercraft.Miner {
+func (m *MinerCraftBase) MinerByID(minerID string) *minercraft.Miner {
 	for index, miner := range allMiners {
 		if strings.EqualFold(minerID, miner.MinerID) {
 			return allMiners[index]
@@ -78,7 +88,7 @@ func (m *minerCraftBase) MinerByID(minerID string) *minercraft.Miner {
 	return nil
 }
 
-func (m *minerCraftBase) MinerByName(name string) *minercraft.Miner {
+func (m *MinerCraftBase) MinerByName(name string) *minercraft.Miner {
 	for index, miner := range allMiners {
 		if strings.EqualFold(name, miner.Name) {
 			return allMiners[index]
@@ -87,25 +97,25 @@ func (m *minerCraftBase) MinerByName(name string) *minercraft.Miner {
 	return nil
 }
 
-func (m *minerCraftBase) Miners() []*minercraft.Miner {
+func (m *MinerCraftBase) Miners() []*minercraft.Miner {
 	return allMiners
 }
 
-func (m *minerCraftBase) MinerUpdateToken(name, token string) {
+func (m *MinerCraftBase) MinerUpdateToken(name, token string) {
 	if miner := m.MinerByName(name); miner != nil {
 		miner.Token = token
 	}
 }
 
-func (m *minerCraftBase) PolicyQuote(context.Context, *minercraft.Miner) (*minercraft.PolicyQuoteResponse, error) {
+func (m *MinerCraftBase) PolicyQuote(context.Context, *minercraft.Miner) (*minercraft.PolicyQuoteResponse, error) {
 	return nil, nil
 }
 
-func (m *minerCraftBase) QueryTransaction(context.Context, *minercraft.Miner, string, ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
+func (m *MinerCraftBase) QueryTransaction(context.Context, *minercraft.Miner, string, ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *minerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
+func (m *MinerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
 	for i, cm := range allMiners {
 		if cm.Name == miner.Name || cm.MinerID == miner.MinerID {
 			allMiners[i] = allMiners[len(allMiners)-1]
@@ -117,24 +127,25 @@ func (m *minerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
 	return false
 }
 
-func (m *minerCraftBase) SubmitTransaction(context.Context, *minercraft.Miner, *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
+func (m *MinerCraftBase) SubmitTransaction(context.Context, *minercraft.Miner, *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
 	return nil, nil
 }
 
-func (m *minerCraftBase) SubmitTransactions(context.Context, *minercraft.Miner, []minercraft.Transaction) (*minercraft.SubmitTransactionsResponse, error) {
+func (m *MinerCraftBase) SubmitTransactions(context.Context, *minercraft.Miner, []minercraft.Transaction) (*minercraft.SubmitTransactionsResponse, error) {
 	return nil, nil
 }
 
-func (m *minerCraftBase) UserAgent() string {
+func (m *MinerCraftBase) UserAgent() string {
 	return "default-user-agent"
 }
 
 type minerCraftTxOnChain struct {
-	minerCraftBase
+	MinerCraftBase
 }
 
 func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
-	_ *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
+	_ *minercraft.Transaction,
+) (*minercraft.SubmitTransactionResponse, error) {
 	if miner.Name == minercraft.MinerTaal {
 		sig := "30440220008615778c5b8610c29b12925c8eb479f692ad6de9e62b7e622a3951baf9fbd8022014aaa27698cd3aba4144bfd707f3323e12ac20101d6e44f22eb8ed0856ef341a"
 		pubKey := miner.MinerID
@@ -241,8 +252,8 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 }
 
 func (m *minerCraftTxOnChain) QueryTransaction(_ context.Context, miner *minercraft.Miner,
-	txID string, _ ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
-
+	txID string, _ ...minercraft.QueryTransactionOptFunc,
+) (*minercraft.QueryTransactionResponse, error) {
 	if txID == onChainExample1TxID && miner.Name == minerTaal.Name {
 		sig := "304402207ede387e82db1ac38e4286b0a967b4fe1c8446c413b3785ccf86b56009439b39022043931eae02d7337b039f109be41dbd44d0472abd10ed78d7e434824ea8ab01da"
 		pubKey := minerTaal.MinerID
@@ -303,11 +314,12 @@ func (m *minerCraftTxOnChain) QueryTransaction(_ context.Context, miner *minercr
 }
 
 type minerCraftBroadcastSuccess struct {
-	minerCraftBase
+	MinerCraftBase
 }
 
 func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
-	_ *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
+	_ *minercraft.Transaction,
+) (*minercraft.SubmitTransactionResponse, error) {
 	if miner.Name == minercraft.MinerTaal {
 		sig := "30440220268ad023bbe03c62a953f907f81c01754f34ffe4822bb9e89c5245613bda7b7602204c201e56b27fd044b3f8ad77ec2c24dc2b9571166a9a998c256d3cbf598fbbda"
 		pubKey := miner.MinerID
@@ -418,7 +430,8 @@ type minerCraftInMempool struct {
 }
 
 func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
-	_ *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
+	_ *minercraft.Transaction,
+) (*minercraft.SubmitTransactionResponse, error) {
 	if miner.Name == minercraft.MinerTaal {
 		sig := "30440220008615778c5b8610c29b12925c8eb479f692ad6de9e62b7e622a3951baf9fbd8022014aaa27698cd3aba4144bfd707f3323e12ac20101d6e44f22eb8ed0856ef341a"
 		pubKey := miner.MinerID
@@ -525,11 +538,12 @@ func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minerc
 }
 
 type minerCraftTxNotFound struct {
-	minerCraftBase
+	MinerCraftBase
 }
 
 func (m *minerCraftTxNotFound) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
-	_ *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
+	_ *minercraft.Transaction,
+) (*minercraft.SubmitTransactionResponse, error) {
 	return &minercraft.SubmitTransactionResponse{
 		JSONEnvelope: minercraft.JSONEnvelope{
 			Miner:     miner,
@@ -554,8 +568,8 @@ func (m *minerCraftTxNotFound) SubmitTransaction(_ context.Context, miner *miner
 }
 
 func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minercraft.Miner,
-	_ string, _ ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
-
+	_ string, _ ...minercraft.QueryTransactionOptFunc,
+) (*minercraft.QueryTransactionResponse, error) {
 	if miner.Name == minerTaal.Name {
 		sig := "304402201aae61ec65500cf38af48e552c0ea0c62c7937805a99ff6b2dc62bad1a23c183022027a0bb97890f92d41e7b333e8f3dec106aedcd16b782f2f8b46501e104104322"
 		pubKey := minerTaal.MinerID
@@ -651,4 +665,12 @@ func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minerc
 	}
 
 	return nil, nil
+}
+
+type minerCraftUnreachble struct {
+	MinerCraftBase
+}
+
+func (m *minerCraftUnreachble) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
+	return nil, errors.New("minercraft is unreachable")
 }

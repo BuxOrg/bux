@@ -2,6 +2,8 @@ package chainstate
 
 import (
 	"context"
+	"reflect"
+	"strings"
 	"time"
 
 	zLogger "github.com/mrz1836/go-logger"
@@ -235,5 +237,51 @@ func WithExcludedProviders(providers []string) ClientOps {
 func WithMapiFeeQuotes() ClientOps {
 	return func(c *clientOptions) {
 		c.config.mAPI.mapiFeeQuotesEnabled = true
+	}
+}
+
+// WithOverridenMAPIConfig will override default config
+func WithOverridenMAPIConfig(miners []*minercraft.Miner) ClientOps {
+	return func(c *clientOptions) {
+		overrideMAPIConfig(c.config.mAPI.broadcastMiners, miners)
+		overrideMAPIConfig(c.config.mAPI.queryMiners, miners)
+	}
+}
+
+// Looks for miners by name over the mAPI config, and rewrites fields presented in a custom config
+func overrideMAPIConfig(configToOverride []*Miner, customConfig []*minercraft.Miner) {
+	for _, miner := range customConfig {
+		var minerToOverride *minercraft.Miner
+		for _, m := range configToOverride {
+			if strings.EqualFold(m.Miner.Name, miner.Name) {
+				minerToOverride = m.Miner
+				break
+			}
+		}
+		// The miner is not in the configuration, and therefore there is nothing to override. Skip
+		if minerToOverride == nil {
+			continue
+		}
+		// Reflect values of miners. Needed to loop over all miner's fields and overwrite only some of them
+		// Miners are pointers in both configs, so we use reflect.ValueOf(miner).Elem()
+		minerToOverrideReflect := reflect.ValueOf(minerToOverride).Elem()
+		overrideReflect := reflect.ValueOf(miner).Elem()
+		// We don't override 'Name' field. Should be skipped
+		fieldToIgnore := overrideReflect.FieldByName("Name")
+
+		for i := 0; i < overrideReflect.NumField(); i++ {
+			newField := overrideReflect.Field(i)
+			if newField == fieldToIgnore {
+				continue
+			}
+			// Only non-zero fields from custom config will used as overwrite fields
+			if !newField.IsZero() {
+				name := overrideReflect.Type().Field(i).Name
+				fieldToOverride := minerToOverrideReflect.FieldByName(name)
+				if fieldToOverride.CanSet() {
+					fieldToOverride.Set(newField)
+				}
+			}
+		}
 	}
 }

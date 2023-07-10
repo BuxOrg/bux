@@ -79,9 +79,7 @@ func (c *chainStateBase) WhatsOnChain() whatsonchain.ClientInterface {
 	return nil
 }
 
-func (c *chainStateBase) RefreshFeeQuotes(_ context.Context) error {
-	return nil
-}
+func (c *chainStateBase) ValidateMiners(_ context.Context) {}
 
 type chainStateEverythingInMempool struct {
 	chainStateBase

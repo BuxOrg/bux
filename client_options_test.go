@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/BuxOrg/bux/utils"
@@ -264,6 +265,7 @@ func TestWithRedis(t *testing.T) {
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -286,6 +288,7 @@ func TestWithRedis(t *testing.T) {
 				URL: "localhost:6379",
 			}),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -310,6 +313,7 @@ func TestWithRedisConnection(t *testing.T) {
 			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
 			WithRedisConnection(nil),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -330,6 +334,7 @@ func TestWithRedisConnection(t *testing.T) {
 			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
 			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -355,7 +360,8 @@ func TestWithFreeCache(t *testing.T) {
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCache(),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
+			WithMinercraft(&chainstate.MinerCraftBase{}))
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
@@ -380,7 +386,8 @@ func TestWithFreeCacheConnection(t *testing.T) {
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(nil),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
+			WithMinercraft(&chainstate.MinerCraftBase{}))
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 
@@ -398,7 +405,8 @@ func TestWithFreeCacheConnection(t *testing.T) {
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(fc),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
-			WithSQLite(&datastore.SQLiteConfig{Shared: true}))
+			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
+			WithMinercraft(&chainstate.MinerCraftBase{}))
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
@@ -482,6 +490,7 @@ func TestWithTaskQ(t *testing.T) {
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)

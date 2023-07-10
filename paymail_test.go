@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	xtester "github.com/BuxOrg/bux/tester"
 	"github.com/jarcoal/httpmock"
@@ -192,6 +193,7 @@ func Test_getCapabilities(t *testing.T) {
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -231,6 +233,7 @@ func Test_getCapabilities(t *testing.T) {
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -333,6 +336,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
+			WithMinercraft(&chainstate.MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)

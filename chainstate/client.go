@@ -204,8 +204,11 @@ func (c *Client) isMapiFeeQuotesEnabled() bool {
 	return c.options.config.mAPI.mapiFeeQuotesEnabled
 }
 
-// RefreshFeeQuotes will update all fee quotes for all broadcasting miners in mAPI
-func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
+// ValidateMiners will check if miner is reacheble by requesting its FeeQuote
+// If there was on error on FeeQuote(), the miner will be deleted from miners list
+// If usage of MapiFeeQuotes is enabled and miner is reacheble, miner's fee unit will be upadeted with MAPI fee quotes
+// If FeeQuote returns some quote, but fee is not presented in it, it means that miner is valid but we can't use it's feequote
+func (c *Client) ValidateMiners(ctx context.Context) {
 	ctxWithCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -223,6 +226,7 @@ func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
 			quote, err := c.Minercraft().FeeQuote(ctx, miner.Miner)
 			if err != nil {
 				client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s", miner.Miner.Name))
+				miner.FeeUnit = nil
 				return
 			}
 
@@ -232,16 +236,22 @@ func (c *Client) RefreshFeeQuotes(ctx context.Context) error {
 				client.options.logger.Error(ctx, fmt.Sprintf("Fee is missing in %s's FeeQuote response", miner.Miner.Name))
 				return
 			}
-			miner.FeeUnit = &utils.FeeUnit{
-				Satoshis: fee.MiningFee.Satoshis,
-				Bytes:    fee.MiningFee.Bytes,
+			if c.isMapiFeeQuotesEnabled() {
+				miner.FeeUnit = &utils.FeeUnit{
+					Satoshis: fee.MiningFee.Satoshis,
+					Bytes:    fee.MiningFee.Bytes,
+				}
+				miner.FeeLastChecked = time.Now().UTC()
 			}
-			miner.FeeLastChecked = time.Now().UTC()
 		}(ctxWithCancel, c, &wg, c.options.config.mAPI.broadcastMiners[index])
 	}
 	wg.Wait()
-	c.SetLowestFees()
-	return nil
+
+	c.DeleteUnreacheableMiners()
+
+	if c.isMapiFeeQuotesEnabled() {
+		c.SetLowestFees()
+	}
 }
 
 // SetLowestFees takes the lowest fees among all miners and sets them as the feeUnit for future transactions
@@ -253,4 +263,20 @@ func (c *Client) SetLowestFees() {
 		}
 	}
 	c.options.config.mAPI.feeUnit = minFees
+}
+
+// DeleteUnreacheableMiners deletes miners which can't be reacheable from config
+func (c *Client) DeleteUnreacheableMiners() {
+	validMinerIndex := 0
+	for _, miner := range c.options.config.mAPI.broadcastMiners {
+		if miner.FeeUnit != nil {
+			c.options.config.mAPI.broadcastMiners[validMinerIndex] = miner
+			validMinerIndex++
+		}
+	}
+	// Prevent memory leak by erasing truncated miners
+	for i := validMinerIndex; i < len(c.options.config.mAPI.broadcastMiners); i++ {
+		c.options.config.mAPI.broadcastMiners[i] = nil
+	}
+	c.options.config.mAPI.broadcastMiners = c.options.config.mAPI.broadcastMiners[:validMinerIndex]
 }

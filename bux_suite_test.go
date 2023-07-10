@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -297,7 +298,8 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 
 	// Add a custom user agent (future: make this passed into the function via opts)
 	opts = append(opts, WithUserAgent("bux test suite"))
-
+	opts = append(opts, WithMinercraft(&chainstate.MinerCraftBase{}))
+	
 	// Create the client
 	if tc.client, err = NewClient(ctx, opts...); err != nil {
 		return nil, err

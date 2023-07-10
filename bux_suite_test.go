@@ -299,7 +299,7 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 	// Add a custom user agent (future: make this passed into the function via opts)
 	opts = append(opts, WithUserAgent("bux test suite"))
 	opts = append(opts, WithMinercraft(&chainstate.MinerCraftBase{}))
-	
+
 	// Create the client
 	if tc.client, err = NewClient(ctx, opts...); err != nil {
 		return nil, err
@@ -312,6 +312,7 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 // genericDBClient is a helpful wrapper for getting the same type of client
 //
 // NOTE: you need to close the client: ts.Close()
+//
 //nolint:nolintlint,unparam,gci // opts is the way, but not yet being used
 func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.Engine, taskManagerEnabled bool, opts ...ClientOps) *TestingClient {
 	prefix := tester.RandomTablePrefix()

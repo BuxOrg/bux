@@ -1,11 +1,12 @@
 package chainstate
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 )
 
-// struct handle communication with client - returns first successful broadcast
+// struct handles communication with the client - returns first successful broadcast
 type broadcastStatus struct {
 	mu          *sync.Mutex
 	complete    bool
@@ -68,4 +69,8 @@ func doesErrorContain(err string, messages []string) bool {
 		}
 	}
 	return false
+}
+
+func debugLog(c ClientInterface, txId, msg string) {
+	c.DebugLog(fmt.Sprintf("[txId: %s]: %s", txId, msg))
 }

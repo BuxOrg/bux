@@ -2,7 +2,7 @@ package chainstate
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -57,14 +57,14 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	resultsChannel := make(chan broadcastResult)
 	status := newBroadcastStatus(completeChannel)
 
-	for _, provider := range createActiveProviders(c, id, hex) {
+	for _, broadcastProvider := range createActiveProviders(c, id, hex) {
 		wg.Add(1)
-		go func(pvdr txBroadcastProvider) {
+		go func(provider txBroadcastProvider) {
 			defer wg.Done()
-			broadcastToProvider(pvdr, id,
+			broadcastToProvider(provider, id,
 				c, ctxWithCancel, ctx, timeout,
 				resultsChannel, status)
-		}(provider)
+		}(broadcastProvider)
 	}
 
 	go func() {
@@ -76,10 +76,11 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	var errorMessages []string
 	for result := range resultsChannel {
 		if result.isError {
-			errorMessages = storeErrorMessage(c, errorMessages, result.err.Error(), result.provider)
+			debugLog(c, id, fmt.Sprintf("broadcast error: %s from provider %s", result.err, result.provider))
+			errorMessages = append(errorMessages, result.provider+": "+result.err.Error())
+		} else {
+			debugLog(c, id, fmt.Sprintf("successful broadcast to %s", result.provider))
 		}
-		// log smth on success?
-		// successProviders = append(successProviders, result.provider)
 	}
 
 	if !status.success && len(errorMessages) > 0 {
@@ -87,7 +88,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	}
 }
 
-func createActiveProviders(c *Client, id, hex string) []txBroadcastProvider {
+func createActiveProviders(c *Client, txId, txHex string) []txBroadcastProvider {
 	providers := make([]txBroadcastProvider, 0, 10)
 
 	if shouldBroadcastWithMAPI(c) {
@@ -96,23 +97,18 @@ func createActiveProviders(c *Client, id, hex string) []txBroadcastProvider {
 				continue
 			}
 
-			pvdr := mapiBroadcastProvider{miner: miner, id: id, hex: hex}
+			pvdr := mapiBroadcastProvider{miner: miner, txId: txId, txHex: txHex}
 			providers = append(providers, &pvdr)
 		}
 	}
 
 	if shouldBroadcastToWhatsOnChain(c) {
-		pvdr := whatsOnChainBroadcastProvider{id: id, hex: hex}
+		pvdr := whatsOnChainBroadcastProvider{txId: txId, txHex: txHex}
 		providers = append(providers, &pvdr)
 	}
 
 	if shouldBroadcastToNowNodes(c) {
-		pvdr := nowNodesBroadcastProvider{
-			uniqueID: id,
-			txID:     id,
-			hex:      hex,
-		}
-
+		pvdr := nowNodesBroadcastProvider{uniqueID: txId, txID: txId, txHex: txHex}
 		providers = append(providers, &pvdr)
 	}
 
@@ -133,8 +129,8 @@ func shouldBroadcastToNowNodes(c *Client) bool {
 		c.NowNodes() != nil // Only if NowNodes is loaded (requires API key)
 }
 
-func broadcastToProvider(provider txBroadcastProvider, id string,
-	c *Client, ctx, fallbackCtx context.Context, timeout time.Duration,
+func broadcastToProvider(provider txBroadcastProvider, txId string,
+	c *Client, ctx, fallbackCtx context.Context, fallbackTimeout time.Duration,
 	resultsChannel chan broadcastResult, status *broadcastStatus,
 ) {
 	bErr := provider.broadcast(ctx, c)
@@ -143,7 +139,7 @@ func broadcastToProvider(provider txBroadcastProvider, id string,
 		// check in Mempool as fallback - if transaction is there -> GREAT SUCCESS
 		// Check error response for "questionable errors"/(TX FAILURE)
 		if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
-			bErr = checkInMempool(fallbackCtx, c, id, bErr.Error(), timeout)
+			bErr = checkInMempool(fallbackCtx, c, txId, bErr.Error(), fallbackTimeout)
 		}
 
 		if bErr != nil {
@@ -159,18 +155,11 @@ func broadcastToProvider(provider txBroadcastProvider, id string,
 }
 
 // checkInMempool is a quick check to see if the tx is in mempool (or on-chain)
-func checkInMempool(ctx context.Context, client ClientInterface, id, errorMessage string, timeout time.Duration) error {
+func checkInMempool(ctx context.Context, client ClientInterface, id, initErrMsg string, timeout time.Duration) error {
 	if _, err := client.QueryTransaction(
 		ctx, id, requiredInMempool, timeout,
 	); err != nil {
-		return errors.New("error query tx failed: " + err.Error() + ", " + "broadcast initial error: " + errorMessage)
+		return fmt.Errorf("error query tx failed: %w, broadcast initial error: %s", err, initErrMsg)
 	}
 	return nil
-}
-
-// storeErrorMessage will append the error and log it out
-func storeErrorMessage(client ClientInterface, errorMessages []string, errorMessage, provider string) []string {
-	errorMessages = append(errorMessages, provider+": "+errorMessage)
-	client.DebugLog("broadcast error: " + errorMessage + " from provider: " + provider)
-	return errorMessages
 }

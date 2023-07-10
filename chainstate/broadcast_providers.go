@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/mrz1836/go-nownodes"
@@ -17,8 +18,8 @@ type txBroadcastProvider interface {
 
 // mAPI provider
 type mapiBroadcastProvider struct {
-	miner   *Miner
-	id, hex string
+	miner       *Miner
+	txId, txHex string
 }
 
 func (provider mapiBroadcastProvider) getName() string {
@@ -26,12 +27,12 @@ func (provider mapiBroadcastProvider) getName() string {
 }
 
 func (provider mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.id, provider.hex)
+	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.txId, provider.txHex)
 }
 
 // broadcastMAPI will broadcast a transaction to a miner using mAPI
 func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id, hex string) error {
-	client.DebugLog("executing broadcast request in mapi using miner: " + miner.Name)
+	debugLog(client, id, "executing broadcast request in mapi using miner: "+miner.Name)
 
 	resp, err := client.Minercraft().SubmitTransaction(ctx, miner, &minercraft.Transaction{
 		CallBackEncryption: "", // todo: allow customizing the payload
@@ -43,13 +44,13 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 		RawTx:              hex,
 	})
 	if err != nil {
-		client.DebugLog("error executing request in mapi using miner: " + miner.Name + " failed: " + err.Error())
+		debugLog(client, id, "error executing request in mapi using miner: "+miner.Name+" failed: "+err.Error())
 		return err
 	}
 
 	// Something went wrong - got back an id that does not match
 	if resp == nil || !strings.EqualFold(resp.Results.TxID, id) {
-		return errors.New("returned tx id [" + resp.Results.TxID + "] does not match given tx id [" + id + "]")
+		return incorrectTxIdReturnedErr(resp.Results.TxID, id)
 	}
 
 	// mAPI success of broadcast
@@ -70,7 +71,7 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 // WhatsOnChain provider
 type whatsOnChainBroadcastProvider struct {
-	id, hex string
+	txId, txHex string
 }
 
 func (provider whatsOnChainBroadcastProvider) getName() string {
@@ -78,12 +79,12 @@ func (provider whatsOnChainBroadcastProvider) getName() string {
 }
 
 func (provider whatsOnChainBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastWhatsOnChain(ctx, c, provider.id, provider.hex)
+	return broadcastWhatsOnChain(ctx, c, provider.txId, provider.txHex)
 }
 
 // broadcastWhatsOnChain will broadcast a transaction to WhatsOnChain
 func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex string) error {
-	client.DebugLog("executing broadcast request for " + ProviderWhatsOnChain)
+	debugLog(client, id, "executing broadcast request for "+ProviderWhatsOnChain)
 
 	txID, err := client.WhatsOnChain().BroadcastTx(ctx, hex)
 	if err != nil {
@@ -97,7 +98,7 @@ func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex 
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(txID, id) {
-		return errors.New("returned tx id [" + txID + "] does not match given tx id [" + id + "]")
+		return incorrectTxIdReturnedErr(txID, id)
 	}
 
 	// Success
@@ -108,7 +109,7 @@ func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex 
 
 // NowNodes provider
 type nowNodesBroadcastProvider struct {
-	uniqueID, txID, hex string
+	uniqueID, txID, txHex string
 }
 
 func (provider nowNodesBroadcastProvider) getName() string {
@@ -117,12 +118,12 @@ func (provider nowNodesBroadcastProvider) getName() string {
 
 // Broadcast using NowNodes
 func (provider nowNodesBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastNowNodes(ctx, c, provider.uniqueID, provider.txID, provider.hex)
+	return broadcastNowNodes(ctx, c, provider.uniqueID, provider.txID, provider.txHex)
 }
 
 // broadcastNowNodes will broadcast a transaction to NowNodes
 func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, txID, hex string) error {
-	client.DebugLog("executing broadcast request for " + ProviderNowNodes)
+	debugLog(client, txID, "executing broadcast request for "+ProviderNowNodes)
 
 	result, err := client.NowNodes().SendRawTransaction(ctx, nownodes.BSV, hex, uniqueID)
 	if err != nil {
@@ -136,7 +137,7 @@ func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, tx
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(result.Result, txID) {
-		return errors.New("returned tx id [" + result.Result + "] does not match given tx id [" + txID + "]")
+		return incorrectTxIdReturnedErr(result.Result, txID)
 	}
 
 	// Success
@@ -144,3 +145,7 @@ func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, tx
 }
 
 ////
+
+func incorrectTxIdReturnedErr(actualTxId, expectedTxId string) error {
+	return fmt.Errorf("returned tx id [%s] does not match given tx id [%s]", actualTxId, expectedTxId)
+}

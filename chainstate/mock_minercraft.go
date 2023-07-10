@@ -46,8 +46,10 @@ var (
 	}
 )
 
+// MinerCraftBase is a mock implementation of the minercraft.MinerCraft interface.
 type MinerCraftBase struct{}
 
+// AddMiner adds a new miner to the list of miners.
 func (m *MinerCraftBase) AddMiner(miner minercraft.Miner) error {
 	existingMiner := m.MinerByName(miner.Name)
 	if existingMiner != nil {
@@ -58,14 +60,17 @@ func (m *MinerCraftBase) AddMiner(miner minercraft.Miner) error {
 	return nil
 }
 
+// BestQuote returns the best quote for the given fee type and amount.
 func (m *MinerCraftBase) BestQuote(context.Context, string, string) (*minercraft.FeeQuoteResponse, error) {
 	return nil, nil
 }
 
+// FastestQuote returns the fastest quote for the given fee type and amount.
 func (m *MinerCraftBase) FastestQuote(context.Context, time.Duration) (*minercraft.FeeQuoteResponse, error) {
 	return nil, nil
 }
 
+// FeeQuote returns a fee quote for the given miner.
 func (m *MinerCraftBase) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
 	return &minercraft.FeeQuoteResponse{
 		Quote: &minercraft.FeePayload{
@@ -79,6 +84,7 @@ func (m *MinerCraftBase) FeeQuote(context.Context, *minercraft.Miner) (*minercra
 	}, nil
 }
 
+// MinerByID returns a miner by its ID.
 func (m *MinerCraftBase) MinerByID(minerID string) *minercraft.Miner {
 	for index, miner := range allMiners {
 		if strings.EqualFold(minerID, miner.MinerID) {
@@ -88,6 +94,7 @@ func (m *MinerCraftBase) MinerByID(minerID string) *minercraft.Miner {
 	return nil
 }
 
+// MinerByName returns a miner by its name.
 func (m *MinerCraftBase) MinerByName(name string) *minercraft.Miner {
 	for index, miner := range allMiners {
 		if strings.EqualFold(name, miner.Name) {
@@ -97,24 +104,29 @@ func (m *MinerCraftBase) MinerByName(name string) *minercraft.Miner {
 	return nil
 }
 
+// Miners returns all miners.
 func (m *MinerCraftBase) Miners() []*minercraft.Miner {
 	return allMiners
 }
 
+// MinerUpdateToken updates the token for the given miner.
 func (m *MinerCraftBase) MinerUpdateToken(name, token string) {
 	if miner := m.MinerByName(name); miner != nil {
 		miner.Token = token
 	}
 }
 
+// PolicyQuote returns a policy quote for the given miner.
 func (m *MinerCraftBase) PolicyQuote(context.Context, *minercraft.Miner) (*minercraft.PolicyQuoteResponse, error) {
 	return nil, nil
 }
 
+// QueryTransaction returns a transaction for the given miner.
 func (m *MinerCraftBase) QueryTransaction(context.Context, *minercraft.Miner, string, ...minercraft.QueryTransactionOptFunc) (*minercraft.QueryTransactionResponse, error) {
 	return nil, nil
 }
 
+// RemoveMiner removes a miner from the list of miners.
 func (m *MinerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
 	for i, cm := range allMiners {
 		if cm.Name == miner.Name || cm.MinerID == miner.MinerID {
@@ -127,14 +139,17 @@ func (m *MinerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
 	return false
 }
 
+// SubmitTransaction submits a transaction to the given miner.
 func (m *MinerCraftBase) SubmitTransaction(context.Context, *minercraft.Miner, *minercraft.Transaction) (*minercraft.SubmitTransactionResponse, error) {
 	return nil, nil
 }
 
+// SubmitTransactions submits transactions to the given miner.
 func (m *MinerCraftBase) SubmitTransactions(context.Context, *minercraft.Miner, []minercraft.Transaction) (*minercraft.SubmitTransactionsResponse, error) {
 	return nil, nil
 }
 
+// UserAgent returns the user agent.
 func (m *MinerCraftBase) UserAgent() string {
 	return "default-user-agent"
 }
@@ -143,6 +158,7 @@ type minerCraftTxOnChain struct {
 	MinerCraftBase
 }
 
+// SubmitTransaction submits a transaction to the given miner.
 func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
 	_ *minercraft.Transaction,
 ) (*minercraft.SubmitTransactionResponse, error) {
@@ -251,6 +267,7 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 	return nil, errors.New("missing miner response")
 }
 
+// QueryTransaction mocks the QueryTransaction method of the minercraft API.
 func (m *minerCraftTxOnChain) QueryTransaction(_ context.Context, miner *minercraft.Miner,
 	txID string, _ ...minercraft.QueryTransactionOptFunc,
 ) (*minercraft.QueryTransactionResponse, error) {
@@ -317,6 +334,7 @@ type minerCraftBroadcastSuccess struct {
 	MinerCraftBase
 }
 
+// SubmitTransaction mocks the SubmitTransaction method of the minercraft API.
 func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
 	_ *minercraft.Transaction,
 ) (*minercraft.SubmitTransactionResponse, error) {
@@ -429,6 +447,7 @@ type minerCraftInMempool struct {
 	minerCraftTxOnChain
 }
 
+// SubmitTransaction submits a transaction to the miner.
 func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
 	_ *minercraft.Transaction,
 ) (*minercraft.SubmitTransactionResponse, error) {
@@ -541,6 +560,7 @@ type minerCraftTxNotFound struct {
 	MinerCraftBase
 }
 
+// SubmitTransaction submits a transaction to the miner.
 func (m *minerCraftTxNotFound) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
 	_ *minercraft.Transaction,
 ) (*minercraft.SubmitTransactionResponse, error) {
@@ -567,6 +587,7 @@ func (m *minerCraftTxNotFound) SubmitTransaction(_ context.Context, miner *miner
 	}, nil
 }
 
+// QueryTransaction queries a transaction from the miner.
 func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minercraft.Miner,
 	_ string, _ ...minercraft.QueryTransactionOptFunc,
 ) (*minercraft.QueryTransactionResponse, error) {
@@ -671,6 +692,7 @@ type minerCraftUnreachble struct {
 	MinerCraftBase
 }
 
+// FeeQuote returns an error.
 func (m *minerCraftUnreachble) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
 	return nil, errors.New("minercraft is unreachable")
 }

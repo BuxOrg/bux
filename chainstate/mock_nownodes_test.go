@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/mrz1836/go-nownodes"
 )
@@ -42,13 +43,14 @@ type nowNodesTxOnChain struct {
 }
 
 func (n *nowNodesTxOnChain) SendRawTransaction(context.Context, nownodes.Blockchain,
-	string, string) (*nownodes.BroadcastResult, error) {
+	string, string,
+) (*nownodes.BroadcastResult, error) {
 	return nil, errors.New("257: txn-already-known")
 }
 
 func (n *nowNodesTxOnChain) GetTransaction(_ context.Context, _ nownodes.Blockchain,
-	txID string) (*nownodes.TransactionInfo, error) {
-
+	txID string,
+) (*nownodes.TransactionInfo, error) {
 	if txID == onChainExample1TxID {
 		return &nownodes.TransactionInfo{
 			BlockHash:     "0000000000000000015122781ab51d57b26a09518630b882f67f1b08d841979d",
@@ -117,7 +119,8 @@ type nowNodesBroadcastSuccess struct {
 }
 
 func (n *nowNodesBroadcastSuccess) SendRawTransaction(_ context.Context, _ nownodes.Blockchain,
-	_ string, id string) (*nownodes.BroadcastResult, error) {
+	_ string, id string,
+) (*nownodes.BroadcastResult, error) {
 	return &nownodes.BroadcastResult{
 		ID:     id,
 		Result: id,
@@ -129,7 +132,8 @@ type nowNodeInMempool struct {
 }
 
 func (n *nowNodeInMempool) SendRawTransaction(context.Context, nownodes.Blockchain,
-	string, string) (*nownodes.BroadcastResult, error) {
+	string, string,
+) (*nownodes.BroadcastResult, error) {
 	return nil, errors.New("257: txn-already-known")
 }
 
@@ -138,11 +142,24 @@ type nowNodesTxNotFound struct {
 }
 
 func (n *nowNodesTxNotFound) SendRawTransaction(context.Context, nownodes.Blockchain,
-	string, string) (*nownodes.BroadcastResult, error) {
+	string, string,
+) (*nownodes.BroadcastResult, error) {
 	return nil, errors.New("56: mempool conflict")
 }
 
 func (n *nowNodesTxNotFound) GetTransaction(_ context.Context, _ nownodes.Blockchain,
-	txID string) (*nownodes.TransactionInfo, error) {
+	txID string,
+) (*nownodes.TransactionInfo, error) {
 	return nil, errors.New("Transaction '" + txID + "' not found")
+}
+
+type nowNodesBroadcastTimeout struct {
+	nowNodesBase
+}
+
+func (n *nowNodesBroadcastTimeout) SendRawTransaction(context.Context, nownodes.Blockchain,
+	string, string,
+) (*nownodes.BroadcastResult, error) {
+	time.Sleep(defaultBroadcastTimeOut * 2)
+	return nil, errors.New("257: txn-already-known")
 }

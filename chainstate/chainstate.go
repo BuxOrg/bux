@@ -5,7 +5,7 @@ package chainstate
 
 import (
 	"context"
-	"strings"
+	"fmt"
 	"time"
 )
 
@@ -16,7 +16,6 @@ func (c *Client) MonitorBlockHeaders(_ context.Context) error {
 
 // Broadcast will attempt to broadcast a transaction using the given providers
 func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) (string, error) {
-
 	// Basic validation
 	if len(id) < 50 {
 		return "", ErrInvalidTransactionID
@@ -29,12 +28,20 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 	c.DebugLog("tx_hex: " + txHex)
 
 	// Broadcast or die
-	successProviders, errorProviders, err := c.broadcast(ctx, id, txHex, timeout)
-	if len(successProviders) > 0 {
-		c.DebugLog("Failed broadcast on: " + strings.Join(errorProviders, ","))
-		return strings.Join(successProviders, ","), nil
+	successCompleteCh := make(chan string)
+	errorCh := make(chan string)
+
+	go c.broadcast(ctx, id, txHex, timeout, successCompleteCh, errorCh)
+
+	// wait for first success
+	success := <-successCompleteCh
+	if success != "" {
+		return success, nil
 	}
-	return ProviderAll, err
+
+	// successCompleteCh closed without any values
+	errorMessage := <-errorCh
+	return ProviderAll, fmt.Errorf("broadcast failed, errors: %s", errorMessage)
 }
 
 // QueryTransaction will get the transaction info from all providers returning the "first" valid result
@@ -43,7 +50,6 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 func (c *Client) QueryTransaction(
 	ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 ) (*TransactionInfo, error) {
-
 	// Basic validation
 	if len(id) < 50 {
 		return nil, ErrInvalidTransactionID
@@ -65,7 +71,6 @@ func (c *Client) QueryTransaction(
 func (c *Client) QueryTransactionFastest(
 	ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
 ) (*TransactionInfo, error) {
-
 	// Basic validation
 	if len(id) < 50 {
 		return nil, ErrInvalidTransactionID

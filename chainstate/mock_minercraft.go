@@ -696,3 +696,35 @@ type minerCraftUnreachble struct {
 func (m *minerCraftUnreachble) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
 	return nil, errors.New("minercraft is unreachable")
 }
+
+type minerCraftBroadcastTimeout struct {
+	MinerCraftBase
+}
+
+func (m *minerCraftBroadcastTimeout) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
+	_ *minercraft.Transaction,
+) (*minercraft.SubmitTransactionResponse, error) {
+	time.Sleep(defaultBroadcastTimeOut * 2)
+
+	return &minercraft.SubmitTransactionResponse{
+		JSONEnvelope: minercraft.JSONEnvelope{
+			Miner:     miner,
+			Validated: true,
+			JSONEnvelope: envelope.JSONEnvelope{
+				Payload:  "{\"apiVersion\":\"\",\"timestamp\":\"2022-02-01T17:47:52.518Z\",\"txid\":\"\",\"returnResult\":\"failure\",\"resultDescription\":\"ERROR: Mempool conflict\",\"minerId\":null,\"currentHighestBlockHash\":\"0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1\",\"currentHighestBlockHeight\":724816,\"txSecondMempoolExpiry\":0}",
+				Encoding: utf8Type,
+				MimeType: applicationJSONType,
+			},
+		},
+		Results: &minercraft.SubmissionPayload{
+			APIVersion:                "",
+			CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
+			CurrentHighestBlockHeight: 724816,
+			MinerID:                   miner.MinerID,
+			ResultDescription:         "ERROR: Mempool conflict",
+			ReturnResult:              mAPIFailure,
+			Timestamp:                 "2022-02-01T17:47:52.518Z",
+			TxID:                      "",
+		},
+	}, nil
+}

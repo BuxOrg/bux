@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bt/v2"
@@ -192,7 +193,6 @@ func (w *whatsOnChainTxOnChain) BroadcastTx(context.Context, string) (string, er
 }
 
 func (w *whatsOnChainTxOnChain) GetTxByHash(_ context.Context, hash string) (txInfo *whatsonchain.TxInfo, err error) {
-
 	if hash == onChainExample1TxID {
 		txInfo = &whatsonchain.TxInfo{
 			BlockHash:     onChainExample1BlockHash,
@@ -258,4 +258,13 @@ func (w *whatsOnChainTxNotFound) GetTxByHash(context.Context, string) (txInfo *w
 
 func (w *whatsOnChainTxNotFound) BroadcastTx(context.Context, string) (string, error) {
 	return "", errors.New("unexpected response code 500: mempool conflict")
+}
+
+type whatsOnChainBroadcastTimeout struct {
+	whatsOnChainBase
+}
+
+func (w *whatsOnChainBroadcastTimeout) BroadcastTx(_ context.Context, _ string) (string, error) {
+	time.Sleep(defaultBroadcastTimeOut * 2)
+	return "", errors.New("unexpected response code 500: 257: txn-already-known")
 }

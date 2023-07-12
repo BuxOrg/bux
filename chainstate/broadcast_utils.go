@@ -71,6 +71,6 @@ func doesErrorContain(err string, messages []string) bool {
 	return false
 }
 
-func debugLog(c ClientInterface, txId, msg string) {
-	c.DebugLog(fmt.Sprintf("[txId: %s]: %s", txId, msg))
+func debugLog(c ClientInterface, txID, msg string) {
+	c.DebugLog(fmt.Sprintf("[txID: %s]: %s", txID, msg))
 }

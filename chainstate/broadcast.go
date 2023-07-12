@@ -46,7 +46,7 @@ var (
 // broadcast will broadcast using a standard strategy
 //
 // NOTE: if successful (in-mempool), no error will be returned
-// NOTE: function register fastest successful broadcast into 'completeChannel' so client doesn't need to wait for other providers
+// NOTE: function register the fastest successful broadcast into 'completeChannel' so client doesn't need to wait for other providers
 func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Duration, completeChannel, errorChannel chan string) {
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
@@ -61,8 +61,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 		wg.Add(1)
 		go func(provider txBroadcastProvider) {
 			defer wg.Done()
-			broadcastToProvider(provider, id,
-				c, ctxWithCancel, ctx, timeout,
+			broadcastToProvider(ctxWithCancel, ctx, provider, id, c, timeout,
 				resultsChannel, status)
 		}(broadcastProvider)
 	}
@@ -88,7 +87,7 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 	}
 }
 
-func createActiveProviders(c *Client, txId, txHex string) []txBroadcastProvider {
+func createActiveProviders(c *Client, txID, txHex string) []txBroadcastProvider {
 	providers := make([]txBroadcastProvider, 0, 10)
 
 	if shouldBroadcastWithMAPI(c) {
@@ -97,18 +96,18 @@ func createActiveProviders(c *Client, txId, txHex string) []txBroadcastProvider 
 				continue
 			}
 
-			pvdr := mapiBroadcastProvider{miner: miner, txId: txId, txHex: txHex}
+			pvdr := mapiBroadcastProvider{miner: miner, txID: txID, txHex: txHex}
 			providers = append(providers, &pvdr)
 		}
 	}
 
 	if shouldBroadcastToWhatsOnChain(c) {
-		pvdr := whatsOnChainBroadcastProvider{txId: txId, txHex: txHex}
+		pvdr := whatsOnChainBroadcastProvider{txID: txID, txHex: txHex}
 		providers = append(providers, &pvdr)
 	}
 
 	if shouldBroadcastToNowNodes(c) {
-		pvdr := nowNodesBroadcastProvider{uniqueID: txId, txID: txId, txHex: txHex}
+		pvdr := nowNodesBroadcastProvider{uniqueID: txID, txID: txID, txHex: txHex}
 		providers = append(providers, &pvdr)
 	}
 
@@ -129,8 +128,8 @@ func shouldBroadcastToNowNodes(c *Client) bool {
 		c.NowNodes() != nil // Only if NowNodes is loaded (requires API key)
 }
 
-func broadcastToProvider(provider txBroadcastProvider, txId string,
-	c *Client, ctx, fallbackCtx context.Context, fallbackTimeout time.Duration,
+func broadcastToProvider(ctx, fallbackCtx context.Context, provider txBroadcastProvider, txID string,
+	c *Client, fallbackTimeout time.Duration,
 	resultsChannel chan broadcastResult, status *broadcastStatus,
 ) {
 	bErr := provider.broadcast(ctx, c)
@@ -139,7 +138,7 @@ func broadcastToProvider(provider txBroadcastProvider, txId string,
 		// check in Mempool as fallback - if transaction is there -> GREAT SUCCESS
 		// Check error response for "questionable errors"/(TX FAILURE)
 		if doesErrorContain(bErr.Error(), broadcastQuestionableErrors) {
-			bErr = checkInMempool(fallbackCtx, c, txId, bErr.Error(), fallbackTimeout)
+			bErr = checkInMempool(fallbackCtx, c, txID, bErr.Error(), fallbackTimeout)
 		}
 
 		if bErr != nil {

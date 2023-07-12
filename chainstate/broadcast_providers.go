@@ -19,7 +19,7 @@ type txBroadcastProvider interface {
 // mAPI provider
 type mapiBroadcastProvider struct {
 	miner       *Miner
-	txId, txHex string
+	txID, txHex string
 }
 
 func (provider mapiBroadcastProvider) getName() string {
@@ -27,7 +27,7 @@ func (provider mapiBroadcastProvider) getName() string {
 }
 
 func (provider mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.txId, provider.txHex)
+	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.txID, provider.txHex)
 }
 
 // broadcastMAPI will broadcast a transaction to a miner using mAPI
@@ -50,7 +50,7 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 	// Something went wrong - got back an id that does not match
 	if resp == nil || !strings.EqualFold(resp.Results.TxID, id) {
-		return incorrectTxIdReturnedErr(resp.Results.TxID, id)
+		return incorrectTxIDReturnedErr(resp.Results.TxID, id)
 	}
 
 	// mAPI success of broadcast
@@ -71,7 +71,7 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 // WhatsOnChain provider
 type whatsOnChainBroadcastProvider struct {
-	txId, txHex string
+	txID, txHex string
 }
 
 func (provider whatsOnChainBroadcastProvider) getName() string {
@@ -79,7 +79,7 @@ func (provider whatsOnChainBroadcastProvider) getName() string {
 }
 
 func (provider whatsOnChainBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastWhatsOnChain(ctx, c, provider.txId, provider.txHex)
+	return broadcastWhatsOnChain(ctx, c, provider.txID, provider.txHex)
 }
 
 // broadcastWhatsOnChain will broadcast a transaction to WhatsOnChain
@@ -98,7 +98,7 @@ func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex 
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(txID, id) {
-		return incorrectTxIdReturnedErr(txID, id)
+		return incorrectTxIDReturnedErr(txID, id)
 	}
 
 	// Success
@@ -137,7 +137,7 @@ func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, tx
 
 	// Something went wrong - got back an id that does not match
 	if !strings.EqualFold(result.Result, txID) {
-		return incorrectTxIdReturnedErr(result.Result, txID)
+		return incorrectTxIDReturnedErr(result.Result, txID)
 	}
 
 	// Success
@@ -146,6 +146,6 @@ func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, tx
 
 ////
 
-func incorrectTxIdReturnedErr(actualTxId, expectedTxId string) error {
-	return fmt.Errorf("returned tx id [%s] does not match given tx id [%s]", actualTxId, expectedTxId)
+func incorrectTxIDReturnedErr(actualTxID, expectedTxID string) error {
+	return fmt.Errorf("returned tx id [%s] does not match given tx id [%s]", actualTxID, expectedTxID)
 }

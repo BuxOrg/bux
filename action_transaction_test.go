@@ -49,7 +49,7 @@ func Test_RevertTransaction(t *testing.T) {
 		// check utxos where reverted
 		var utxos []*Utxo
 		conditions := &map[string]interface{}{
-			xPubIDField: transaction.xPubID,
+			xPubIDField: transaction.XPubID,
 		}
 		utxos, err = client.GetUtxos(ctx, nil, conditions, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
@@ -241,7 +241,7 @@ func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, 
 
 	var utxos []*Utxo
 	conditions := &map[string]interface{}{
-		xPubIDField: transaction.xPubID,
+		xPubIDField: transaction.XPubID,
 	}
 	utxos, err = client.GetUtxos(ctx, nil, conditions, nil, client.DefaultModelOptions()...)
 	require.NoError(t, err)
@@ -259,7 +259,6 @@ func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, 
 
 // BenchmarkAction_Transaction_recordTransaction will benchmark the method RecordTransaction()
 func BenchmarkAction_Transaction_recordTransaction(b *testing.B) {
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
@@ -296,7 +295,6 @@ func BenchmarkAction_Transaction_recordTransaction(b *testing.B) {
 
 // BenchmarkTransaction_newTransaction will benchmark the method newTransaction()
 func BenchmarkAction_Transaction_newTransaction(b *testing.B) {
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()

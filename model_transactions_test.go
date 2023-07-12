@@ -576,7 +576,7 @@ func TestTransaction_Display(t *testing.T) {
 	t.Run("display without xpub data", func(t *testing.T) {
 		tx := Transaction{
 			Model:  Model{},
-			xPubID: testXPubID,
+			XPubID: testXPubID,
 		}
 
 		displayTx := tx.Display().(*Transaction)
@@ -613,7 +613,7 @@ func TestTransaction_Display(t *testing.T) {
 			XpubOutputValue: XpubOutputValue{
 				testXPubID: 123499,
 			},
-			xPubID: testXPubID,
+			XPubID: testXPubID,
 		}
 
 		displayTx := tx.Display().(*Transaction)

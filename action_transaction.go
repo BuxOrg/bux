@@ -105,7 +105,7 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 
 		// Internal tx (must match draft tx)
 		if transaction.draftTransaction, err = getDraftTransactionID(
-			ctx, transaction.xPubID, transaction.DraftID,
+			ctx, transaction.XPubID, transaction.DraftID,
 			transaction.GetOptions(false)...,
 		); err != nil {
 			return nil, err

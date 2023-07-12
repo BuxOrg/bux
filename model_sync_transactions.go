@@ -43,7 +43,6 @@ type SyncTransaction struct {
 
 // newSyncTransaction will start a new model (config is required)
 func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *SyncTransaction {
-
 	// Do not allow making a model without the configuration
 	if config == nil {
 		return nil
@@ -79,7 +78,6 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 
 // GetSyncTransactionByID will get a sync transaction
 func GetSyncTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*SyncTransaction, error) {
-
 	// Get the records by status
 	txs, err := getSyncTransactionsByConditions(ctx,
 		map[string]interface{}{
@@ -99,8 +97,8 @@ func GetSyncTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*
 
 // getTransactionsToBroadcast will get the sync transactions to broadcast
 func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps) (map[string][]*SyncTransaction, error) {
-
+	opts ...ModelOps,
+) (map[string][]*SyncTransaction, error) {
 	// Get the records by status
 	txs, err := getSyncTransactionsByConditions(
 		ctx,
@@ -150,7 +148,6 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 }
 
 func areParentsBroadcast(ctx context.Context, syncTx *SyncTransaction, opts ...ModelOps) (bool, error) {
-
 	tx, err := getTransactionByID(ctx, "", syncTx.ID, opts...)
 	if err != nil {
 		return false, err
@@ -187,8 +184,8 @@ func areParentsBroadcast(ctx context.Context, syncTx *SyncTransaction, opts ...M
 
 // getTransactionsToNotifyP2P will get the sync transactions to notify p2p paymail providers
 func getTransactionsToNotifyP2P(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps) ([]*SyncTransaction, error) {
-
+	opts ...ModelOps,
+) ([]*SyncTransaction, error) {
 	// Get the records by status
 	txs, err := getSyncTransactionsByConditions(
 		ctx,
@@ -205,8 +202,8 @@ func getTransactionsToNotifyP2P(ctx context.Context, queryParams *datastore.Quer
 
 // getTransactionsToSync will get the sync transactions to sync
 func getTransactionsToSync(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps) ([]*SyncTransaction, error) {
-
+	opts ...ModelOps,
+) ([]*SyncTransaction, error) {
 	// Get the records by status
 	txs, err := getSyncTransactionsByConditions(
 		ctx,
@@ -223,8 +220,8 @@ func getTransactionsToSync(ctx context.Context, queryParams *datastore.QueryPara
 
 // getTransactionsToSync will get the sync transactions to sync
 func getSyncTransactionsByConditions(ctx context.Context, conditions map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*SyncTransaction, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*SyncTransaction, error) {
 	if queryParams == nil {
 		queryParams = &datastore.QueryParams{
 			OrderByField:  createdAtField,
@@ -318,7 +315,6 @@ func (m *SyncTransaction) AfterCreated(ctx context.Context) error {
 
 // RegisterTasks will register the model specific tasks on client initialization
 func (m *SyncTransaction) RegisterTasks() error {
-
 	// No task manager loaded?
 	tm := m.Client().Taskmanager()
 	if tm == nil {
@@ -411,7 +407,6 @@ func (m *SyncTransaction) Migrate(client datastore.ClientInterface) error {
 
 // processSyncTransactions will process sync transaction records
 func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-
 	queryParams := &datastore.QueryParams{
 		Page:          1,
 		PageSize:      maxTransactions,
@@ -443,7 +438,6 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 
 // processBroadcastTransactions will process sync transaction records
 func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-
 	queryParams := &datastore.QueryParams{
 		Page:          1,
 		PageSize:      maxTransactions,
@@ -492,7 +486,6 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 
 // processBroadcastTransaction will process a sync transaction record and broadcast it
 func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) error {
-
 	// Successfully capture any panics, convert to readable string and log the error
 	defer func() {
 		if err := recover(); err != nil {
@@ -626,7 +619,6 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 // processSyncTransaction will process the sync transaction record, or save the failure
 func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
-
 	// Successfully capture any panics, convert to readable string and log the error
 	defer func() {
 		if err := recover(); err != nil {
@@ -712,7 +704,6 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 
 // processP2PTransactions will process transactions for p2p notifications
 func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-
 	queryParams := &datastore.QueryParams{
 		Page:          1,
 		PageSize:      maxTransactions,
@@ -744,7 +735,6 @@ func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...Mo
 
 // processP2PTransaction will process the sync transaction record, or save the failure
 func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
-
 	// Successfully capture any panics, convert to readable string and log the error
 	defer func() {
 		if err := recover(); err != nil {
@@ -813,7 +803,8 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 
 // bailAndSaveSyncTransaction will save the error message for a sync tx
 func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus,
-	action, provider, message string) {
+	action, provider, message string,
+) {
 	if action == syncActionSync {
 		syncTx.SyncStatus = status
 	} else if action == syncActionP2P {
@@ -839,11 +830,10 @@ func bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, st
 
 // notifyPaymailProviders will notify any associated Paymail providers
 func notifyPaymailProviders(ctx context.Context, transaction *Transaction) ([]*SyncResult, error) {
-
 	// First get the draft tx
 	draftTx, err := getDraftTransactionID(
 		ctx,
-		transaction.xPubID,
+		transaction.XPubID,
 		transaction.DraftID,
 		transaction.GetOptions(false)...,
 	)

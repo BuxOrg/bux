@@ -3,7 +3,7 @@ module github.com/BuxOrg/bux
 go 1.19
 
 require (
-	github.com/99designs/gqlgen v0.17.34
+	github.com/99designs/gqlgen v0.17.35
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.4
 	github.com/bitcoinschema/go-map v0.1.0
@@ -112,7 +112,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.6 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.7 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

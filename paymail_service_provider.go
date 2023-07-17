@@ -147,9 +147,14 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	metadata[p2pMetadataField] = p2pTx.MetaData
 	metadata[ReferenceIDField] = p2pTx.Reference
 
+	var draftID string
+	if tx, _ := p.client.GetTransactionByHex(ctx, p2pTx.Hex); tx != nil {
+		draftID = tx.DraftID
+	}
+
 	// Record the transaction
 	transaction, err := p.client.RecordTransaction(
-		ctx, "", p2pTx.Hex, "", []ModelOps{WithMetadatas(metadata)}...,
+		ctx, "", p2pTx.Hex, draftID, []ModelOps{WithMetadatas(metadata)}...,
 	)
 	// do not return an error if we already have the transaction
 	if err != nil && !errors.Is(err, datastore.ErrDuplicateKey) {

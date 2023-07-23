@@ -8,7 +8,7 @@ import (
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // chainStateBase is the base interface / methods

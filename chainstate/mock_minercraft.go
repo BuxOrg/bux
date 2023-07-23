@@ -9,33 +9,29 @@ import (
 
 	"github.com/libsv/go-bk/envelope"
 	"github.com/libsv/go-bt/v2"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
+	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
 )
 
 var (
 	minerTaal = &minercraft.Miner{
 		MinerID: "030d1fe5c1b560efe196ba40540ce9017c20daa9504c4c4cec6184fc702d9f274e",
 		Name:    "Taal",
-		URL:     "https://merchantapi.taal.com",
 	}
 
 	minerMempool = &minercraft.Miner{
 		MinerID: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
 		Name:    "Mempool",
-		URL:     "https://www.ddpurse.com/openapi",
-		Token:   "561b756d12572020ea9a104c3441b71790acbbce95a6ddbf7e0630971af9424b",
 	}
 
 	minerMatterPool = &minercraft.Miner{
 		MinerID: "0253a9b2d017254b91704ba52aad0df5ca32b4fb5cb6b267ada6aefa2bc5833a93",
 		Name:    "Matterpool",
-		URL:     "https://merchantapi.matterpool.io",
 	}
 
 	minerGorillaPool = &minercraft.Miner{
 		MinerID: "03ad780153c47df915b3d2e23af727c68facaca4facd5f155bf5018b979b9aeb83",
 		Name:    "GorillaPool",
-		URL:     "https://merchantapi.gorillapool.io",
 	}
 
 	allMiners = []*minercraft.Miner{
@@ -44,19 +40,74 @@ var (
 		minerGorillaPool,
 		minerMatterPool,
 	}
+
+	minerAPIs = []*minercraft.MinerAPIs{
+		{
+			MinerID: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
+			APIs: []minercraft.API{
+				{
+					URL:  "https://merchantapi.taal.com",
+					Type: minercraft.MAPI,
+				},
+				{
+					URL:  "https://tapi.taal.com/arc",
+					Type: minercraft.Arc,
+				},
+			},
+		},
+		{
+			MinerID: "03e92d3e5c3f7bd945dfbf48e7a99393b1bfb3f11f380ae30d286e7ff2aec5a270",
+			APIs: []minercraft.API{
+				{
+					Token: "561b756d12572020ea9a104c3441b71790acbbce95a6ddbf7e0630971af9424b",
+					URL:   "https://www.ddpurse.com/openapi",
+					Type:  minercraft.MAPI,
+				},
+			},
+		},
+		{
+			MinerID: "0253a9b2d017254b91704ba52aad0df5ca32b4fb5cb6b267ada6aefa2bc5833a93",
+			APIs: []minercraft.API{
+				{
+					URL:  "https://merchantapi.matterpool.io",
+					Type: minercraft.MAPI,
+				},
+			},
+		},
+		{
+			MinerID: "03ad780153c47df915b3d2e23af727c68facaca4facd5f155bf5018b979b9aeb83",
+			APIs: []minercraft.API{
+				{
+					URL:  "https://merchantapi.gorillapool.io",
+					Type: minercraft.MAPI,
+				},
+				{
+					URL:  "https://arc.gorillapool.io",
+					Type: minercraft.Arc,
+				},
+			},
+		},
+	}
 )
 
 // MinerCraftBase is a mock implementation of the minercraft.MinerCraft interface.
 type MinerCraftBase struct{}
 
 // AddMiner adds a new miner to the list of miners.
-func (m *MinerCraftBase) AddMiner(miner minercraft.Miner) error {
+func (m *MinerCraftBase) AddMiner(miner minercraft.Miner, apis []minercraft.API) error {
 	existingMiner := m.MinerByName(miner.Name)
 	if existingMiner != nil {
 		return fmt.Errorf("miner %s already exists", miner.Name)
 	}
 	// Append the new miner
 	allMiners = append(allMiners, &miner)
+
+	// Append the new miner APIs
+	minerAPIs = append(minerAPIs, &minercraft.MinerAPIs{
+		MinerID: miner.MinerID,
+		APIs:    apis,
+	})
+
 	return nil
 }
 
@@ -73,7 +124,7 @@ func (m *MinerCraftBase) FastestQuote(context.Context, time.Duration) (*minercra
 // FeeQuote returns a fee quote for the given miner.
 func (m *MinerCraftBase) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
 	return &minercraft.FeeQuoteResponse{
-		Quote: &minercraft.FeePayload{
+		Quote: &mapi.FeePayload{
 			Fees: []*bt.Fee{
 				{
 					FeeType:   bt.FeeTypeData,
@@ -110,9 +161,10 @@ func (m *MinerCraftBase) Miners() []*minercraft.Miner {
 }
 
 // MinerUpdateToken updates the token for the given miner.
-func (m *MinerCraftBase) MinerUpdateToken(name, token string) {
+func (m *MinerCraftBase) MinerUpdateToken(name, token string, apiType minercraft.APIType) {
 	if miner := m.MinerByName(name); miner != nil {
-		miner.Token = token
+		api, _ := m.MinerAPIByMinerID(miner.MinerID, apiType)
+		api.Token = token
 	}
 }
 
@@ -128,8 +180,8 @@ func (m *MinerCraftBase) QueryTransaction(context.Context, *minercraft.Miner, st
 
 // RemoveMiner removes a miner from the list of miners.
 func (m *MinerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
-	for i, cm := range allMiners {
-		if cm.Name == miner.Name || cm.MinerID == miner.MinerID {
+	for i, miner := range allMiners {
+		if miner.Name == miner.Name || miner.MinerID == miner.MinerID {
 			allMiners[i] = allMiners[len(allMiners)-1]
 			allMiners = allMiners[:len(allMiners)-1]
 			return true
@@ -147,6 +199,35 @@ func (m *MinerCraftBase) SubmitTransaction(context.Context, *minercraft.Miner, *
 // SubmitTransactions submits transactions to the given miner.
 func (m *MinerCraftBase) SubmitTransactions(context.Context, *minercraft.Miner, []minercraft.Transaction) (*minercraft.SubmitTransactionsResponse, error) {
 	return nil, nil
+}
+
+// APIType will return the API type
+func (m *MinerCraftBase) APIType() minercraft.APIType {
+	return minercraft.MAPI
+}
+
+// MinerAPIByMinerID will return a miner's API given a miner id and API type
+func (m *MinerCraftBase) MinerAPIByMinerID(minerID string, apiType minercraft.APIType) (*minercraft.API, error) {
+	for _, minerAPI := range minerAPIs {
+		if minerAPI.MinerID == minerID {
+			for i := range minerAPI.APIs {
+				if minerAPI.APIs[i].Type == apiType {
+					return &minerAPI.APIs[i], nil
+				}
+			}
+		}
+	}
+	return nil, &minercraft.APINotFoundError{MinerID: minerID, APIType: apiType}
+}
+
+// MinerAPIsByMinerID will return a miner's APIs given a miner id
+func (m *MinerCraftBase) MinerAPIsByMinerID(minerID string) *minercraft.MinerAPIs {
+	for _, minerAPIs := range minerAPIs {
+		if minerAPIs.MinerID == minerID {
+			return minerAPIs
+		}
+	}
+	return nil
 }
 
 // UserAgent returns the user agent.
@@ -177,7 +258,7 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "1.4.0",
 				CurrentHighestBlockHash:   "00000000000000000652def5827ad3de6380376f8fc8d3e835503095a761e0d2",
 				CurrentHighestBlockHeight: 724807,
@@ -199,7 +280,7 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType: applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "",
 				CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 				CurrentHighestBlockHeight: 724816,
@@ -225,7 +306,7 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "1.1.0-1-g35ba2d3",
 				CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 				CurrentHighestBlockHeight: 724816,
@@ -251,7 +332,7 @@ func (m *minerCraftTxOnChain) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "",
 				CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 				CurrentHighestBlockHeight: 724816,
@@ -286,7 +367,7 @@ func (m *minerCraftTxOnChain) QueryTransaction(_ context.Context, miner *minercr
 					MimeType:  applicationJSONType,
 				},
 			},
-			Query: &minercraft.QueryPayload{
+			Query: &minercraft.QueryTxResponse{
 				APIVersion:            "1.4.0",
 				Timestamp:             "2022-01-23T19:42:18.6860061Z",
 				TxID:                  onChainExample1TxID,
@@ -312,7 +393,7 @@ func (m *minerCraftTxOnChain) QueryTransaction(_ context.Context, miner *minercr
 					MimeType:  applicationJSONType,
 				},
 			},
-			Query: &minercraft.QueryPayload{
+			Query: &minercraft.QueryTxResponse{
 				APIVersion:            "", // NOTE: missing from mempool response
 				Timestamp:             "2022-01-23T19:51:10.046Z",
 				TxID:                  onChainExample1TxID,
@@ -353,7 +434,7 @@ func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner 
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "1.4.0",
 				CurrentHighestBlockHash:   "000000000000000006e6745f6a57a1da8096faf9f71dd59b2bab3f2b0219b7a0",
 				CurrentHighestBlockHeight: 724922,
@@ -375,7 +456,7 @@ func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner 
 					MimeType: applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "",
 				CurrentHighestBlockHash:   "000000000000000006e6745f6a57a1da8096faf9f71dd59b2bab3f2b0219b7a0",
 				CurrentHighestBlockHeight: 724922,
@@ -401,7 +482,7 @@ func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner 
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "1.1.0-1-g35ba2d3",
 				CurrentHighestBlockHash:   "000000000000000006e6745f6a57a1da8096faf9f71dd59b2bab3f2b0219b7a0",
 				CurrentHighestBlockHeight: 724922,
@@ -427,7 +508,7 @@ func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner 
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "",
 				CurrentHighestBlockHash:   "000000000000000006e6745f6a57a1da8096faf9f71dd59b2bab3f2b0219b7a0",
 				CurrentHighestBlockHeight: 724922,
@@ -466,7 +547,7 @@ func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "1.4.0",
 				CurrentHighestBlockHash:   "00000000000000000652def5827ad3de6380376f8fc8d3e835503095a761e0d2",
 				CurrentHighestBlockHeight: 724807,
@@ -488,7 +569,7 @@ func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType: applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "",
 				CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 				CurrentHighestBlockHeight: 724816,
@@ -514,7 +595,7 @@ func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "1.1.0-1-g35ba2d3",
 				CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 				CurrentHighestBlockHeight: 724816,
@@ -540,7 +621,7 @@ func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Results: &minercraft.SubmissionPayload{
+			Results: &minercraft.UnifiedSubmissionPayload{
 				APIVersion:                "",
 				CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 				CurrentHighestBlockHeight: 724816,
@@ -574,7 +655,7 @@ func (m *minerCraftTxNotFound) SubmitTransaction(_ context.Context, miner *miner
 				MimeType: applicationJSONType,
 			},
 		},
-		Results: &minercraft.SubmissionPayload{
+		Results: &minercraft.UnifiedSubmissionPayload{
 			APIVersion:                "",
 			CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 			CurrentHighestBlockHeight: 724816,
@@ -606,7 +687,7 @@ func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Query: &minercraft.QueryPayload{
+			Query: &minercraft.QueryTxResponse{
 				APIVersion:        "1.4.0",
 				Timestamp:         "2022-01-24T01:36:23.0767761Z",
 				TxID:              notFoundExample1TxID,
@@ -626,7 +707,7 @@ func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minerc
 					MimeType: applicationJSONType,
 				},
 			},
-			Query: &minercraft.QueryPayload{
+			Query: &minercraft.QueryTxResponse{
 				APIVersion:        "", // NOTE: missing from mempool response
 				Timestamp:         "2022-01-24T01:39:58.066Z",
 				TxID:              notFoundExample1TxID,
@@ -650,7 +731,7 @@ func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Query: &minercraft.QueryPayload{
+			Query: &minercraft.QueryTxResponse{
 				APIVersion:        "",
 				Timestamp:         "2022-01-24T01:40:41.136Z",
 				TxID:              notFoundExample1TxID,
@@ -674,7 +755,7 @@ func (m *minerCraftTxNotFound) QueryTransaction(_ context.Context, miner *minerc
 					MimeType:  applicationJSONType,
 				},
 			},
-			Query: &minercraft.QueryPayload{
+			Query: &minercraft.QueryTxResponse{
 				APIVersion:        "1.1.0-1-g35ba2d3",
 				Timestamp:         "2022-01-24T01:41:01.683Z",
 				TxID:              notFoundExample1TxID,
@@ -716,7 +797,7 @@ func (m *minerCraftBroadcastTimeout) SubmitTransaction(_ context.Context, miner 
 				MimeType: applicationJSONType,
 			},
 		},
-		Results: &minercraft.SubmissionPayload{
+		Results: &minercraft.UnifiedSubmissionPayload{
 			APIVersion:                "",
 			CurrentHighestBlockHash:   "0000000000000000064c900b1fceb316302426aedb2242852530b5e78144f2c1",
 			CurrentHighestBlockHeight: 724816,

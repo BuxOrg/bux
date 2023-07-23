@@ -236,21 +236,21 @@ func TestWithBroadcastMiners(t *testing.T) {
 
 	t.Run("test applying nil", func(t *testing.T) {
 		options := &clientOptions{
-			config: &syncConfig{mAPI: &mAPIConfig{}},
+			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
 		}
 		opt := WithBroadcastMiners(nil)
 		opt(options)
-		assert.Nil(t, options.config.mAPI.broadcastMiners)
+		assert.Nil(t, options.config.minercraftConfig.broadcastMiners)
 	})
 
 	t.Run("test applying option", func(t *testing.T) {
 		options := &clientOptions{
-			config: &syncConfig{mAPI: &mAPIConfig{}},
+			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
 		}
 		miners := []*Miner{{Miner: minerTaal}}
 		opt := WithBroadcastMiners(miners)
 		opt(options)
-		assert.Equal(t, miners, options.config.mAPI.broadcastMiners)
+		assert.Equal(t, miners, options.config.minercraftConfig.broadcastMiners)
 	})
 }
 
@@ -265,21 +265,21 @@ func TestWithQueryMiners(t *testing.T) {
 
 	t.Run("test applying nil", func(t *testing.T) {
 		options := &clientOptions{
-			config: &syncConfig{mAPI: &mAPIConfig{}},
+			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
 		}
 		opt := WithQueryMiners(nil)
 		opt(options)
-		assert.Nil(t, options.config.mAPI.queryMiners)
+		assert.Nil(t, options.config.minercraftConfig.queryMiners)
 	})
 
 	t.Run("test applying option", func(t *testing.T) {
 		options := &clientOptions{
-			config: &syncConfig{mAPI: &mAPIConfig{}},
+			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
 		}
 		miners := []*Miner{{Miner: minerTaal}}
 		opt := WithQueryMiners(miners)
 		opt(options)
-		assert.Equal(t, miners, options.config.mAPI.queryMiners)
+		assert.Equal(t, miners, options.config.minercraftConfig.queryMiners)
 	})
 }
 

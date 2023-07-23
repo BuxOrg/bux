@@ -32,7 +32,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.14.4
-	github.com/tonicpow/go-minercraft v0.9.2
+	github.com/tonicpow/go-minercraft/v2 v2.0.1
 	github.com/tonicpow/go-paymail v0.9.0
 	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43

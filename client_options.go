@@ -18,7 +18,7 @@ import (
 	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 	"github.com/tonicpow/go-paymail"
 	"github.com/tonicpow/go-paymail/server"
 	taskq "github.com/vmihailenco/taskq/v3"
@@ -707,17 +707,24 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 	}
 }
 
-// WithMapiFeeQuotes will set usage of mapi fee quotes instead of default fees
-func WithMapiFeeQuotes() ClientOps {
+// WithMinercraftFeeQuotes will set usage of minercraft's fee quotes instead of default fees
+func WithMinercraftFeeQuotes() ClientOps {
 	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithMapiFeeQuotes())
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraftFeeQuotes())
 	}
 }
 
-// WithOverridenMAPIConfig will override mApi config with custom data(custom token, endpoints and etc.)
-func WithOverridenMAPIConfig(miners []*minercraft.Miner) ClientOps {
+// WithArc will specify Arc as an API for minercraft client
+func WithArc() ClientOps {
 	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithOverridenMAPIConfig(miners))
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithArc())
+	}
+}
+
+// WithMAPI will specify Arc as an API for minercraft client
+func WithMAPI() ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithMAPI())
 	}
 }
 
@@ -727,5 +734,12 @@ func WithMinercraft(minercraft minercraft.ClientInterface) ClientOps {
 		if minercraft != nil {
 			c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraft(minercraft))
 		}
+	}
+}
+
+// WithMinercraftAPIs set custom MinerAPIs for minercraft
+func WithMinercraftAPIs(miners []*minercraft.MinerAPIs) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraftAPIs(miners))
 	}
 }

@@ -2,15 +2,13 @@ package chainstate
 
 import (
 	"context"
-	"reflect"
-	"strings"
 	"time"
 
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // ClientOps allow functional options to be supplied
@@ -24,15 +22,18 @@ func defaultClientOptions() *clientOptions {
 
 	// Create the default miners
 	bm, qm := defaultMiners()
+	apis, _ := minercraft.DefaultMinersAPIs()
 
 	// Set the default options
 	return &clientOptions{
 		config: &syncConfig{
 			httpClient: nil,
-			mAPI: &mAPIConfig{
-				broadcastMiners: bm,
-				queryMiners:     qm,
-				feeUnit:         DefaultFee,
+			minercraftConfig: &minercraftConfig{
+				broadcastMiners:      bm,
+				queryMiners:          qm,
+				minerAPIs:            apis,
+				minercraftFeeQuotes: true,
+				feeUnit:              DefaultFee,
 			},
 			minercraft:   nil,
 			network:      MainNet,
@@ -46,7 +47,6 @@ func defaultClientOptions() *clientOptions {
 
 // defaultMiners will return the miners for default configuration
 func defaultMiners() (broadcastMiners []*Miner, queryMiners []*Miner) {
-
 	// Set the broadcast miners
 	miners, _ := minercraft.DefaultMiners()
 
@@ -115,6 +115,20 @@ func WithMinercraft(client minercraft.ClientInterface) ClientOps {
 	}
 }
 
+// WithMAPI will specify mAPI as an API for minercraft client
+func WithMAPI() ClientOps {
+	return func(c *clientOptions) {
+		c.config.minercraftConfig.apiType = minercraft.MAPI
+	}
+}
+
+// WithArc will specify Arc as an API for minercraft client
+func WithArc() ClientOps {
+	return func(c *clientOptions) {
+		c.config.minercraftConfig.apiType = minercraft.Arc
+	}
+}
+
 // WithWhatsOnChain will set a custom WhatsOnChain client
 func WithWhatsOnChain(client whatsonchain.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
@@ -155,7 +169,7 @@ func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
 func WithBroadcastMiners(miners []*Miner) ClientOps {
 	return func(c *clientOptions) {
 		if len(miners) > 0 {
-			c.config.mAPI.broadcastMiners = miners
+			c.config.minercraftConfig.broadcastMiners = miners
 		}
 	}
 }
@@ -164,7 +178,7 @@ func WithBroadcastMiners(miners []*Miner) ClientOps {
 func WithQueryMiners(miners []*Miner) ClientOps {
 	return func(c *clientOptions) {
 		if len(miners) > 0 {
-			c.config.mAPI.queryMiners = miners
+			c.config.minercraftConfig.queryMiners = miners
 		}
 	}
 }
@@ -233,55 +247,16 @@ func WithExcludedProviders(providers []string) ClientOps {
 	}
 }
 
-// WithMapiFeeQuotes will set mapiFeeQuotesEnabled flag as true
-func WithMapiFeeQuotes() ClientOps {
+// WithMinercraftFeeQuotes will set minercraftFeeQuotes flag as true
+func WithMinercraftFeeQuotes() ClientOps {
 	return func(c *clientOptions) {
-		c.config.mAPI.mapiFeeQuotesEnabled = true
+		c.config.minercraftConfig.minercraftFeeQuotes = true
 	}
 }
 
-// WithOverridenMAPIConfig will override default config
-func WithOverridenMAPIConfig(miners []*minercraft.Miner) ClientOps {
+// WithMinercraftAPIs will set miners APIs
+func WithMinercraftAPIs(apis []*minercraft.MinerAPIs) ClientOps {
 	return func(c *clientOptions) {
-		overrideMAPIConfig(c.config.mAPI.broadcastMiners, miners)
-		overrideMAPIConfig(c.config.mAPI.queryMiners, miners)
-	}
-}
-
-// Looks for miners by name over the mAPI config, and rewrites fields presented in a custom config
-func overrideMAPIConfig(configToOverride []*Miner, customConfig []*minercraft.Miner) {
-	for _, miner := range customConfig {
-		var minerToOverride *minercraft.Miner
-		for _, m := range configToOverride {
-			if strings.EqualFold(m.Miner.Name, miner.Name) {
-				minerToOverride = m.Miner
-				break
-			}
-		}
-		// The miner is not in the configuration, and therefore there is nothing to override. Skip
-		if minerToOverride == nil {
-			continue
-		}
-		// Reflect values of miners. Needed to loop over all miner's fields and overwrite only some of them
-		// Miners are pointers in both configs, so we use reflect.ValueOf(miner).Elem()
-		minerToOverrideReflect := reflect.ValueOf(minerToOverride).Elem()
-		overrideReflect := reflect.ValueOf(miner).Elem()
-		// We don't override 'Name' field. Should be skipped
-		fieldToIgnore := overrideReflect.FieldByName("Name")
-
-		for i := 0; i < overrideReflect.NumField(); i++ {
-			newField := overrideReflect.Field(i)
-			if newField == fieldToIgnore {
-				continue
-			}
-			// Only non-zero fields from custom config will used as overwrite fields
-			if !newField.IsZero() {
-				name := overrideReflect.Type().Field(i).Name
-				fieldToOverride := minerToOverrideReflect.FieldByName(name)
-				if fieldToOverride.CanSet() {
-					fieldToOverride.Set(newField)
-				}
-			}
-		}
+		c.config.minercraftConfig.minerAPIs = apis
 	}
 }

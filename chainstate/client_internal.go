@@ -7,7 +7,7 @@ import (
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // defaultMinercraftOptions will create the defaults
@@ -47,24 +47,26 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 		var loadedMiners []string
 
 		// Loop all broadcast miners and append to the list of miners
-		for i := range c.options.config.mAPI.broadcastMiners {
-			if !utils.StringInSlice(c.options.config.mAPI.broadcastMiners[i].Miner.MinerID, loadedMiners) {
-				optionalMiners = append(optionalMiners, c.options.config.mAPI.broadcastMiners[i].Miner)
-				loadedMiners = append(loadedMiners, c.options.config.mAPI.broadcastMiners[i].Miner.MinerID)
+		for i := range c.options.config.minercraftConfig.broadcastMiners {
+			if !utils.StringInSlice(c.options.config.minercraftConfig.broadcastMiners[i].Miner.MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.broadcastMiners[i].Miner)
+				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.broadcastMiners[i].Miner.MinerID)
 			}
 		}
 
 		// Loop all query miners and append to the list of miners
-		for i := range c.options.config.mAPI.queryMiners {
-			if !utils.StringInSlice(c.options.config.mAPI.queryMiners[i].Miner.MinerID, loadedMiners) {
-				optionalMiners = append(optionalMiners, c.options.config.mAPI.queryMiners[i].Miner)
-				loadedMiners = append(loadedMiners, c.options.config.mAPI.queryMiners[i].Miner.MinerID)
+		for i := range c.options.config.minercraftConfig.queryMiners {
+			if !utils.StringInSlice(c.options.config.minercraftConfig.queryMiners[i].Miner.MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.queryMiners[i].Miner)
+				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.queryMiners[i].Miner.MinerID)
 			}
 		}
 		c.options.config.minercraft, err = minercraft.NewClient(
 			c.defaultMinercraftOptions(),
 			c.HTTPClient(),
-			optionalMiners, // If empty, it will use the default miners from Minercraft
+			c.options.config.minercraftConfig.apiType,
+			optionalMiners,
+			c.options.config.minercraftConfig.minerAPIs,
 		)
 	}
 

@@ -91,7 +91,7 @@ func createActiveProviders(c *Client, txID, txHex string) []txBroadcastProvider 
 	providers := make([]txBroadcastProvider, 0, 10)
 
 	if shouldBroadcastWithMAPI(c) {
-		for _, miner := range c.options.config.mAPI.broadcastMiners {
+		for _, miner := range c.options.config.minercraftConfig.broadcastMiners {
 			if miner == nil {
 				continue
 			}

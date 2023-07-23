@@ -8,7 +8,7 @@ import (
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-nownodes"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // query will try ALL providers in order and return the first "valid" response based on requirements
@@ -22,10 +22,10 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 	// First: try all mAPI miners (Only supported on main and test right now)
 	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
 		if c.Network() == MainNet || c.Network() == TestNet {
-			for index := range c.options.config.mAPI.queryMiners {
-				if c.options.config.mAPI.queryMiners[index] != nil {
-					if res, err := queryMAPI(
-						ctxWithCancel, c, c.options.config.mAPI.queryMiners[index].Miner, id,
+			for index := range c.options.config.minercraftConfig.queryMiners {
+				if c.options.config.minercraftConfig.queryMiners[index] != nil {
+					if res, err := queryMinercraft(
+						ctxWithCancel, c, c.options.config.minercraftConfig.queryMiners[index].Miner, id,
 					); err == nil && checkRequirement(requiredIn, id, res) {
 						return res
 					}
@@ -76,7 +76,7 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 	var wg sync.WaitGroup
 	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
 		if c.Network() == MainNet || c.Network() == TestNet {
-			for index := range c.options.config.mAPI.queryMiners {
+			for index := range c.options.config.minercraftConfig.queryMiners {
 				wg.Add(1)
 				go func(
 					ctx context.Context, client *Client,
@@ -84,12 +84,12 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 					id string, requiredIn RequiredIn,
 				) {
 					defer wg.Done()
-					if res, err := queryMAPI(
+					if res, err := queryMinercraft(
 						ctx, client, miner, id,
 					); err == nil && checkRequirement(requiredIn, id, res) {
 						resultsChannel <- res
 					}
-				}(ctxWithCancel, c, &wg, c.options.config.mAPI.queryMiners[index].Miner, id, requiredIn)
+				}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.queryMiners[index].Miner, id, requiredIn)
 			}
 		}
 	}
@@ -131,11 +131,11 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 	return <-resultsChannel
 }
 
-// queryMAPI will submit a query transaction request to a miner using mAPI
-func queryMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id string) (*TransactionInfo, error) {
-	client.DebugLog("executing request in mapi using miner: " + miner.Name)
+// queryMinercraft will submit a query transaction request to a miner using Minercraft(mAPI or Arc)
+func queryMinercraft(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id string) (*TransactionInfo, error) {
+	client.DebugLog("executing request in minercraft using miner: " + miner.Name)
 	if resp, err := client.Minercraft().QueryTransaction(ctx, miner, id); err != nil {
-		client.DebugLog("error executing request in mapi using miner: " + miner.Name + " failed: " + err.Error())
+		client.DebugLog("error executing request in minercraft using miner: " + miner.Name + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && resp.Query.ReturnResult == mAPISuccess && strings.EqualFold(resp.Query.TxID, id) {
 		return &TransactionInfo{

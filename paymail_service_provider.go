@@ -11,9 +11,7 @@ import (
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bk/bip32"
 	"github.com/libsv/go-bt/v2"
-	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
 	"github.com/tonicpow/go-paymail"
@@ -53,45 +51,43 @@ func (p *PaymailDefaultServiceProvider) createMetadata(serverMetaData *server.Re
 func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(ctx context.Context, alias, domain string,
 	requestMetadata *server.RequestMetadata) (*paymail.AddressInformation, error) {
 
-	// Create the metadata
 	metadata := p.createMetadata(requestMetadata, "GetPaymailByAlias")
 
-	// Create the paymail information
-	paymailAddress, pubKey, destination, err := p.createPaymailInformation(
-		ctx, alias, domain, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+	paymailAddress, pubKey, err := p.createPaymailInformation(
+		ctx, alias, domain, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Return the information required by go-paymail
 	return &paymail.AddressInformation{
-		Alias:       paymailAddress.Alias,
-		Avatar:      paymailAddress.Avatar,
-		Domain:      paymailAddress.Domain,
-		ID:          paymailAddress.ID,
-		LastAddress: destination.Address,
-		Name:        paymailAddress.PublicName,
-		PubKey:      pubKey,
+		Alias:  paymailAddress.Alias,
+		Avatar: paymailAddress.Avatar,
+		Domain: paymailAddress.Domain,
+		ID:     paymailAddress.ID,
+		Name:   paymailAddress.PublicName,
+		PubKey: pubKey.pubKey,
 	}, nil
 }
 
 // CreateAddressResolutionResponse will create the address resolution response
 func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(ctx context.Context, alias, domain string,
 	_ bool, requestMetadata *server.RequestMetadata) (*paymail.ResolutionPayload, error) {
-
-	// Create the metadata
 	metadata := p.createMetadata(requestMetadata, "CreateAddressResolutionResponse")
 
-	// Create the paymail information
-	_, _, destination, err := p.createPaymailInformation(
-		ctx, alias, domain, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+	paymailAddress, pubKey, err := p.createPaymailInformation(
+		ctx, alias, domain, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	destination, err := createDestination(
+		ctx, paymailAddress, pubKey, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create the address resolution payload response
 	return &paymail.ResolutionPayload{
 		Address:   destination.Address,
 		Output:    destination.LockingScript,
@@ -103,22 +99,25 @@ func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(ctx cont
 func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(ctx context.Context, alias, domain string,
 	satoshis uint64, requestMetadata *server.RequestMetadata) (*paymail.PaymentDestinationPayload, error) {
 
-	// Generate a unique reference ID
 	referenceID, err := utils.RandomHex(16)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create the metadata
 	metadata := p.createMetadata(requestMetadata, "CreateP2PDestinationResponse")
 	metadata[ReferenceIDField] = referenceID
 	metadata[satoshisField] = satoshis
 
-	// Create the paymail information
 	// todo: strategy to break apart outputs based on satoshis (return x Outputs)
 	var destination *Destination
-	_, _, destination, err = p.createPaymailInformation(
-		ctx, alias, domain, false, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+	paymailAddress, pubKey, err := p.createPaymailInformation(
+		ctx, alias, domain, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	destination, err = createDestination(
+		ctx, paymailAddress, pubKey, false, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -181,60 +180,57 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	}, nil
 }
 
-// createPaymailInformation will get & create the paymail information (dynamic addresses)
-func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string,
-	monitor bool, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey string, destination *Destination, err error) {
-
-	// Get the paymail address record
+func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {
 	paymailAddress, err = getPaymailAddress(ctx, alias+"@"+domain, opts...)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
-	// Create the lock and set the release for after the function completes
-	var unlock func()
-	unlock, err = newWaitWriteLock(
-		ctx, fmt.Sprintf(lockKeyProcessXpub, paymailAddress.XpubID), p.client.Cachestore(),
-	)
+	unlock, err := newWaitWriteLock(ctx, lockKey(paymailAddress), p.client.Cachestore())
 	defer unlock()
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
-	// Get the corresponding xPub related to the paymail address
-	var xPub *Xpub
-	if xPub, err = getXpubWithCache(
-		ctx, p.client, "", paymailAddress.XpubID, opts...,
-	); err != nil {
-		return nil, "", nil, err
+	xPub, err := getXpubForPaymail(ctx, p.client, paymailAddress, opts)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// Get the external key (decrypted if needed)
-	var externalXpub *bip32.ExtendedKey
-	if externalXpub, err = paymailAddress.GetExternalXpub(); err != nil {
-		return nil, "", nil, err
+	externalXpub, err := paymailAddress.GetExternalXpub()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// Increment and save
-	var chainNum uint32
-	if chainNum, err = xPub.incrementNextNum(ctx, utils.ChainExternal); err != nil {
-		return nil, "", nil, err
+	chainNum, err := xPub.incrementNextNum(ctx, utils.ChainExternal)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// Generate the new xPub and address with locking script
-	var lockingScript string
-	if pubKey, _, lockingScript, err = getPaymailKeyInfo(
-		externalXpub.String(),
-		chainNum,
-	); err != nil {
-		return nil, "", nil, err
+	pubKey, err = deriveKey(externalXpub.String(), chainNum)
+	if err != nil {
+		return nil, nil, err
+	}
+	return
+}
+
+func getXpubForPaymail(ctx context.Context, client ClientInterface, paymailAddress *PaymailAddress, opts []ModelOps) (*Xpub, error) {
+	return getXpubWithCache(
+		ctx, client, "", paymailAddress.XpubID, opts...,
+	)
+}
+
+func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubKey *derivedPubKey, monitor bool, opts ...ModelOps) (destination *Destination, err error) {
+	lockingScript, err := createLockingScript(pubKey.ecPubKey)
+	if err != nil {
+		return nil, err
 	}
 
 	// create a new destination, based on the External xPub child
 	// this is not yet possible using the xpub struct. That needs the full xPub, which we don't have.
 	destination = newDestination(paymailAddress.XpubID, lockingScript, append(opts, New())...)
 	destination.Chain = utils.ChainExternal
-	destination.Num = chainNum
+	destination.Num = pubKey.chainNum
 
 	// Only on for basic address resolution, not enabled for p2p
 	if monitor {
@@ -244,47 +240,53 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 		}}
 	}
 
-	// Create the new destination
 	if err = destination.Save(ctx); err != nil {
-		return nil, "", nil, err
+		return nil, err
 	}
 
 	return
 }
 
-// getPaymailKeyInfo will get all the paymail key information
-func getPaymailKeyInfo(rawXPubKey string, num uint32) (pubKey, address, lockingScript string, err error) {
+func lockKey(paymailAddress *PaymailAddress) string {
+	return fmt.Sprintf(lockKeyProcessXpub, paymailAddress.XpubID)
+}
 
-	// Get the xPub from string
-	var hdKey *bip32.ExtendedKey
-	hdKey, err = utils.ValidateXPub(rawXPubKey)
+func createLockingScript(ecPubKey *bec.PublicKey) (lockingScript string, err error) {
+	bsvAddress, err := bitcoin.GetAddressFromPubKey(ecPubKey, true)
+	if err != nil {
+		return
+	}
+	address := bsvAddress.AddressString
+
+	lockingScript, err = bitcoin.ScriptFromAddress(address)
+	return
+}
+
+type derivedPubKey struct {
+	ecPubKey *bec.PublicKey
+	chainNum uint32
+	pubKey   string
+}
+
+func deriveKey(rawXPubKey string, num uint32) (k *derivedPubKey, err error) {
+
+	k = &derivedPubKey{chainNum: num}
+
+	hdKey, err := utils.ValidateXPub(rawXPubKey)
 	if err != nil {
 		return
 	}
 
-	// Get the child key
-	var derivedKey *bip32.ExtendedKey
-	if derivedKey, err = bitcoin.GetHDKeyChild(hdKey, num); err != nil {
+	derivedKey, err := bitcoin.GetHDKeyChild(hdKey, num)
+	if err != nil {
 		return
 	}
 
-	// Get the next key
-	var nextKey *bec.PublicKey
-	if nextKey, err = derivedKey.ECPubKey(); err != nil {
+	k.ecPubKey, err = derivedKey.ECPubKey()
+	if err != nil {
 		return
 	}
-	pubKey = hex.EncodeToString(nextKey.SerialiseCompressed())
 
-	// Get the address from the xPub
-	var bsvAddress *bscript.Address
-	if bsvAddress, err = bitcoin.GetAddressFromPubKey(
-		nextKey, true,
-	); err != nil {
-		return
-	}
-	address = bsvAddress.AddressString
-
-	// Generate a locking script for the address
-	lockingScript, err = bitcoin.ScriptFromAddress(address)
+	k.pubKey = hex.EncodeToString(k.ecPubKey.SerialiseCompressed())
 	return
 }

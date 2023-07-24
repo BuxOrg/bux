@@ -10,7 +10,7 @@ import (
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // HTTPInterface is the HTTP client interface

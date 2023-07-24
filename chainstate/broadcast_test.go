@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 func Test_doesErrorContain(t *testing.T) {

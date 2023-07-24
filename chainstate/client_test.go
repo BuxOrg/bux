@@ -9,7 +9,7 @@ import (
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // TestNewClient will test the method NewClient()
@@ -72,7 +72,7 @@ func TestNewClient(t *testing.T) {
 
 	t.Run("custom minercraft client", func(t *testing.T) {
 		customClient, err := minercraft.NewClient(
-			minercraft.DefaultClientOptions(), nil, nil,
+			minercraft.DefaultClientOptions(), nil, "", nil, nil,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, customClient)

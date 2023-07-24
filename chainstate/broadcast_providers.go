@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mrz1836/go-nownodes"
-	"github.com/tonicpow/go-minercraft"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // generic broadcast provider

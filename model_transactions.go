@@ -949,18 +949,27 @@ func processTransactions(ctx context.Context, maxTransactions int, opts ...Model
 		SortDirection: "asc",
 	}
 
-	records, err := getTransactionsToCheck(
-		ctx, queryParams, opts...,
-	)
+	conditions := map[string]interface{}{
+		blockHeightField: 0,
+	}
+
+	records := make([]Transaction, 0)
+	err := getModelsByConditions(ctx, ModelTransaction, &records, nil, &conditions, queryParams, opts...)
 	if err != nil {
 		return err
 	} else if len(records) == 0 {
 		return nil
 	}
 
+	txs := make([]*Transaction, 0)
+	for index := range records {
+		records[index].enrich(ModelTransaction, opts...)
+		txs = append(txs, &records[index])
+	}
+
 	for index := range records {
 		if err = processTransaction(
-			ctx, records[index],
+			ctx, txs[index],
 		); err != nil {
 			return err
 		}
@@ -969,61 +978,8 @@ func processTransactions(ctx context.Context, maxTransactions int, opts ...Model
 	return nil
 }
 
-// getTransactionsToCheck will get the transactions which do not have filled columns
-func getTransactionsToCheck(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps,
-) ([]*Transaction, error) {
-
-	txs, err := getTransactionsByConditions(
-		ctx,
-		map[string]interface{}{
-			blockHeightField: 0,
-		},
-		queryParams, opts...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return txs, nil
-}
-
-// getTransactionsByConditions will get the transactions to check
-func getTransactionsByConditions(ctx context.Context, conditions map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps,
-) ([]*Transaction, error) {
-	if queryParams == nil {
-		queryParams = &datastore.QueryParams{
-			OrderByField:  createdAtField,
-			SortDirection: datastore.SortAsc,
-		}
-	} else if queryParams.OrderByField == "" || queryParams.SortDirection == "" {
-		queryParams.OrderByField = createdAtField
-		queryParams.SortDirection = datastore.SortAsc
-	}
-
-	var models []Transaction
-	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, queryParams, defaultDatabaseReadTimeout,
-	); err != nil {
-		if errors.Is(err, datastore.ErrNoResults) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	txs := make([]*Transaction, 0)
-	for index := range models {
-		models[index].enrich(ModelSyncTransaction, opts...)
-		txs = append(txs, &models[index])
-	}
-
-	return txs, nil
-}
-
 // processTransaction will process the sync transaction record, or save the failure
 func processTransaction(ctx context.Context, transaction *Transaction) error {
-	// Find on-chain
 	var txInfo *chainstate.TransactionInfo
 	txInfo, err := transaction.Client().Chainstate().QueryTransactionFastest(
 		ctx, transaction.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
@@ -1033,10 +989,6 @@ func processTransaction(ctx context.Context, transaction *Transaction) error {
 			return nil
 		}
 		return err
-	}
-
-	if transaction == nil {
-		return ErrMissingTransaction
 	}
 
 	transaction.BlockHash = txInfo.BlockHash

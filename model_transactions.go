@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/notifications"
+	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
@@ -906,4 +907,144 @@ func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client Cli
 		}
 	}
 	return false
+}
+
+// RegisterTasks will register the model specific tasks on client initialization
+func (m *Transaction) RegisterTasks() error {
+	// No task manager loaded?
+	tm := m.Client().Taskmanager()
+	if tm == nil {
+		return nil
+	}
+
+	ctx := context.Background()
+	checkTask := m.Name() + "_" + TransactionActionCheck
+
+	if err := tm.RegisterTask(&taskmanager.Task{
+		Name:       checkTask,
+		RetryLimit: 1,
+		Handler: func(client ClientInterface) error {
+			if taskErr := taskCheckTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
+				client.Logger().Error(ctx, "error running "+checkTask+" task: "+taskErr.Error())
+			}
+			return nil
+		},
+	}); err != nil {
+		return err
+	}
+
+	return tm.RunTask(ctx, &taskmanager.TaskOptions{
+		Arguments:      []interface{}{m.Client()},
+		RunEveryPeriod: m.Client().GetTaskPeriod(checkTask),
+		TaskName:       checkTask,
+	})
+}
+
+// processTransactions will process transaction records
+func processTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
+	queryParams := &datastore.QueryParams{
+		Page:          1,
+		PageSize:      maxTransactions,
+		OrderByField:  "created_at",
+		SortDirection: "asc",
+	}
+
+	records, err := getTransactionsToCheck(
+		ctx, queryParams, opts...,
+	)
+	if err != nil {
+		return err
+	} else if len(records) == 0 {
+		return nil
+	}
+
+	for index := range records {
+		if err = processTransaction(
+			ctx, records[index],
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// getTransactionsToCheck will get the transactions which do not have filled columns
+func getTransactionsToCheck(ctx context.Context, queryParams *datastore.QueryParams,
+	opts ...ModelOps,
+) ([]*Transaction, error) {
+
+	txs, err := getTransactionsByConditions(
+		ctx,
+		map[string]interface{}{
+			blockHeightField: 0,
+		},
+		queryParams, opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+// getTransactionsByConditions will get the transactions to check
+func getTransactionsByConditions(ctx context.Context, conditions map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
+	if queryParams == nil {
+		queryParams = &datastore.QueryParams{
+			OrderByField:  createdAtField,
+			SortDirection: datastore.SortAsc,
+		}
+	} else if queryParams.OrderByField == "" || queryParams.SortDirection == "" {
+		queryParams.OrderByField = createdAtField
+		queryParams.SortDirection = datastore.SortAsc
+	}
+
+	var models []Transaction
+	if err := getModels(
+		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	txs := make([]*Transaction, 0)
+	for index := range models {
+		models[index].enrich(ModelSyncTransaction, opts...)
+		txs = append(txs, &models[index])
+	}
+
+	return txs, nil
+}
+
+// processTransaction will process the sync transaction record, or save the failure
+func processTransaction(ctx context.Context, transaction *Transaction) error {
+	// Find on-chain
+	var txInfo *chainstate.TransactionInfo
+	txInfo, err := transaction.Client().Chainstate().QueryTransactionFastest(
+		ctx, transaction.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
+	)
+	if err != nil {
+		if errors.Is(err, chainstate.ErrTransactionNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	if transaction == nil {
+		return ErrMissingTransaction
+	}
+
+	transaction.BlockHash = txInfo.BlockHash
+	transaction.BlockHeight = uint64(txInfo.BlockHeight)
+
+	if err := transaction.Save(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }

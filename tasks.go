@@ -102,3 +102,15 @@ func taskSyncTransactions(ctx context.Context, logClient zLogger.GormLoggerInter
 	}
 	return err
 }
+
+// taskCheckTransactions will check any transactions
+func taskCheckTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
+
+	logClient.Info(ctx, "running check transaction(s) task...")
+
+	err := processTransactions(ctx, 10, opts...)
+	if err == nil || errors.Is(err, datastore.ErrNoResults) {
+		return nil
+	}
+	return err
+}

@@ -109,8 +109,8 @@ func taskCheckTransactions(ctx context.Context, logClient zLogger.GormLoggerInte
 	logClient.Info(ctx, "running check transaction(s) task...")
 
 	err := processTransactions(ctx, 10, opts...)
-	if err == nil || errors.Is(err, datastore.ErrNoResults) {
-		return nil
+	if err != nil {
+		return err
 	}
-	return err
+	return nil
 }

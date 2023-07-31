@@ -36,6 +36,7 @@ const (
 	taskIntervalSyncActionBroadcast = 30 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalSyncActionP2P       = 35 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalSyncActionSync      = 40 * time.Second                      // Default task time for cron jobs (seconds)
+	taskIntervalTransactionCheck    = 60 * time.Second                      // Default task time for cron jobs (seconds)
 )
 
 // All the base models
@@ -108,6 +109,7 @@ const (
 	typeField            = "type"
 	xPubIDField          = "xpub_id"
 	xPubMetadataField    = "xpub_metadata"
+	blockHeightField     = "block_height"
 
 	// Universal statuses
 	statusCanceled   = "canceled"

@@ -109,6 +109,7 @@ func defaultClientOptions() *clientOptions {
 				ModelSyncTransaction.String() + "_" + syncActionBroadcast: taskIntervalSyncActionBroadcast,
 				ModelSyncTransaction.String() + "_" + syncActionP2P:       taskIntervalSyncActionP2P,
 				ModelSyncTransaction.String() + "_" + syncActionSync:      taskIntervalSyncActionSync,
+				ModelTransaction.String() + "_" + TransactionActionCheck:  taskIntervalTransactionCheck,
 			},
 		},
 

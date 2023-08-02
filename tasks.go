@@ -108,5 +108,5 @@ func taskCheckTransactions(ctx context.Context, logClient zLogger.GormLoggerInte
 
 	logClient.Info(ctx, "running check transaction(s) task...")
 
-	return processTransactions(ctx, 10, opts...)
+	return processTransactions(ctx, 1000, opts...)
 }

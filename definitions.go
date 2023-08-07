@@ -23,9 +23,9 @@ const (
 	defaultUserAgent               = "bux: " + version // Default user agent
 	dustLimit                      = uint64(1)         // Dust limit
 	//mongoTestVersion               = "4.2.1"           // Mongo Testing Version
-	mongoTestVersion  = "6.0.4"  // Mongo Testing Version
-	sqliteTestVersion = "3.37.0" // SQLite Testing Version (dummy version for now)
-	version           = "v0.5.9" // bux version
+	mongoTestVersion  = "6.0.4"   // Mongo Testing Version
+	sqliteTestVersion = "3.37.0"  // SQLite Testing Version (dummy version for now)
+	version           = "v0.5.10" // bux version
 )
 
 // Defaults for task cron jobs (tasks)

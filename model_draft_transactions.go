@@ -301,7 +301,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		feePerByte := float64(m.Configuration.FeeUnit.Satoshis / m.Configuration.FeeUnit.Bytes)
 
 		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit, 0)
-		if reserveSatoshis <= dustLimit {
+		if reserveSatoshis <= dustLimit && !m.containsOpReturn() {
 			m.client.Logger().Error(ctx, "amount of satoshis to send less than the dust limit")
 			return ErrOutputValueTooLow
 		}
@@ -903,4 +903,13 @@ func (m *DraftTransaction) SignInputs(xPriv *bip32.ExtendedKey) (signedHex strin
 	// Return the signed hex
 	signedHex = txDraft.String()
 	return
+}
+
+func (m *DraftTransaction) containsOpReturn() bool {
+	for _, output := range m.Configuration.Outputs {
+		if output.OpReturn != nil {
+			return true
+		}
+	}
+	return false
 }

@@ -29,11 +29,11 @@ func defaultClientOptions() *clientOptions {
 		config: &syncConfig{
 			httpClient: nil,
 			minercraftConfig: &minercraftConfig{
-				broadcastMiners:      bm,
-				queryMiners:          qm,
-				minerAPIs:            apis,
+				broadcastMiners:     bm,
+				queryMiners:         qm,
+				minerAPIs:           apis,
 				minercraftFeeQuotes: true,
-				feeUnit:              DefaultFee,
+				feeUnit:             DefaultFee,
 			},
 			minercraft:   nil,
 			network:      MainNet,

@@ -180,8 +180,8 @@ func (m *MinerCraftBase) QueryTransaction(context.Context, *minercraft.Miner, st
 
 // RemoveMiner removes a miner from the list of miners.
 func (m *MinerCraftBase) RemoveMiner(miner *minercraft.Miner) bool {
-	for i, miner := range allMiners {
-		if miner.Name == miner.Name || miner.MinerID == miner.MinerID {
+	for i, minerFound := range allMiners {
+		if miner.Name == minerFound.Name || miner.MinerID == minerFound.MinerID {
 			allMiners[i] = allMiners[len(allMiners)-1]
 			allMiners = allMiners[:len(allMiners)-1]
 			return true

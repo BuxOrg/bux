@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
@@ -984,7 +985,6 @@ func processTransactions(ctx context.Context, maxTransactions int, opts ...Model
 
 // processTransaction will process the sync transaction record, or save the failure
 func processTransaction(ctx context.Context, transaction *Transaction) error {
-	var txInfo *chainstate.TransactionInfo
 	txInfo, err := transaction.Client().Chainstate().QueryTransactionFastest(
 		ctx, transaction.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
 	)
@@ -998,9 +998,5 @@ func processTransaction(ctx context.Context, transaction *Transaction) error {
 	transaction.BlockHash = txInfo.BlockHash
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
 
-	if err := transaction.Save(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return transaction.Save(ctx)
 }

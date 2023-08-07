@@ -950,7 +950,11 @@ func processTransactions(ctx context.Context, maxTransactions int, opts ...Model
 	}
 
 	conditions := map[string]interface{}{
-		blockHeightField: 0,
+		"$or": []map[string]interface{}{{
+			blockHeightField: 0,
+		}, {
+			blockHeightField: nil,
+		}},
 	}
 
 	records := make([]Transaction, 0)

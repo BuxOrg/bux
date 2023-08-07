@@ -110,6 +110,7 @@ const (
 	xPubIDField          = "xpub_id"
 	xPubMetadataField    = "xpub_metadata"
 	blockHeightField     = "block_height"
+	blockHashField       = "block_hash"
 
 	// Universal statuses
 	statusCanceled   = "canceled"

@@ -38,7 +38,7 @@ require (
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
 	go.mongodb.org/mongo-driver v1.12.1
-	gorm.io/gorm v1.25.2
+	gorm.io/gorm v1.25.3
 )
 
 require (

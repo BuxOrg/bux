@@ -22,7 +22,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.2
 	github.com/mrz1836/go-cache v0.8.1
 	github.com/mrz1836/go-cachestore v0.2.2
-	github.com/mrz1836/go-datastore v0.4.7
+	github.com/mrz1836/go-datastore v0.4.8
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/mrz1836/go-nownodes v0.1.0
 	github.com/mrz1836/go-whatsonchain v0.12.2
@@ -96,7 +96,7 @@ require (
 	github.com/mrz1836/go-sanitize v1.3.0 // indirect
 	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.1 // indirect
-	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.1.0 // indirect
+	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.1.1 // indirect
 	github.com/onsi/gomega v1.20.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
@@ -137,7 +137,7 @@ require (
 	gorm.io/driver/mysql v1.5.1 // indirect
 	gorm.io/driver/postgres v1.5.2 // indirect
 	gorm.io/driver/sqlite v1.5.2 // indirect
-	gorm.io/plugin/dbresolver v1.4.2 // indirect
+	gorm.io/plugin/dbresolver v1.4.3 // indirect
 )
 
 // Issue with redislock package - related to taskq

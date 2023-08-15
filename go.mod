@@ -25,7 +25,7 @@ require (
 	github.com/mrz1836/go-datastore v0.4.8
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/mrz1836/go-nownodes v0.1.0
-	github.com/mrz1836/go-whatsonchain v0.12.2
+	github.com/mrz1836/go-whatsonchain v0.13.0
 	github.com/newrelic/go-agent/v3 v3.24.1
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
@@ -105,7 +105,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/tetratelabs/wazero v1.3.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

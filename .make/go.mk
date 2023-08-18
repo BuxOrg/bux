@@ -64,7 +64,7 @@ install-go: ## Install the application (Using Native Go)
 	@go install $(GIT_DOMAIN)/$(REPO_OWNER)/$(REPO_NAME) $(TAGS)
 
 .PHONY: lint
-lint: ## Run the golangci-lint application (install if not found)
+lint: ## Run the golangci-lint application (install if it's not found)
 	@echo "installing golangci-lint..."
 	@#Travis (has sudo)
 	@if [ "$(shell command -v golangci-lint)" = "" ] && [ $(TRAVIS) ]; then curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.54.1 && sudo cp ./bin/golangci-lint $(go env GOPATH)/bin/; fi;

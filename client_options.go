@@ -3,6 +3,8 @@ package bux
 import (
 	"context"
 	"database/sql"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	broadcast_client "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"net/http"
 	"strings"
 	"time"
@@ -742,5 +744,19 @@ func WithMinercraft(minercraft minercraft.ClientInterface) ClientOps {
 func WithMinercraftAPIs(miners []*minercraft.MinerAPIs) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraftAPIs(miners))
+	}
+}
+
+// WithBroadcastClient will set broadcast client
+func WithBroadcastClient(broadcastClient broadcast.Client) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClient(broadcastClient))
+	}
+}
+
+// WithBroadcastClientAPIs will set broadcast client APIs
+func WithBroadcastClientAPIs(apis []broadcast_client.ArcClientConfig) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClientAPIs(apis))
 	}
 }

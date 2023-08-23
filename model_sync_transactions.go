@@ -672,7 +672,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
 
 	// Create status message
-	message := "transaction was found on-chain by " + txInfo.Provider
+	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient
 
 	// Save the transaction (should NOT error)
 	if err = transaction.Save(ctx); err != nil {
@@ -688,7 +688,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
 		Action:        syncActionSync,
 		ExecutedAt:    time.Now().UTC(),
-		Provider:      txInfo.Provider,
+		Provider:      chainstate.ProviderBroadcastClient,
 		StatusMessage: message,
 	})
 

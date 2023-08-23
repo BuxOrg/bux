@@ -3,6 +3,8 @@ package chainstate
 import (
 	"context"
 	"fmt"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"sync"
 	"time"
 
@@ -35,16 +37,18 @@ type (
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
-		excludedProviders  []string                     // List of provider names
-		httpClient         HTTPInterface                // Custom HTTP client (Minercraft, WOC)
-		minercraftConfig   *minercraftConfig            // minercraftConfig configuration
-		minercraft         minercraft.ClientInterface   // Minercraft client
-		network            Network                      // Current network (mainnet, testnet, stn)
-		nowNodes           nownodes.ClientInterface     // NOWNodes client
-		nowNodesAPIKey     string                       // If set, use this key
-		queryTimeout       time.Duration                // Timeout for transaction query
-		whatsOnChain       whatsonchain.ClientInterface // WhatsOnChain client
-		whatsOnChainAPIKey string                       // If set, use this key
+		excludedProviders     []string                     // List of provider names
+		httpClient            HTTPInterface                // Custom HTTP client (Minercraft, WOC)
+		minercraftConfig      *minercraftConfig            // minercraftConfig configuration
+		minercraft            minercraft.ClientInterface   // Minercraft client
+		network               Network                      // Current network (mainnet, testnet, stn)
+		nowNodes              nownodes.ClientInterface     // NOWNodes client
+		nowNodesAPIKey        string                       // If set, use this key
+		queryTimeout          time.Duration                // Timeout for transaction query
+		whatsOnChain          whatsonchain.ClientInterface // WhatsOnChain client
+		whatsOnChainAPIKey    string                       // If set, use this key
+		broadcastClient       broadcast.Client             // Broadcast client
+		broadcastClientConfig *broadcastClientConfig       // Broadcast client config
 	}
 
 	// minercraftConfig is specific for minercraft configuration
@@ -62,6 +66,11 @@ type (
 		FeeLastChecked time.Time         `json:"fee_last_checked"` // Last time the fee was checked via mAPI
 		FeeUnit        *utils.FeeUnit    `json:"fee_unit"`         // The fee unit returned from Policy request
 		Miner          *minercraft.Miner `json:"miner"`            // The minercraft miner
+	}
+
+	// broadcastClientConfig is specific for broadcast client configuration
+	broadcastClientConfig struct {
+		BroadcastClientApis []broadcastClient.ArcClientConfig `json:"broadcast_client_apis"` // List of broadcast client apis
 	}
 )
 
@@ -182,6 +191,11 @@ func (c *Client) WhatsOnChain() whatsonchain.ClientInterface {
 // NowNodes will return the NowNodes client
 func (c *Client) NowNodes() nownodes.ClientInterface {
 	return c.options.config.nowNodes
+}
+
+// BroadcastClient will return the BroadcastClient client
+func (c *Client) BroadcastClient() broadcast.Client {
+	return c.options.config.broadcastClient
 }
 
 // QueryTimeout will return the query timeout

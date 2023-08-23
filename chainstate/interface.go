@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"net/http"
 	"time"
 
@@ -40,6 +41,7 @@ type ProviderServices interface {
 	Minercraft() minercraft.ClientInterface
 	NowNodes() nownodes.ClientInterface
 	WhatsOnChain() whatsonchain.ClientInterface
+	BroadcastClient() broadcast.Client
 }
 
 // MinercraftServices is the minercraft services interface

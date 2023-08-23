@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.36
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/bitcoin-sv/go-broadcast-client v0.0.0-20230822135329-75a90170644a
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
 	github.com/centrifugal/centrifuge-go v0.10.1

@@ -2,11 +2,11 @@ package bux
 
 import (
 	"context"
-	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/tonicpow/go-minercraft/v2"

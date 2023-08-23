@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"strings"
 
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/tonicpow/go-minercraft/v2"
 )
@@ -177,7 +177,7 @@ func broadcastWithBroadcastClient(ctx context.Context, client ClientInterface, t
 	result, err := client.BroadcastClient().SubmitTransaction(ctx, &tx)
 	if err != nil {
 		debugLog(client, txID, "error broadcast request for "+ProviderBroadcastClient+" failed: "+err.Error())
-		return nil
+		return nil //nolint:nilerr // err is being reported but not returned
 	}
 
 	debugLog(client, txID, "result broadcast request for "+ProviderBroadcastClient+" blockhash: "+result.BlockHash+" status: "+result.TxStatus.String())

@@ -2,10 +2,10 @@ package chainstate
 
 import (
 	"context"
-	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"time"
 
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"

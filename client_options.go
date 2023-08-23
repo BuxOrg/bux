@@ -3,8 +3,6 @@ package bux
 import (
 	"context"
 	"database/sql"
-	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	broadcast_client "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"net/http"
 	"strings"
 	"time"
@@ -13,6 +11,8 @@ import (
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	broadcastclient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cache"
@@ -755,7 +755,7 @@ func WithBroadcastClient(broadcastClient broadcast.Client) ClientOps {
 }
 
 // WithBroadcastClientAPIs will set broadcast client APIs
-func WithBroadcastClientAPIs(apis []broadcast_client.ArcClientConfig) ClientOps {
+func WithBroadcastClientAPIs(apis []broadcastclient.ArcClientConfig) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClientAPIs(apis))
 	}

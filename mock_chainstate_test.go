@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -122,6 +123,10 @@ type chainStateEverythingOnChain struct {
 }
 
 func (c *chainStateEverythingOnChain) Monitor() chainstate.MonitorService {
+	return nil
+}
+
+func (c *chainStateEverythingOnChain) BroadcastClient() broadcast.Client {
 	return nil
 }
 

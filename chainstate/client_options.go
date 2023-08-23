@@ -2,6 +2,8 @@ package chainstate
 
 import (
 	"context"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"time"
 
 	zLogger "github.com/mrz1836/go-logger"
@@ -35,10 +37,14 @@ func defaultClientOptions() *clientOptions {
 				minercraftFeeQuotes: true,
 				feeUnit:             DefaultFee,
 			},
-			minercraft:   nil,
-			network:      MainNet,
-			queryTimeout: defaultQueryTimeOut,
-			whatsOnChain: nil,
+			minercraft:      nil,
+			network:         MainNet,
+			queryTimeout:    defaultQueryTimeOut,
+			whatsOnChain:    nil,
+			broadcastClient: nil,
+			broadcastClientConfig: &broadcastClientConfig{
+				BroadcastClientApis: nil,
+			},
 		},
 		debug:           false,
 		newRelicEnabled: false,
@@ -258,5 +264,19 @@ func WithMinercraftFeeQuotes() ClientOps {
 func WithMinercraftAPIs(apis []*minercraft.MinerAPIs) ClientOps {
 	return func(c *clientOptions) {
 		c.config.minercraftConfig.minerAPIs = apis
+	}
+}
+
+// WithBroadcastClient will set broadcast client APIs
+func WithBroadcastClient(client broadcast.Client) ClientOps {
+	return func(c *clientOptions) {
+		c.config.broadcastClient = client
+	}
+}
+
+// WithBroadcastClientAPIs will set broadcast client APIs
+func WithBroadcastClientAPIs(apis []broadcastClient.ArcClientConfig) ClientOps {
+	return func(c *clientOptions) {
+		c.config.broadcastClientConfig.BroadcastClientApis = apis
 	}
 }

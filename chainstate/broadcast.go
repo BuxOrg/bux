@@ -111,6 +111,11 @@ func createActiveProviders(c *Client, txID, txHex string) []txBroadcastProvider 
 		providers = append(providers, &pvdr)
 	}
 
+	if shouldBroadcastWithBroadcastClient(c) {
+		pvdr := broadcastClientProvider{txID: txID, txHex: txHex}
+		providers = append(providers, &pvdr)
+	}
+
 	return providers
 }
 
@@ -126,6 +131,11 @@ func shouldBroadcastToWhatsOnChain(c *Client) bool {
 func shouldBroadcastToNowNodes(c *Client) bool {
 	return !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) &&
 		c.NowNodes() != nil // Only if NowNodes is loaded (requires API key)
+}
+
+func shouldBroadcastWithBroadcastClient(c *Client) bool {
+	return !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) &&
+		c.BroadcastClient() != nil // Only if NowNodes is loaded (requires API key)
 }
 
 func broadcastToProvider(ctx, fallbackCtx context.Context, provider txBroadcastProvider, txID string,

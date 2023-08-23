@@ -54,6 +54,17 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 		}
 	}
 
+	// Next: try with BroadcastClient (if loaded)
+	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
+		if c.BroadcastClient() != nil {
+			if resp, err := queryBroadcastClient(
+				ctxWithCancel, c, id,
+			); err == nil && checkRequirement(requiredIn, id, resp) {
+				return resp
+			}
+		}
+	}
+
 	// No transaction information found
 	return nil
 }
@@ -114,6 +125,20 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 			go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
 				defer wg.Done()
 				if resp, err := queryNowNodes(
+					ctx, client, id,
+				); err == nil && checkRequirement(requiredIn, id, resp) {
+					resultsChannel <- resp
+				}
+			}(ctxWithCancel, c, id, requiredIn)
+		}
+	}
+
+	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
+		if c.BroadcastClient() != nil {
+			wg.Add(1)
+			go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
+				defer wg.Done()
+				if resp, err := queryBroadcastClient(
 					ctx, client, id,
 				); err == nil && checkRequirement(requiredIn, id, resp) {
 					resultsChannel <- resp
@@ -183,6 +208,23 @@ func queryNowNodes(ctx context.Context, client ClientInterface, id string) (*Tra
 			ID:            resp.TxID,
 			Provider:      ProviderNowNodes,
 			MinerID:       "",
+		}, nil
+	}
+	return nil, ErrTransactionIDMismatch
+}
+
+// queryBroadcastClient will submit a query transaction request to a go-broadcast-client
+func queryBroadcastClient(ctx context.Context, client ClientInterface, id string) (*TransactionInfo, error) {
+	client.DebugLog("executing request in minercraft using " + ProviderBroadcastClient)
+	if resp, err := client.BroadcastClient().QueryTransaction(ctx, id); err != nil {
+		client.DebugLog("error executing request in " + ProviderBroadcastClient + " failed: " + err.Error())
+		return nil, err
+	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
+		return &TransactionInfo{
+			BlockHash:   resp.BlockHash,
+			BlockHeight: resp.BlockHeight,
+			ID:          resp.TxID,
+			Provider:    resp.Miner,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

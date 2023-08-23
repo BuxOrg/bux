@@ -44,10 +44,11 @@ const (
 
 // List of providers
 const (
-	ProviderAll          = "all"          // All providers (used for errors etc)
-	ProviderMAPI         = "mapi"         // Query & broadcast provider for mAPI (using given miners)
-	ProviderNowNodes     = "nownodes"     // Query & broadcast provider for NowNodes
-	ProviderWhatsOnChain = "whatsonchain" // Query & broadcast provider for WhatsOnChain
+	ProviderAll             = "all"             // All providers (used for errors etc)
+	ProviderMAPI            = "mapi"            // Query & broadcast provider for mAPI (using given miners)
+	ProviderNowNodes        = "nownodes"        // Query & broadcast provider for NowNodes
+	ProviderWhatsOnChain    = "whatsonchain"    // Query & broadcast provider for WhatsOnChain
+	ProviderBroadcastClient = "broadcastclient" // Query & broadcast provider for configured miners
 )
 
 // TransactionInfo is the universal information about the transaction found from a chain provider

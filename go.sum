@@ -109,12 +109,12 @@ github.com/dolthub/flatbuffers/v23 v23.3.3-dh.2 h1:u3PMzfF8RkKd3lB9pZ2bfn0qEG+1G
 github.com/dolthub/flatbuffers/v23 v23.3.3-dh.2/go.mod h1:mIEZOHnFx4ZMQeawhw9rhsj+0zwQj7adVsnBX7t+eKY=
 github.com/dolthub/go-icu-regex v0.0.0-20230524105445-af7e7991c97e h1:kPsT4a47cw1+y/N5SSCkma7FhAPw7KeGmD6c9PBZW9Y=
 github.com/dolthub/go-icu-regex v0.0.0-20230524105445-af7e7991c97e/go.mod h1:KPUcpx070QOfJK1gNe0zx4pA5sicIK1GMikIGLKC168=
-github.com/dolthub/go-mysql-server v0.16.0 h1:NHDy28iPvlaECmh1Iv93yF7BJKnD11IBnVj0t4MmWrs=
-github.com/dolthub/go-mysql-server v0.16.0/go.mod h1:ANNYjFKs4Ysh0e2r3Yi87QND7swUZsyk5vLuq5LpbHQ=
+github.com/dolthub/go-mysql-server v0.17.0 h1:ztJjA001l6ZvutCPmwbSpegOlF0W0KKpzDk1m9SYq0s=
+github.com/dolthub/go-mysql-server v0.17.0/go.mod h1:vSQ47leaIPTtvSLKo89D1FdYdypU5OH6VBV63B2MS8Y=
 github.com/dolthub/jsonpath v0.0.2-0.20230525180605-8dc13778fd72 h1:NfWmngMi1CYUWU4Ix8wM+USEhjc+mhPlT9JUR/anvbQ=
 github.com/dolthub/jsonpath v0.0.2-0.20230525180605-8dc13778fd72/go.mod h1:ZWUdY4iszqRQ8OcoXClkxiAVAoWoK3cq0Hvv4ddGRuM=
-github.com/dolthub/vitess v0.0.0-20230622172940-39f2d1480fcb h1:YhyV49E7vogrsGAJU+ku02A6oq21hjjkKp8Pe7fi3/Q=
-github.com/dolthub/vitess v0.0.0-20230622172940-39f2d1480fcb/go.mod h1:IyoysiiOzrIs7QsEHC+yVF0yRQ6W70GXyCXqtI2vVTs=
+github.com/dolthub/vitess v0.0.0-20230823204737-4a21a94e90c3 h1:lY3oQbYNMSVjT02n6f2M2H0u4icF6lGbS/IpWr27ti8=
+github.com/dolthub/vitess v0.0.0-20230823204737-4a21a94e90c3/go.mod h1:IwjNXSQPymrja5pVqmfnYdcy7Uv7eNJNBPK/MEh9OOw=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

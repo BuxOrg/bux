@@ -10,7 +10,7 @@ require (
 	github.com/bitcoinschema/go-map v0.1.0
 	github.com/centrifugal/centrifuge-go v0.10.1
 	github.com/coocood/freecache v1.2.3
-	github.com/dolthub/go-mysql-server v0.16.0
+	github.com/dolthub/go-mysql-server v0.17.0
 	github.com/fergusstrange/embedded-postgres v1.24.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
@@ -59,7 +59,7 @@ require (
 	github.com/dolthub/flatbuffers/v23 v23.3.3-dh.2 // indirect
 	github.com/dolthub/go-icu-regex v0.0.0-20230524105445-af7e7991c97e // indirect
 	github.com/dolthub/jsonpath v0.0.2-0.20230525180605-8dc13778fd72 // indirect
-	github.com/dolthub/vitess v0.0.0-20230622172940-39f2d1480fcb // indirect
+	github.com/dolthub/vitess v0.0.0-20230823204737-4a21a94e90c3 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect

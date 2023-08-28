@@ -467,6 +467,7 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 
 		// Add generic capabilities
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithP2PCapabilities())
+		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithBeefCapabilities())
 
 		// Add each domain
 		for _, domain := range domains {

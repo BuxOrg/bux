@@ -67,9 +67,15 @@ func getCapabilities(ctx context.Context, cs cachestore.ClientInterface, client 
 }
 
 // hasP2P will return the P2P urls and true if they are both found
-func hasP2P(capabilities *paymail.CapabilitiesPayload) (success bool, p2pDestinationURL, p2pSubmitTxURL string) {
+func hasP2P(capabilities *paymail.CapabilitiesPayload) (success, useBEEF bool, p2pDestinationURL, p2pSubmitTxURL string) {
 	p2pDestinationURL = capabilities.GetString(paymail.BRFCP2PPaymentDestination, "")
 	p2pSubmitTxURL = capabilities.GetString(paymail.BRFCP2PTransactions, "")
+	p2pBeefSubmitTxURL := capabilities.GetString(paymail.BRFCBeefTransaction, "")
+
+	if len(p2pBeefSubmitTxURL) > 0 {
+		p2pSubmitTxURL = p2pBeefSubmitTxURL
+		useBEEF = true
+	}
 
 	if len(p2pSubmitTxURL) > 0 && len(p2pDestinationURL) > 0 {
 		success = true
@@ -146,7 +152,7 @@ func startP2PTransaction(client paymail.ClientInterface,
 
 // finalizeP2PTransaction will notify the paymail provider about the transaction
 func finalizeP2PTransaction(client paymail.ClientInterface,
-	alias, domain, p2pSubmitURL, referenceID, note, senderPaymailAddress, txHex string) (*paymail.P2PTransactionPayload, error) {
+	alias, domain, p2pSubmitURL, referenceID, note, senderPaymailAddress, txHex, txBeef string) (*paymail.P2PTransactionPayload, error) {
 
 	// Submit the P2P transaction
 	/*logger.Data(2, logger.DEBUG, "sending p2p tx...",
@@ -158,14 +164,21 @@ func finalizeP2PTransaction(client paymail.ClientInterface,
 		logger.MakeParameter("referenceID", referenceID),
 	)*/
 
-	response, err := client.SendP2PTransaction(p2pSubmitURL, alias, domain, &paymail.P2PTransaction{
-		Hex: txHex,
+	p2pTransaction := &paymail.P2PTransaction{
 		MetaData: &paymail.P2PMetaData{
 			Note:   note,
 			Sender: senderPaymailAddress,
 		},
 		Reference: referenceID,
-	})
+	}
+
+	if len(txBeef) > 0 {
+		p2pTransaction.Beef = txBeef
+	} else {
+		p2pTransaction.Hex = txHex
+	}
+
+	response, err := client.SendP2PTransaction(p2pSubmitURL, alias, domain, p2pTransaction)
 	if err != nil {
 		return nil, err
 	}

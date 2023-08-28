@@ -80,6 +80,7 @@ type PaymailP4 struct {
 	ReceiveEndpoint string `json:"receive_endpoint,omitempty" toml:"receive_endpoint" yaml:"receive_endpoint" bson:"receive_endpoint,omitempty"` // P2P endpoint when notifying
 	ReferenceID     string `json:"reference_id,omitempty" toml:"reference_id" yaml:"reference_id" bson:"reference_id,omitempty"`                 // Reference ID saved from P2P request
 	ResolutionType  string `json:"resolution_type" toml:"resolution_type" yaml:"resolution_type" bson:"resolution_type,omitempty"`               // Type of address resolution (basic vs p2p)
+	UseBEEF         bool   `json:"use_beefy,omitempty" toml:"use_beefy" yaml:"use_beefy" bson:"use_beefy,omitempty"`                             // Use beef format for the transaction
 }
 
 // Types of resolution methods
@@ -218,10 +219,10 @@ func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore
 	}
 
 	// Does the provider support P2P?
-	success, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
+	success, useBEEF, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
 	if success {
 		return t.processPaymailViaP2P(
-			paymailClient, p2pDestinationURL, p2pSubmitTxURL, fromPaymail,
+			paymailClient, p2pDestinationURL, p2pSubmitTxURL, fromPaymail, useBEEF,
 		)
 	}
 
@@ -273,7 +274,7 @@ func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Conte
 }
 
 // processPaymailViaP2P will process the output for P2P Paymail resolution
-func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string, fromPaymail string) error {
+func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string, fromPaymail string, useBEEF bool) error {
 
 	// todo: this is a hack since paymail providers will complain if satoshis are empty (SendToAll has 0 satoshi)
 	satoshis := t.Satoshis
@@ -314,6 +315,7 @@ func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface,
 	t.PaymailP4.ReferenceID = destinationInfo.Reference
 	t.PaymailP4.ResolutionType = ResolutionTypeP2P
 	t.PaymailP4.FromPaymail = fromPaymail
+	t.PaymailP4.UseBEEF = useBEEF
 
 	return nil
 }

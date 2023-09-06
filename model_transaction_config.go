@@ -80,7 +80,7 @@ type PaymailP4 struct {
 	ReceiveEndpoint string `json:"receive_endpoint,omitempty" toml:"receive_endpoint" yaml:"receive_endpoint" bson:"receive_endpoint,omitempty"` // P2P endpoint when notifying
 	ReferenceID     string `json:"reference_id,omitempty" toml:"reference_id" yaml:"reference_id" bson:"reference_id,omitempty"`                 // Reference ID saved from P2P request
 	ResolutionType  string `json:"resolution_type" toml:"resolution_type" yaml:"resolution_type" bson:"resolution_type,omitempty"`               // Type of address resolution (basic vs p2p)
-	UseBEEF         bool   `json:"use_beefy,omitempty" toml:"use_beefy" yaml:"use_beefy" bson:"use_beefy,omitempty"`                             // Use beef format for the transaction
+	UseBEEF         bool   `json:"use_beef,omitempty" toml:"use_beef" yaml:"use_beef" bson:"use_beef,omitempty"`                                 // Use beef format for the transaction
 }
 
 // Types of resolution methods

@@ -67,15 +67,18 @@ func getCapabilities(ctx context.Context, cs cachestore.ClientInterface, client 
 }
 
 // hasP2P will return the P2P urls and true if they are both found
-func hasP2P(capabilities *paymail.CapabilitiesPayload) (success, useBEEF bool, p2pDestinationURL, p2pSubmitTxURL string) {
+func hasP2P(capabilities *paymail.CapabilitiesPayload) (success bool, p2pDestinationURL, p2pSubmitTxURL string, format PaymailPayloadFormat) {
 	p2pDestinationURL = capabilities.GetString(paymail.BRFCP2PPaymentDestination, "")
 	p2pSubmitTxURL = capabilities.GetString(paymail.BRFCP2PTransactions, "")
 	p2pBeefSubmitTxURL := capabilities.GetString(paymail.BRFCBeefTransaction, "")
 
 	if len(p2pBeefSubmitTxURL) > 0 {
 		p2pSubmitTxURL = p2pBeefSubmitTxURL
-		useBEEF = true
+		format = BeefPaymailPayloadFormat
 	}
+	//else {
+	//	format = BasicPaymailPayloadFormat
+	//}
 
 	if len(p2pSubmitTxURL) > 0 && len(p2pDestinationURL) > 0 {
 		success = true

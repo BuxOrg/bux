@@ -110,9 +110,8 @@ func Test_hasP2P(t *testing.T) {
 
 	t.Run("no p2p capabilities", func(t *testing.T) {
 		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
-		success, useBeef, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
+		success, _, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
 		assert.Equal(t, false, success)
-		assert.Equal(t, false, useBeef)
 		assert.Equal(t, "", p2pDestinationURL)
 		assert.Equal(t, "", p2pSubmitTxURL)
 	})
@@ -124,11 +123,38 @@ func Test_hasP2P(t *testing.T) {
 		capabilities.Capabilities[paymail.BRFCP2PTransactions] = "/receive-transaction/{alias}@{domain.tld}"
 		capabilities.Capabilities[paymail.BRFCP2PPaymentDestination] = "/p2p-payment-destination/{alias}@{domain.tld}"
 
+		success, _, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
+		assert.Equal(t, true, success)
+		assert.Equal(t, capabilities.Capabilities[paymail.BRFCP2PPaymentDestination], p2pDestinationURL)
+		assert.Equal(t, capabilities.Capabilities[paymail.BRFCP2PTransactions], p2pSubmitTxURL)
+	})
+}
+
+// Test_hasP2P_beefCapabilities will test the method hasP2P() but with BEEF capabilities
+func Test_hasP2P_beefCapabilities(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no beef capabilities", func(t *testing.T) {
+		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
+		success, useBeef, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
+		assert.Equal(t, false, success)
+		assert.Equal(t, false, useBeef)
+		assert.Equal(t, "", p2pDestinationURL)
+		assert.Equal(t, "", p2pSubmitTxURL)
+	})
+
+	t.Run("valid p2p capabilities", func(t *testing.T) {
+		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
+
+		// Add the P2P
+		capabilities.Capabilities[paymail.BRFCP2PPaymentDestination] = "/p2p-payment-destination/{alias}@{domain.tld}"
+		capabilities.Capabilities[paymail.BRFCBeefTransaction] = "/receive-beef-transaction/{alias}@{domain.tld}"
+
 		success, useBeef, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
 		assert.Equal(t, true, success)
 		assert.Equal(t, true, useBeef)
 		assert.Equal(t, capabilities.Capabilities[paymail.BRFCP2PPaymentDestination], p2pDestinationURL)
-		assert.Equal(t, capabilities.Capabilities[paymail.BRFCP2PTransactions], p2pSubmitTxURL)
+		assert.Equal(t, capabilities.Capabilities[paymail.BRFCBeefTransaction], p2pSubmitTxURL)
 	})
 }
 

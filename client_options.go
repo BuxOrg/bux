@@ -467,7 +467,6 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 
 		// Add generic capabilities
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithP2PCapabilities())
-		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithBeefCapabilities())
 
 		// Add each domain
 		for _, domain := range domains {
@@ -494,6 +493,13 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 
 		// Add the paymail_address model in bux
 		c.addModels(migrateList, newPaymail(""))
+	}
+}
+
+// WithPaymailBeefSupport will set the configuration for Paymail BEEF format support (as a server)
+func WithPaymailBeefSupport() ClientOps {
+	return func(c *clientOptions) {
+		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithBeefCapabilities())
 	}
 }
 

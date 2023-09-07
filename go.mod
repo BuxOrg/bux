@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.37
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoin-sv/go-broadcast-client v0.1.1
+	github.com/bitcoin-sv/go-paymail v0.0.1
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
 	github.com/centrifugal/centrifuge-go v0.10.1
@@ -34,7 +35,6 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.16.0
 	github.com/tonicpow/go-minercraft/v2 v2.0.4
-	github.com/tonicpow/go-paymail v0.9.3
 	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
@@ -64,14 +64,11 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/gocraft/dbr/v2 v2.7.5 // indirect
-	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gojektech/heimdall/v6 v6.1.0 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.1 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -87,15 +84,10 @@ require (
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/matryer/respond v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/miekg/dns v1.1.55 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
-	github.com/mrz1836/go-api-router v0.5.2 // indirect
-	github.com/mrz1836/go-parameters v0.3.1 // indirect
-	github.com/mrz1836/go-sanitize v1.3.1 // indirect
-	github.com/mrz1836/go-validate v0.2.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.2 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.1.1 // indirect
 	github.com/onsi/gomega v1.20.0 // indirect
@@ -111,7 +103,6 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.9 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
@@ -125,7 +116,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.17.0 // indirect
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect

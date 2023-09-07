@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
-	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 )
 
 // PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server

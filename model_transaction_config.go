@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-paymail"
 	magic "github.com/bitcoinschema/go-map"
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-cachestore"
-	"github.com/tonicpow/go-paymail"
 )
 
 // TransactionConfig is the configuration used to start a transaction

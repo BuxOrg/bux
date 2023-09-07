@@ -11,6 +11,7 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-paymail"
 	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cachestore"
@@ -19,7 +20,6 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tonicpow/go-paymail"
 )
 
 // TestNewRelicOptions will test the method enable()

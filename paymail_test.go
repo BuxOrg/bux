@@ -9,13 +9,13 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	xtester "github.com/BuxOrg/bux/tester"
+	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/jarcoal/httpmock"
 	"github.com/mrz1836/go-cache"
 	"github.com/mrz1836/go-datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 )
 
 const (

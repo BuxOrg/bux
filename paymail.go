@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bitcoin-sv/go-paymail"
 	"github.com/mrz1836/go-cachestore"
-	"github.com/tonicpow/go-paymail"
 )
 
 // getCapabilities is a utility function to retrieve capabilities for a Paymail provider

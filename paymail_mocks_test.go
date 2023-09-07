@@ -3,8 +3,8 @@ package bux
 import (
 	"context"
 
-	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
+	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/server"
 )
 
 // Mock implementation of a service provider

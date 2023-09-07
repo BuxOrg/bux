@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/BuxOrg/bux/tester"
+	"github.com/bitcoin-sv/go-paymail"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tonicpow/go-paymail"
 )
 
 // todo: finish unit tests!

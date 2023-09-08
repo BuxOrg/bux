@@ -20,7 +20,7 @@ require (
 	github.com/libsv/go-bc v0.1.11
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
-	github.com/libsv/go-bt/v2 v2.2.4
+	github.com/libsv/go-bt/v2 v2.2.5
 	github.com/mrz1836/go-cache v0.8.2
 	github.com/mrz1836/go-cachestore v0.2.3
 	github.com/mrz1836/go-datastore v0.4.10
@@ -123,7 +123,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.opentelemetry.io/otel v1.17.0 // indirect
 	go.opentelemetry.io/otel/trace v1.17.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect

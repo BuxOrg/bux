@@ -58,6 +58,7 @@ type Transaction struct {
 	TotalValue      uint64          `json:"total_value" toml:"total_value" yaml:"total_value" gorm:"<-create;type:bigint" bson:"total_value,omitempty"`
 	XpubMetadata    XpubMetadata    `json:"-" toml:"xpub_metadata" gorm:"<-;type:json;xpub_id specific metadata" bson:"xpub_metadata,omitempty"`
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
+	MerkleProof     MerkleProof     `json:"merkle_proof" toml:"merkle_proof" yaml:"merkle_proof" gorm:"<-;type:text;comment:Merkle Proof payload from mAPI" bson:"merkle_proof,omitempty"`
 
 	// Virtual Fields
 	OutputValue int64                `json:"output_value" toml:"-" yaml:"-" gorm:"-" bson:"-,omitempty"`

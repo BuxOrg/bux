@@ -411,7 +411,7 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 		Page:          1,
 		PageSize:      maxTransactions,
 		OrderByField:  "created_at",
-		SortDirection: "asc",
+		SortDirection: "desc",
 	}
 
 	// Get x records
@@ -642,7 +642,8 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 
 	// Find on-chain
 	var txInfo *chainstate.TransactionInfo
-	if txInfo, err = syncTx.Client().Chainstate().QueryTransactionFastest(
+	// only mAPI currently provides merkle proof, so QueryTransaction should be used here
+	if txInfo, err = syncTx.Client().Chainstate().QueryTransaction(
 		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
 	); err != nil {
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
@@ -670,6 +671,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 	// Add additional information (if found on-chain)
 	transaction.BlockHash = txInfo.BlockHash
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
+	transaction.MerkleProof = MerkleProof(*txInfo.MerkleProof)
 
 	// Create status message
 	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient

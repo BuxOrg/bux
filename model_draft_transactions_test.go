@@ -184,7 +184,6 @@ func TestDraftTransaction_setChangeDestinations(t *testing.T) {
 
 // TestDraftTransaction_getDraftTransactionID tests getting the draft transaction by draft id
 func TestDraftTransaction_getDraftTransactionID(t *testing.T) {
-
 	t.Run("not found", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
@@ -210,7 +209,6 @@ func TestDraftTransaction_getDraftTransactionID(t *testing.T) {
 
 // TestDraftTransaction_createTransaction create a transaction hex
 func TestDraftTransaction_createTransaction(t *testing.T) {
-
 	t.Run("empty transaction", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
@@ -235,7 +233,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("transaction with utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -249,6 +247,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -303,7 +305,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("send to all", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -317,6 +319,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -339,7 +345,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("fee calculation - MAP", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -353,6 +359,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -389,7 +399,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("fee calculation - MAP 2", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -408,6 +418,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 1, 251725,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -447,7 +461,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("fee calculation - tonicpow", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -461,6 +475,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo := newUtxo(testXPubID, testTxID, testLockingScript, 1, 114216,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -498,7 +516,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("send to all - multiple utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -520,6 +538,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 2, 130000,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -542,7 +564,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("send to all - selected utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -564,6 +586,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 2, 130000,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -593,7 +619,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("include utxos - tokens", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -620,6 +646,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo = newUtxo(testXPubID, testTxID, testSTASLockingScript, 2, 564,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		// todo how to make sure we do not unwittingly destroy tokens ?
@@ -757,7 +787,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 
 	t.Run("SendAllTo + 2 utxos", func(t *testing.T) {
 		p := newTestPaymailClient(t, []string{"handcash.io"})
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false,
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true,
 			WithCustomTaskManager(&taskManagerMockBase{}),
 			WithPaymailClient(p),
 		)
@@ -789,6 +819,10 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		utxo = newUtxo(testXPubID, testTxID, testLockingScript, 0, 13483,
 			append(client.DefaultModelOptions(), New())...)
 		err = utxo.Save(ctx)
+		require.NoError(t, err)
+
+		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
@@ -1374,11 +1408,9 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 
 // TestDraftTransaction_RegisterTasks will test the method RegisterTasks()
 func TestDraftTransaction_RegisterTasks(t *testing.T) {
-
 	draftCleanupTask := "draft_transaction_clean_up"
 
 	t.Run("testing task: "+draftCleanupTask, func(t *testing.T) {
-
 		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
 		defer deferMe()
 
@@ -1392,7 +1424,7 @@ func TestDraftTransaction_RegisterTasks(t *testing.T) {
 }
 
 func TestDraftTransaction_SignInputs(t *testing.T) {
-	ctx, client, deferMe := CreateTestSQLiteClient(t, true, false)
+	ctx, client, deferMe := CreateTestSQLiteClient(t, true, true)
 	defer deferMe()
 
 	xPrivString := "xprv9s21ZrQH143K31pvNoYNcRZjtdJXnNVEc5NmBbgJmEg27YWbZVL7jTLQhPELqAR7tcJTnF9AJLwVN5w3ABZvrfeDLm4vnBDw76bkx8a2NxK"
@@ -1436,9 +1468,12 @@ func TestDraftTransaction_SignInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	// create a utxo with enough output for all our tests
-	txID := "aa9cd99d6c1c179de6ab9785f6d27d6589a72c1523f1fc37de041a66dbbdbdb6"
-	utxo := newUtxo(xPubID, txID, lockingScript, 0, 12229, client.DefaultModelOptions(New())...)
+	utxo := newUtxo(xPubID, testTxID, lockingScript, 0, 12229, client.DefaultModelOptions(New())...)
 	err = utxo.Save(ctx)
+	require.NoError(t, err)
+
+	transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+	err = transaction.Save(ctx)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1521,6 +1556,10 @@ func initSimpleTestCase(t *testing.T) (context.Context, ClientInterface, func())
 	utxo := newUtxo(testXPubID, testTxID, testLockingScript, 0, 100000,
 		append(client.DefaultModelOptions(), New())...)
 	err = utxo.Save(ctx)
+	require.NoError(t, err)
+
+	transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+	err = transaction.Save(ctx)
 	require.NoError(t, err)
 
 	return ctx, client, deferMe

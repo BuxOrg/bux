@@ -13,6 +13,8 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	broadcastclient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
+	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/coocood/freecache"
 	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cache"
@@ -21,8 +23,6 @@ import (
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
-	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 	taskq "github.com/vmihailenco/taskq/v3"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -493,6 +493,13 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 
 		// Add the paymail_address model in bux
 		c.addModels(migrateList, newPaymail(""))
+	}
+}
+
+// WithPaymailBeefSupport will set the configuration for Paymail BEEF format support (as a server)
+func WithPaymailBeefSupport() ClientOps {
+	return func(c *clientOptions) {
+		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithBeefCapabilities())
 	}
 }
 

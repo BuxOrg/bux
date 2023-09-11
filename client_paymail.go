@@ -1,7 +1,7 @@
 package bux
 
 import (
-	"github.com/tonicpow/go-paymail"
+	"github.com/bitcoin-sv/go-paymail"
 )
 
 // PaymailClient will return the Paymail if it exists

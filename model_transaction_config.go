@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-paymail"
 	magic "github.com/bitcoinschema/go-map"
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-cachestore"
-	"github.com/tonicpow/go-paymail"
 )
 
 // TransactionConfig is the configuration used to start a transaction
@@ -70,16 +70,24 @@ type TransactionOutput struct {
 	UseForChange bool            `json:"use_for_change,omitempty" toml:"use_for_change" yaml:"use_for_change" bson:"use_for_change,omitempty"` // if set, no change destinations will be created, but all outputs flagged will get the change
 }
 
+type PaymailPayloadFormat uint32
+
+const (
+	BasicPaymailPayloadFormat PaymailPayloadFormat = iota
+	BeefPaymailPayloadFormat
+)
+
 // PaymailP4 paymail configuration for the p2p payments on this output
 type PaymailP4 struct {
-	Alias           string `json:"alias" toml:"alias" yaml:"alias" bson:"alias,omitempty"`                                                       // Alias of the paymail {alias}@domain.com
-	Domain          string `json:"domain" toml:"domain" yaml:"domain" bson:"domain,omitempty"`                                                   // Domain of the paymail alias@{domain.com}
-	FromPaymail     string `json:"from_paymail,omitempty" toml:"from_paymail" yaml:"from_paymail" bson:"from_paymail,omitempty"`                 // From paymail address: alias@domain.com
-	Note            string `json:"note,omitempty" toml:"note" yaml:"note" bson:"note,omitempty"`                                                 // Friendly readable note to the paymail receiver
-	PubKey          string `json:"pub_key,omitempty" toml:"pub_key" yaml:"pub_key" bson:"pub_key,omitempty"`                                     // Used for validating the signature
-	ReceiveEndpoint string `json:"receive_endpoint,omitempty" toml:"receive_endpoint" yaml:"receive_endpoint" bson:"receive_endpoint,omitempty"` // P2P endpoint when notifying
-	ReferenceID     string `json:"reference_id,omitempty" toml:"reference_id" yaml:"reference_id" bson:"reference_id,omitempty"`                 // Reference ID saved from P2P request
-	ResolutionType  string `json:"resolution_type" toml:"resolution_type" yaml:"resolution_type" bson:"resolution_type,omitempty"`               // Type of address resolution (basic vs p2p)
+	Alias           string               `json:"alias" toml:"alias" yaml:"alias" bson:"alias,omitempty"`                                                       // Alias of the paymail {alias}@domain.com
+	Domain          string               `json:"domain" toml:"domain" yaml:"domain" bson:"domain,omitempty"`                                                   // Domain of the paymail alias@{domain.com}
+	FromPaymail     string               `json:"from_paymail,omitempty" toml:"from_paymail" yaml:"from_paymail" bson:"from_paymail,omitempty"`                 // From paymail address: alias@domain.com
+	Note            string               `json:"note,omitempty" toml:"note" yaml:"note" bson:"note,omitempty"`                                                 // Friendly readable note to the paymail receiver
+	PubKey          string               `json:"pub_key,omitempty" toml:"pub_key" yaml:"pub_key" bson:"pub_key,omitempty"`                                     // Used for validating the signature
+	ReceiveEndpoint string               `json:"receive_endpoint,omitempty" toml:"receive_endpoint" yaml:"receive_endpoint" bson:"receive_endpoint,omitempty"` // P2P endpoint when notifying
+	ReferenceID     string               `json:"reference_id,omitempty" toml:"reference_id" yaml:"reference_id" bson:"reference_id,omitempty"`                 // Reference ID saved from P2P request
+	ResolutionType  string               `json:"resolution_type" toml:"resolution_type" yaml:"resolution_type" bson:"resolution_type,omitempty"`               // Type of address resolution (basic vs p2p)
+	Format          PaymailPayloadFormat `json:"format,omitempty" toml:"format" yaml:"format" bson:"format,omitempty"`                                         // Use beef format for the transaction
 }
 
 // Types of resolution methods
@@ -218,10 +226,10 @@ func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore
 	}
 
 	// Does the provider support P2P?
-	success, p2pDestinationURL, p2pSubmitTxURL := hasP2P(capabilities)
+	success, p2pDestinationURL, p2pSubmitTxURL, format := hasP2P(capabilities)
 	if success {
 		return t.processPaymailViaP2P(
-			paymailClient, p2pDestinationURL, p2pSubmitTxURL, fromPaymail,
+			paymailClient, p2pDestinationURL, p2pSubmitTxURL, fromPaymail, format,
 		)
 	}
 
@@ -273,7 +281,7 @@ func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Conte
 }
 
 // processPaymailViaP2P will process the output for P2P Paymail resolution
-func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string, fromPaymail string) error {
+func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string, fromPaymail string, format PaymailPayloadFormat) error {
 
 	// todo: this is a hack since paymail providers will complain if satoshis are empty (SendToAll has 0 satoshi)
 	satoshis := t.Satoshis
@@ -314,6 +322,7 @@ func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface,
 	t.PaymailP4.ReferenceID = destinationInfo.Reference
 	t.PaymailP4.ResolutionType = ResolutionTypeP2P
 	t.PaymailP4.FromPaymail = fromPaymail
+	t.PaymailP4.Format = format
 
 	return nil
 }

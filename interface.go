@@ -9,11 +9,11 @@ import (
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/bitcoin-sv/go-paymail"
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
-	"github.com/tonicpow/go-paymail"
 )
 
 // AccessKeyService is the access key actions

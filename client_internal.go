@@ -9,10 +9,10 @@ import (
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/server"
 )
 
 // loadCache will load caching configuration and start the Cachestore client

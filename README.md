@@ -128,7 +128,7 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 - [robfig/cron](https://github.com/robfig/cron)
 - [stretchr/testify](https://github.com/stretchr/testify)
 - [tonicpow/go-minercraft](https://github.com/tonicpow/go-minercraft)
-- [tonicpow/go-paymail](https://github.com/tonicpow/go-paymail)
+- [bitcoin-sv/go-paymail](https://github.com/bitcoin-sv/go-paymail)
 - [vmihailenco/taskq](https://github.com/vmihailenco/taskq)
 </details>
 

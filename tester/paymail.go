@@ -4,8 +4,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/tonicpow/go-paymail"
-	"github.com/tonicpow/go-paymail/tester"
+	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/tester"
 )
 
 // PaymailMockClient will return a client for testing purposes

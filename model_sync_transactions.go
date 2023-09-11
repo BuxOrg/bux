@@ -15,10 +15,10 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/bitcoin-sv/go-paymail"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
-	"github.com/tonicpow/go-paymail"
 )
 
 // SyncTransaction is an object representing the chain-state sync configuration and results for a given transaction
@@ -861,6 +861,7 @@ func notifyPaymailProviders(ctx context.Context, transaction *Transaction) ([]*S
 				out.PaymailP4.Note,
 				out.PaymailP4.FromPaymail,
 				transaction.Hex,
+				"", // TODO: set transaction in beef format if paymail provider can handle it
 			); err != nil {
 				return nil, err
 			}

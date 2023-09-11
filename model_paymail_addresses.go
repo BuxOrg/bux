@@ -5,10 +5,10 @@ import (
 	"errors"
 
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bip32"
 	"github.com/mrz1836/go-datastore"
-	"github.com/tonicpow/go-paymail"
 )
 
 // PaymailAddress is an "external model example" - this model is not part of the standard models loaded and runtime

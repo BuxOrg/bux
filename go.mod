@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.37
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoin-sv/go-broadcast-client v0.1.1
-	github.com/bitcoin-sv/go-paymail v0.0.1
+	github.com/bitcoin-sv/go-paymail v0.1.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
 	github.com/centrifugal/centrifuge-go v0.10.1
@@ -120,7 +120,7 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/grpc v1.57.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

@@ -159,7 +159,7 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 // queryMinercraft will submit a query transaction request to a miner using Minercraft(mAPI or Arc)
 func queryMinercraft(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id string) (*TransactionInfo, error) {
 	client.DebugLog("executing request in minercraft using miner: " + miner.Name)
-	if resp, err := client.Minercraft().QueryTransaction(ctx, miner, id); err != nil {
+	if resp, err := client.Minercraft().QueryTransaction(ctx, miner, id, minercraft.WithQueryMerkleProof()); err != nil {
 		client.DebugLog("error executing request in minercraft using miner: " + miner.Name + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && resp.Query.ReturnResult == mAPISuccess && strings.EqualFold(resp.Query.TxID, id) {
@@ -170,6 +170,7 @@ func queryMinercraft(ctx context.Context, client ClientInterface, miner *minercr
 			ID:            resp.Query.TxID,
 			MinerID:       resp.Query.MinerID,
 			Provider:      miner.Name,
+			MerkleProof:   resp.Query.MerkleProof,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

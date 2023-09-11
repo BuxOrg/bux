@@ -856,14 +856,8 @@ func notifyPaymailProviders(ctx context.Context, transaction *Transaction) ([]*S
 			// Notify each provider with the transaction
 			if payload, err = finalizeP2PTransaction(
 				pm,
-				out.PaymailP4.Alias,
-				out.PaymailP4.Domain,
-				out.PaymailP4.ReceiveEndpoint,
-				out.PaymailP4.ReferenceID,
-				out.PaymailP4.Note,
-				out.PaymailP4.FromPaymail,
-				transaction.Hex,
-				"", // TODO: set transaction in beef format if paymail provider can handle it
+				out.PaymailP4,
+				transaction,
 			); err != nil {
 				return nil, err
 			}

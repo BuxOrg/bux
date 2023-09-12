@@ -55,8 +55,6 @@ github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNg
 github.com/aws/aws-sdk-go v1.43.45 h1:2708Bj4uV+ym62MOtBnErm/CDX61C4mFe9V2gXy1caE=
 github.com/bitcoin-sv/go-broadcast-client v0.1.1 h1:PXoq+JbOt6V1Cr78qMAf0b5NzJp732ZOIhbHDqxB7lk=
 github.com/bitcoin-sv/go-broadcast-client v0.1.1/go.mod h1:EGTrUK2r81moZbgaNalEZJaIBYp7/kOVXy17J9AFQJQ=
-github.com/bitcoin-sv/go-paymail v0.0.1 h1:eVF+ebqV6RQ/EWuEzSrBK2UyLy65zrZNXV2gAi1kVhU=
-github.com/bitcoin-sv/go-paymail v0.0.1/go.mod h1:b99fWseikUGFeYcmVJc0Er4NxuLVAcgXBNWcGaK1Tvo=
 github.com/bitcoin-sv/go-paymail v0.1.0 h1:ABVXydOoIROMfLekYmW2XEWhJ59jyFKBAtNe98qQB7g=
 github.com/bitcoin-sv/go-paymail v0.1.0/go.mod h1:b99fWseikUGFeYcmVJc0Er4NxuLVAcgXBNWcGaK1Tvo=
 github.com/bitcoinschema/go-bitcoin/v2 v2.0.5 h1:Sgh5Eb746Zck/46rFDrZZEXZWyO53fMuWYhNoZa1tck=
@@ -275,8 +273,8 @@ github.com/lestrrat-go/strftime v1.0.6 h1:CFGsDEt1pOpFNU+TJB0nhz9jl+K0hZSLE205Ah
 github.com/lestrrat-go/strftime v1.0.6/go.mod h1:f7jQKgV5nnJpYgdEasS+/y7EsTb8ykN2z68n3TtcTaw=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
-github.com/libsv/go-bc v0.1.11 h1:putnzopVpWy5i+HaVSSXya7ot4mLHFOUU39JZUFfBmM=
-github.com/libsv/go-bc v0.1.11/go.mod h1:55OsjWtvaIEXy4w02icUi2lIdThuwqkAiSeF4GPU5tw=
+github.com/libsv/go-bc v0.1.12 h1:5ZLwxa6sVm0GoVE8q6fwC8DJklPZJeshlyHILvqwKyw=
+github.com/libsv/go-bc v0.1.12/go.mod h1:oTwszziyzCIAFp8ja6iJPDZGsEGQQJyWQfME4KSn0vE=
 github.com/libsv/go-bk v0.1.6 h1:c9CiT5+64HRDbzxPl1v/oiFmbvWZTuUYqywCf+MBs/c=
 github.com/libsv/go-bk v0.1.6/go.mod h1:khJboDoH18FPUaZlzRFKzlVN84d4YfdmlDtdX4LAjQA=
 github.com/libsv/go-bt v1.0.8 h1:nWLLcnUm0dxNO3exqrL5jvAcTGkl0dsnBuQqB6+M6vQ=
@@ -665,8 +663,6 @@ golang.org/x/tools v0.0.0-20210105154028-b0ab187a4818/go.mod h1:emZCQorbCU4vsT4f
 golang.org/x/tools v0.0.0-20210108195828-e2f9c7f1fc8e/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
 golang.org/x/tools v0.1.0/go.mod h1:xkSsbof2nBLbhDlRMhhhyNLN/zl3eTqcnHD5viDpcZ0=
 golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
-golang.org/x/tools v0.12.0 h1:YW6HUoUmYBpwSgyaGaZq1fHjrBjX1rlpZ54T6mu2kss=
-golang.org/x/tools v0.12.0/go.mod h1:Sc0INKfu04TlqNoRA1hgpFZbhYXHPr4V5DzpSBTPqQM=
 golang.org/x/tools v0.13.0 h1:Iey4qkscZuv0VvIt8E0neZjtPVQFSc870HQ448QgEmQ=
 golang.org/x/tools v0.13.0/go.mod h1:HvlwmtVNQAhOuCjW7xxvovg8wbNq7LwfXh/k7wXUl58=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

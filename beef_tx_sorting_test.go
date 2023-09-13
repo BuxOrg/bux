@@ -14,20 +14,28 @@ func Test_kahnTopologicalSortTransaction(t *testing.T) {
 		createTx("2", "1"),
 		createTx("3", "2", "1"),
 		createTx("4", "3", "1"),
+		createTx("5", "3", "2"),
+		createTx("6", "4", "2", "0"),
+		createTx("7", "6", "5", "3", "1"),
+		createTx("8", "7"),
 	}
 
 	unsortedTxs := []*Transaction{
 		txsFromOldestToNewest[2],
 		txsFromOldestToNewest[3],
 		txsFromOldestToNewest[0],
-		txsFromOldestToNewest[4],
 		txsFromOldestToNewest[1],
+		txsFromOldestToNewest[4],
+		txsFromOldestToNewest[7],
+		txsFromOldestToNewest[5],
+		txsFromOldestToNewest[6],
+		txsFromOldestToNewest[8],
 	}
 
 	t.Run("kahnTopologicalSortTransaction sort from oldest to newest", func(t *testing.T) {
-		sortedGraph := kahnTopologicalSortTransaction(unsortedTxs)
+		sortedGraph := kahnTopologicalSortTransactions(unsortedTxs)
 
-		for i, tx := range sortedGraph {
+		for i, tx := range txsFromOldestToNewest {
 			assert.Equal(t, tx.ID, sortedGraph[i].ID)
 		}
 

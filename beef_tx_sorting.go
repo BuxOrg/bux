@@ -1,34 +1,42 @@
 package bux
 
-func kahnTopologicalSortTransaction(transactions []*Transaction) []*Transaction {
-	// map to store transactions by their IDs for random access.
-	transactionMap := make(map[string]*Transaction, len(transactions))
+func kahnTopologicalSortTransactions(transactions []*Transaction) []*Transaction {
+	randomAccessMap, incomingEdgesMap, zeroIncomingEdgeQueue := prepareSort(transactions)
 
-	inDegree := make(map[string]int)
-	queue := make([]string, 0)
-	result := make([]*Transaction, 0)
+	result := make([]*Transaction, 0, len(transactions))
 
-	for _, tx := range transactions {
-		transactionMap[tx.ID] = tx
-		inDegree[tx.ID] = 0
-	}
+	for len(zeroIncomingEdgeQueue) > 0 {
+		txID := zeroIncomingEdgeQueue[0]
+		zeroIncomingEdgeQueue = zeroIncomingEdgeQueue[1:]
 
-	calculateDegrees(inDegree, transactions)
-	fullfillZeroDegreeQueue(queue, inDegree)
-
-	for len(queue) > 0 {
-		tx := transactionMap[queue[0]]
-		queue = queue[1:]
+		tx := randomAccessMap[txID]
 		result = append(result, tx)
 
-		recalculateNeighbors(tx, inDegree, queue)
+		zeroIncomingEdgeQueue = removeTxFromIncomingEdges(tx, incomingEdgesMap, zeroIncomingEdgeQueue)
 	}
 
 	reverseInPlace(result)
 	return result
 }
 
-func calculateDegrees(inDegree map[string]int, transactions []*Transaction) {
+func prepareSort(dag []*Transaction) (randomAccessMap map[string]*Transaction, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) {
+	dagLen := len(dag)
+
+	randomAccessMap = make(map[string]*Transaction, dagLen)
+	incomingEdgesMap = make(map[string]int, dagLen)
+
+	for _, tx := range dag {
+		randomAccessMap[tx.ID] = tx
+		incomingEdgesMap[tx.ID] = 0
+	}
+
+	calculateIncomingEdges(incomingEdgesMap, dag)
+	zeroIncomingEdgeQueue = prepareStartNodesQueue(incomingEdgesMap)
+
+	return
+}
+
+func calculateIncomingEdges(inDegree map[string]int, transactions []*Transaction) {
 	for _, tx := range transactions {
 		for _, input := range tx.draftTransaction.Configuration.Inputs {
 			inDegree[input.UtxoPointer.TransactionID]++
@@ -36,23 +44,29 @@ func calculateDegrees(inDegree map[string]int, transactions []*Transaction) {
 	}
 }
 
-func fullfillZeroDegreeQueue(queue []string, inDegree map[string]int) {
-	for txID, degree := range inDegree {
-		if degree == 0 {
-			queue = append(queue, txID)
+func prepareStartNodesQueue(incomingEdgesMap map[string]int) []string {
+	zeroIncomingEdgeQueue := make([]string, 0, len(incomingEdgesMap))
+
+	for txID, edgeNum := range incomingEdgesMap {
+		if edgeNum == 0 {
+			zeroIncomingEdgeQueue = append(zeroIncomingEdgeQueue, txID)
 		}
 	}
+
+	return zeroIncomingEdgeQueue
 }
 
-func recalculateNeighbors(tx *Transaction, inDegree map[string]int, queue []string) {
+func removeTxFromIncomingEdges(tx *Transaction, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) []string {
 	for _, input := range tx.draftTransaction.Configuration.Inputs {
 		neighborID := input.UtxoPointer.TransactionID
-		inDegree[neighborID]--
+		incomingEdgesMap[neighborID]--
 
-		if inDegree[neighborID] == 0 {
-			queue = append(queue, neighborID)
+		if incomingEdgesMap[neighborID] == 0 {
+			zeroIncomingEdgeQueue = append(zeroIncomingEdgeQueue, neighborID)
 		}
 	}
+
+	return zeroIncomingEdgeQueue
 }
 
 func reverseInPlace(collection []*Transaction) {

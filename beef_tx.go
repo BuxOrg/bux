@@ -33,7 +33,7 @@ func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
 	transactions := make([]*Transaction, 0, len(inputs)+1)
 
 	for _, input := range inputs {
-		prevTx, err := getInputPrevTransaction(tx.client, input)
+		prevTx, err := getParentTransactionForInput(tx.client, input)
 		if err != nil {
 			return nil, err
 		}
@@ -47,13 +47,13 @@ func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
 	beef := &beefTx{
 		version:             version,
 		compoundMerklePaths: tx.draftTransaction.CompoundMerklePathes,
-		transactions:        kahnTopologicalSortTransaction(transactions),
+		transactions:        kahnTopologicalSortTransactions(transactions),
 	}
 
 	return beef, nil
 }
 
-func getInputPrevTransaction(client ClientInterface, input *TransactionInput) (*Transaction, error) {
+func getParentTransactionForInput(client ClientInterface, input *TransactionInput) (*Transaction, error) {
 	inputTx, err := client.GetTransactionByID(context.Background(), input.UtxoPointer.TransactionID)
 	if err != nil {
 		return nil, err

@@ -87,10 +87,10 @@ func GetTransactionIDFromHex(hex string) (string, error) {
 	return parsedTx.TxID(), nil
 }
 
-// LittleEndianBytes returns a byte array in little endian from an unsigned integer of 64 bytes.
-func LittleEndianBytes64(v uint64, l uint32) []byte {
-	buf := make([]byte, l)
-	binary.LittleEndian.PutUint64(buf, v)
+// LittleEndianBytes64 returns a byte array in little endian from an unsigned integer of 64 bytes.
+func LittleEndianBytes64(value uint64, resultLength uint32) []byte {
+	buf := make([]byte, resultLength)
+	binary.LittleEndian.PutUint64(buf, value)
 
 	return buf
 }

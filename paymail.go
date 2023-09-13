@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -199,9 +200,11 @@ func buildP2pTx(p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransactio
 
 		p2pTransaction.Beef = beef
 
-	default: // BasicPaymailPayloadFormat
+	case BasicPaymailPayloadFormat:
 		p2pTransaction.Hex = transaction.Hex
 
+	default:
+		return nil, fmt.Errorf("%s is unknown format", p4.Format)
 	}
 
 	return p2pTransaction, nil

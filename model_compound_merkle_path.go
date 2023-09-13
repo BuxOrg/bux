@@ -27,8 +27,20 @@ func (cmp *CompoundMerklePath) Hex() string {
 	return cmp.bytesBuffer().String()
 }
 
+// Bytes returns CMP bytes
 func (cmp *CompoundMerklePath) Bytes() []byte {
 	return cmp.bytesBuffer().Bytes()
+}
+
+// Bytes returns CMPSlice bytes
+func (cmpSlice *CMPSlice) Bytes() []byte {
+	var buff bytes.Buffer
+
+	for _, cmp := range *cmpSlice {
+		buff.Write(cmp.Bytes())
+	}
+
+	return buff.Bytes()
 }
 
 func (cmp *CompoundMerklePath) bytesBuffer() *bytes.Buffer {

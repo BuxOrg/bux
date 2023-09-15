@@ -1,6 +1,7 @@
 package bux
 
 import (
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,17 +21,7 @@ func Test_kahnTopologicalSortTransaction(t *testing.T) {
 		createTx("8", "7"),
 	}
 
-	unsortedTxs := []*Transaction{
-		txsFromOldestToNewest[2],
-		txsFromOldestToNewest[3],
-		txsFromOldestToNewest[0],
-		txsFromOldestToNewest[1],
-		txsFromOldestToNewest[4],
-		txsFromOldestToNewest[7],
-		txsFromOldestToNewest[5],
-		txsFromOldestToNewest[6],
-		txsFromOldestToNewest[8],
-	}
+	unsortedTxs := shuffleTransactions(txsFromOldestToNewest)
 
 	t.Run("kahnTopologicalSortTransaction sort from oldest to newest", func(t *testing.T) {
 		sortedGraph := kahnTopologicalSortTransactions(unsortedTxs)
@@ -67,4 +58,17 @@ func createTx(txID string, inputsTxIDs ...string) *Transaction {
 	transaction.ID = txID
 
 	return transaction
+}
+
+func shuffleTransactions(txs []*Transaction) []*Transaction {
+	n := len(txs)
+	result := make([]*Transaction, n)
+	copy(result, txs)
+
+	for i := n - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
 }

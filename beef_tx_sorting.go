@@ -1,15 +1,14 @@
 package bux
 
 func kahnTopologicalSortTransactions(transactions []*Transaction) []*Transaction {
-	randomAccessMap, incomingEdgesMap, zeroIncomingEdgeQueue := prepareSort(transactions)
-
+	txById, incomingEdgesMap, zeroIncomingEdgeQueue := prepareSortStructures(transactions)
 	result := make([]*Transaction, 0, len(transactions))
 
 	for len(zeroIncomingEdgeQueue) > 0 {
 		txID := zeroIncomingEdgeQueue[0]
 		zeroIncomingEdgeQueue = zeroIncomingEdgeQueue[1:]
 
-		tx := randomAccessMap[txID]
+		tx := txById[txID]
 		result = append(result, tx)
 
 		zeroIncomingEdgeQueue = removeTxFromIncomingEdges(tx, incomingEdgesMap, zeroIncomingEdgeQueue)
@@ -19,19 +18,18 @@ func kahnTopologicalSortTransactions(transactions []*Transaction) []*Transaction
 	return result
 }
 
-func prepareSort(dag []*Transaction) (randomAccessMap map[string]*Transaction, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) {
+func prepareSortStructures(dag []*Transaction) (txById map[string]*Transaction, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) {
 	dagLen := len(dag)
-
-	randomAccessMap = make(map[string]*Transaction, dagLen)
+	txById = make(map[string]*Transaction, dagLen)
 	incomingEdgesMap = make(map[string]int, dagLen)
 
 	for _, tx := range dag {
-		randomAccessMap[tx.ID] = tx
+		txById[tx.ID] = tx
 		incomingEdgesMap[tx.ID] = 0
 	}
 
 	calculateIncomingEdges(incomingEdgesMap, dag)
-	zeroIncomingEdgeQueue = prepareStartNodesQueue(incomingEdgesMap)
+	zeroIncomingEdgeQueue = getTxWithZeroIncomingEdges(incomingEdgesMap)
 
 	return
 }
@@ -44,7 +42,7 @@ func calculateIncomingEdges(inDegree map[string]int, transactions []*Transaction
 	}
 }
 
-func prepareStartNodesQueue(incomingEdgesMap map[string]int) []string {
+func getTxWithZeroIncomingEdges(incomingEdgesMap map[string]int) []string {
 	zeroIncomingEdgeQueue := make([]string, 0, len(incomingEdgesMap))
 
 	for txID, edgeNum := range incomingEdgesMap {

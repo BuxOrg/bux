@@ -28,7 +28,7 @@ type beefTx struct {
 }
 
 func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
-	// get inputs previous transactions
+	// get inputs parent transactions
 	inputs := tx.draftTransaction.Configuration.Inputs
 	transactions := make([]*Transaction, 0, len(inputs)+1)
 

@@ -7,7 +7,6 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/tonicpow/go-minercraft/v2"
 )
@@ -53,10 +52,6 @@ func (c *chainStateBase) IsNewRelicEnabled() bool {
 }
 
 func (c *chainStateBase) Minercraft() minercraft.ClientInterface {
-	return nil
-}
-
-func (c *chainStateBase) NowNodes() nownodes.ClientInterface {
 	return nil
 }
 

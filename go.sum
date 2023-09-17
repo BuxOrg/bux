@@ -302,8 +302,6 @@ github.com/mrz1836/go-datastore v0.4.10 h1:ITUiM50Qc1lIXK45UshuwFtpluudcbNO0sCvb
 github.com/mrz1836/go-datastore v0.4.10/go.mod h1:GIzH64L3QC5qvXVmPQNuR4bc4Fzpm4YElxylFuEJHXY=
 github.com/mrz1836/go-logger v0.3.2 h1:bjd23NwVaLWncXgXAyxAwWLQ02of0Ci3iJIZZEakkFU=
 github.com/mrz1836/go-logger v0.3.2/go.mod h1:8gWPdqxOAFNJOHDXS2ducgsokUOf0wWtAAM3LXPrhYo=
-github.com/mrz1836/go-nownodes v0.1.0 h1:Q7GGaJcee+WB6sytutxTbMBVY4cUD/YcfywWa+5V5YY=
-github.com/mrz1836/go-nownodes v0.1.0/go.mod h1:P6dlCgibdkoMDCvmMfDVRUCS6oh4WWeI7CeaFNaA7Qo=
 github.com/mrz1836/go-whatsonchain v0.13.0 h1:ZUc0bhzuIcFoRtzIDkPjW1Cw4Cj5LBM6TqDJ4Ao+GtM=
 github.com/mrz1836/go-whatsonchain v0.13.0/go.mod h1:RRBz1PHILAWq3erXmZlAvjTVzNbD+NCAf+YrsU81+G8=
 github.com/newrelic/go-agent/v3 v3.24.1 h1:qJc+cKtc0v9vrsnMHuHy4r6Fh9iigNJj3O3KUKPOD0M=

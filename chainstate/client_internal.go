@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -96,20 +95,6 @@ func (c *Client) startWhatsOnChain(ctx context.Context) {
 			c.Network().WhatsOnChain(),
 			c.defaultWhatsOnChainOptions(),
 			c.HTTPClient(),
-		)
-	}
-}
-
-// startNowNodes will start NowNodes if API key is set (if no custom client is found)
-func (c *Client) startNowNodes(ctx context.Context) {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("start_nownodes").End()
-	}
-
-	if c.NowNodes() == nil && len(c.options.config.nowNodesAPIKey) > 0 {
-		c.options.config.nowNodes = nownodes.NewClient(
-			nownodes.WithAPIKey(c.options.config.nowNodesAPIKey),
-			nownodes.WithHTTPClient(c.HTTPClient()),
 		)
 	}
 }

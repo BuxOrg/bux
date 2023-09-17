@@ -168,63 +168,6 @@ func TestWithWhatsOnChainAPIKey(t *testing.T) {
 	})
 }
 
-// TestWithNowNodes will test the method WithNowNodes()
-func TestWithNowNodes(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithNowNodes(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithNowNodes(nil)
-		opt(options)
-		assert.Nil(t, options.config.nowNodes)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		customClient := &nowNodesTxOnChain{}
-		opt := WithNowNodes(customClient)
-		opt(options)
-		assert.Equal(t, customClient, options.config.nowNodes)
-	})
-}
-
-// TestWithNowNodesAPIKey will test the method WithNowNodesAPIKey()
-func TestWithNowNodesAPIKey(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithNowNodesAPIKey("")
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying empty string", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithNowNodesAPIKey("")
-		opt(options)
-		assert.Equal(t, "", options.config.nowNodesAPIKey)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithNowNodesAPIKey(testDummyKey)
-		opt(options)
-		assert.Equal(t, testDummyKey, options.config.nowNodesAPIKey)
-	})
-}
-
 // TestWithBroadcastMiners will test the method WithBroadcastMiners()
 func TestWithBroadcastMiners(t *testing.T) {
 	t.Parallel()

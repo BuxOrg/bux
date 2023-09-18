@@ -40,7 +40,6 @@ func TestClient_Transaction(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
 		info, err := c.QueryTransaction(
@@ -57,12 +56,11 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, "030d1fe5c1b560efe196ba40540ce9017c20daa9504c4c4cec6184fc702d9f274e", info.MinerID)
 	})
 
-	t.Run("mAPI not found - woc, nownodes", func(t *testing.T) {
+	t.Run("mAPI not found - woc", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}), // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
 		info, err := c.QueryTransaction(
@@ -78,53 +76,11 @@ func TestClient_Transaction(t *testing.T) {
 		assert.Equal(t, ProviderWhatsOnChain, info.Provider)
 	})
 
-	t.Run("mAPI, WOC not found - nownodes", func(t *testing.T) {
-		c := NewTestClient(
-			context.Background(), t,
-			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
-			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithNowNodes(&nowNodesTxOnChain{}),
-		)
-
-		info, err := c.QueryTransaction(
-			context.Background(), onChainExample1TxID,
-			RequiredOnChain, defaultQueryTimeOut,
-		)
-		require.NoError(t, err)
-		require.NotNil(t, info)
-		assert.Equal(t, onChainExample1TxID, info.ID)
-		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
-		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
-		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-	})
-
-	t.Run("mAPI, WOC, nownodes", func(t *testing.T) {
-		c := NewTestClient(
-			context.Background(), t,
-			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
-			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithNowNodes(&nowNodesTxOnChain{}),
-		)
-
-		info, err := c.QueryTransaction(
-			context.Background(), onChainExample1TxID,
-			RequiredOnChain, defaultQueryTimeOut,
-		)
-		require.NoError(t, err)
-		require.NotNil(t, info)
-		assert.Equal(t, onChainExample1TxID, info.ID)
-		assert.Equal(t, onChainExample1BlockHash, info.BlockHash)
-		assert.Equal(t, onChainExample1BlockHeight, info.BlockHeight)
-		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
-		assert.Equal(t, ProviderNowNodes, info.Provider)
-	})
-
 	t.Run("error - all not found", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithNowNodes(&nowNodesTxNotFound{}),         // NOT going to find the TX
 		)
 
 		info, err := c.QueryTransaction(
@@ -210,7 +166,6 @@ func TestClient_TransactionFastest(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxOnChain{}),
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
 		info, err := c.QueryTransactionFastest(
@@ -225,12 +180,11 @@ func TestClient_TransactionFastest(t *testing.T) {
 		assert.Equal(t, onChainExample1Confirmations, info.Confirmations)
 	})
 
-	t.Run("mAPI not found - woc, nownodes", func(t *testing.T) {
+	t.Run("mAPI not found - woc", func(t *testing.T) {
 		c := NewTestClient(
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}), // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxOnChain{}),
-			WithNowNodes(&nowNodesTxOnChain{}),
 		)
 
 		info, err := c.QueryTransactionFastest(
@@ -250,7 +204,6 @@ func TestClient_TransactionFastest(t *testing.T) {
 			context.Background(), t,
 			WithMinercraft(&minerCraftTxNotFound{}),     // NOT going to find the TX
 			WithWhatsOnChain(&whatsOnChainTxNotFound{}), // NOT going to find the TX
-			WithNowNodes(&nowNodesTxNotFound{}),         // NOT going to find the TX
 		)
 
 		info, err := c.QueryTransactionFastest(

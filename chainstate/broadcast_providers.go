@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	"github.com/mrz1836/go-nownodes"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -66,83 +65,6 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 	// We got a potential real error message?
 	return errors.New(resp.Results.ResultDescription)
-}
-
-////
-
-// WhatsOnChain provider
-type whatsOnChainBroadcastProvider struct {
-	txID, txHex string
-}
-
-func (provider whatsOnChainBroadcastProvider) getName() string {
-	return ProviderWhatsOnChain
-}
-
-func (provider whatsOnChainBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastWhatsOnChain(ctx, c, provider.txID, provider.txHex)
-}
-
-// broadcastWhatsOnChain will broadcast a transaction to WhatsOnChain
-func broadcastWhatsOnChain(ctx context.Context, client ClientInterface, id, hex string) error {
-	debugLog(client, id, "executing broadcast request for "+ProviderWhatsOnChain)
-
-	txID, err := client.WhatsOnChain().BroadcastTx(ctx, hex)
-	if err != nil {
-
-		// Check error message (for success error message)
-		if doesErrorContain(err.Error(), broadcastSuccessErrors) {
-			return nil
-		}
-		return err
-	}
-
-	// Something went wrong - got back an id that does not match
-	if !strings.EqualFold(txID, id) {
-		return incorrectTxIDReturnedErr(txID, id)
-	}
-
-	// Success
-	return nil
-}
-
-////
-
-// NowNodes provider
-type nowNodesBroadcastProvider struct {
-	uniqueID, txID, txHex string
-}
-
-func (provider nowNodesBroadcastProvider) getName() string {
-	return ProviderNowNodes
-}
-
-// Broadcast using NowNodes
-func (provider nowNodesBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastNowNodes(ctx, c, provider.uniqueID, provider.txID, provider.txHex)
-}
-
-// broadcastNowNodes will broadcast a transaction to NowNodes
-func broadcastNowNodes(ctx context.Context, client ClientInterface, uniqueID, txID, hex string) error {
-	debugLog(client, txID, "executing broadcast request for "+ProviderNowNodes)
-
-	result, err := client.NowNodes().SendRawTransaction(ctx, nownodes.BSV, hex, uniqueID)
-	if err != nil {
-
-		// Check error message (for success error message)
-		if doesErrorContain(err.Error(), broadcastSuccessErrors) {
-			return nil
-		}
-		return err
-	}
-
-	// Something went wrong - got back an id that does not match
-	if !strings.EqualFold(result.Result, txID) {
-		return incorrectTxIDReturnedErr(result.Result, txID)
-	}
-
-	// Success
-	return nil
 }
 
 ////

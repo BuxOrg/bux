@@ -659,15 +659,6 @@ func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
 	}
 }
 
-// WithNowNodesAPIKey will set the API key
-func WithNowNodesAPIKey(apiKey string) ClientOps {
-	return func(c *clientOptions) {
-		if len(apiKey) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithNowNodesAPIKey(apiKey))
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {

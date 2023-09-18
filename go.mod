@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.37
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/bitcoin-sv/go-broadcast-client v0.1.1
+	github.com/bitcoin-sv/go-broadcast-client v0.1.2
 	github.com/bitcoin-sv/go-paymail v0.1.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
@@ -18,7 +18,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/korovkin/limiter v0.0.0-20230307205149-3d4b2b34c99d
-	github.com/libsv/go-bc v0.1.11
+	github.com/libsv/go-bc v0.1.17
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
 	github.com/libsv/go-bt/v2 v2.2.5
@@ -26,7 +26,6 @@ require (
 	github.com/mrz1836/go-cachestore v0.2.3
 	github.com/mrz1836/go-datastore v0.4.10
 	github.com/mrz1836/go-logger v0.3.2
-	github.com/mrz1836/go-nownodes v0.1.0
 	github.com/mrz1836/go-whatsonchain v0.13.0
 	github.com/newrelic/go-agent/v3 v3.24.1
 	github.com/pkg/errors v0.9.1
@@ -35,7 +34,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.16.0
 	github.com/tonicpow/go-minercraft/v2 v2.0.4
-	github.com/tryvium-travels/memongo v0.9.0
+	github.com/tryvium-travels/memongo v0.10.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
 	go.mongodb.org/mongo-driver v1.12.1

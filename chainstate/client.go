@@ -11,7 +11,6 @@ import (
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/libsv/go-bt/v2"
 	zLogger "github.com/mrz1836/go-logger"
-	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -42,8 +41,6 @@ type (
 		minercraftConfig      *minercraftConfig            // minercraftConfig configuration
 		minercraft            minercraft.ClientInterface   // Minercraft client
 		network               Network                      // Current network (mainnet, testnet, stn)
-		nowNodes              nownodes.ClientInterface     // NOWNodes client
-		nowNodesAPIKey        string                       // If set, use this key
 		queryTimeout          time.Duration                // Timeout for transaction query
 		whatsOnChain          whatsonchain.ClientInterface // WhatsOnChain client
 		whatsOnChainAPIKey    string                       // If set, use this key
@@ -104,9 +101,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	// Start WhatsOnChain
 	client.startWhatsOnChain(ctx)
 
-	// Start NowNodes
-	client.startNowNodes(ctx)
-
 	// Return the client
 	return client, nil
 }
@@ -126,11 +120,6 @@ func (c *Client) Close(ctx context.Context) {
 		// Close WhatsOnChain
 		if c.options.config.whatsOnChain != nil {
 			c.options.config.whatsOnChain = nil
-		}
-
-		// Close NowNodes
-		if c.options.config.nowNodes != nil {
-			c.options.config.nowNodes = nil
 		}
 
 		// Stop the active Monitor (if not already stopped)
@@ -186,11 +175,6 @@ func (c *Client) Monitor() MonitorService {
 // WhatsOnChain will return the WhatsOnChain client
 func (c *Client) WhatsOnChain() whatsonchain.ClientInterface {
 	return c.options.config.whatsOnChain
-}
-
-// NowNodes will return the NowNodes client
-func (c *Client) NowNodes() nownodes.ClientInterface {
-	return c.options.config.nowNodes
 }
 
 // BroadcastClient will return the BroadcastClient client

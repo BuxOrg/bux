@@ -7,7 +7,6 @@ import (
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	zLogger "github.com/mrz1836/go-logger"
-	"github.com/mrz1836/go-nownodes"
 	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -140,24 +139,6 @@ func WithWhatsOnChain(client whatsonchain.ClientInterface) ClientOps {
 	return func(c *clientOptions) {
 		if client != nil {
 			c.config.whatsOnChain = client
-		}
-	}
-}
-
-// WithNowNodes will set a custom NowNodes client
-func WithNowNodes(client nownodes.ClientInterface) ClientOps {
-	return func(c *clientOptions) {
-		if client != nil {
-			c.config.nowNodes = client
-		}
-	}
-}
-
-// WithNowNodesAPIKey will set a custom NowNodes API key
-func WithNowNodesAPIKey(apiKey string) ClientOps {
-	return func(c *clientOptions) {
-		if len(apiKey) > 0 {
-			c.config.nowNodesAPIKey = apiKey
 		}
 	}
 }

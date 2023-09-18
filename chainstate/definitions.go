@@ -47,7 +47,6 @@ const (
 const (
 	ProviderAll             = "all"             // All providers (used for errors etc)
 	ProviderMAPI            = "mapi"            // Query & broadcast provider for mAPI (using given miners)
-	ProviderNowNodes        = "nownodes"        // Query & broadcast provider for NowNodes
 	ProviderWhatsOnChain    = "whatsonchain"    // Query & broadcast provider for WhatsOnChain
 	ProviderBroadcastClient = "broadcastclient" // Query & broadcast provider for configured miners
 )

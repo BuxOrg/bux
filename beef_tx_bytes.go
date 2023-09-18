@@ -1,13 +1,14 @@
 package bux
 
 import (
-	"encoding/binary"
+	"encoding/hex"
 	"errors"
 
 	"github.com/libsv/go-bt/v2"
 )
 
-var beefMarker = []byte{0x00, 0x00, 0x00, 0x00, 0xBE, 0xEF}
+var hasCmp = byte(0x01)
+var hasNoCmp = byte(0x00)
 
 func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	if beefTx.compoundMerklePaths == nil || beefTx.transactions == nil {
@@ -18,8 +19,9 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	beefSize := 0
 
 	version := bt.LittleEndianBytes(beefTx.version, 4)
+	version[2] = 0xBE
+	version[3] = 0xEF
 	beefSize += len(version)
-	beefSize += len(beefMarker)
 
 	nPaths := bt.VarInt(len(beefTx.compoundMerklePaths)).Bytes()
 	beefSize += len(nPaths)
@@ -32,15 +34,19 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 
 	transactions := make([][]byte, 0, len(beefTx.transactions))
 
-	for i, t := range beefTx.transactions {
-		transactions = append(transactions, t.toBeefBytes(beefTx.compoundMerklePaths))
-		beefSize += len(transactions[i])
+	for _, t := range beefTx.transactions {
+		txBytes, err := t.toBeefBytes(beefTx.compoundMerklePaths)
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, txBytes)
+		beefSize += len(txBytes)
 	}
 
 	// compose beef
 	buffer := make([]byte, 0, beefSize)
 	buffer = append(buffer, version...)
-	buffer = append(buffer, beefMarker...)
 	buffer = append(buffer, nPaths...)
 	buffer = append(buffer, compoundMerklePaths...)
 
@@ -53,53 +59,34 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	return buffer, nil
 }
 
-func (tx *Transaction) toBeefBytes(compountedPaths CMPSlice) []byte {
-	bttx, _ := bt.NewTxFromString(tx.Hex)
+func (tx *Transaction) toBeefBytes(compountedPaths CMPSlice) ([]byte, error) {
+	txBeefBytes, err := hex.DecodeString(tx.Hex)
 
-	// get beef bytes
-	beefSize := 0
-
-	version := bt.LittleEndianBytes(bttx.Version, 4)
-	beefSize += len(version)
-
-	inCounter := bt.VarInt(uint64(len(bttx.Inputs))).Bytes()
-	beefSize += len(inCounter)
-
-	inputs := make([][]byte, 0, len(bttx.Inputs))
-	for i, in := range bttx.Inputs {
-		inputs = append(inputs, btInputToCefBytes(in, compountedPaths))
-		beefSize += len(inputs[i])
+	if err != nil {
+		return nil, err
 	}
 
-	outCounter := bt.VarInt(uint64(len(bttx.Outputs))).Bytes()
-	beefSize += len(outCounter)
-
-	outputs := make([][]byte, 0, len(bttx.Outputs))
-	for i, out := range bttx.Outputs {
-		outputs = append(outputs, out.Bytes())
-		beefSize += len(outputs[i])
+	cmpIdx := tx.getCompountedMarklePathIndex(compountedPaths)
+	if cmpIdx > -1 {
+		txBeefBytes = append(txBeefBytes, hasCmp)
+		txBeefBytes = append(txBeefBytes, bt.VarInt(cmpIdx).Bytes()...)
+	} else {
+		txBeefBytes = append(txBeefBytes, hasNoCmp)
 	}
 
-	nLock := make([]byte, 4)
-	binary.LittleEndian.PutUint32(nLock, bttx.LockTime)
-	beefSize += len(nLock)
+	return txBeefBytes, nil
+}
 
-	// compose beef
-	buffer := make([]byte, 0, beefSize)
-	buffer = append(buffer, version...)
-	buffer = append(buffer, inCounter...)
+func (tx *Transaction) getCompountedMarklePathIndex(compountedPaths CMPSlice) int {
+	pathIdx := -1
 
-	for _, in := range inputs {
-		buffer = append(buffer, in...)
+	for i, cmp := range compountedPaths {
+		for txID := range cmp[0] {
+			if txID == tx.ID {
+				pathIdx = i
+			}
+		}
 	}
 
-	buffer = append(buffer, outCounter...)
-
-	for _, out := range outputs {
-		buffer = append(buffer, out...)
-	}
-
-	buffer = append(buffer, nLock...)
-
-	return buffer
+	return pathIdx
 }

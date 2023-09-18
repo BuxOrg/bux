@@ -47,7 +47,6 @@ func TestClient_Broadcast_Success(t *testing.T) {
 		assert.True(t, containsAtLeastOneElement(miners, minercraft.MinerTaal, minercraft.MinerMempool, minercraft.MinerGorillaPool, minercraft.MinerMatterpool))
 
 		assert.NotContains(t, miners, ProviderWhatsOnChain)
-		assert.NotContains(t, miners, ProviderNowNodes)
 	})
 }
 

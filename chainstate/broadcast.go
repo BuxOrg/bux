@@ -116,7 +116,7 @@ func shouldBroadcastWithMAPI(c *Client) bool {
 
 func shouldBroadcastWithBroadcastClient(c *Client) bool {
 	return !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) &&
-		c.BroadcastClient() != nil // Only if NowNodes is loaded (requires API key)
+		c.BroadcastClient() != nil
 }
 
 func broadcastToProvider(ctx, fallbackCtx context.Context, provider txBroadcastProvider, txID string,

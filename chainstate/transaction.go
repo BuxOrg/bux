@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-nownodes"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -40,17 +39,6 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 			ctxWithCancel, c, id,
 		); err == nil && checkRequirement(requiredIn, id, resp) {
 			return resp
-		}
-	}
-
-	// Next: try NowNodes (if loaded)
-	if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
-		if c.NowNodes() != nil && c.Network() == MainNet {
-			if resp, err := queryNowNodes(
-				ctxWithCancel, c, id,
-			); err == nil && checkRequirement(requiredIn, id, resp) {
-				return resp
-			}
 		}
 	}
 
@@ -118,21 +106,6 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 		}(ctxWithCancel, c, id, requiredIn)
 	}
 
-	// Backup: NowNodes
-	if !utils.StringInSlice(ProviderNowNodes, c.options.config.excludedProviders) {
-		if c.NowNodes() != nil && c.Network() == MainNet {
-			wg.Add(1)
-			go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
-				defer wg.Done()
-				if resp, err := queryNowNodes(
-					ctx, client, id,
-				); err == nil && checkRequirement(requiredIn, id, resp) {
-					resultsChannel <- resp
-				}
-			}(ctxWithCancel, c, id, requiredIn)
-		}
-	}
-
 	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
 		if c.BroadcastClient() != nil {
 			wg.Add(1)
@@ -189,25 +162,6 @@ func queryWhatsOnChain(ctx context.Context, client ClientInterface, id string) (
 			Confirmations: resp.Confirmations,
 			ID:            resp.TxID,
 			Provider:      ProviderWhatsOnChain,
-			MinerID:       "",
-		}, nil
-	}
-	return nil, ErrTransactionIDMismatch
-}
-
-// queryNowNodes will request NowNodes for transaction information
-func queryNowNodes(ctx context.Context, client ClientInterface, id string) (*TransactionInfo, error) {
-	client.DebugLog("executing request in nownodes")
-	if resp, err := client.NowNodes().GetTransaction(ctx, nownodes.BSV, id); err != nil {
-		client.DebugLog("error executing request in nownodes: " + err.Error())
-		return nil, err
-	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
-		return &TransactionInfo{
-			BlockHash:     resp.BlockHash,
-			BlockHeight:   resp.BlockHeight,
-			Confirmations: resp.Confirmations,
-			ID:            resp.TxID,
-			Provider:      ProviderNowNodes,
 			MinerID:       "",
 		}, nil
 	}

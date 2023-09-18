@@ -650,15 +650,6 @@ func WithQueryMiners(miners []*chainstate.Miner) ClientOps {
 	}
 }
 
-// WithWhatsOnChainAPIKey will set the API key
-func WithWhatsOnChainAPIKey(apiKey string) ClientOps {
-	return func(c *clientOptions) {
-		if len(apiKey) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithWhatsOnChainAPIKey(apiKey))
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {

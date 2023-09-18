@@ -24,7 +24,7 @@ func (ts *EmbeddedDBTestSuite) TestProcessIncomingTransaction() {
 
 			// todo: mock the response vs using a LIVE request for Chainstate
 
-			tc := ts.genericDBClient(t, testCase.database, true)
+			tc := ts.genericDBClient(t, testCase.database, true, WithCustomChainstate(&chainStateEverythingOnChain{}))
 			defer tc.Close(tc.ctx)
 
 			// Create a xpub
@@ -63,9 +63,8 @@ func (ts *EmbeddedDBTestSuite) TestProcessIncomingTransaction() {
 			require.NoError(t, err)
 			require.NotNil(t, foundTx)
 
-			// Test that we found the tx on-chain
-			assert.Equal(t, "0000000000000000090eedbbfef5c542e252fee42db4ac54fa59ca5dbad510b4", foundTx.BlockHash)
-			assert.Equal(t, uint64(742742), foundTx.BlockHeight)
+			// Test that we found the tx on-chain(600000 is a height of a mocked tx)
+			assert.Equal(t, uint64(600000), foundTx.BlockHeight)
 		})
 	}
 }

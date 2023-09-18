@@ -33,15 +33,6 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 		}
 	}
 
-	// Next: try WhatsOnChain
-	if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
-		if resp, err := queryWhatsOnChain(
-			ctxWithCancel, c, id,
-		); err == nil && checkRequirement(requiredIn, id, resp) {
-			return resp
-		}
-	}
-
 	// Next: try with BroadcastClient (if loaded)
 	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
 		if c.BroadcastClient() != nil {
@@ -93,19 +84,6 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 		}
 	}
 
-	// Backup: WhatsOnChain
-	if !utils.StringInSlice(ProviderWhatsOnChain, c.options.config.excludedProviders) {
-		wg.Add(1)
-		go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
-			defer wg.Done()
-			if resp, err := queryWhatsOnChain(
-				ctx, client, id,
-			); err == nil && checkRequirement(requiredIn, id, resp) {
-				resultsChannel <- resp
-			}
-		}(ctxWithCancel, c, id, requiredIn)
-	}
-
 	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
 		if c.BroadcastClient() != nil {
 			wg.Add(1)
@@ -144,25 +122,6 @@ func queryMinercraft(ctx context.Context, client ClientInterface, miner *minercr
 			MinerID:       resp.Query.MinerID,
 			Provider:      miner.Name,
 			MerkleProof:   resp.Query.MerkleProof,
-		}, nil
-	}
-	return nil, ErrTransactionIDMismatch
-}
-
-// queryWhatsOnChain will request WhatsOnChain for transaction information
-func queryWhatsOnChain(ctx context.Context, client ClientInterface, id string) (*TransactionInfo, error) {
-	client.DebugLog("executing request in whatsonchain")
-	if resp, err := client.WhatsOnChain().GetTxByHash(ctx, id); err != nil {
-		client.DebugLog("error executing request in whatsonchain: " + err.Error())
-		return nil, err
-	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
-		return &TransactionInfo{
-			BlockHash:     resp.BlockHash,
-			BlockHeight:   resp.BlockHeight,
-			Confirmations: resp.Confirmations,
-			ID:            resp.TxID,
-			Provider:      ProviderWhatsOnChain,
-			MinerID:       "",
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

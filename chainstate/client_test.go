@@ -59,17 +59,6 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, customClient, c.WhatsOnChain())
 	})
 
-	t.Run("custom whats on chain api key", func(t *testing.T) {
-		c, err := NewClient(
-			context.Background(),
-			WithWhatsOnChainAPIKey(testDummyKey),
-			WithMinercraft(&MinerCraftBase{}),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.NotNil(t, c.WhatsOnChain())
-	})
-
 	t.Run("custom minercraft client", func(t *testing.T) {
 		customClient, err := minercraft.NewClient(
 			minercraft.DefaultClientOptions(), nil, "", nil, nil,

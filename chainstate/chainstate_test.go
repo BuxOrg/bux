@@ -11,8 +11,6 @@ import (
 
 // NewTestClient returns a test client
 func NewTestClient(ctx context.Context, t *testing.T, opts ...ClientOps) ClientInterface {
-	// WithMinercraft() is at the beginning so that it is possible to override minercraft's value with opts
-	opts = append([]ClientOps{WithMinercraft(&MinerCraftBase{})}, opts...)
 	c, err := NewClient(
 		ctx, append(opts, WithDebugging())...,
 	)

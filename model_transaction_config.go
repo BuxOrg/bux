@@ -77,6 +77,19 @@ const (
 	BeefPaymailPayloadFormat
 )
 
+func (format PaymailPayloadFormat) String() string {
+	switch format {
+	case BasicPaymailPayloadFormat:
+		return "BasicPaymailPayloadFormat"
+
+	case BeefPaymailPayloadFormat:
+		return "BeefPaymailPayloadFormat"
+
+	default:
+		return fmt.Sprintf("%d", uint32(format))
+	}
+}
+
 // PaymailP4 paymail configuration for the p2p payments on this output
 type PaymailP4 struct {
 	Alias           string               `json:"alias" toml:"alias" yaml:"alias" bson:"alias,omitempty"`                                                       // Alias of the paymail {alias}@domain.com

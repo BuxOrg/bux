@@ -6,6 +6,7 @@ package utils
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"math"
 	"strconv"
@@ -84,4 +85,12 @@ func GetTransactionIDFromHex(hex string) (string, error) {
 		return "", err
 	}
 	return parsedTx.TxID(), nil
+}
+
+// LittleEndianBytes64 returns a byte array in little endian from an unsigned integer of 64 bytes.
+func LittleEndianBytes64(value uint64, resultLength uint32) []byte {
+	buf := make([]byte, resultLength)
+	binary.LittleEndian.PutUint64(buf, value)
+
+	return buf
 }

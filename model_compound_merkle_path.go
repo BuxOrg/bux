@@ -24,6 +24,26 @@ type nodeOffset struct {
 
 // Hex returns CMP in hex format
 func (cmp *CompoundMerklePath) Hex() string {
+	return cmp.bytesBuffer().String()
+}
+
+// Bytes returns CMP bytes
+func (cmp *CompoundMerklePath) Bytes() []byte {
+	return cmp.bytesBuffer().Bytes()
+}
+
+// Bytes returns CMPSlice bytes
+func (cmpSlice *CMPSlice) Bytes() []byte {
+	var buff bytes.Buffer
+
+	for _, cmp := range *cmpSlice {
+		buff.Write(cmp.Bytes())
+	}
+
+	return buff.Bytes()
+}
+
+func (cmp *CompoundMerklePath) bytesBuffer() *bytes.Buffer {
 	var hex bytes.Buffer
 	hex.WriteString(leadingZeroInt(len(*cmp)))
 
@@ -35,7 +55,7 @@ func (cmp *CompoundMerklePath) Hex() string {
 			hex.WriteString(n.node)
 		}
 	}
-	return hex.String()
+	return &hex
 }
 
 func sortByOffset(m map[string]uint64) []nodeOffset {

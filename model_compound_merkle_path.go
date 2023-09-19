@@ -33,10 +33,10 @@ func (cmp *CompoundMerklePath) Bytes() []byte {
 }
 
 // Bytes returns CMPSlice bytes
-func (cmpSlice *CMPSlice) Bytes() []byte {
+func (cmps *CMPSlice) Bytes() []byte {
 	var buff bytes.Buffer
 
-	for _, cmp := range *cmpSlice {
+	for _, cmp := range *cmps {
 		buff.Write(cmp.Bytes())
 	}
 

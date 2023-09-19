@@ -12,7 +12,7 @@ const (
 	onChainExample1TxID          = "908c26f8227fa99f1b26f99a19648653a1382fb3b37b03870e9c138894d29b3b" //nolint:gosec // this is a dummy value
 
 	// API key
-	testDummyKey = "test-dummy-api-key-value" //nolint:gosec // this is a dummy key
+	// testDummyKey = "test-dummy-api-key-value" //nolint:gosec // this is a dummy key
 
 	// Signatures
 	matterCloudSig1 = "30450221008003e78e2154e9686a2bb864a811e7ec950093f273f94d222fa87c81a5daf8f6022018e1098ad2a3f1adc431ddd375c06c867d79e484710dc87ac6847b3a2f4909d2"

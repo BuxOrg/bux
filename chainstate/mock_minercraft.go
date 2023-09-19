@@ -778,11 +778,11 @@ func (m *minerCraftUnreachble) FeeQuote(context.Context, *minercraft.Miner) (*mi
 	return nil, errors.New("minercraft is unreachable")
 }
 
-type minerCraftBroadcastTimeout struct {
+/*type minerCraftBroadcastTimeout struct {
 	MinerCraftBase
-}
+}*/
 
-func (m *minerCraftBroadcastTimeout) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
+/*func (m *minerCraftBroadcastTimeout) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
 	_ *minercraft.Transaction,
 ) (*minercraft.SubmitTransactionResponse, error) {
 	time.Sleep(defaultBroadcastTimeOut * 2)
@@ -808,4 +808,4 @@ func (m *minerCraftBroadcastTimeout) SubmitTransaction(_ context.Context, miner 
 			TxID:                      "",
 		},
 	}, nil
-}
+}*/

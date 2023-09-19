@@ -70,8 +70,10 @@ type TransactionOutput struct {
 	UseForChange bool            `json:"use_for_change,omitempty" toml:"use_for_change" yaml:"use_for_change" bson:"use_for_change,omitempty"` // if set, no change destinations will be created, but all outputs flagged will get the change
 }
 
+// PaymailPayloadFormat is the format of the paymail payload
 type PaymailPayloadFormat uint32
 
+// Types of Paymail payload formats
 const (
 	BasicPaymailPayloadFormat PaymailPayloadFormat = iota
 	BeefPaymailPayloadFormat

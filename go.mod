@@ -33,7 +33,6 @@ require (
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.8.4
-	github.com/tidwall/gjson v1.16.0
 	github.com/tonicpow/go-minercraft/v2 v2.0.4
 	github.com/tryvium-travels/memongo v0.9.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
@@ -100,6 +99,7 @@ require (
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/tetratelabs/wazero v1.5.0 // indirect
+	github.com/tidwall/gjson v1.16.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect

@@ -67,8 +67,6 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 	return errors.New(resp.Results.ResultDescription)
 }
 
-////
-
 func incorrectTxIDReturnedErr(actualTxID, expectedTxID string) error {
 	return fmt.Errorf("returned tx id [%s] does not match given tx id [%s]", actualTxID, expectedTxID)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
 )
@@ -14,22 +13,6 @@ func (c *Client) defaultMinercraftOptions() (opts *minercraft.ClientOptions) {
 	opts = minercraft.DefaultClientOptions()
 	if len(c.options.userAgent) > 0 {
 		opts.UserAgent = c.options.userAgent
-	}
-	return
-}
-
-// defaultWhatsOnChainOptions will create the defaults
-func (c *Client) defaultWhatsOnChainOptions() (opts *whatsonchain.Options) {
-	opts = whatsonchain.ClientDefaultOptions()
-	if len(c.options.userAgent) > 0 {
-		opts.UserAgent = c.options.userAgent
-	}
-
-	// Set a custom API key
-	// todo: rate limit should be customizable
-	if len(c.options.config.whatsOnChainAPIKey) > 0 {
-		opts.APIKey = c.options.config.whatsOnChainAPIKey
-		opts.RateLimit = whatsOnChainRateLimitWithKey
 	}
 	return
 }
@@ -82,19 +65,4 @@ func (c *Client) startMinerCraft(ctx context.Context) (err error) {
 	}
 
 	return nil
-}
-
-// startWhatsOnChain will start WhatsOnChain (if no custom client is found)
-func (c *Client) startWhatsOnChain(ctx context.Context) {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("start_whatsonchain").End()
-	}
-
-	if c.WhatsOnChain() == nil {
-		c.options.config.whatsOnChain = whatsonchain.NewClient(
-			c.Network().WhatsOnChain(),
-			c.defaultWhatsOnChainOptions(),
-			c.HTTPClient(),
-		)
-	}
 }

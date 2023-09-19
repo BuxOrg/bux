@@ -1,9 +1,5 @@
 package chainstate
 
-import (
-	"github.com/mrz1836/go-whatsonchain"
-)
-
 // Network is the supported Bitcoin networks
 type Network string
 
@@ -17,20 +13,6 @@ const (
 // String is the string version of network
 func (n Network) String() string {
 	return string(n)
-}
-
-// WhatsOnChain will return the WhatsOnChain network type
-func (n Network) WhatsOnChain() whatsonchain.NetworkType {
-	switch n {
-	case MainNet:
-		return whatsonchain.NetworkMain
-	case TestNet:
-		return whatsonchain.NetworkTest
-	case StressTestNet:
-		return whatsonchain.NetworkStn
-	default:
-		return whatsonchain.NetworkMain // Default if none is found, return main
-	}
 }
 
 // Alternate is the alternate string version

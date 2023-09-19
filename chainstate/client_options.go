@@ -7,7 +7,6 @@ import (
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	zLogger "github.com/mrz1836/go-logger"
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
 )
@@ -39,7 +38,6 @@ func defaultClientOptions() *clientOptions {
 			minercraft:      nil,
 			network:         MainNet,
 			queryTimeout:    defaultQueryTimeOut,
-			whatsOnChain:    nil,
 			broadcastClient: nil,
 			broadcastClientConfig: &broadcastClientConfig{
 				BroadcastClientApis: nil,
@@ -131,15 +129,6 @@ func WithMAPI() ClientOps {
 func WithArc() ClientOps {
 	return func(c *clientOptions) {
 		c.config.minercraftConfig.apiType = minercraft.Arc
-	}
-}
-
-// WithWhatsOnChain will set a custom WhatsOnChain client
-func WithWhatsOnChain(client whatsonchain.ClientInterface) ClientOps {
-	return func(c *clientOptions) {
-		if client != nil {
-			c.config.whatsOnChain = client
-		}
 	}
 }
 

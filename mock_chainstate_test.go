@@ -7,7 +7,6 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -69,10 +68,6 @@ func (c *chainStateBase) QueryMiners() []*chainstate.Miner {
 
 func (c *chainStateBase) QueryTimeout() time.Duration {
 	return 10 * time.Second
-}
-
-func (c *chainStateBase) WhatsOnChain() whatsonchain.ClientInterface {
-	return nil
 }
 
 func (c *chainStateBase) ValidateMiners(_ context.Context) {}

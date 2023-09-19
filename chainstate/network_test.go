@@ -3,7 +3,6 @@ package chainstate
 import (
 	"testing"
 
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,22 +19,6 @@ func TestNetwork_String(t *testing.T) {
 	t.Run("unknown network", func(t *testing.T) {
 		un := Network("")
 		assert.Equal(t, "", un.String())
-	})
-}
-
-// TestNetwork_WhatsOnChain will test the method WhatsOnChain()
-func TestNetwork_WhatsOnChain(t *testing.T) {
-	t.Parallel()
-
-	t.Run("test all networks", func(t *testing.T) {
-		assert.Equal(t, whatsonchain.NetworkMain, MainNet.WhatsOnChain())
-		assert.Equal(t, whatsonchain.NetworkStn, StressTestNet.WhatsOnChain())
-		assert.Equal(t, whatsonchain.NetworkTest, TestNet.WhatsOnChain())
-	})
-
-	t.Run("unknown network", func(t *testing.T) {
-		un := Network("")
-		assert.Equal(t, whatsonchain.NetworkMain, un.WhatsOnChain())
 	})
 }
 

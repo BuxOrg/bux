@@ -111,25 +111,6 @@ func TestWithMinercraft(t *testing.T) {
 	})
 }
 
-// TestWithWhatsOnChain will test the method WithWhatsOnChain()
-func TestWithWhatsOnChain(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithMinercraft(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithMinercraft(nil)
-		opt(options)
-		assert.Nil(t, options.config.whatsOnChain)
-	})
-}
-
 // TestWithBroadcastMiners will test the method WithBroadcastMiners()
 func TestWithBroadcastMiners(t *testing.T) {
 	t.Parallel()

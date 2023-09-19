@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -26,7 +25,6 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, false, c.IsDebug())
 		assert.Equal(t, MainNet, c.Network())
 		assert.Nil(t, c.HTTPClient())
-		assert.NotNil(t, c.WhatsOnChain())
 		assert.NotNil(t, c.Minercraft())
 	})
 
@@ -41,22 +39,6 @@ func TestNewClient(t *testing.T) {
 		require.NotNil(t, c)
 		assert.NotNil(t, c.HTTPClient())
 		assert.Equal(t, customClient, c.HTTPClient())
-	})
-
-	t.Run("custom whatsonchain client", func(t *testing.T) {
-		customClient := whatsonchain.NewClient(
-			MainNet.WhatsOnChain(), whatsonchain.ClientDefaultOptions(), nil,
-		)
-		require.NotNil(t, customClient)
-		c, err := NewClient(
-			context.Background(),
-			WithWhatsOnChain(customClient),
-			WithMinercraft(&MinerCraftBase{}),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.NotNil(t, c.WhatsOnChain())
-		assert.Equal(t, customClient, c.WhatsOnChain())
 	})
 
 	t.Run("custom minercraft client", func(t *testing.T) {

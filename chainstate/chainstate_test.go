@@ -25,20 +25,18 @@ func NewTestClient(ctx context.Context, t *testing.T, opts ...ClientOps) ClientI
 func TestQueryTransactionFastest(t *testing.T) {
 	t.Run("no tx ID", func(t *testing.T) {
 		ctx := context.Background()
-		c, err := NewClient(ctx, WithMinercraft(&MinerCraftBase{}))
-		require.NoError(t, err)
+		c := NewTestClient(ctx, t, WithMinercraft(&minerCraftTxOnChain{}))
 
-		_, err = c.QueryTransactionFastest(ctx, "", RequiredInMempool, 5*time.Second)
+		_, err := c.QueryTransactionFastest(ctx, "", RequiredInMempool, 5*time.Second)
 		require.Error(t, err)
 	})
 
 	t.Run("fastest query", func(t *testing.T) {
 		ctx := context.Background()
-		c, err := NewClient(ctx, WithMinercraft(&MinerCraftBase{}))
-		require.NoError(t, err)
+		c := NewTestClient(ctx, t, WithMinercraft(&minerCraftTxOnChain{}))
 
 		var txInfo *TransactionInfo
-		txInfo, err = c.QueryTransactionFastest(ctx, testTransactionID, RequiredInMempool, 5*time.Second)
+		txInfo, err := c.QueryTransactionFastest(ctx, onChainExample1TxID, RequiredInMempool, 5*time.Second)
 		require.NoError(t, err)
 		assert.NotNil(t, txInfo)
 	})

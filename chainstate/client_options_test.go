@@ -116,7 +116,7 @@ func TestWithWhatsOnChain(t *testing.T) {
 	t.Parallel()
 
 	t.Run("check type", func(t *testing.T) {
-		opt := WithWhatsOnChain(nil)
+		opt := WithMinercraft(nil)
 		assert.IsType(t, *new(ClientOps), opt)
 	})
 
@@ -124,47 +124,9 @@ func TestWithWhatsOnChain(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		opt := WithWhatsOnChain(nil)
+		opt := WithMinercraft(nil)
 		opt(options)
 		assert.Nil(t, options.config.whatsOnChain)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		customClient := &whatsOnChainTxOnChain{}
-		opt := WithWhatsOnChain(customClient)
-		opt(options)
-		assert.Equal(t, customClient, options.config.whatsOnChain)
-	})
-}
-
-// TestWithWhatsOnChainAPIKey will test the method WithWhatsOnChainAPIKey()
-func TestWithWhatsOnChainAPIKey(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithWhatsOnChainAPIKey("")
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying empty string", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithWhatsOnChainAPIKey("")
-		opt(options)
-		assert.Equal(t, "", options.config.whatsOnChainAPIKey)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{},
-		}
-		opt := WithWhatsOnChainAPIKey(testDummyKey)
-		opt(options)
-		assert.Equal(t, testDummyKey, options.config.whatsOnChainAPIKey)
 	})
 }
 

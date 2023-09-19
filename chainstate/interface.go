@@ -9,7 +9,6 @@ import (
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bc"
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -38,7 +37,6 @@ type ChainService interface {
 // ProviderServices is the chainstate providers interface
 type ProviderServices interface {
 	Minercraft() minercraft.ClientInterface
-	WhatsOnChain() whatsonchain.ClientInterface
 	BroadcastClient() broadcast.Client
 }
 

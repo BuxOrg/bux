@@ -122,8 +122,6 @@ This repository was created using [MrZ's `go-template`](https://github.com/mrz18
 - [mrz1836/go-cachestore](https://github.com/mrz1836/go-cachestore)
 - [mrz1836/go-datastore](https://github.com/mrz1836/go-datastore)
 - [mrz1836/go-logger](https://github.com/mrz1836/go-logger)
-- [mrz1836/go-nownodes](https://github.com/mrz1836/go-nownodes)
-- [mrz1836/go-whatsonchain](https://github.com/mrz1836/go-whatsonchain)
 - [newrelic/go-agent](https://github.com/newrelic/go-agent)
 - [robfig/cron](https://github.com/robfig/cron)
 - [stretchr/testify](https://github.com/stretchr/testify)

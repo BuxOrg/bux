@@ -11,7 +11,6 @@ import (
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/libsv/go-bt/v2"
 	zLogger "github.com/mrz1836/go-logger"
-	"github.com/mrz1836/go-whatsonchain"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
 	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
@@ -36,16 +35,14 @@ type (
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
-		excludedProviders     []string                     // List of provider names
-		httpClient            HTTPInterface                // Custom HTTP client (Minercraft, WOC)
-		minercraftConfig      *minercraftConfig            // minercraftConfig configuration
-		minercraft            minercraft.ClientInterface   // Minercraft client
-		network               Network                      // Current network (mainnet, testnet, stn)
-		queryTimeout          time.Duration                // Timeout for transaction query
-		whatsOnChain          whatsonchain.ClientInterface // WhatsOnChain client
-		whatsOnChainAPIKey    string                       // If set, use this key
-		broadcastClient       broadcast.Client             // Broadcast client
-		broadcastClientConfig *broadcastClientConfig       // Broadcast client config
+		excludedProviders     []string                   // List of provider names
+		httpClient            HTTPInterface              // Custom HTTP client (Minercraft, WOC)
+		minercraftConfig      *minercraftConfig          // minercraftConfig configuration
+		minercraft            minercraft.ClientInterface // Minercraft client
+		network               Network                    // Current network (mainnet, testnet, stn)
+		queryTimeout          time.Duration              // Timeout for transaction query
+		broadcastClient       broadcast.Client           // Broadcast client
+		broadcastClientConfig *broadcastClientConfig     // Broadcast client config
 	}
 
 	// minercraftConfig is specific for minercraft configuration
@@ -98,9 +95,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Start WhatsOnChain
-	client.startWhatsOnChain(ctx)
-
 	// Return the client
 	return client, nil
 }
@@ -115,11 +109,6 @@ func (c *Client) Close(ctx context.Context) {
 		// Close minercraft
 		if c.options.config.minercraft != nil {
 			c.options.config.minercraft = nil
-		}
-
-		// Close WhatsOnChain
-		if c.options.config.whatsOnChain != nil {
-			c.options.config.whatsOnChain = nil
 		}
 
 		// Stop the active Monitor (if not already stopped)
@@ -170,11 +159,6 @@ func (c *Client) Minercraft() minercraft.ClientInterface {
 // Monitor will return the Monitor client
 func (c *Client) Monitor() MonitorService {
 	return c.options.monitor
-}
-
-// WhatsOnChain will return the WhatsOnChain client
-func (c *Client) WhatsOnChain() whatsonchain.ClientInterface {
-	return c.options.config.whatsOnChain
 }
 
 // BroadcastClient will return the BroadcastClient client

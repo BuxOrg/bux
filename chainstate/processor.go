@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mrz1836/go-whatsonchain"
 	boom "github.com/tylertreat/BoomFilters"
 )
 
@@ -26,12 +25,6 @@ type BloomProcessor struct {
 type BloomProcessorFilter struct {
 	Filter *boom.StableBloomFilter
 	regex  *regexp.Regexp
-}
-
-// TxInfo wrapped WhatsOnChain transaction info object
-type TxInfo struct {
-	whatsonchain.TxInfo
-	Error string `json:"error"`
 }
 
 // NewBloomProcessor initialize a new bloom processor
@@ -241,7 +234,7 @@ func (p *RegexProcessor) Reload(_ string, items []string) (err error) {
 
 // FilterTransactionPublishEvent check whether a filter matches a tx event
 func (p *RegexProcessor) FilterTransactionPublishEvent(eData []byte) (string, error) {
-	transaction := whatsonchain.TxInfo{}
+	transaction := TxInfo{}
 	if err := json.Unmarshal(eData, &transaction); err != nil {
 		return "", err
 	}

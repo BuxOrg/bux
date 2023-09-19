@@ -76,8 +76,7 @@ type MonitorClient interface {
 
 // MonitorHandler interface
 type MonitorHandler interface {
-	whatsonchain.SocketHandler
-	GetWhatsOnChain() whatsonchain.ClientInterface
+	SocketHandler
 	RecordBlockHeader(ctx context.Context, bh bc.BlockHeader) error
 	RecordTransaction(ctx context.Context, txHex string) error
 	SetMonitor(monitor *Monitor)
@@ -108,15 +107,32 @@ type MonitorService interface {
 	GetLockID() string
 	GetMaxNumberOfDestinations() int
 	GetMonitorDays() int
-	GetProcessMempoolOnConnect() bool
 	IsConnected() bool
 	IsDebug() bool
 	LoadMonitoredDestinations() bool
 	AllowUnknownTransactions() bool
 	Logger() Logger
-	ProcessMempool(ctx context.Context) error
 	Processor() MonitorProcessor
 	SaveDestinations() bool
 	Start(ctx context.Context, handler MonitorHandler, onStop func()) error
 	Stop(ctx context.Context) error
+}
+
+// SocketHandler is composite interface of centrifuge handlers interfaces
+type SocketHandler interface {
+	OnConnect(*centrifuge.Client, centrifuge.ConnectEvent)
+	OnDisconnect(*centrifuge.Client, centrifuge.DisconnectEvent)
+	OnError(*centrifuge.Client, centrifuge.ErrorEvent)
+	OnJoin(*centrifuge.Subscription, centrifuge.JoinEvent)
+	OnLeave(*centrifuge.Subscription, centrifuge.LeaveEvent)
+	OnMessage(*centrifuge.Client, centrifuge.MessageEvent)
+	OnPublish(*centrifuge.Subscription, centrifuge.PublishEvent)
+	OnServerJoin(*centrifuge.Client, centrifuge.ServerJoinEvent)
+	OnServerLeave(*centrifuge.Client, centrifuge.ServerLeaveEvent)
+	OnServerPublish(*centrifuge.Client, centrifuge.ServerPublishEvent)
+	OnServerSubscribe(*centrifuge.Client, centrifuge.ServerSubscribeEvent)
+	OnServerUnsubscribe(*centrifuge.Client, centrifuge.ServerUnsubscribeEvent)
+	OnSubscribeError(*centrifuge.Subscription, centrifuge.SubscribeErrorEvent)
+	OnSubscribeSuccess(*centrifuge.Subscription, centrifuge.SubscribeSuccessEvent)
+	OnUnsubscribe(*centrifuge.Subscription, centrifuge.UnsubscribeEvent)
 }

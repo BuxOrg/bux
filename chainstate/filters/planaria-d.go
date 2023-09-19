@@ -3,8 +3,8 @@ package filters
 import (
 	"strings"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/libsv/go-bt"
-	"github.com/mrz1836/go-whatsonchain"
 )
 
 // PlanariaDTemplate string template for a D transaction
@@ -14,7 +14,7 @@ const PlanariaDTemplate = "006a223139694733575459537362796f7333754a373333794b347
 const PlanariaDTemplateAlternate = "6a223139694733575459537362796f7333754a373333794b347a45696f69314665734e55"
 
 // PlanariaD processor
-func PlanariaD(tx *whatsonchain.TxInfo) (*bt.Tx, error) {
+func PlanariaD(tx *chainstate.TxInfo) (*bt.Tx, error) {
 	// Loop through all of the outputs and check for pubkeyhash output
 	for _, out := range tx.Vout {
 		// if any output contains a pubkeyhash output, include this tx in the filter

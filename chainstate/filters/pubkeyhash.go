@@ -1,12 +1,12 @@
 package filters
 
 import (
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/libsv/go-bt"
-	"github.com/mrz1836/go-whatsonchain"
 )
 
 // PubKeyHash processor
-func PubKeyHash(tx *whatsonchain.TxInfo) (*bt.Tx, error) {
+func PubKeyHash(tx *chainstate.TxInfo) (*bt.Tx, error) {
 	// log.Printf("Attempting to filter for pubkeyhash: %#v", tx)
 	// Loop through all the outputs and check for pubkeyhash output
 	for _, out := range tx.Vout {

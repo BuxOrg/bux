@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/centrifugal/centrifuge-go"
-	"github.com/mrz1836/go-whatsonchain"
 )
 
 // AddFilterMessage defines a new filter to be published from the client
@@ -84,7 +83,7 @@ func (a *AgentClient) SetFilter(regex string, bloomFilter *BloomProcessorFilter)
 }
 
 // newCentrifugeClient will create a new Centrifuge using the provided handler and default configurations
-func newCentrifugeClient(wsURL string, handler whatsonchain.SocketHandler) MonitorClient {
+func newCentrifugeClient(wsURL string, handler SocketHandler) MonitorClient {
 	c := centrifuge.NewJsonClient(wsURL, centrifuge.DefaultConfig()) // todo: use our own defaults/custom options
 
 	c.OnConnect(handler)

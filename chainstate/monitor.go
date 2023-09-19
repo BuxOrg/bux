@@ -3,11 +3,9 @@ package chainstate
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/BuxOrg/bux/utils"
 	zLogger "github.com/mrz1836/go-logger"
-	"github.com/mrz1836/go-whatsonchain"
 )
 
 // Monitor starts a new monitorConfig to monitor and filter transactions from a source
@@ -30,7 +28,6 @@ type Monitor struct {
 	mempoolSyncChannelActive     bool
 	mempoolSyncChannel           chan bool
 	monitorDays                  int
-	processMempoolOnConnect      bool
 	processor                    MonitorProcessor
 	saveTransactionsDestinations bool
 	onStop                       func()
@@ -47,7 +44,6 @@ type MonitorOptions struct {
 	LockID                      string  `json:"lock_id"`
 	MaxNumberOfDestinations     int     `json:"max_number_of_destinations"`
 	MonitorDays                 int     `json:"monitor_days"`
-	ProcessMempoolOnConnect     bool    `json:"process_mempool_on_connect"`
 	ProcessorType               string  `json:"processor_type"`
 	SaveTransactionDestinations bool    `json:"save_transaction_destinations"`
 	AllowUnknownTransactions    bool    `json:"allow_unknown_transactions"` // whether to allow transactions that do not have an xpub_in_id or xpub_out_id
@@ -97,7 +93,6 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 		lockID:                       options.LockID,
 		maxNumberOfDestinations:      options.MaxNumberOfDestinations,
 		monitorDays:                  options.MonitorDays,
-		processMempoolOnConnect:      options.ProcessMempoolOnConnect,
 		saveTransactionsDestinations: options.SaveTransactionDestinations,
 		allowUnknownTransactions:     options.AllowUnknownTransactions,
 	}
@@ -167,11 +162,6 @@ func (m *Monitor) GetMaxNumberOfDestinations() int {
 	return m.maxNumberOfDestinations
 }
 
-// GetProcessMempoolOnConnect gets whether the whole mempool should be processed when connecting
-func (m *Monitor) GetProcessMempoolOnConnect() bool {
-	return m.processMempoolOnConnect
-}
-
 // IsConnected returns whether we are connected to the socket
 func (m *Monitor) IsConnected() bool {
 	return m.connected
@@ -200,105 +190,6 @@ func (m *Monitor) Logger() Logger {
 // Processor gets the monitor processor
 func (m *Monitor) Processor() MonitorProcessor {
 	return m.processor
-}
-
-// ProcessMempool processes all current transactions in the mempool
-func (m *Monitor) ProcessMempool(ctx context.Context) error {
-
-	woc := m.handler.GetWhatsOnChain()
-	if woc != nil {
-		mempoolTxs, err := woc.GetMempoolTransactions(ctx)
-		if err != nil {
-			return err
-		}
-
-		// create a new channel to control this go routine
-		m.mempoolSyncChannel = make(chan bool)
-		m.mempoolSyncChannelActive = true
-		// run the processing of the txs in a different thread
-		go func(mempoolSyncChannel chan bool) {
-			if m.debug {
-				m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool mempoolTxs: %d\n", len(mempoolTxs)))
-			}
-			if len(mempoolTxs) > 0 {
-				hashes := new(whatsonchain.TxHashes)
-				hashes.TxIDs = append(hashes.TxIDs, mempoolTxs...)
-
-				// Break up the transactions into batches
-				var batches [][]string
-				chunkSize := whatsonchain.MaxTransactionsRaw
-
-				for i := 0; i < len(hashes.TxIDs); i += chunkSize {
-					end := i + chunkSize
-					if end > len(hashes.TxIDs) {
-						end = len(hashes.TxIDs)
-					}
-					batches = append(batches, hashes.TxIDs[i:end])
-				}
-				if m.debug {
-					m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool created batches: %d\n", len(batches)))
-				}
-
-				var currentRateLimit int
-				// Loop Batches - and get each batch (multiple batches of MaxTransactionsRaw)
-				// this code comes from the go-whatsonchain lib, but we want to process per 20
-				// and not the whole batch in 1 go
-				for i, batch := range batches {
-					if m.debug {
-						m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool processing batch: %d\n", i+1))
-					}
-					// While processing all the batches, check if channel is closed
-					select {
-					case <-mempoolSyncChannel:
-						return
-					default:
-
-						txHashes := new(whatsonchain.TxHashes)
-						txHashes.TxIDs = append(txHashes.TxIDs, batch...)
-
-						// Get the tx details (max of MaxTransactionsUTXO)
-						var returnedList whatsonchain.TxList
-						if returnedList, err = woc.BulkRawTransactionDataProcessor(
-							ctx, txHashes,
-						); err != nil {
-							return
-						}
-
-						// Add to the list
-						for _, tx := range returnedList {
-							if m.debug {
-								m.logger.Info(ctx, fmt.Sprintf("[MONITOR] ProcessMempool tx: %s\n", tx.TxID))
-							}
-							var txHex string
-							txHex, err = m.processor.FilterTransaction(tx.Hex) // todo off
-							if err != nil {
-								m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR filtering tx %s: %s\n", tx.TxID, err.Error()))
-								continue
-							}
-							if txHex != "" {
-								if err = m.handler.RecordTransaction(ctx, txHex); err != nil {
-									m.logger.Error(ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %s\n", err.Error()))
-									continue
-								}
-								if m.debug {
-									m.logger.Info(ctx, fmt.Sprintf("[MONITOR] successfully recorded tx: %s\n", tx.TxID))
-								}
-							}
-						}
-
-						// Accumulate / sleep to prevent rate limiting
-						currentRateLimit++
-						if currentRateLimit >= woc.RateLimit() {
-							time.Sleep(1 * time.Second)
-							currentRateLimit = 0
-						}
-					}
-				}
-			}
-		}(m.mempoolSyncChannel)
-	}
-
-	return nil
 }
 
 // SaveDestinations gets whether we should save destinations from transactions that pass monitor filter

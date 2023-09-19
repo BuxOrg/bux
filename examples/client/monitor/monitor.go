@@ -35,7 +35,6 @@ func main() {
 			LockID:                      "unique-lock-id-for-multiple-servers",
 			MaxNumberOfDestinations:     25000,
 			MonitorDays:                 5,
-			ProcessMempoolOnConnect:     false,
 			ProcessorType:               chainstate.FilterRegex,
 			SaveTransactionDestinations: false,
 		}),

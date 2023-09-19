@@ -99,7 +99,7 @@ func broadcastWithBroadcastClient(ctx context.Context, client ClientInterface, t
 	result, err := client.BroadcastClient().SubmitTransaction(ctx, &tx)
 	if err != nil {
 		debugLog(client, txID, "error broadcast request for "+ProviderBroadcastClient+" failed: "+err.Error())
-		return nil //nolint:nilerr // err is being reported but not returned
+		return err
 	}
 
 	debugLog(client, txID, "result broadcast request for "+ProviderBroadcastClient+" blockhash: "+result.BlockHash+" status: "+result.TxStatus.String())

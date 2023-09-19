@@ -49,7 +49,10 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 	}
 
 	// Something went wrong - got back an id that does not match
-	if resp == nil || !strings.EqualFold(resp.Results.TxID, id) {
+	if resp == nil {
+		return emptyBroadcastResponseErr(id)
+	}
+	if !strings.EqualFold(resp.Results.TxID, id) {
 		return incorrectTxIDReturnedErr(resp.Results.TxID, id)
 	}
 
@@ -71,6 +74,10 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 
 func incorrectTxIDReturnedErr(actualTxID, expectedTxID string) error {
 	return fmt.Errorf("returned tx id [%s] does not match given tx id [%s]", actualTxID, expectedTxID)
+}
+
+func emptyBroadcastResponseErr(txID string) error {
+	return fmt.Errorf("an empty response was returned after broadcasting of tx id [%s]", txID)
 }
 
 ////

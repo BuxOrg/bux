@@ -78,8 +78,7 @@ type MonitorClient interface {
 
 // MonitorHandler interface
 type MonitorHandler interface {
-	whatsonchain.SocketHandler
-	GetWhatsOnChain() whatsonchain.ClientInterface
+	SocketHandler
 	RecordBlockHeader(ctx context.Context, bh bc.BlockHeader) error
 	RecordTransaction(ctx context.Context, txHex string) error
 	SetMonitor(monitor *Monitor)
@@ -110,13 +109,11 @@ type MonitorService interface {
 	GetLockID() string
 	GetMaxNumberOfDestinations() int
 	GetMonitorDays() int
-	GetProcessMempoolOnConnect() bool
 	IsConnected() bool
 	IsDebug() bool
 	LoadMonitoredDestinations() bool
 	AllowUnknownTransactions() bool
 	Logger() Logger
-	ProcessMempool(ctx context.Context) error
 	Processor() MonitorProcessor
 	SaveDestinations() bool
 	Start(ctx context.Context, handler MonitorHandler, onStop func()) error

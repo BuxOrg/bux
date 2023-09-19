@@ -15,7 +15,6 @@ import (
 	"github.com/korovkin/limiter"
 	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt/v2"
-	"github.com/mrz1836/go-whatsonchain"
 )
 
 // MonitorEventHandler for handling transaction events from a monitor
@@ -41,7 +40,6 @@ type blockSubscriptionHandler struct {
 }
 
 func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
-
 	channelName := subscription.Channel()
 	if strings.HasPrefix(channelName, "block:sync:") {
 		// block subscription
@@ -75,7 +73,6 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 }
 
 func (b *blockSubscriptionHandler) OnUnsubscribe(subscription *centrifuge.Subscription, _ centrifuge.UnsubscribeEvent) {
-
 	b.logger.Info(b.ctx, fmt.Sprintf("[MONITOR] OnUnsubscribe: %s", subscription.Channel()))
 
 	// close wait group
@@ -110,16 +107,6 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 		if _, err := agentClient.SetFilter(regex, bloomFilter); err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
 		}
-	}
-
-	if h.monitor.GetProcessMempoolOnConnect() {
-		h.logger.Info(h.ctx, "[MONITOR] PROCESS MEMPOOL")
-		go func() {
-			ctx := context.Background()
-			if err := h.monitor.ProcessMempool(ctx); err != nil {
-				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR processing mempool: %s", err.Error()))
-			}
-		}()
 	}
 
 	h.logger.Info(h.ctx, "[MONITOR] PROCESS BLOCK HEADERS")
@@ -203,7 +190,6 @@ func (h *MonitorEventHandler) ProcessBlocks(ctx context.Context, client *centrif
 
 // ProcessBlockHeaders processes all missing block headers
 func (h *MonitorEventHandler) ProcessBlockHeaders(ctx context.Context, client *centrifuge.Client) error {
-
 	lastBlockHeader, err := h.buxClient.GetLastBlockHeader(ctx)
 	if err != nil {
 		h.logger.Error(h.ctx, err.Error())
@@ -278,26 +264,24 @@ func (h *MonitorEventHandler) OnLeave(_ *centrifuge.Subscription, e centrifuge.L
 // OnPublish on publish event
 func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e centrifuge.PublishEvent) {
 	channelName := subscription.Channel()
+
 	if strings.HasPrefix(channelName, "block:headers:history:") {
-		bi := whatsonchain.BlockInfo{}
+		bi := chainstate.BlockInfo{}
 		err := json.Unmarshal(e.Data, &bi)
 		if err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
+			return
 		}
 
 		var existingBlock *BlockHeader
-		if existingBlock, err = h.buxClient.GetBlockHeaderByHeight(
-			h.ctx, uint32(bi.Height),
-		); err != nil {
+		if existingBlock, err = h.buxClient.GetBlockHeaderByHeight(h.ctx, uint32(bi.Height)); err != nil {
 			h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR getting block header by height: %v", err))
 		}
+
 		if existingBlock == nil {
-			if err != nil {
-				h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
-				return
-			}
 			merkleRoot, _ := hex.DecodeString(bi.MerkleRoot)
 			previousBlockHash, _ := hex.DecodeString(bi.PreviousBlockHash)
+
 			bh := bc.BlockHeader{
 				Bits:           []byte(bi.Bits),
 				HashMerkleRoot: merkleRoot,
@@ -306,6 +290,7 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 				Time:           uint32(bi.Time),
 				Version:        uint32(bi.Version),
 			}
+
 			if _, err = h.buxClient.RecordBlockHeader(
 				h.ctx, bi.Hash, uint32(bi.Height), bh,
 			); err != nil {
@@ -398,7 +383,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 }
 
 func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Client, e centrifuge.ServerPublishEvent) {
-	bi := whatsonchain.BlockInfo{}
+	bi := chainstate.BlockInfo{}
 	err := json.Unmarshal(e.Data, &bi)
 	if err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR unmarshalling block header: %v", err))
@@ -472,9 +457,4 @@ func (h *MonitorEventHandler) RecordTransaction(ctx context.Context, txHex strin
 // RecordBlockHeader records a block header into bux
 func (h *MonitorEventHandler) RecordBlockHeader(_ context.Context, _ bc.BlockHeader) error {
 	return nil
-}
-
-// GetWhatsOnChain returns the WhatsOnChain client interface
-func (h *MonitorEventHandler) GetWhatsOnChain() whatsonchain.ClientInterface {
-	return h.buxClient.Chainstate().WhatsOnChain()
 }

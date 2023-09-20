@@ -3,6 +3,7 @@ package bux
 import (
 	"testing"
 
+	"github.com/libsv/go-bt/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestMerkleProofModel_ToCompoundMerklePath(t *testing.T) {
 			Nodes:  []string{"node0", "node1", "node2", "node3"},
 		}
 		expectedCMP := CompoundMerklePath(
-			[]map[string]uint64{
+			[]map[string]bt.VarInt{
 				{
 					"node0": 0,
 					"txId":  1,
@@ -44,7 +45,7 @@ func TestMerkleProofModel_ToCompoundMerklePath(t *testing.T) {
 			Nodes:  []string{"node0", "node1", "node2", "node3", "node4"},
 		}
 		expectedCMP := CompoundMerklePath(
-			[]map[string]uint64{
+			[]map[string]bt.VarInt{
 				{
 					"txId":  14,
 					"node0": 15,

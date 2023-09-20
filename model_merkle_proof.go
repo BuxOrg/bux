@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/libsv/go-bc"
+	"github.com/libsv/go-bt/v2"
 )
 
 // MerkleProof represents Merkle Proof type
@@ -20,15 +21,16 @@ func (m MerkleProof) ToCompoundMerklePath() CompoundMerklePath {
 		return nil
 	}
 	cmp := make(CompoundMerklePath, height)
-	pathMap := make(map[string]uint64, 2)
+	pathMap := make(map[string]bt.VarInt, 2)
 	offset := m.Index
-	pathMap[m.TxOrID] = offset
-	pathMap[m.Nodes[0]] = offsetPair(offset)
+	op := offsetPair(offset)
+	pathMap[m.TxOrID] = bt.VarInt(offset)
+	pathMap[m.Nodes[0]] = bt.VarInt(op)
 	cmp[0] = pathMap
 	for i := 1; i < height; i++ {
-		path := make(map[string]uint64, 1)
+		path := make(map[string]bt.VarInt, 1)
 		offset = parrentOffset(offset)
-		path[m.Nodes[i]] = offset
+		path[m.Nodes[i]] = bt.VarInt(offset)
 		cmp[i] = path
 	}
 	return cmp

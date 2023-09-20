@@ -3,15 +3,18 @@ package bux
 import (
 	"bytes"
 	"database/sql/driver"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"sort"
+
+	"github.com/libsv/go-bt/v2"
 )
 
 // CompoundMerklePath represents Compound Merkle Path type
-type CompoundMerklePath []map[string]uint64
+type CompoundMerklePath []map[string]bt.VarInt
 
 // CMPSlice represents slice of Compound Merkle Pathes
 // There must be several CMPs in case if utxos from different blocks is used in tx
@@ -19,7 +22,7 @@ type CMPSlice []CompoundMerklePath
 
 type nodeOffset struct {
 	node   string
-	offset uint64
+	offset bt.VarInt
 }
 
 // Hex returns CMP in hex format
@@ -44,21 +47,22 @@ func (cmps *CMPSlice) Bytes() []byte {
 }
 
 func (cmp *CompoundMerklePath) bytesBuffer() *bytes.Buffer {
-	var hex bytes.Buffer
-	hex.WriteString(leadingZeroInt(len(*cmp)))
+	var buff bytes.Buffer
+	buff.WriteString(leadingZeroInt(len(*cmp) - 1))
 
 	for _, m := range *cmp {
-		hex.WriteString(leadingZeroInt(len(m)))
+		leafs := len(m)
+		buff.WriteString(hex.EncodeToString(bt.VarInt(leafs).Bytes()))
 		sortedNodes := sortByOffset(m)
 		for _, n := range sortedNodes {
-			hex.WriteString(leadingZeroInt(int(n.offset)))
-			hex.WriteString(n.node)
+			buff.WriteString(hex.EncodeToString(n.offset.Bytes()))
+			buff.WriteString(n.node)
 		}
 	}
-	return &hex
+	return &buff
 }
 
-func sortByOffset(m map[string]uint64) []nodeOffset {
+func sortByOffset(m map[string]bt.VarInt) []nodeOffset {
 	n := make([]nodeOffset, 0)
 	for node, offset := range m {
 		n = append(n, nodeOffset{node, offset})

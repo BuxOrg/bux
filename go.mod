@@ -22,16 +22,16 @@ require (
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
 	github.com/libsv/go-bt/v2 v2.2.5
-	github.com/mrz1836/go-cache v0.8.2
+	github.com/mrz1836/go-cache v0.8.3
 	github.com/mrz1836/go-cachestore v0.2.3
-	github.com/mrz1836/go-datastore v0.4.10
+	github.com/mrz1836/go-datastore v0.4.11
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/newrelic/go-agent/v3 v3.25.1
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.8.4
-	github.com/tonicpow/go-minercraft/v2 v2.0.4
+	github.com/tonicpow/go-minercraft/v2 v2.0.5
 	github.com/tryvium-travels/memongo v0.10.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9

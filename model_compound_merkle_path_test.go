@@ -189,7 +189,7 @@ func TestCompoundMerklePathModel_Hex(t *testing.T) {
 				},
 			},
 		)
-		expectedHex := "030602txId103D06G07txId20cM0dtxId30300AB02EF07OP0300ABCD01EFGH02IJKL0200ABCDEFGH01IJKLMNOP"
+		expectedHex := "030200ABCDEFGH01IJKLMNOP0300ABCD01EFGH02IJKL0300AB02EF07OP0602txId103D06G07txId20cM0dtxId3"
 		actualHex := cmp.Hex()
 		assert.Equal(t, expectedHex, actualHex)
 	})
@@ -219,7 +219,7 @@ func TestCompoundMerklePathModel_Hex(t *testing.T) {
 				},
 			},
 		)
-		expectedHex := "020800A01B02C03D04E05F06G07H0400AB01CD02EF03GH0200ABCD01EFGH"
+		expectedHex := "020200ABCD01EFGH0400AB01CD02EF03GH0800A01B02C03D04E05F06G07H"
 		actualHex := cmp.Hex()
 		assert.Equal(t, expectedHex, actualHex)
 	})
@@ -301,57 +301,58 @@ func TestCompoundMerklePathModel_CalculateCompoundMerklePathAndCalculateHex(t *t
 		cmp, err := CalculateCompoundMerklePath(signleMerkleProof)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedCMP, cmp)
-		expectedHex := "13" + // height
-			"02" + // nLeafs at this height VarInt
-			"fd8004" + // offset VarInt
-			"4d4bde1dc35c87bba992944ec0379e0bb009916108113dc3de1c4aecda6457a3" + // 32 byte hash
-			"fd8104" + // offset VarInt
-			"2130b63dcbfe1356a30137fe9578691f59c6cf42d5e8928a800619de7f8e14da" + // 32 byte hash
+		expectedHex := "0d" + //13 - height
+			"01" + // nLeafs at this height VarInt
+			"01" + // offset VarInt
+			"15f731176e17f4402802d5be3893419e690225e732d69dfd27f6e614f188233d" + // 32 byte hash
 			// ----------------------
 			// implied end of leaves at this height
 			// height of next leaves is therefore 12
 			"01" + // nLeafs at this height VarInt
-			"fd4102" + // offset VarInt
-			"168595f83accfcec66d0e0df06df89e6a9a2eaa3aa69427fb86cb54d8ea5b1e9" + // 32 byte hash
+			"01" + // offset VarInt
+			"88e6b0bd93e02b057ea43a80a5bb8cf9673f143340af3f569fe0c55c085e5efb" + // 32 byte hash
 			// ----------------------
 			// implied end of leaves at this height
 			// height of next leaves is therefore 11 and so on...
 			"01" +
-			"fd2101" +
-			"c2edd41b237844a45a0e6248a9e7c520af303a5c91cc8a443ad0075d6a3dec79" +
 			"01" +
-			"91" +
-			"bdd0fddf45fee49324e55dfc6fdb9044c86dc5be3dbf941a80b395838495ac09" +
-			"01" +
-			"49" +
-			"3e5ec052b86621b5691d15ad54fab2551c27a36d9ab84f428a304b607aa33d33" +
-			"01" +
-			"25" +
-			"9feb9b1aaa2cd8486edcacb60b9d477a89aec5867d292608c3c59a18324d608a" +
-			"01" +
-			"13" +
-			"22e1db219f8d874315845b7cee84832dc0865b5f9e18221a011043a4d6704e7d" +
-			"01" +
-			"08" +
-			"7f118890abd8df3f8a51c344da0f9235609f5fd380e38cfe519e81262aedb2a7" +
-			"01" +
-			"05" +
-			"20dcf60bbcecd2f587e8d3344fb68c71f2f2f7a6cc85589b9031c2312a433fe6" +
-			"01" +
-			"03" +
-			"0be65c1f3b53b937608f8426e43cb41c1db31227d0d9933e8b0ce3b8cc30d67f" +
+			"b8e4d7975537bb775e320f01f874c06cf38dd2ce7bb836a1afe0337aeb9fb06f" +
 			"01" +
 			"00" +
 			"a8036cf77d8de296f60607862b228174733a30486a37962a56465f5e8c214d87" +
 			"01" +
+			"03" +
+			"0be65c1f3b53b937608f8426e43cb41c1db31227d0d9933e8b0ce3b8cc30d67f" +
 			"01" +
-			"b8e4d7975537bb775e320f01f874c06cf38dd2ce7bb836a1afe0337aeb9fb06f" +
+			"05" +
+			"20dcf60bbcecd2f587e8d3344fb68c71f2f2f7a6cc85589b9031c2312a433fe6" +
 			"01" +
+			"08" +
+			"7f118890abd8df3f8a51c344da0f9235609f5fd380e38cfe519e81262aedb2a7" +
 			"01" +
-			"88e6b0bd93e02b057ea43a80a5bb8cf9673f143340af3f569fe0c55c085e5efb" +
+			"13" +
+			"22e1db219f8d874315845b7cee84832dc0865b5f9e18221a011043a4d6704e7d" +
 			"01" +
+			"25" +
+			"9feb9b1aaa2cd8486edcacb60b9d477a89aec5867d292608c3c59a18324d608a" +
 			"01" +
-			"15f731176e17f4402802d5be3893419e690225e732d69dfd27f6e614f188233d"
+			"49" +
+			"3e5ec052b86621b5691d15ad54fab2551c27a36d9ab84f428a304b607aa33d33" +
+			"01" +
+			"91" +
+			"bdd0fddf45fee49324e55dfc6fdb9044c86dc5be3dbf941a80b395838495ac09" +
+			"01" +
+			"fd2101" +
+			"c2edd41b237844a45a0e6248a9e7c520af303a5c91cc8a443ad0075d6a3dec79" +
+			"01" +
+			"fd4102" +
+			"168595f83accfcec66d0e0df06df89e6a9a2eaa3aa69427fb86cb54d8ea5b1e9" +
+			"02" +
+			"fd8004" +
+			"4d4bde1dc35c87bba992944ec0379e0bb009916108113dc3de1c4aecda6457a3" +
+			"fd8104" +
+			"2130b63dcbfe1356a30137fe9578691f59c6cf42d5e8928a800619de7f8e14da"
+
 		actualHex := cmp.Hex()
 		assert.Equal(t, expectedHex, actualHex)
 	})

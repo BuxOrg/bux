@@ -61,7 +61,7 @@ require (
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-resty/resty/v2 v2.8.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
-	github.com/gocraft/dbr/v2 v2.7.5 // indirect
+	github.com/gocraft/dbr/v2 v2.7.6 // indirect
 	github.com/gojektech/heimdall/v6 v6.1.0 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -95,10 +95,10 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/spf13/afero v1.9.5 // indirect
+	github.com/spf13/afero v1.10.0 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/tetratelabs/wazero v1.5.0 // indirect
-	github.com/tidwall/gjson v1.16.0 // indirect
+	github.com/tidwall/gjson v1.17.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect

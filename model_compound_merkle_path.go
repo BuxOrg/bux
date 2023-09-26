@@ -13,6 +13,8 @@ import (
 	"github.com/libsv/go-bt/v2"
 )
 
+const maxCmpHeight = 64
+
 // CompoundMerklePath represents Compound Merkle Path type
 type CompoundMerklePath []map[string]bt.VarInt
 
@@ -30,27 +32,27 @@ func (cmp *CompoundMerklePath) Hex() string {
 	return cmp.bytesBuffer().String()
 }
 
-// Bytes returns CMP bytes
-func (cmp *CompoundMerklePath) Bytes() []byte {
-	return cmp.bytesBuffer().Bytes()
-}
-
 // Bytes returns CMPSlice bytes
 func (cmps *CMPSlice) Bytes() []byte {
 	var buff bytes.Buffer
 
 	for _, cmp := range *cmps {
-		buff.Write(cmp.Bytes())
+		bytes, _ := hex.DecodeString(cmp.Hex())
+		buff.Write(bytes)
 	}
 
 	return buff.Bytes()
 }
 
 func (cmp *CompoundMerklePath) bytesBuffer() *bytes.Buffer {
-	var buff bytes.Buffer
-	buff.WriteString(leadingZeroInt(len(*cmp) - 1))
+	height := len(*cmp) - 1
 
-	for _, m := range *cmp {
+	var buff bytes.Buffer
+	buff.WriteString(leadingZeroInt(height))
+
+	for i := height; i >= 0; i-- {
+		m := (*cmp)[i]
+
 		leafs := len(m)
 		buff.WriteString(hex.EncodeToString(bt.VarInt(leafs).Bytes()))
 		sortedNodes := sortByOffset(m)
@@ -79,6 +81,10 @@ func CalculateCompoundMerklePath(mp []MerkleProof) (CompoundMerklePath, error) {
 		return CompoundMerklePath{}, nil
 	}
 	height := len(mp[0].Nodes)
+	if height > maxCmpHeight {
+		return nil,
+			fmt.Errorf("Compound Merkle Path cannot be higher than %d", maxCmpHeight)
+	}
 	for _, m := range mp {
 		if height != len(m.Nodes) {
 			return nil,
@@ -98,7 +104,7 @@ func CalculateCompoundMerklePath(mp []MerkleProof) (CompoundMerklePath, error) {
 
 // In case the offset or height is less than 10, they must be written with a leading zero
 func leadingZeroInt(i int) string {
-	return fmt.Sprintf("%02d", i)
+	return fmt.Sprintf("%02x", i)
 }
 
 func (cmp *CompoundMerklePath) add(c CompoundMerklePath) error {

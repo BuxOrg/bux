@@ -52,7 +52,6 @@ func TestNewClient(t *testing.T) {
 		c, err := NewClient(
 			context.Background(),
 			WithBroadcastClient(customClient),
-			WithMinercraft(&MinerCraftBase{}),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, c)

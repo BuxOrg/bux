@@ -180,6 +180,14 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	}, nil
 }
 
+// ExecuteSimplifiedPaymentVerification is an empty implementation of ExecuteSimplifiedPaymentVerification
+// to support latest version of go-paymail
+func (m *PaymailDefaultServiceProvider) ExecuteSimplifiedPaymentVerification(ctx context.Context,
+	beedData *paymail.DecodedBEEF,
+) error {
+	return nil
+}
+
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {
 	paymailAddress, err = getPaymailAddress(ctx, alias+"@"+domain, opts...)
 	if err != nil {

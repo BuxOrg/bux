@@ -116,7 +116,7 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 		// when
 		info, err := c.QueryTransaction(
 			context.Background(), onChainExample1TxID,
-			RequiredOnChain, defaultQueryTimeOut,
+			RequiredInMempool, defaultQueryTimeOut,
 		)
 
 		// then
@@ -359,7 +359,7 @@ func TestClient_Transaction_MultipleClients_Fastest(t *testing.T) {
 		assert.True(t, isOneOf(
 			info.Confirmations,
 			onChainExample1Confirmations,
-			nil,
+			0,
 		))
 		assert.True(t, isOneOf(
 			info.Provider,

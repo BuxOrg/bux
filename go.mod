@@ -22,9 +22,9 @@ require (
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
 	github.com/libsv/go-bt/v2 v2.2.5
-	github.com/mrz1836/go-cache v0.8.3
-	github.com/mrz1836/go-cachestore v0.2.5
-	github.com/mrz1836/go-datastore v0.4.12
+	github.com/mrz1836/go-cache v0.8.4
+	github.com/mrz1836/go-cachestore v0.2.6
+	github.com/mrz1836/go-datastore v0.5.0
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/newrelic/go-agent/v3 v3.26.0
 	github.com/pkg/errors v0.9.1
@@ -112,8 +112,8 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	go.opentelemetry.io/otel v1.18.0 // indirect
-	go.opentelemetry.io/otel/trace v1.18.0 // indirect
+	go.opentelemetry.io/otel v1.19.0 // indirect
+	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.15.0 // indirect

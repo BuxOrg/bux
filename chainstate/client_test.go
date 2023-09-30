@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	broadcast_client "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -39,6 +40,23 @@ func TestNewClient(t *testing.T) {
 		require.NotNil(t, c)
 		assert.NotNil(t, c.HTTPClient())
 		assert.Equal(t, customClient, c.HTTPClient())
+	})
+
+	t.Run("custom broadcast client", func(t *testing.T) {
+		arcConfig := broadcast_client.ArcClientConfig{
+			Token:  "",
+			APIUrl: "https://tapi.taal.com/arc",
+		}
+		customClient := broadcast_client.Builder().WithArc(arcConfig).Build()
+		require.NotNil(t, customClient)
+		c, err := NewClient(
+			context.Background(),
+			WithBroadcastClient(customClient),
+		)
+		require.NoError(t, err)
+		require.NotNil(t, c)
+		assert.NotNil(t, c.BroadcastClient())
+		assert.Equal(t, customClient, c.BroadcastClient())
 	})
 
 	t.Run("custom minercraft client", func(t *testing.T) {

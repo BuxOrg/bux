@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	broadcast_client_mock "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client-mock"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -108,6 +109,35 @@ func TestWithMinercraft(t *testing.T) {
 		opt := WithMinercraft(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.config.minercraft)
+	})
+}
+
+// TestWithBroadcastClient will test the method WithBroadcastClient()
+func TestWithBroadcastClient(t *testing.T) {
+	t.Parallel()
+
+	t.Run("check type", func(t *testing.T) {
+		opt := WithBroadcastClient(nil)
+		assert.IsType(t, *new(ClientOps), opt)
+	})
+
+	t.Run("test applying nil", func(t *testing.T) {
+		options := &clientOptions{
+			config: &syncConfig{},
+		}
+		opt := WithBroadcastClient(nil)
+		opt(options)
+		assert.Nil(t, options.config.broadcastClient)
+	})
+
+	t.Run("test applying option", func(t *testing.T) {
+		options := &clientOptions{
+			config: &syncConfig{},
+		}
+		customClient := broadcast_client_mock.Builder().WithMockArc(broadcast_client_mock.MockSuccess).Build()
+		opt := WithBroadcastClient(customClient)
+		opt(options)
+		assert.Equal(t, customClient, options.config.broadcastClient)
 	})
 }
 

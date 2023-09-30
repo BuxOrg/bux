@@ -524,11 +524,13 @@ func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner 
 	return nil, errors.New("missing miner response")
 }
 
+// //nolint: unused //TODO: remove this when the method is implemented
 type minerCraftInMempool struct {
 	minerCraftTxOnChain
 }
 
 // SubmitTransaction submits a transaction to the miner.
+// //nolint: unused // TODO: remove this when the method is implemented
 func (m *minerCraftInMempool) SubmitTransaction(_ context.Context, miner *minercraft.Miner,
 	_ *minercraft.Transaction,
 ) (*minercraft.SubmitTransactionResponse, error) {

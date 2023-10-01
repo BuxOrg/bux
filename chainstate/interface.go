@@ -48,11 +48,18 @@ type MinercraftServices interface {
 	FeeUnit() *utils.FeeUnit
 }
 
+// MerkleProofServices is the merkle proof services interface
+type MerkleProofServices interface {
+	PulseClient() *PulseClient
+	VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error
+}
+
 // ClientInterface is the chainstate client interface
 type ClientInterface interface {
 	ChainService
 	ProviderServices
 	MinercraftServices
+	MerkleProofServices
 	Close(ctx context.Context)
 	Debug(on bool)
 	DebugLog(text string)

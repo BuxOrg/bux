@@ -41,3 +41,10 @@ func (m *mockServiceProvider) RecordTransaction(_ context.Context,
 	// Record the tx into your datastore layer
 	return nil, nil
 }
+
+// RecordTransaction is a demo implementation of this interface
+func (m *mockServiceProvider) VerifyMerkleRoots(_ context.Context, _ []string) error {
+
+	// Verify merkle roots
+	return nil
+}

@@ -151,3 +151,11 @@ func (c *chainStateEverythingOnChain) QueryTransactionFastest(_ context.Context,
 func (c *chainStateEverythingOnChain) FeeUnit() *utils.FeeUnit {
 	return chainstate.DefaultFee
 }
+
+func (c *chainStateBase) VerifyMerkleRoots(_ context.Context, _ []string) error {
+	return nil
+}
+
+func (c *chainStateBase) PulseClient() *chainstate.PulseClient {
+	return &chainstate.PulseClient{}
+}

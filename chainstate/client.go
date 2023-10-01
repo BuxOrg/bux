@@ -43,6 +43,7 @@ type (
 		queryTimeout          time.Duration              // Timeout for transaction query
 		broadcastClient       broadcast.Client           // Broadcast client
 		broadcastClientConfig *broadcastClientConfig     // Broadcast client config
+		pulseClient           *PulseClient               // Pulse client
 	}
 
 	// minercraftConfig is specific for minercraft configuration
@@ -60,6 +61,12 @@ type (
 		FeeLastChecked time.Time         `json:"fee_last_checked"` // Last time the fee was checked via mAPI
 		FeeUnit        *utils.FeeUnit    `json:"fee_unit"`         // The fee unit returned from Policy request
 		Miner          *minercraft.Miner `json:"miner"`            // The minercraft miner
+	}
+
+	// PulseClient is the internal chainstate pulse client
+	PulseClient struct {
+		url       string
+		authToken string
 	}
 
 	// broadcastClientConfig is specific for broadcast client configuration
@@ -164,6 +171,11 @@ func (c *Client) Monitor() MonitorService {
 // BroadcastClient will return the BroadcastClient client
 func (c *Client) BroadcastClient() broadcast.Client {
 	return c.options.config.broadcastClient
+}
+
+// PulseClient will return the Pulse client
+func (c *Client) PulseClient() *PulseClient {
+	return c.options.config.pulseClient
 }
 
 // QueryTimeout will return the query timeout

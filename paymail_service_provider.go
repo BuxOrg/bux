@@ -180,6 +180,12 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	}, nil
 }
 
+// VerifyMerkleRoots will verify the merkle roots
+func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error {
+	err := p.client.Chainstate().VerifyMerkleRoots(ctx, merkleRoots)
+	return err
+}
+
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {
 	paymailAddress, err = getPaymailAddress(ctx, alias+"@"+domain, opts...)
 	if err != nil {

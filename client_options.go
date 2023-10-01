@@ -749,3 +749,10 @@ func WithBroadcastClientAPIs(apis []broadcastclient.ArcClientConfig) ClientOps {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClientAPIs(apis))
 	}
 }
+
+// WithPulse will set up Pulse url.
+func WithPulse(url, authToken string) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithPulse(url, authToken))
+	}
+}

@@ -12,10 +12,10 @@ func Test_kahnTopologicalSortTransaction(t *testing.T) {
 	txsFromOldestToNewest := []*Transaction{
 		createTx("0"),
 		createTx("1", "0"),
-		createTx("2", "1"),
+		createTx("2", "1", "101"),
 		createTx("3", "2", "1"),
 		createTx("4", "3", "1"),
-		createTx("5", "3", "2"),
+		createTx("5", "3", "2", "100"),
 		createTx("6", "4", "2", "0"),
 		createTx("7", "6", "5", "3", "1"),
 		createTx("8", "7"),

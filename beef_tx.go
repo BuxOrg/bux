@@ -28,8 +28,8 @@ type beefTx struct {
 }
 
 func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
-	if version > 65_535 {
-		return nil, errors.New("version above 65.535")
+	if version > 0xFFFF {
+		return nil, errors.New("version above 0xFFFF")
 	}
 
 	// get inputs parent transactions

@@ -28,16 +28,19 @@ func prepareSortStructures(dag []*Transaction) (txByID map[string]*Transaction, 
 		incomingEdgesMap[tx.ID] = 0
 	}
 
-	calculateIncomingEdges(incomingEdgesMap, dag)
+	calculateIncomingEdges(incomingEdgesMap, txByID)
 	zeroIncomingEdgeQueue = getTxWithZeroIncomingEdges(incomingEdgesMap)
 
 	return
 }
 
-func calculateIncomingEdges(inDegree map[string]int, transactions []*Transaction) {
-	for _, tx := range transactions {
+func calculateIncomingEdges(inDegree map[string]int, txByID map[string]*Transaction) {
+	for _, tx := range txByID {
 		for _, input := range tx.draftTransaction.Configuration.Inputs {
-			inDegree[input.UtxoPointer.TransactionID]++
+			inputUtxoTxID := input.UtxoPointer.TransactionID
+			if _, ok := txByID[inputUtxoTxID]; ok { // transaction can contains inputs we are not interested in
+				inDegree[inputUtxoTxID]++
+			}
 		}
 	}
 }

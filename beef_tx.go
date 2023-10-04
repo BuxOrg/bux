@@ -3,19 +3,21 @@ package bux
 import (
 	"context"
 	"encoding/hex"
-	"errors"
+	"fmt"
 )
 
+const maxBeefVer = uint32(0xFFFF) // value from BRC-62
+
 // ToBeefHex generates BEEF Hex for transaction
-func ToBeefHex(tx *Transaction) (string, error) {
-	beef, err := newBeefTx(1, tx)
+func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
+	beef, err := newBeefTx(ctx, 1, tx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("ToBeefHex() error: %w", err)
 	}
 
 	beefBytes, err := beef.toBeefBytes()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("ToBeefHex() error: %w", err)
 	}
 
 	return hex.EncodeToString(beefBytes), nil
@@ -27,9 +29,13 @@ type beefTx struct {
 	transactions        []*Transaction
 }
 
-func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
-	if version > 0xFFFF {
-		return nil, errors.New("version above 0xFFFF")
+func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, error) {
+	if version > maxBeefVer {
+		return nil, fmt.Errorf("version above 0x%X", maxBeefVer)
+	}
+
+	if err := hydrateTransaction(ctx, tx); err != nil {
+		return nil, err
 	}
 
 	// get inputs parent transactions
@@ -37,9 +43,9 @@ func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
 	transactions := make([]*Transaction, 0, len(inputs)+1)
 
 	for _, input := range inputs {
-		prevTxs, err := getParentTransactionsForInput(tx.client, input)
+		prevTxs, err := getParentTransactionsForInput(ctx, tx.client, input)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("retrieve input parent transaction failed: %w", err)
 		}
 
 		transactions = append(transactions, prevTxs...)
@@ -57,9 +63,13 @@ func newBeefTx(version uint32, tx *Transaction) (*beefTx, error) {
 	return beef, nil
 }
 
-func getParentTransactionsForInput(client ClientInterface, input *TransactionInput) ([]*Transaction, error) {
-	inputTx, err := client.GetTransactionByID(context.Background(), input.UtxoPointer.TransactionID)
+func getParentTransactionsForInput(ctx context.Context, client ClientInterface, input *TransactionInput) ([]*Transaction, error) {
+	inputTx, err := client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = hydrateTransaction(ctx, inputTx); err != nil {
 		return nil, err
 	}
 
@@ -67,5 +77,21 @@ func getParentTransactionsForInput(client ClientInterface, input *TransactionInp
 		return []*Transaction{inputTx}, nil
 	}
 
-	return nil, errors.New("transaction is not mined yet") // TODO: handle it in next iterration
+	return nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID) // TODO: handle it in next iterration
+}
+
+func hydrateTransaction(ctx context.Context, tx *Transaction) error {
+	if tx.draftTransaction == nil {
+		dTx, err := getDraftTransactionID(
+			ctx, tx.XPubID, tx.DraftID, tx.GetOptions(false)...,
+		)
+
+		if err != nil {
+			return fmt.Errorf("retrieve DraftTransaction failed: %w", err)
+		}
+
+		tx.draftTransaction = dTx
+	}
+
+	return nil
 }

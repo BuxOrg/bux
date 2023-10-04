@@ -3,6 +3,7 @@ package bux
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	"github.com/libsv/go-bt/v2"
 )
@@ -63,7 +64,7 @@ func (tx *Transaction) toBeefBytes(compountedPaths CMPSlice) ([]byte, error) {
 	txBeefBytes, err := hex.DecodeString(tx.Hex)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decoding tx (ID: %s) hex failed: %w", tx.ID, err)
 	}
 
 	cmpIdx := tx.getCompountedMarklePathIndex(compountedPaths)

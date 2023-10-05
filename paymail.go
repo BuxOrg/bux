@@ -155,19 +155,8 @@ func startP2PTransaction(client paymail.ClientInterface,
 }
 
 // finalizeP2PTransaction will notify the paymail provider about the transaction
-func finalizeP2PTransaction(client paymail.ClientInterface, p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransactionPayload, error) {
-
-	// Submit the P2P transaction
-	/*logger.Data(2, logger.DEBUG, "sending p2p tx...",
-		logger.MakeParameter("alias", alias),
-		logger.MakeParameter("p2pSubmitURL", p2pSubmitURL),
-		logger.MakeParameter("domain", domain),
-		logger.MakeParameter("note", note),
-		logger.MakeParameter("senderPaymailAddress", senderPaymailAddress),
-		logger.MakeParameter("referenceID", referenceID),
-	)*/
-
-	p2pTransaction, err := buildP2pTx(p4, transaction)
+func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface, p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransactionPayload, error) {
+	p2pTransaction, err := buildP2pTx(ctx, p4, transaction)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +169,7 @@ func finalizeP2PTransaction(client paymail.ClientInterface, p4 *PaymailP4, trans
 	return &response.P2PTransactionPayload, nil
 }
 
-func buildP2pTx(p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransaction, error) {
+func buildP2pTx(ctx context.Context, p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransaction, error) {
 	p2pTransaction := &paymail.P2PTransaction{
 		MetaData: &paymail.P2PMetaData{
 			Note:   p4.Note,
@@ -192,7 +181,7 @@ func buildP2pTx(p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransactio
 	switch p4.Format {
 
 	case BeefPaymailPayloadFormat:
-		beef, err := ToBeefHex(transaction)
+		beef, err := ToBeefHex(ctx, transaction)
 
 		if err != nil {
 			return nil, err

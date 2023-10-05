@@ -1,6 +1,7 @@
 package bux
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 
@@ -21,16 +22,45 @@ func Test_kahnTopologicalSortTransaction(t *testing.T) {
 		createTx("8", "7"),
 	}
 
-	unsortedTxs := shuffleTransactions(txsFromOldestToNewest)
+	txsFromOldestToNewestWithUnnecessaryInputs := []*Transaction{
+		createTx("0"),
+		createTx("1", "0"),
+		createTx("2", "1", "101", "102"),
+		createTx("3", "2", "1"),
+		createTx("4", "3", "1"),
+		createTx("5", "3", "2", "100"),
+		createTx("6", "4", "2", "0"),
+		createTx("7", "6", "5", "3", "1", "103", "105", "106"),
+		createTx("8", "7"),
+	}
 
-	t.Run("kahnTopologicalSortTransaction sort from oldest to newest", func(t *testing.T) {
-		sortedGraph := kahnTopologicalSortTransactions(unsortedTxs)
+	tCases := []struct {
+		name                       string
+		expectedSortedTransactions []*Transaction
+	}{{
+		name:                       "txs with neccessary data only",
+		expectedSortedTransactions: txsFromOldestToNewest,
+	},
+		{
+			name:                       "txs with inputs from other txs",
+			expectedSortedTransactions: txsFromOldestToNewestWithUnnecessaryInputs,
+		},
+	}
 
-		for i, tx := range txsFromOldestToNewest {
-			assert.Equal(t, tx.ID, sortedGraph[i].ID)
-		}
+	for _, tc := range tCases {
+		t.Run(fmt.Sprint("sort from oldest to newest ", tc.name), func(t *testing.T) {
+			// given
+			unsortedTxs := shuffleTransactions(tc.expectedSortedTransactions)
 
-	})
+			// when
+			sortedGraph := kahnTopologicalSortTransactions(unsortedTxs)
+
+			// then
+			for i, tx := range txsFromOldestToNewest {
+				assert.Equal(t, tx.ID, sortedGraph[i].ID)
+			}
+		})
+	}
 }
 
 func createTx(txID string, inputsTxIDs ...string) *Transaction {

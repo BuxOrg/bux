@@ -12,6 +12,7 @@ import (
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/bitcoinschema/go-bitcoin/v2"
+	"github.com/libsv/bitcoin-hc/transports/http/endpoints/api/merkleroots"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
@@ -180,10 +181,9 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	}, nil
 }
 
-// VerifyMerkleRoots will verify the merkle roots
-func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error {
-	err := p.client.Chainstate().VerifyMerkleRoots(ctx, merkleRoots)
-	return err
+// VerifyMerkleRoots will verify the merkle roots by checking them in external header service - Pulse
+func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) (*merkleroots.MerkleRootsConfirmationsResponse, error) {
+	return p.client.Chainstate().VerifyMerkleRoots(ctx, merkleRoots)
 }
 
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {

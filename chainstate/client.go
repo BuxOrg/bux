@@ -173,11 +173,6 @@ func (c *Client) BroadcastClient() broadcast.Client {
 	return c.options.config.broadcastClient
 }
 
-// PulseClient will return the Pulse client
-func (c *Client) PulseClient() *PulseClient {
-	return c.options.config.pulseClient
-}
-
 // QueryTimeout will return the query timeout
 func (c *Client) QueryTimeout() time.Duration {
 	return c.options.config.queryTimeout

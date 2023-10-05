@@ -7,6 +7,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	"github.com/libsv/bitcoin-hc/transports/http/endpoints/api/merkleroots"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -152,10 +153,6 @@ func (c *chainStateEverythingOnChain) FeeUnit() *utils.FeeUnit {
 	return chainstate.DefaultFee
 }
 
-func (c *chainStateBase) VerifyMerkleRoots(_ context.Context, _ []string) error {
-	return nil
-}
-
-func (c *chainStateBase) PulseClient() *chainstate.PulseClient {
-	return &chainstate.PulseClient{}
+func (c *chainStateEverythingOnChain) VerifyMerkleRoots(_ context.Context, _ []string) (*merkleroots.MerkleRootsConfirmationsResponse, error) {
+	return nil, nil
 }

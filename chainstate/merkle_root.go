@@ -1,77 +1,63 @@
 package chainstate
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"sync"
+	"io/ioutil"
+	"net/http"
 
-	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/bitcoin-hc/transports/http/endpoints/api/merkleroots"
 )
 
-type merkleRootProvider interface {
-	getName() string
-	verifyMerkleRoots(ctx context.Context, merkleProofs []string) error
-}
-
-// result of single merkle root verification by provider
-type verifyResult struct {
-	isError  bool
-	err      error
-	provider string
-}
-
 // VerifyMerkleRoots will try to verify merkle roots with all available providers
-func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error {
-	var wg sync.WaitGroup
-	resultsChannel := make(chan verifyResult)
+func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) (*merkleroots.MerkleRootsConfirmationsResponse, error) {
+	merkleRootsRes, err := verifyMerkleRootsWithPulse(ctx, c, merkleRoots)
 
-	for _, merkleRootPvdr := range createMerkleRootsProviders(c) {
-		wg.Add(1)
-		go func(provider merkleRootProvider) {
-			defer wg.Done()
-			verifyMerkleRootWithProvider(ctx, provider,
-				resultsChannel, merkleRoots)
-		}(merkleRootPvdr)
+	if err != nil {
+		debugLog(c, "", fmt.Sprintf("verify merkle root error: %s from Pulse", err))
+		return nil, err
 	}
-
-	go func() {
-		wg.Wait()
-		close(resultsChannel)
-	}()
-
-	result := <-resultsChannel
-
-	if result.isError {
-		debugLog(c, "", fmt.Sprintf("verify merkle root error: %s from provider %s", result.err, result.provider))
-		return result.err
-	}
-	debugLog(c, "", fmt.Sprintf("successful verification of merkle proofs by %s", result.provider))
-	return nil
+	debugLog(c, "", "successful verification of merkle proofs by Pulse")
+	return merkleRootsRes, nil
 }
 
-func createMerkleRootsProviders(c *Client) []merkleRootProvider {
-	providers := make([]merkleRootProvider, 0, 10)
+func verifyMerkleRootsWithPulse(ctx context.Context, c *Client, merkleProofs []string) (*merkleroots.MerkleRootsConfirmationsResponse, error) {
+	jsonData, err := json.Marshal(merkleProofs)
 
-	if shouldVerifyWithPulse(c) {
-		pvdr := pulseClientProvider{url: c.PulseClient().url, authToken: c.PulseClient().authToken}
-		providers = append(providers, pvdr)
+	if err != nil {
+		return nil, err
 	}
 
-	return providers
-}
+	client := &http.Client{}
+	req, err := http.NewRequestWithContext(ctx, "POST", c.options.config.pulseClient.url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", c.options.config.pulseClient.authToken)
+	res, err := client.Do(req)
+	if err != nil {
+		c.options.logger.Error(context.Background(), "Error during creating connection to pulse client: %s", err.Error())
+		return nil, err
+	}
+	defer res.Body.Close() //nolint: all // Close the body
 
-func shouldVerifyWithPulse(c *Client) bool {
-	return !utils.StringInSlice(ProviderPulse, c.options.config.excludedProviders) &&
-		c.PulseClient() != nil
-}
-
-func verifyMerkleRootWithProvider(ctx context.Context, provider merkleRootProvider, resultsChannel chan verifyResult, merkleRoots []string) {
-	vErr := provider.verifyMerkleRoots(ctx, merkleRoots)
-
-	if vErr != nil {
-		resultsChannel <- verifyResult{isError: true, err: vErr, provider: provider.getName()}
-	} else {
-		resultsChannel <- verifyResult{isError: false, provider: provider.getName()}
+	// Parse response body.
+	var merkleRootsRes merkleroots.MerkleRootsConfirmationsResponse
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error during reading response body: %s", err.Error())
 	}
 
+	err = json.Unmarshal(bodyBytes, &merkleRootsRes)
+	if err != nil {
+		return nil, fmt.Errorf("error during unmarshaling response body: %s", err.Error())
+	}
+
+	if !merkleRootsRes.AllConfirmed {
+		c.options.logger.Warn(context.Background(), "Warn: Not all merkle roots confirmed")
+		return &merkleRootsRes, nil
+	}
+	return &merkleRootsRes, nil
 }

@@ -496,9 +496,10 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 	}
 }
 
-// WithPaymailBeefSupport will set the configuration for Paymail BEEF format support (as a server)
-func WithPaymailBeefSupport() ClientOps {
+// WithPaymailBeefSupport will set the configuration for Paymail BEEF format support (as a server) and Pulse client
+func WithPaymailBeefSupport(url, authToken string) ClientOps {
 	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithConnectionToPulse(url, authToken))
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithBeefCapabilities())
 	}
 }
@@ -747,12 +748,5 @@ func WithBroadcastClient(broadcastClient broadcast.Client) ClientOps {
 func WithBroadcastClientAPIs(apis []broadcastclient.ArcClientConfig) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClientAPIs(apis))
-	}
-}
-
-// WithPulse will set up Pulse url.
-func WithPulse(url, authToken string) ClientOps {
-	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithPulse(url, authToken))
 	}
 }

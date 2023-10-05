@@ -15,7 +15,7 @@ func Test_ToBeefHex(t *testing.T) {
 		ctx, client, deferMe := initSimpleTestCase(t)
 		defer deferMe()
 
-		ancestorTx := addGrandPaTx(t, ctx, client)
+		ancestorTx := addGrandpaTx(t, ctx, client)
 		minedParentTx := createTxWithDraft(t, ctx, client, ancestorTx, true)
 
 		newTx := createTxWithDraft(t, ctx, client, minedParentTx, false)
@@ -35,7 +35,7 @@ func Test_ToBeefHex(t *testing.T) {
 		ctx, client, deferMe := initSimpleTestCase(t)
 		defer deferMe()
 
-		ancestorTx := addGrandPaTx(t, ctx, client)
+		ancestorTx := addGrandpaTx(t, ctx, client)
 		notMinedParentTx := createTxWithDraft(t, ctx, client, ancestorTx, false)
 
 		newTx := createTxWithDraft(t, ctx, client, notMinedParentTx, false)
@@ -49,7 +49,7 @@ func Test_ToBeefHex(t *testing.T) {
 	})
 }
 
-func addGrandPaTx(t *testing.T, ctx context.Context, client ClientInterface) *Transaction {
+func addGrandpaTx(t *testing.T, ctx context.Context, client ClientInterface) *Transaction {
 	// great ancestor
 	grandpaTx := newTransaction(testTx2Hex, append(client.DefaultModelOptions(), New())...)
 	grandpaTx.BlockHeight = 1

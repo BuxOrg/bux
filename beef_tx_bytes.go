@@ -12,7 +12,7 @@ var hasCmp = byte(0x01)
 var hasNoCmp = byte(0x00)
 
 func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
-	if len(beefTx.compoundMerklePaths) == 0 || len(beefTx.transactions) < 2 { // valid BEEF contains atleast two transactions (new transaction and one parent transaction)
+	if len(beefTx.compoundMerklePaths) == 0 || len(beefTx.transactions) < 2 { // valid BEEF contains at least two transactions (new transaction and one parent transaction)
 		return nil, errors.New("beef tx is incomplete")
 	}
 

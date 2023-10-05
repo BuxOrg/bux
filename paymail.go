@@ -156,17 +156,6 @@ func startP2PTransaction(client paymail.ClientInterface,
 
 // finalizeP2PTransaction will notify the paymail provider about the transaction
 func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface, p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransactionPayload, error) {
-
-	// Submit the P2P transaction
-	/*logger.Data(2, logger.DEBUG, "sending p2p tx...",
-		logger.MakeParameter("alias", alias),
-		logger.MakeParameter("p2pSubmitURL", p2pSubmitURL),
-		logger.MakeParameter("domain", domain),
-		logger.MakeParameter("note", note),
-		logger.MakeParameter("senderPaymailAddress", senderPaymailAddress),
-		logger.MakeParameter("referenceID", referenceID),
-	)*/
-
 	p2pTransaction, err := buildP2pTx(ctx, p4, transaction)
 	if err != nil {
 		return nil, err

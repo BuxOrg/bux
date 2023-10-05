@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 )
 
@@ -34,7 +35,12 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 		return nil, fmt.Errorf("version above 0x%X", maxBeefVer)
 	}
 
-	if err := hydrateTransaction(ctx, tx); err != nil {
+	var err error
+	if err = hydrateTransaction(ctx, tx); err != nil {
+		return nil, err
+	}
+
+	if err = validateCompoundMerklePathes(tx.draftTransaction.CompoundMerklePathes); err != nil {
 		return nil, err
 	}
 
@@ -63,6 +69,36 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	return beef, nil
 }
 
+func hydrateTransaction(ctx context.Context, tx *Transaction) error {
+	if tx.draftTransaction == nil {
+		dTx, err := getDraftTransactionID(
+			ctx, tx.XPubID, tx.DraftID, tx.GetOptions(false)...,
+		)
+
+		if err != nil {
+			return fmt.Errorf("retrieve DraftTransaction failed: %w", err)
+		}
+
+		tx.draftTransaction = dTx
+	}
+
+	return nil
+}
+
+func validateCompoundMerklePathes(compountedPaths CMPSlice) error {
+	if len(compountedPaths) == 0 {
+		return errors.New("empty compounted paths slice")
+	}
+
+	for _, c := range compountedPaths {
+		if len(c) == 0 {
+			return errors.New("one of compounted merkle paths is empty")
+		}
+	}
+
+	return nil
+}
+
 func getParentTransactionsForInput(ctx context.Context, client ClientInterface, input *TransactionInput) ([]*Transaction, error) {
 	inputTx, err := client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
 	if err != nil {
@@ -78,20 +114,4 @@ func getParentTransactionsForInput(ctx context.Context, client ClientInterface, 
 	}
 
 	return nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID) // TODO: handle it in next iterration
-}
-
-func hydrateTransaction(ctx context.Context, tx *Transaction) error {
-	if tx.draftTransaction == nil {
-		dTx, err := getDraftTransactionID(
-			ctx, tx.XPubID, tx.DraftID, tx.GetOptions(false)...,
-		)
-
-		if err != nil {
-			return fmt.Errorf("retrieve DraftTransaction failed: %w", err)
-		}
-
-		tx.draftTransaction = dTx
-	}
-
-	return nil
 }

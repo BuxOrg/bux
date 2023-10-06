@@ -3,7 +3,7 @@ module github.com/BuxOrg/bux
 go 1.19
 
 require (
-	github.com/99designs/gqlgen v0.17.38
+	github.com/99designs/gqlgen v0.17.39
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoin-sv/go-broadcast-client v0.5.0
 	github.com/bitcoin-sv/go-paymail v0.4.0
@@ -94,6 +94,7 @@ require (
 	github.com/segmentio/encoding v0.3.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/sosodev/duration v1.1.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect

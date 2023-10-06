@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -496,10 +497,14 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 	}
 }
 
-// WithPaymailBeefSupport will set the configuration for Paymail BEEF format support (as a server) and Pulse client
-func WithPaymailBeefSupport(url, authToken string) ClientOps {
+// WithPaymailBeefSupport will enable Paymail BEEF format support (as a server) and create a Pulse client for Merkle Roots verification.
+func WithPaymailBeefSupport(pulseUrl, pulseAuthToken string) ClientOps {
 	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithConnectionToPulse(url, authToken))
+		_, err := url.ParseRequestURI(pulseUrl)
+		if err != nil {
+			panic(err)
+		}
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithConnectionToPulse(pulseUrl, pulseAuthToken))
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithBeefCapabilities())
 	}
 }

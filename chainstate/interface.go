@@ -8,7 +8,6 @@ import (
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/centrifugal/centrifuge-go"
-	"github.com/libsv/bitcoin-hc/transports/http/endpoints/api/merkleroots"
 	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-minercraft/v2"
 )
@@ -51,7 +50,7 @@ type MinercraftServices interface {
 
 // HeaderService is header services interface
 type HeaderService interface {
-	VerifyMerkleRoots(ctx context.Context, merkleRoots []string) (*merkleroots.MerkleRootsConfirmationsResponse, error)
+	VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error
 }
 
 // ClientInterface is the chainstate client interface

@@ -241,3 +241,10 @@ func WithBroadcastClientAPIs(apis []broadcastClient.ArcClientConfig) ClientOps {
 		c.config.broadcastClientConfig.BroadcastClientApis = apis
 	}
 }
+
+// WithConnectionToPulse will set pulse API settings.
+func WithConnectionToPulse(url, authToken string) ClientOps {
+	return func(c *clientOptions) {
+		c.config.pulseClient = &PulseClient{url, authToken}
+	}
+}

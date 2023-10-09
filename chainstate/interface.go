@@ -48,11 +48,17 @@ type MinercraftServices interface {
 	FeeUnit() *utils.FeeUnit
 }
 
+// HeaderService is header services interface
+type HeaderService interface {
+	VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error
+}
+
 // ClientInterface is the chainstate client interface
 type ClientInterface interface {
 	ChainService
 	ProviderServices
 	MinercraftServices
+	HeaderService
 	Close(ctx context.Context)
 	Debug(on bool)
 	DebugLog(text string)

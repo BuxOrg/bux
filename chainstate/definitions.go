@@ -49,6 +49,7 @@ const (
 	ProviderMAPI            = "mapi"            // Query & broadcast provider for mAPI (using given miners)
 	ProviderWhatsOnChain    = "whatsonchain"    // Query & broadcast provider for WhatsOnChain
 	ProviderBroadcastClient = "broadcastclient" // Query & broadcast provider for configured miners
+	ProviderPulse           = "pulse"           // MerkleProof provider
 )
 
 // TransactionInfo is the universal information about the transaction found from a chain provider

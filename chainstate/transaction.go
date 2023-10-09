@@ -129,9 +129,9 @@ func queryMinercraft(ctx context.Context, client ClientInterface, miner *minercr
 
 // queryBroadcastClient will submit a query transaction request to a go-broadcast-client
 func queryBroadcastClient(ctx context.Context, client ClientInterface, id string) (*TransactionInfo, error) {
-	client.DebugLog("executing request in minercraft using " + ProviderBroadcastClient)
+	client.DebugLog("executing request using " + ProviderBroadcastClient)
 	if resp, err := client.BroadcastClient().QueryTransaction(ctx, id); err != nil {
-		client.DebugLog("error executing request in " + ProviderBroadcastClient + " failed: " + err.Error())
+		client.DebugLog("error executing request using " + ProviderBroadcastClient + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
 		return &TransactionInfo{

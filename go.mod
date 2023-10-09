@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.39
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/bitcoin-sv/go-broadcast-client v0.5.0
+	github.com/bitcoin-sv/go-broadcast-client v0.6.0
 	github.com/bitcoin-sv/go-paymail v0.4.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
@@ -40,6 +40,7 @@ require (
 )
 
 require (
+	github.com/GorillaPool/go-junglebus v0.2.0 // indirect
 	github.com/acobaugh/osrelease v0.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/bitcoinschema/go-bpu v0.1.0 // indirect

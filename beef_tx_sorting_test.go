@@ -38,7 +38,7 @@ func Test_kahnTopologicalSortTransaction(t *testing.T) {
 		name                       string
 		expectedSortedTransactions []*Transaction
 	}{{
-		name:                       "txs with neccessary data only",
+		name:                       "txs with necessary data only",
 		expectedSortedTransactions: txsFromOldestToNewest,
 	},
 		{

@@ -9,7 +9,7 @@ import (
 // VerifyMerkleRoots will try to verify merkle roots with all available providers
 func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error {
 	pulseProvider := createPulseProvider(c)
-	merkleRootsRes, err := pulseProvider.verifyMerkleRoots(c, ctx, merkleRoots)
+	merkleRootsRes, err := pulseProvider.verifyMerkleRoots(ctx, c, merkleRoots)
 
 	if err != nil {
 		debugLog(c, "", fmt.Sprintf("verify merkle root error: %s from Pulse", err))

@@ -15,10 +15,10 @@ func Test_ToBeefHex(t *testing.T) {
 		ctx, client, deferMe := initSimpleTestCase(t)
 		defer deferMe()
 
-		ancestorTx := addGrandpaTx(t, ctx, client)
-		minedParentTx := createTxWithDraft(t, ctx, client, ancestorTx, true)
+		ancestorTx := addGrandpaTx(ctx, t, client)
+		minedParentTx := createTxWithDraft(ctx, t, client, ancestorTx, true)
 
-		newTx := createTxWithDraft(t, ctx, client, minedParentTx, false)
+		newTx := createTxWithDraft(ctx, t, client, minedParentTx, false)
 
 		//when
 		hex, err := ToBeefHex(ctx, newTx)
@@ -29,16 +29,16 @@ func Test_ToBeefHex(t *testing.T) {
 	})
 
 	t.Run("some parents txs are not mined yet", func(t *testing.T) {
-		// Error expeted! this should be changed in the future. right now the test case has been written to make sure the system doesn't panic in such a situation
+		// Error expected! this should be changed in the future. right now the test case has been written to make sure the system doesn't panic in such a situation
 
 		//given
 		ctx, client, deferMe := initSimpleTestCase(t)
 		defer deferMe()
 
-		ancestorTx := addGrandpaTx(t, ctx, client)
-		notMinedParentTx := createTxWithDraft(t, ctx, client, ancestorTx, false)
+		ancestorTx := addGrandpaTx(ctx, t, client)
+		notMinedParentTx := createTxWithDraft(ctx, t, client, ancestorTx, false)
 
-		newTx := createTxWithDraft(t, ctx, client, notMinedParentTx, false)
+		newTx := createTxWithDraft(ctx, t, client, notMinedParentTx, false)
 
 		//when
 		hex, err := ToBeefHex(ctx, newTx)
@@ -49,7 +49,7 @@ func Test_ToBeefHex(t *testing.T) {
 	})
 }
 
-func addGrandpaTx(t *testing.T, ctx context.Context, client ClientInterface) *Transaction {
+func addGrandpaTx(ctx context.Context, t *testing.T, client ClientInterface) *Transaction {
 	// great ancestor
 	grandpaTx := newTransaction(testTx2Hex, append(client.DefaultModelOptions(), New())...)
 	grandpaTx.BlockHeight = 1
@@ -65,7 +65,7 @@ func addGrandpaTx(t *testing.T, ctx context.Context, client ClientInterface) *Tr
 	return grandpaTx
 }
 
-func createTxWithDraft(t *testing.T, ctx context.Context, client ClientInterface, parentTx *Transaction, mined bool) *Transaction {
+func createTxWithDraft(ctx context.Context, t *testing.T, client ClientInterface, parentTx *Transaction, mined bool) *Transaction {
 	draftTransaction := newDraftTransaction(
 		testXPub, &TransactionConfig{
 			Inputs: []*TransactionInput{{Utxo: *newUtxoFromTxID(parentTx.GetID(), 0, append(client.DefaultModelOptions(), New())...)}},

@@ -30,7 +30,7 @@ type pulseClientProvider struct {
 }
 
 // verifyMerkleProof using Pulse
-func (p pulseClientProvider) verifyMerkleRoots(c *Client, ctx context.Context, merkleProofs []string) (*MerkleRootsConfirmationsResponse, error) {
+func (p pulseClientProvider) verifyMerkleRoots(ctx context.Context, c *Client, merkleProofs []string) (*MerkleRootsConfirmationsResponse, error) {
 	jsonData, err := json.Marshal(merkleProofs)
 
 	if err != nil {

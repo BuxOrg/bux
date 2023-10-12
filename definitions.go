@@ -25,7 +25,7 @@ const (
 	//mongoTestVersion               = "4.2.1"           // Mongo Testing Version
 	mongoTestVersion  = "6.0.4"   // Mongo Testing Version
 	sqliteTestVersion = "3.37.0"  // SQLite Testing Version (dummy version for now)
-	version           = "v0.5.18" // bux version
+	version           = "v0.5.19" // bux version
 )
 
 // Defaults for task cron jobs (tasks)

@@ -98,7 +98,7 @@ func broadcastWithBroadcastClient(ctx context.Context, client ClientInterface, t
 	debugLog(client, txID, "executing broadcast request for "+ProviderBroadcastClient)
 
 	tx := broadcast.Transaction{
-		RawTx: hex,
+		Hex: hex,
 	}
 
 	result, err := client.BroadcastClient().SubmitTransaction(ctx, &tx)

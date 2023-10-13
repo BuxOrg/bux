@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.39
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/bitcoin-sv/go-broadcast-client v0.7.0
+	github.com/bitcoin-sv/go-broadcast-client v0.8.0
 	github.com/bitcoin-sv/go-paymail v0.5.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0

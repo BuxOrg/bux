@@ -24,7 +24,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.5
 	github.com/mrz1836/go-cache v0.9.0
 	github.com/mrz1836/go-cachestore v0.3.0
-	github.com/mrz1836/go-datastore v0.5.2
+	github.com/mrz1836/go-datastore v0.5.3
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/newrelic/go-agent/v3 v3.26.0
 	github.com/pkg/errors v0.9.1
@@ -95,7 +95,7 @@ require (
 	github.com/segmentio/encoding v0.3.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/sosodev/duration v1.1.0 // indirect
+	github.com/sosodev/duration v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect

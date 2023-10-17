@@ -220,7 +220,7 @@ func (c *Client) ValidateMiners(ctx context.Context) {
 			if c.Minercraft().APIType() == minercraft.MAPI {
 				quote, err := c.Minercraft().FeeQuote(ctx, miner.Miner)
 				if err != nil {
-					client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s", miner.Miner.Name))
+					client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err))
 					miner.FeeUnit = nil
 					return
 				}
@@ -234,7 +234,7 @@ func (c *Client) ValidateMiners(ctx context.Context) {
 			} else if c.Minercraft().APIType() == minercraft.Arc {
 				quote, err := c.Minercraft().PolicyQuote(ctx, miner.Miner)
 				if err != nil {
-					client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s", miner.Miner.Name))
+					client.options.logger.Error(ctx, fmt.Sprintf("No PolicyQuote response from miner %s. Reason: %s", miner.Miner.Name, err))
 					miner.FeeUnit = nil
 					return
 				}

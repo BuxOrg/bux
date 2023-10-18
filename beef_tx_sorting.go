@@ -1,8 +1,10 @@
 package bux
 
-func kahnTopologicalSortTransactions(transactions []*Transaction) []*Transaction {
+import "github.com/libsv/go-bt/v2"
+
+func kahnTopologicalSortTransactions(transactions []*bt.Tx) []*bt.Tx {
 	txByID, incomingEdgesMap, zeroIncomingEdgeQueue := prepareSortStructures(transactions)
-	result := make([]*Transaction, 0, len(transactions))
+	result := make([]*bt.Tx, 0, len(transactions))
 
 	for len(zeroIncomingEdgeQueue) > 0 {
 		txID := zeroIncomingEdgeQueue[0]
@@ -18,14 +20,14 @@ func kahnTopologicalSortTransactions(transactions []*Transaction) []*Transaction
 	return result
 }
 
-func prepareSortStructures(dag []*Transaction) (txByID map[string]*Transaction, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) {
+func prepareSortStructures(dag []*bt.Tx) (txByID map[string]*bt.Tx, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) {
 	dagLen := len(dag)
-	txByID = make(map[string]*Transaction, dagLen)
+	txByID = make(map[string]*bt.Tx, dagLen)
 	incomingEdgesMap = make(map[string]int, dagLen)
 
 	for _, tx := range dag {
-		txByID[tx.ID] = tx
-		incomingEdgesMap[tx.ID] = 0
+		txByID[tx.TxID()] = tx // TODO: perf
+		incomingEdgesMap[tx.TxID()] = 0
 	}
 
 	calculateIncomingEdges(incomingEdgesMap, txByID)
@@ -34,11 +36,11 @@ func prepareSortStructures(dag []*Transaction) (txByID map[string]*Transaction, 
 	return
 }
 
-func calculateIncomingEdges(inDegree map[string]int, txByID map[string]*Transaction) {
+func calculateIncomingEdges(inDegree map[string]int, txByID map[string]*bt.Tx) {
 	for _, tx := range txByID {
-		for _, input := range tx.draftTransaction.Configuration.Inputs {
-			inputUtxoTxID := input.UtxoPointer.TransactionID
-			if _, ok := txByID[inputUtxoTxID]; ok { // transaction can contains inputs we are not interested in
+		for _, input := range tx.Inputs {
+			inputUtxoTxID := input.PreviousTxIDStr() // TODO: perf
+			if _, ok := txByID[inputUtxoTxID]; ok {  // transaction can contains inputs we are not interested in
 				inDegree[inputUtxoTxID]++
 			}
 		}
@@ -57,9 +59,9 @@ func getTxWithZeroIncomingEdges(incomingEdgesMap map[string]int) []string {
 	return zeroIncomingEdgeQueue
 }
 
-func removeTxFromIncomingEdges(tx *Transaction, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) []string {
-	for _, input := range tx.draftTransaction.Configuration.Inputs {
-		neighborID := input.UtxoPointer.TransactionID
+func removeTxFromIncomingEdges(tx *bt.Tx, incomingEdgesMap map[string]int, zeroIncomingEdgeQueue []string) []string {
+	for _, input := range tx.Inputs {
+		neighborID := input.PreviousTxIDStr() // TODO: perf
 		incomingEdgesMap[neighborID]--
 
 		if incomingEdgesMap[neighborID] == 0 {
@@ -70,7 +72,7 @@ func removeTxFromIncomingEdges(tx *Transaction, incomingEdgesMap map[string]int,
 	return zeroIncomingEdgeQueue
 }
 
-func reverseInPlace(collection []*Transaction) {
+func reverseInPlace(collection []*bt.Tx) {
 	for i, j := 0, len(collection)-1; i < j; i, j = i+1, j-1 {
 		collection[i], collection[j] = collection[j], collection[i]
 	}

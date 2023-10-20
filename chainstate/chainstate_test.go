@@ -12,7 +12,7 @@ import (
 // NewTestClient returns a test client
 func NewTestClient(ctx context.Context, t *testing.T, opts ...ClientOps) ClientInterface {
 	c, err := NewClient(
-		ctx, append(opts, WithDebugging())...,
+		ctx, append(opts, WithDebugging(), WithMinercraft(&minerCraftTxOnChain{}))...,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, c)

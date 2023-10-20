@@ -50,8 +50,7 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	transactions := make([]*bt.Tx, 0, len(inputs)+1)
 
 	for _, input := range inputs {
-		var prevTxs []*bt.Tx
-		prevTxs, err = getParentTransactionsForInput(ctx, tx.client, input)
+		prevTxs, err := getParentTransactionsForInput(ctx, tx.client, input)
 		if err != nil {
 			return nil, fmt.Errorf("retrieve input parent transaction failed: %w", err)
 		}

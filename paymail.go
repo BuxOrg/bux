@@ -156,6 +156,10 @@ func startP2PTransaction(client paymail.ClientInterface,
 
 // finalizeP2PTransaction will notify the paymail provider about the transaction
 func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface, p4 *PaymailP4, transaction *Transaction) (*paymail.P2PTransactionPayload, error) {
+	if transaction.client != nil {
+		transaction.client.Logger().Info(ctx, fmt.Sprintf("finalizeP2PTransaction(): start %s for TxID: %s", p4.Format, transaction.ID))
+	}
+
 	p2pTransaction, err := buildP2pTx(ctx, p4, transaction)
 	if err != nil {
 		return nil, err
@@ -163,9 +167,15 @@ func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface,
 
 	response, err := client.SendP2PTransaction(p4.ReceiveEndpoint, p4.Alias, p4.Domain, p2pTransaction)
 	if err != nil {
+		if transaction.client != nil {
+			transaction.client.Logger().Info(ctx, fmt.Sprintf("finalizeP2PTransaction(): error %s for TxID: %s, reason: %s", p4.Format, transaction.ID, err.Error()))
+		}
 		return nil, err
 	}
 
+	if transaction.client != nil {
+		transaction.client.Logger().Info(ctx, fmt.Sprintf("finalizeP2PTransaction(): successfully finished %s for TxID: %s", p4.Format, transaction.ID))
+	}
 	return &response.P2PTransactionPayload, nil
 }
 

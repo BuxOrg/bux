@@ -97,7 +97,6 @@ func TestClient_Transaction_MAPI(t *testing.T) {
 		assert.Equal(t, minerTaal.Name, info.Provider)
 		assert.Equal(t, minerTaal.MinerID, info.MinerID)
 	})
-
 }
 
 func TestClient_Transaction_BroadcastClient(t *testing.T) {
@@ -110,6 +109,7 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 			Build()
 		c := NewTestClient(
 			context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}),
 			WithBroadcastClient(bc),
 		)
 
@@ -135,6 +135,7 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 			Build()
 		c := NewTestClient(
 			context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}),
 			WithBroadcastClient(bc),
 			WithNetwork(StressTestNet),
 		)
@@ -161,6 +162,7 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 			Build()
 		c := NewTestClient(
 			context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}),
 			WithBroadcastClient(bc),
 			WithNetwork(TestNet),
 		)
@@ -296,7 +298,8 @@ func TestClient_Transaction_MultipleClients_Fastest(t *testing.T) {
 
 	t.Run("error - missing id", func(t *testing.T) {
 		// given
-		c := NewTestClient(context.Background(), t)
+		c := NewTestClient(context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}))
 
 		// when
 		info, err := c.QueryTransactionFastest(
@@ -311,7 +314,8 @@ func TestClient_Transaction_MultipleClients_Fastest(t *testing.T) {
 
 	t.Run("error - missing requirements", func(t *testing.T) {
 		// given
-		c := NewTestClient(context.Background(), t)
+		c := NewTestClient(context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}))
 
 		// when
 		info, err := c.QueryTransactionFastest(

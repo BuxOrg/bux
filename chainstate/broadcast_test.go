@@ -35,7 +35,8 @@ func TestClient_Broadcast(t *testing.T) {
 
 	t.Run("error - missing tx id", func(t *testing.T) {
 		// given
-		c := NewTestClient(context.Background(), t)
+		c := NewTestClient(context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}))
 
 		// when
 		provider, err := c.Broadcast(
@@ -50,7 +51,8 @@ func TestClient_Broadcast(t *testing.T) {
 
 	t.Run("error - missing tx hex", func(t *testing.T) {
 		// given
-		c := NewTestClient(context.Background(), t)
+		c := NewTestClient(context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}))
 
 		// when
 		provider, err := c.Broadcast(
@@ -105,6 +107,7 @@ func TestClient_Broadcast_BroadcastClient(t *testing.T) {
 			Build()
 		c := NewTestClient(
 			context.Background(), t,
+			WithMinercraft(&MinerCraftBase{}),
 			WithBroadcastClient(bc),
 		)
 

@@ -2,6 +2,7 @@ package bux
 
 import (
 	"errors"
+
 	"github.com/libsv/go-bt/v2"
 )
 
@@ -76,7 +77,7 @@ func getCompountedMarklePathIndex(tx *bt.Tx, compountedPaths CMPSlice) int {
 
 	for i, cmp := range compountedPaths {
 		for txID := range cmp[0] {
-			if txID == tx.TxID() { // TODO: perf
+			if txID == tx.TxID() {
 				pathIdx = i
 			}
 		}

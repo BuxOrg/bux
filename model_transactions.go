@@ -59,6 +59,7 @@ type Transaction struct {
 	XpubMetadata    XpubMetadata    `json:"-" toml:"xpub_metadata" gorm:"<-;type:json;xpub_id specific metadata" bson:"xpub_metadata,omitempty"`
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
 	MerkleProof     MerkleProof     `json:"merkle_proof" toml:"merkle_proof" yaml:"merkle_proof" gorm:"<-;type:text;comment:Merkle Proof payload from mAPI" bson:"merkle_proof,omitempty"`
+	BUMP            BUMP            `json:"bump" toml:"bump" yaml:"bump" gorm:"<-;type:text;comment:BSV Unified Merkle Path (BUMP) Format" bson:"bump,omitempty"`
 
 	// Virtual Fields
 	OutputValue int64                `json:"output_value" toml:"-" yaml:"-" gorm:"-" bson:"-,omitempty"`
@@ -832,6 +833,11 @@ func (m *Transaction) Migrate(client datastore.ClientInterface) error {
 			return err
 		}
 	}
+	
+	err := m.migrateBUMP()
+	if err != nil {
+		return err
+	}
 
 	return client.IndexMetadata(tableName, xPubMetadataField)
 }
@@ -889,6 +895,21 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 		return nil //nolint:nolintlint,nilerr // error is not needed
 	}
 
+	return nil
+}
+
+func (m *Transaction) migrateBUMP() error {
+	ctx := context.Background()
+	txs, err := getTransactionsToCalculateBUMP(ctx, nil, WithClient(m.client))
+	if err != nil {
+		return err
+	}
+	for _, tx := range txs {
+		bump := tx.MerkleProof.ToBUMP()
+		bump.BlockHeight = tx.BlockHeight
+		tx.BUMP = bump
+		tx.Save(ctx)
+	}
 	return nil
 }
 
@@ -1000,4 +1021,61 @@ func processTransaction(ctx context.Context, transaction *Transaction) error {
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
 
 	return transaction.Save(ctx)
+}
+
+// getTransactionsByConditions will get the sync transactions to migrate
+func getTransactionsByConditions(ctx context.Context, conditions map[string]interface{},
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Transaction, error) {
+	if queryParams == nil {
+		queryParams = &datastore.QueryParams{
+			OrderByField:  createdAtField,
+			SortDirection: datastore.SortAsc,
+		}
+	} else if queryParams.OrderByField == "" || queryParams.SortDirection == "" {
+		queryParams.OrderByField = createdAtField
+		queryParams.SortDirection = datastore.SortAsc
+	}
+	
+	// Get the records
+	var models []Transaction
+	if err := getModels(
+		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		&models, conditions, queryParams, defaultDatabaseReadTimeout,
+	); err != nil {
+		if errors.Is(err, datastore.ErrNoResults) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Loop and enrich
+	txs := make([]*Transaction, 0)
+	for index := range models {
+		models[index].enrich(ModelTransaction, opts...)
+		txs = append(txs, &models[index])
+	}
+
+	return txs, nil
+}
+
+// getTransactionsToMigrateMerklePath will get the transactions where bump should be calculated
+func getTransactionsToCalculateBUMP(ctx context.Context, queryParams *datastore.QueryParams,
+	opts ...ModelOps,
+) ([]*Transaction, error) {
+	// Get the records by status
+	txs, err := getTransactionsByConditions(
+		ctx,
+		map[string]interface{}{
+			bumpField: nil,
+			merkleProofField: map[string]interface{}{
+				"$exists": true,
+			},
+		},
+		queryParams, opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return txs, nil
 }

@@ -79,3 +79,26 @@ func (m MerkleProof) Value() (driver.Value, error) {
 
 	return string(marshal), nil
 }
+
+func (m *MerkleProof) ToBUMP() BUMP {
+	bump := BUMP{}
+	height := len(m.Nodes)
+	if height == 0 {
+		return bump
+	}
+	path := make([]BUMPPathMap, 0)
+	txIdPath := make(BUMPPathMap, 2)
+	offset := m.Index
+	op := offsetPair(offset)
+	txIdPath[fmt.Sprint(offset)] = BUMPPathElement{Hash: m.TxOrID, TxId: true}
+	txIdPath[fmt.Sprint(op)] = BUMPPathElement{Hash: m.Nodes[0]}
+	path = append(path, txIdPath)
+	for i := 1; i < height; i++ {
+		p := make(BUMPPathMap, 1)
+		offset = parrentOffset(offset)
+		p[fmt.Sprint(offset)] = BUMPPathElement{Hash: m.Nodes[i]}
+		path = append(path, p)
+	}
+	bump.Path = path
+	return bump
+}

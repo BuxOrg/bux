@@ -672,6 +672,9 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 	transaction.BlockHash = txInfo.BlockHash
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
 	transaction.MerkleProof = MerkleProof(*txInfo.MerkleProof)
+	bump := transaction.MerkleProof.ToBUMP()
+	bump.BlockHeight = transaction.BlockHeight
+	transaction.BUMP = bump
 
 	// Create status message
 	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient

@@ -111,6 +111,8 @@ const (
 	xPubMetadataField    = "xpub_metadata"
 	blockHeightField     = "block_height"
 	blockHashField       = "block_hash"
+	merkleProofField     = "merkle_proof"
+	bumpField            = "bump"
 
 	// Universal statuses
 	statusCanceled   = "canceled"

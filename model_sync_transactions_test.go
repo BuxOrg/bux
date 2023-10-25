@@ -93,7 +93,7 @@ func Test_areParentsBroadcast(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := areParentsBroadcast(ctx, tt.args.tx, tt.args.opts...)
+			got, err := _areParentsBroadcast(ctx, tt.args.tx, tt.args.opts...)
 			if !tt.wantErr(t, err, fmt.Sprintf("areParentsBroadcast(%v, %v, %v)", ctx, tt.args.tx, tt.args.opts)) {
 				return
 			}

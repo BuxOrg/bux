@@ -275,7 +275,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		transaction.transactionService = transactionServiceMock{}
 
 		ctx := context.Background()
-		err := transaction.processOutputs(ctx)
+		err := transaction._processOutputs(ctx)
 		require.NoError(t, err)
 		assert.Nil(t, transaction.utxos)
 		assert.Nil(t, transaction.XpubOutIDs)
@@ -298,7 +298,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		}
 
 		ctx := context.Background()
-		err := transaction.processOutputs(ctx)
+		err := transaction._processOutputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -328,7 +328,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		}
 
 		ctx := context.Background()
-		err := transaction.processOutputs(ctx)
+		err := transaction._processOutputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])

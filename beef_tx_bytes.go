@@ -1,9 +1,7 @@
 package bux
 
 import (
-	"encoding/hex"
 	"errors"
-	"fmt"
 
 	"github.com/libsv/go-bt/v2"
 )
@@ -36,7 +34,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	transactions := make([][]byte, 0, len(beefTx.transactions))
 
 	for _, t := range beefTx.transactions {
-		txBytes, err := t.toBeefBytes(beefTx.compoundMerklePaths)
+		txBytes, err := toBeefBytes(t, beefTx.compoundMerklePaths)
 		if err != nil {
 			return nil, err
 		}
@@ -60,14 +58,10 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	return buffer, nil
 }
 
-func (tx *Transaction) toBeefBytes(compountedPaths CMPSlice) ([]byte, error) {
-	txBeefBytes, err := hex.DecodeString(tx.Hex)
+func toBeefBytes(tx *bt.Tx, compountedPaths CMPSlice) ([]byte, error) {
+	txBeefBytes := tx.Bytes()
 
-	if err != nil {
-		return nil, fmt.Errorf("decoding tx (ID: %s) hex failed: %w", tx.ID, err)
-	}
-
-	cmpIdx := tx.getCompountedMarklePathIndex(compountedPaths)
+	cmpIdx := getCompountedMarklePathIndex(tx, compountedPaths)
 	if cmpIdx > -1 {
 		txBeefBytes = append(txBeefBytes, hasCmp)
 		txBeefBytes = append(txBeefBytes, bt.VarInt(cmpIdx).Bytes()...)
@@ -78,12 +72,12 @@ func (tx *Transaction) toBeefBytes(compountedPaths CMPSlice) ([]byte, error) {
 	return txBeefBytes, nil
 }
 
-func (tx *Transaction) getCompountedMarklePathIndex(compountedPaths CMPSlice) int {
+func getCompountedMarklePathIndex(tx *bt.Tx, compountedPaths CMPSlice) int {
 	pathIdx := -1
 
 	for i, cmp := range compountedPaths {
 		for txID := range cmp[0] {
-			if txID == tx.ID {
+			if txID == tx.TxID() {
 				pathIdx = i
 			}
 		}

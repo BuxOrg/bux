@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"runtime"
@@ -640,21 +641,6 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 		return err
 	}
 
-	// Find on-chain
-	var txInfo *chainstate.TransactionInfo
-	// only mAPI currently provides merkle proof, so QueryTransaction should be used here
-	if txInfo, err = syncTx.Client().Chainstate().QueryTransaction(
-		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
-	); err != nil {
-		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			bailAndSaveSyncTransaction(
-				ctx, syncTx, SyncStatusReady, syncActionSync, "all", "transaction not found on-chain",
-			)
-			return nil
-		}
-		return err
-	}
-
 	// Get the transaction
 	if transaction == nil {
 		if transaction, err = getTransactionByID(
@@ -666,6 +652,34 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 
 	if transaction == nil {
 		return ErrMissingTransaction
+	}
+
+	// Find on-chain
+	var txInfo *chainstate.TransactionInfo
+	// only mAPI currently provides merkle proof, so QueryTransaction should be used here
+	if txInfo, err = syncTx.Client().Chainstate().QueryTransaction(
+		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
+	); err != nil {
+		if errors.Is(err, chainstate.ErrTransactionNotFound) {
+			syncTx.client.Logger().Info(ctx, fmt.Sprintf("processSyncTransaction(): Transaction %s not found on-chain, will try again later", syncTx.ID))
+
+			bailAndSaveSyncTransaction(
+				ctx, syncTx, SyncStatusReady, syncActionSync, "all", "transaction not found on-chain",
+			)
+			return nil
+		}
+		return err
+	}
+
+	// validate txInfo
+	if txInfo.BlockHash == "" || txInfo.MerkleProof == nil || txInfo.MerkleProof.TxOrID == "" || len(txInfo.MerkleProof.Nodes) == 0 {
+		syncTx.client.Logger().Warn(ctx, fmt.Sprintf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID))
+
+		if syncTx.client.IsDebug() {
+			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr // error is not needed
+			syncTx.DebugLog(string(txInfoJSON))
+		}
+		return nil
 	}
 
 	// Add additional information (if found on-chain)
@@ -703,6 +717,7 @@ func processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transa
 		return err
 	}
 
+	syncTx.client.Logger().Info(ctx, fmt.Sprintf("processSyncTransaction(): Transaction %s processed successfully", syncTx.ID))
 	// Done!
 	return nil
 }

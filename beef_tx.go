@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
+	"github.com/libsv/go-bt/v2"
 )
 
 const maxBeefVer = uint32(0xFFFF) // value from BRC-62
@@ -27,7 +29,7 @@ func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
 type beefTx struct {
 	version             uint32
 	compoundMerklePaths CMPSlice
-	transactions        []*Transaction
+	transactions        []*bt.Tx
 }
 
 func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, error) {
@@ -46,7 +48,7 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 
 	// get inputs parent transactions
 	inputs := tx.draftTransaction.Configuration.Inputs
-	transactions := make([]*Transaction, 0, len(inputs)+1)
+	transactions := make([]*bt.Tx, 0, len(inputs)+1)
 
 	for _, input := range inputs {
 		prevTxs, err := getParentTransactionsForInput(ctx, tx.client, input)
@@ -58,7 +60,11 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	}
 
 	// add current transaction
-	transactions = append(transactions, tx)
+	btTx, err := bt.NewTxFromString(tx.Hex)
+	if err != nil {
+		return nil, fmt.Errorf("cannot convert new transaction to bt.Tx from hex (tx.ID: %s). Reason: %w", tx.ID, err)
+	}
+	transactions = append(transactions, btTx)
 
 	beef := &beefTx{
 		version:             version,
@@ -75,7 +81,7 @@ func hydrateTransaction(ctx context.Context, tx *Transaction) error {
 			ctx, tx.XPubID, tx.DraftID, tx.GetOptions(false)...,
 		)
 
-		if err != nil {
+		if err != nil || dTx == nil {
 			return fmt.Errorf("retrieve DraftTransaction failed: %w", err)
 		}
 
@@ -99,18 +105,19 @@ func validateCompoundMerklePathes(compountedPaths CMPSlice) error {
 	return nil
 }
 
-func getParentTransactionsForInput(ctx context.Context, client ClientInterface, input *TransactionInput) ([]*Transaction, error) {
+func getParentTransactionsForInput(ctx context.Context, client ClientInterface, input *TransactionInput) ([]*bt.Tx, error) {
 	inputTx, err := client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = hydrateTransaction(ctx, inputTx); err != nil {
-		return nil, err
-	}
-
 	if inputTx.MerkleProof.TxOrID != "" {
-		return []*Transaction{inputTx}, nil
+		inputBtTx, err := bt.NewTxFromString(inputTx.Hex)
+		if err != nil {
+			return nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
+		}
+
+		return []*bt.Tx{inputBtTx}, nil
 	}
 
 	return nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID) // TODO: handle it in next iterration

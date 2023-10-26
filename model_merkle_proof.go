@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 
 	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt/v2"
@@ -86,17 +87,19 @@ func (m *MerkleProof) ToBUMP() BUMP {
 	if height == 0 {
 		return bump
 	}
-	path := make([]BUMPPathMap, 0)
-	txIdPath := make(BUMPPathMap, 2)
+	path := make([][]BUMPLeaf, 0)
+	txIdPath := make([]BUMPLeaf, 0)
 	offset := m.Index
-	op := offsetPair(offset)
-	txIdPath[fmt.Sprint(offset)] = BUMPPathElement{Hash: m.TxOrID, TxId: true}
-	txIdPath[fmt.Sprint(op)] = BUMPPathElement{Hash: m.Nodes[0]}
+	txIdPath = append(txIdPath, BUMPLeaf{Offset: offset, Hash: m.TxOrID, TxId: true})
+	txIdPath = append(txIdPath, BUMPLeaf{Offset: offsetPair(offset), Hash: m.Nodes[0]})
+	sort.Slice(txIdPath , func(i, j int) bool {
+        return txIdPath[i].Offset < txIdPath[j].Offset
+    })
 	path = append(path, txIdPath)
 	for i := 1; i < height; i++ {
-		p := make(BUMPPathMap, 1)
+		p := make([]BUMPLeaf, 0)
 		offset = parrentOffset(offset)
-		p[fmt.Sprint(offset)] = BUMPPathElement{Hash: m.Nodes[i]}
+		p = append(p, BUMPLeaf{Offset: offset, Hash: m.Nodes[i]})
 		path = append(path, p)
 	}
 	bump.Path = path

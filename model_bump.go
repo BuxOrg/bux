@@ -10,15 +10,13 @@ import (
 
 // BUMP represents BUMP format
 type BUMP struct {
-	BlockHeight uint64         `json:"blockHeight,string"`
-	Path        []BUMPPathMap `json:"path"`
+	BlockHeight uint64          `json:"blockHeight,string"`
+	Path        [][]BUMPLeaf `json:"path"`
 }
 
-// BUMPPathMap represents map with pathes
-type BUMPPathMap map[string]BUMPPathElement
-
 // BUMPPathElement represents each BUMP path element
-type BUMPPathElement struct {
+type BUMPLeaf struct {
+	Offset    uint64 `json:"offset,string"`
 	Hash      string `json:"hash,omitempty"`
 	TxId      bool   `json:"txid,omitempty"`
 	Duplicate bool   `json:"duplicate,omitempty"`

@@ -86,19 +86,19 @@ func TestMerkleProofModel_ToBUMP(t *testing.T) {
 			Nodes:  []string{"node0", "node1", "node2", "node3"},
 		}
 		expectedBUMP := BUMP{
-			Path: []BUMPPathMap{
+			Path: [][]BUMPLeaf{
 				{
-					"0": BUMPPathElement{Hash: "node0"},
-					"1": BUMPPathElement{Hash: "txId", TxId: true},
+					{Offset: 0, Hash: "node0"},
+					{Offset: 1, Hash: "txId", TxId: true},
 				},
 				{
-					"1": BUMPPathElement{Hash: "node1"},
+					{Offset: 1, Hash: "node1"},
 				},
 				{
-					"1": BUMPPathElement{Hash: "node2"},
+					{Offset: 1, Hash: "node2"},
 				},
 				{
-					"1": BUMPPathElement{Hash: "node3"},
+					{Offset: 1, Hash: "node3"},
 				},
 			},
 		}
@@ -113,22 +113,22 @@ func TestMerkleProofModel_ToBUMP(t *testing.T) {
 			Nodes:  []string{"node0", "node1", "node2", "node3", "node4"},
 		}
 		expectedBUMP := BUMP{
-			Path: []BUMPPathMap{
+			Path: [][]BUMPLeaf{
 				{
-					"14": BUMPPathElement{Hash: "txId", TxId: true},
-					"15": BUMPPathElement{Hash: "node0"},
+					{Offset: 14, Hash: "txId", TxId: true},
+					{Offset: 15, Hash: "node0"},
 				},
 				{
-					"6": BUMPPathElement{Hash: "node1"},
+					{Offset: 6, Hash: "node1"},
 				},
 				{
-					"2": BUMPPathElement{Hash: "node2"},
+					{Offset: 2, Hash: "node2"},
 				},
 				{
-					"0": BUMPPathElement{Hash: "node3"},
+					{Offset: 0, Hash: "node3"},
 				},
 				{
-					"1": BUMPPathElement{Hash: "node4"},
+					{Offset: 1, Hash: "node4"},
 				},
 			},
 		}

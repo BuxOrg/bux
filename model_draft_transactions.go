@@ -38,6 +38,7 @@ type DraftTransaction struct {
 	Configuration        TransactionConfig `json:"configuration" toml:"configuration" yaml:"configuration" gorm:"<-;type:text;comment:This is the configuration struct in JSON" bson:"configuration"`
 	Status               DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
 	FinalTxID            string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
+	CompoundMerklePathes CMPSlice          `json:"compound_merkle_pathes,omitempty" toml:"compound_merkle_pathes" yaml:"compound_merkle_pathes" gorm:"<-;type:text;comment:Slice of Compound Merkle Path" bson:"compound_merkle_pathes,omitempty"`
 	BumpPaths            BUMPPaths         `json:"bump_pathes,omitempty" toml:"bump_pathes" yaml:"bump_pathes" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_pathes,omitempty"`
 }
 
@@ -411,6 +412,13 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		return ErrTransactionFeeInvalid
 	}
 
+	for _, v := range merkleProofs {
+		cmp, err := CalculateCompoundMerklePath(v)
+		if err != nil {
+			return err
+		}
+		m.CompoundMerklePathes = append(m.CompoundMerklePathes, cmp)
+	}
 	for _, v := range merkleProofs {
 		bump, err := CalculateMergedBUMP(v)
 		if err != nil {

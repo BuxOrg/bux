@@ -423,7 +423,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		if err != nil {
 			return err
 		}
-		m.BumpPaths = append(m.BumpPaths, bump)
+		m.BUMPPaths = append(m.BUMPPaths, bump)
 	}
 	// Create the final hex (without signatures)
 	m.Hex = tx.String()

@@ -27,9 +27,9 @@ func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
 }
 
 type beefTx struct {
-	version             uint32
-	compoundMerklePaths CMPSlice
-	transactions        []*bt.Tx
+	version      uint32
+	bumpPaths    BUMPPaths
+	transactions []*bt.Tx
 }
 
 func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, error) {
@@ -69,9 +69,9 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	transactions = append(transactions, btTx)
 
 	beef := &beefTx{
-		version:             version,
-		compoundMerklePaths: tx.draftTransaction.CompoundMerklePathes,
-		transactions:        kahnTopologicalSortTransactions(transactions),
+		version:      version,
+		bumpPaths:    tx.draftTransaction.BUMPPaths,
+		transactions: kahnTopologicalSortTransactions(transactions),
 	}
 
 	return beef, nil

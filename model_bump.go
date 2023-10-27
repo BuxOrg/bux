@@ -119,38 +119,51 @@ func (bump *BUMP) Hex() string {
 	return bump.bytesBuffer().String()
 }
 
-func (bump *BUMP) bytesBuffer() *bytes.Buffer {
-	var buff bytes.Buffer
-	buff.WriteString(hex.EncodeToString(bt.VarInt(bump.BlockHeight).Bytes()))
-
-	height := len(bump.Path)
-	buff.WriteString(leadingZeroInt(height))
-
-	for i := 0; i < height; i++ {
-		nodes := bump.Path[i]
-
-		nLeafs := len(nodes)
-		buff.WriteString(hex.EncodeToString(bt.VarInt(nLeafs).Bytes()))
-		for _, n := range nodes {
-			buff.WriteString(hex.EncodeToString(bt.VarInt(n.Offset).Bytes()))
-			buff.WriteString(fmt.Sprintf("%02x", flags(n.TxID, n.Duplicate)))
-			decodedHex, _ := hex.DecodeString(n.Hash)
-			buff.WriteString(hex.EncodeToString(bt.ReverseBytes(decodedHex)))
-		}
-	}
-	return &buff
-}
-
 // In case the offset or height is less than 10, they must be written with a leading zero
 func leadingZeroInt(i int) string {
 	return fmt.Sprintf("%02x", i)
 }
 
+func (bump *BUMP) bytesBuffer() *bytes.Buffer {
+	var buff bytes.Buffer
+	buff.WriteString(hex.EncodeToString(addBlockHeight(bump.BlockHeight)))
+	buff.WriteString(leadingZeroInt(len(bump.Path)))
+
+	for _, nodes := range bump.Path {
+		buff.WriteString(hex.EncodeToString(addPath(nodes)))
+	}
+	return &buff
+}
+
+func addBlockHeight(blockHeight uint64) []byte {
+	return bt.VarInt(blockHeight).Bytes()
+}
+
+func addPath(nodes []BUMPNode) []byte {
+	var buff bytes.Buffer
+	buff.WriteString(hex.EncodeToString(bt.VarInt(len(nodes)).Bytes()))
+
+	for _, n := range nodes {
+		buff.WriteString(hex.EncodeToString(addNode(n)))
+	}
+	return buff.Bytes()
+}
+
+func addNode(n BUMPNode) []byte {
+	var buff bytes.Buffer
+	buff.WriteString(hex.EncodeToString(bt.VarInt(n.Offset).Bytes()))
+	buff.WriteString(fmt.Sprintf("%02x", flags(n.TxID, n.Duplicate)))
+
+	decodedHex, _ := hex.DecodeString(n.Hash)
+	buff.WriteString(hex.EncodeToString(bt.ReverseBytes(decodedHex)))
+	return buff.Bytes()
+}
+
 func flags(txID, duplicate bool) byte {
 	var (
-		dataFlag      byte = 00
-		duplicateFlag byte = 01
-		txIDFlag      byte = 02
+		dataFlag      byte = 0o0
+		duplicateFlag byte = 0o1
+		txIDFlag      byte = 0o2
 	)
 
 	if duplicate {
@@ -188,6 +201,39 @@ func (bump BUMP) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	marshal, err := json.Marshal(bump)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(marshal), nil
+}
+
+// Scan scan value into Json, implements sql.Scanner interface
+func (paths *BUMPPaths) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	xType := fmt.Sprintf("%T", value)
+	var byteValue []byte
+	if xType == ValueTypeString {
+		byteValue = []byte(value.(string))
+	} else {
+		byteValue = value.([]byte)
+	}
+	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+		return nil
+	}
+
+	return json.Unmarshal(byteValue, &paths)
+}
+
+// Value return json value, implement driver.Valuer interface
+func (paths BUMPPaths) Value() (driver.Value, error) {
+	if reflect.DeepEqual(paths, BUMPPaths{}) {
+		return nil, nil
+	}
+	marshal, err := json.Marshal(paths)
 	if err != nil {
 		return nil, err
 	}

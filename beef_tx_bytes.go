@@ -6,11 +6,13 @@ import (
 	"github.com/libsv/go-bt/v2"
 )
 
-var hasCmp = byte(0x01)
-var hasNoCmp = byte(0x00)
+var (
+	hasBUMP   = byte(0x01)
+	hasNoBUMP = byte(0x00)
+)
 
 func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
-	if len(beefTx.compoundMerklePaths) == 0 || len(beefTx.transactions) < 2 { // valid BEEF contains at least two transactions (new transaction and one parent transaction)
+	if len(beefTx.bumpPaths) == 0 || len(beefTx.transactions) < 2 { // valid BEEF contains at least two transactions (new transaction and one parent transaction)
 		return nil, errors.New("beef tx is incomplete")
 	}
 
@@ -22,11 +24,11 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	ver[3] = 0xEF
 	beefSize += len(ver)
 
-	nPaths := bt.VarInt(len(beefTx.compoundMerklePaths)).Bytes()
-	beefSize += len(nPaths)
+	nBUMPS := bt.VarInt(len(beefTx.bumpPaths)).Bytes()
+	beefSize += len(nBUMPS)
 
-	compoundMerklePaths := beefTx.compoundMerklePaths.Bytes()
-	beefSize += len(compoundMerklePaths)
+	bumps := beefTx.bumpPaths.Bytes()
+	beefSize += len(bumps)
 
 	nTransactions := bt.VarInt(uint64(len(beefTx.transactions))).Bytes()
 	beefSize += len(nTransactions)
@@ -34,7 +36,10 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	transactions := make([][]byte, 0, len(beefTx.transactions))
 
 	for _, t := range beefTx.transactions {
-		txBytes := toBeefBytes(t, beefTx.compoundMerklePaths)
+		txBytes, err := toBeefBytes(t, beefTx.bumpPaths)
+		if err != nil {
+			return nil, err
+		}
 
 		transactions = append(transactions, txBytes)
 		beefSize += len(txBytes)
@@ -42,9 +47,9 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 
 	// compose beef
 	buffer := make([]byte, 0, beefSize)
-	buffer = append(buffer, ver...)
-	buffer = append(buffer, nPaths...)
-	buffer = append(buffer, compoundMerklePaths...)
+	buffer = append(buffer, version...)
+	buffer = append(buffer, nBUMPS...)
+	buffer = append(buffer, bumps...)
 
 	buffer = append(buffer, nTransactions...)
 
@@ -55,30 +60,30 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	return buffer, nil
 }
 
-func toBeefBytes(tx *bt.Tx, compountedPaths CMPSlice) []byte {
+func toBeefBytes(tx *bt.Tx, bumps BUMPPaths) ([]byte, error) {
 	txBeefBytes := tx.Bytes()
 
-	cmpIdx := getCompountedMarklePathIndex(tx, compountedPaths)
+	cmpIdx := getBumpPathIndex(tx, bumps)
 	if cmpIdx > -1 {
-		txBeefBytes = append(txBeefBytes, hasCmp)
+		txBeefBytes = append(txBeefBytes, hasBUMP)
 		txBeefBytes = append(txBeefBytes, bt.VarInt(cmpIdx).Bytes()...)
 	} else {
-		txBeefBytes = append(txBeefBytes, hasNoCmp)
+		txBeefBytes = append(txBeefBytes, hasNoBUMP)
 	}
 
-	return txBeefBytes
+	return txBeefBytes, nil
 }
 
-func getCompountedMarklePathIndex(tx *bt.Tx, compountedPaths CMPSlice) int {
-	pathIdx := -1
+func getBumpPathIndex(tx *bt.Tx, bumps BUMPPaths) int {
+	bumpIndex := -1
 
-	for i, cmp := range compountedPaths {
-		for txID := range cmp[0] {
-			if txID == tx.TxID() {
-				pathIdx = i
+	for i, bump := range bumps {
+		for txID := range bump.Path[0] {
+			if txID == txID {
+				bumpIndex = i
 			}
 		}
 	}
 
-	return pathIdx
+	return bumpIndex
 }

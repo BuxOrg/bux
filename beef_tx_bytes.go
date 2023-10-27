@@ -17,10 +17,10 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	// get beef bytes
 	beefSize := 0
 
-	version := bt.LittleEndianBytes(beefTx.version, 4)
-	version[2] = 0xBE
-	version[3] = 0xEF
-	beefSize += len(version)
+	ver := bt.LittleEndianBytes(beefTx.version, 4)
+	ver[2] = 0xBE
+	ver[3] = 0xEF
+	beefSize += len(ver)
 
 	nPaths := bt.VarInt(len(beefTx.compoundMerklePaths)).Bytes()
 	beefSize += len(nPaths)
@@ -34,10 +34,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	transactions := make([][]byte, 0, len(beefTx.transactions))
 
 	for _, t := range beefTx.transactions {
-		txBytes, err := toBeefBytes(t, beefTx.compoundMerklePaths)
-		if err != nil {
-			return nil, err
-		}
+		txBytes := toBeefBytes(t, beefTx.compoundMerklePaths)
 
 		transactions = append(transactions, txBytes)
 		beefSize += len(txBytes)
@@ -45,7 +42,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 
 	// compose beef
 	buffer := make([]byte, 0, beefSize)
-	buffer = append(buffer, version...)
+	buffer = append(buffer, ver...)
 	buffer = append(buffer, nPaths...)
 	buffer = append(buffer, compoundMerklePaths...)
 
@@ -58,7 +55,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	return buffer, nil
 }
 
-func toBeefBytes(tx *bt.Tx, compountedPaths CMPSlice) ([]byte, error) {
+func toBeefBytes(tx *bt.Tx, compountedPaths CMPSlice) []byte {
 	txBeefBytes := tx.Bytes()
 
 	cmpIdx := getCompountedMarklePathIndex(tx, compountedPaths)
@@ -69,7 +66,7 @@ func toBeefBytes(tx *bt.Tx, compountedPaths CMPSlice) ([]byte, error) {
 		txBeefBytes = append(txBeefBytes, hasNoCmp)
 	}
 
-	return txBeefBytes, nil
+	return txBeefBytes
 }
 
 func getCompountedMarklePathIndex(tx *bt.Tx, compountedPaths CMPSlice) int {

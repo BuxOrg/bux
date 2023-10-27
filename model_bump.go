@@ -24,11 +24,11 @@ type BUMP struct {
 	allNodes []map[uint64]bool
 }
 
-// BUMPLeaf represents each BUMP path element
+// BUMPNode represents each BUMP path element
 type BUMPNode struct {
 	Offset    uint64 `json:"offset,string"`
 	Hash      string `json:"hash"`
-	TxId      bool   `json:"txid,omitempty"`
+	TxID      bool   `json:"txid,omitempty"`
 	Duplicate bool   `json:"duplicate,omitempty"`
 }
 
@@ -89,7 +89,7 @@ func (bump *BUMP) add(b BUMP) error {
 				bump.allNodes[i][v.Offset] = true
 				continue
 			}
-			if i == 0 && value && v.TxId {
+			if i == 0 && value && v.TxID {
 				for j := range bump.Path[i] {
 					if bump.Path[i][j].Offset == v.Offset {
 						bump.Path[i][j] = v
@@ -133,7 +133,7 @@ func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 		buff.WriteString(hex.EncodeToString(bt.VarInt(nLeafs).Bytes()))
 		for _, n := range nodes {
 			buff.WriteString(hex.EncodeToString(bt.VarInt(n.Offset).Bytes()))
-			buff.WriteString(fmt.Sprintf("%02x", flags(n.TxId, n.Duplicate)))
+			buff.WriteString(fmt.Sprintf("%02x", flags(n.TxID, n.Duplicate)))
 			decodedHex, _ := hex.DecodeString(n.Hash)
 			buff.WriteString(hex.EncodeToString(bt.ReverseBytes(decodedHex)))
 		}
@@ -146,24 +146,24 @@ func leadingZeroInt(i int) string {
 	return fmt.Sprintf("%02x", i)
 }
 
-func flags(txId, duplicate bool) byte {
+func flags(txID, duplicate bool) byte {
 	var (
 		dataFlag      byte = 00
 		duplicateFlag byte = 01
-		txIdFlag      byte = 02
+		txIDFlag      byte = 02
 	)
 
 	if duplicate {
 		return duplicateFlag
 	}
-	if txId {
-		return txIdFlag
+	if txID {
+		return txIDFlag
 	}
 	return dataFlag
 }
 
 // Scan scan value into Json, implements sql.Scanner interface
-func (m *BUMP) Scan(value interface{}) error {
+func (bump *BUMP) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -179,15 +179,15 @@ func (m *BUMP) Scan(value interface{}) error {
 		return nil
 	}
 
-	return json.Unmarshal(byteValue, &m)
+	return json.Unmarshal(byteValue, &bump)
 }
 
 // Value return json value, implement driver.Valuer interface
-func (m BUMP) Value() (driver.Value, error) {
-	if reflect.DeepEqual(m, BUMP{}) {
+func (bump BUMP) Value() (driver.Value, error) {
+	if reflect.DeepEqual(bump, BUMP{}) {
 		return nil, nil
 	}
-	marshal, err := json.Marshal(m)
+	marshal, err := json.Marshal(bump)
 	if err != nil {
 		return nil, err
 	}

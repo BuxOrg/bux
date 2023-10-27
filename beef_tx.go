@@ -51,7 +51,8 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	transactions := make([]*bt.Tx, 0, len(inputs)+1)
 
 	for _, input := range inputs {
-		prevTxs, err := getParentTransactionsForInput(ctx, tx.client, input)
+		var prevTxs []*bt.Tx
+		prevTxs, err = getParentTransactionsForInput(ctx, tx.client, input)
 		if err != nil {
 			return nil, fmt.Errorf("retrieve input parent transaction failed: %w", err)
 		}
@@ -60,7 +61,8 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	}
 
 	// add current transaction
-	btTx, err := bt.NewTxFromString(tx.Hex)
+	var btTx *bt.Tx
+	btTx, err = bt.NewTxFromString(tx.Hex)
 	if err != nil {
 		return nil, fmt.Errorf("cannot convert new transaction to bt.Tx from hex (tx.ID: %s). Reason: %w", tx.ID, err)
 	}

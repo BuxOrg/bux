@@ -322,7 +322,7 @@ func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, trans
 		syncTx.client.Logger().Warn(ctx, fmt.Sprintf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID))
 
 		if syncTx.client.IsDebug() {
-			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr // error is not needed
+			txInfoJSON, _ := json.Marshal(txInfo) //nolint:errchkjson // error is not needed
 			syncTx.DebugLog(string(txInfoJSON))
 		}
 		return nil
@@ -333,8 +333,8 @@ func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, trans
 	transaction.BlockHeight = uint64(txInfo.BlockHeight)
 	transaction.MerkleProof = MerkleProof(*txInfo.MerkleProof)
 	bump := transaction.MerkleProof.ToBUMP()
- 	bump.BlockHeight = transaction.BlockHeight
- 	transaction.BUMP = bump
+	bump.BlockHeight = transaction.BlockHeight
+	transaction.BUMP = bump
 
 	// Create status message
 	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient

@@ -89,7 +89,7 @@ func TestMerkleProofModel_ToBUMP(t *testing.T) {
 			Path: [][]BUMPNode{
 				{
 					{Offset: 0, Hash: "node0"},
-					{Offset: 1, Hash: "txId", TxId: true},
+					{Offset: 1, Hash: "txId", TxID: true},
 				},
 				{
 					{Offset: 1, Hash: "node1"},
@@ -115,7 +115,7 @@ func TestMerkleProofModel_ToBUMP(t *testing.T) {
 		expectedBUMP := BUMP{
 			Path: [][]BUMPNode{
 				{
-					{Offset: 14, Hash: "txId", TxId: true},
+					{Offset: 14, Hash: "txId", TxID: true},
 					{Offset: 15, Hash: "node0"},
 				},
 				{

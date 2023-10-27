@@ -231,19 +231,17 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 			// stop execution if block headers import is not successful
 			// the block headers state can be messed up if they are not imported, or half imported
 			panic(err.Error())
-		} else {
-			if blockHeader0 == nil {
-				// import block headers in the background
-				m.Client().Logger().Info(ctx, "Importing block headers into database")
-				err = m.importBlockHeaders(ctx, client, blockHeadersFile)
-				if err != nil {
-					// stop execution if block headers import is not successful
-					// the block headers state can be messed up if they are not imported, or half imported
-					panic(err.Error())
-				} else {
-					m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
-				}
+		}
+		if blockHeader0 == nil {
+			// import block headers in the background
+			m.Client().Logger().Info(ctx, "Importing block headers into database")
+			err = m.importBlockHeaders(ctx, client, blockHeadersFile)
+			if err != nil {
+				// stop execution if block headers import is not successful
+				// the block headers state can be messed up if they are not imported, or half imported
+				panic(err.Error())
 			}
+			m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
 		}
 	}
 

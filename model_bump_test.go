@@ -30,7 +30,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						Offset: 1,
 						Hash:   "txId",
-						TxId:   true,
+						TxID:   true,
 					},
 				},
 				{
@@ -103,7 +103,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						Offset: 2,
 						Hash:   "txId1",
-						TxId:   true,
+						TxID:   true,
 					},
 					{
 						Offset: 3,
@@ -116,7 +116,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						Offset: 7,
 						Hash:   "txId2",
-						TxId:   true,
+						TxID:   true,
 					},
 					{
 						Offset: 12,
@@ -125,7 +125,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						Offset: 13,
 						Hash:   "txId3",
-						TxId:   true,
+						TxID:   true,
 					},
 				},
 				{
@@ -222,12 +222,12 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						Offset: 8,
 						Hash:   "I",
-						TxId:   true,
+						TxID:   true,
 					},
 					{
 						Offset: 9,
 						Hash:   "J",
-						TxId:   true,
+						TxID:   true,
 					},
 				},
 				{
@@ -361,7 +361,7 @@ func TestBUMPModel_Hex(t *testing.T) {
 					},
 					{
 						Offset: 1,
-						TxId:   true,
+						TxID:   true,
 						Hash:   "0b",
 					},
 				},
@@ -400,12 +400,12 @@ func TestBUMPModel_Hex(t *testing.T) {
 					},
 					{
 						Offset: 3049,
-						TxId:   true,
+						TxID:   true,
 						Hash:   "d888711d588021e588984e8278a2decf927298173a06737066e43f3e75534e00",
 					},
 					{
 						Offset: 3050,
-						TxId:   true,
+						TxID:   true,
 						Hash:   "98c9c5dd79a18f40837061d5e0395ffb52e700a2689e641d19f053fc9619445e",
 					},
 					{
@@ -533,7 +533,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 					{
 						Offset: 1153,
 						Hash:   "2130b63dcbfe1356a30137fe9578691f59c6cf42d5e8928a800619de7f8e14da",
-						TxId:   true,
+						TxID:   true,
 					},
 				},
 				{

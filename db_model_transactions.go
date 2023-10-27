@@ -300,7 +300,7 @@ func (m *Transaction) migrateBUMP() error {
 		bump := tx.MerkleProof.ToBUMP()
 		bump.BlockHeight = tx.BlockHeight
 		tx.BUMP = bump
-		tx.Save(ctx)
+		_ = tx.Save(ctx)
 	}
 	return nil
 }

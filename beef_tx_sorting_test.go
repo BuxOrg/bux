@@ -21,7 +21,7 @@ func Test_kahnTopologicalSortTransaction(t *testing.T) {
 		},
 		{
 			name:                       "txs with inputs from other txs",
-			expectedSortedTransactions: getTxsFromOldestToNewestWithUnecessaryData(),
+			expectedSortedTransactions: getTxsFromOldestToNewestWithUnnecessaryData(),
 		},
 	}
 
@@ -69,21 +69,21 @@ func getTxsFromOldestToNewestWithNecessaryDataOnly() []*bt.Tx {
 	return txsFromOldestToNewest
 }
 
-func getTxsFromOldestToNewestWithUnecessaryData() []*bt.Tx {
-	unnecessaryParentTx_1 := createTx()
-	unnecessaryParentTx_2 := createTx()
-	unnecessaryParentTx_3 := createTx()
-	unnecessaryParentTx_4 := createTx()
+func getTxsFromOldestToNewestWithUnnecessaryData() []*bt.Tx {
+	unnecessaryParentTx1 := createTx()
+	unnecessaryParentTx2 := createTx()
+	unnecessaryParentTx3 := createTx()
+	unnecessaryParentTx4 := createTx()
 
 	// create related transactions from oldest to newest
 	oldestTx := createTx()
 	secondTx := createTx(oldestTx)
 	thirdTx := createTx(secondTx)
-	fourthTx := createTx(thirdTx, secondTx, unnecessaryParentTx_1, unnecessaryParentTx_4)
+	fourthTx := createTx(thirdTx, secondTx, unnecessaryParentTx1, unnecessaryParentTx4)
 	fifthTx := createTx(fourthTx, secondTx)
-	sixthTx := createTx(fourthTx, thirdTx, unnecessaryParentTx_3, unnecessaryParentTx_2, unnecessaryParentTx_1)
+	sixthTx := createTx(fourthTx, thirdTx, unnecessaryParentTx3, unnecessaryParentTx2, unnecessaryParentTx1)
 	seventhTx := createTx(fifthTx, thirdTx, oldestTx)
-	eightTx := createTx(seventhTx, sixthTx, fourthTx, secondTx, unnecessaryParentTx_1)
+	eightTx := createTx(seventhTx, sixthTx, fourthTx, secondTx, unnecessaryParentTx1)
 
 	newestTx := createTx(eightTx)
 

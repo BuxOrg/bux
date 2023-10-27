@@ -80,6 +80,7 @@ func (m MerkleProof) Value() (driver.Value, error) {
 	return string(marshal), nil
 }
 
+// ToBUMP transform Merkle Proof to BUMP
 func (m *MerkleProof) ToBUMP() BUMP {
 	bump := BUMP{}
 
@@ -89,30 +90,30 @@ func (m *MerkleProof) ToBUMP() BUMP {
 	}
 
 	path := make([][]BUMPNode, 0)
-	txIdPath := make([]BUMPNode, 2)
+	txIDPath := make([]BUMPNode, 2)
 
 	offset := m.Index
 	pairOffset := offsetPair(offset)
 
-	txIdPath1 := BUMPNode{
+	txIDPath1 := BUMPNode{
 		Offset: offset,
 		Hash:   m.TxOrID,
-		TxId:   true,
+		TxID:   true,
 	}
-	txIdPath2 := BUMPNode{
+	txIDPath2 := BUMPNode{
 		Offset: offsetPair(offset),
 		Hash:   m.Nodes[0],
 	}
 
 	if offset < pairOffset {
-		txIdPath[0] = txIdPath1
-		txIdPath[1] = txIdPath2
+		txIDPath[0] = txIDPath1
+		txIDPath[1] = txIDPath2
 	} else {
-		txIdPath[0] = txIdPath2
-		txIdPath[1] = txIdPath1
+		txIDPath[0] = txIDPath2
+		txIDPath[1] = txIDPath1
 	}
 
-	path = append(path, txIdPath)
+	path = append(path, txIDPath)
 	for i := 1; i < height; i++ {
 		p := make([]BUMPNode, 0)
 		offset = parentOffset(offset)

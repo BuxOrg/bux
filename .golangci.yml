@@ -321,7 +321,6 @@ linters:
     - sqlclosecheck
     - nolintlint
     - gci
-    - goconst
   disable:
     - gocritic # use this for very opinionated linting
     - gochecknoglobals
@@ -334,6 +333,8 @@ linters:
     - nestif
     - nlreturn
     - dupl
+    - goconst
+    - testifylint
   disable-all: false
   presets:
     - bugs

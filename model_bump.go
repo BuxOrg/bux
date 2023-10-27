@@ -102,7 +102,7 @@ func (bump *BUMP) add(b BUMP) error {
 	return nil
 }
 
-// Bytes returns CMPSlice bytes
+// Bytes returns BUMPPaths bytes
 func (bumpPaths *BUMPPaths) Bytes() []byte {
 	var buff bytes.Buffer
 

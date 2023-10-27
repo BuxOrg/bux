@@ -44,7 +44,7 @@ pull_request_rules:
       - "#assignee=0"
     actions:
       assign:
-        users: ["mrz1836"]
+        users: ["arkadiuszos4chain"]
 
   # ===============================================================================
   # ALERTS

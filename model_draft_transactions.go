@@ -412,13 +412,6 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	}
 
 	for _, v := range merkleProofs {
-		cmp, err := CalculateCompoundMerklePath(v)
-		if err != nil {
-			return err
-		}
-		m.CompoundMerklePathes = append(m.CompoundMerklePathes, cmp)
-	}
-	for _, v := range merkleProofs {
 		bump, err := CalculateMergedBUMP(v)
 		if err != nil {
 			return err

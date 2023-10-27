@@ -24,9 +24,6 @@ type BUMP struct {
 	allNodes []map[uint64]bool
 }
 
-// BUMPPath represents slices with paths
-// type BUMPPath [][]BUMPNode
-
 // BUMPLeaf represents each BUMP path element
 type BUMPNode struct {
 	Offset    uint64 `json:"offset,string"`

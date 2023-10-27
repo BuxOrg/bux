@@ -102,11 +102,6 @@ func CalculateCompoundMerklePath(mp []MerkleProof) (CompoundMerklePath, error) {
 	return cmp, nil
 }
 
-// In case the offset or height is less than 10, they must be written with a leading zero
-func leadingZeroInt(i int) string {
-	return fmt.Sprintf("%02x", i)
-}
-
 func (cmp *CompoundMerklePath) add(c CompoundMerklePath) error {
 	if len(*cmp) != len(c) {
 		return errors.New("Compound Merkle Path with different height cannot be added")

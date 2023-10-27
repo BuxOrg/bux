@@ -9,9 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
@@ -19,6 +16,10 @@ import (
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-datastore"
 	"github.com/pkg/errors"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/BuxOrg/bux/utils"
 )
 
 // DraftTransaction is an object representing the draft BitCoin transaction prior to the final transaction
@@ -37,12 +38,11 @@ type DraftTransaction struct {
 	Configuration        TransactionConfig `json:"configuration" toml:"configuration" yaml:"configuration" gorm:"<-;type:text;comment:This is the configuration struct in JSON" bson:"configuration"`
 	Status               DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
 	FinalTxID            string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
-	CompoundMerklePathes CMPSlice          `json:"compound_merkle_pathes,omitempty" toml:"compound_merkle_pathes" yaml:"compound_merkle_pathes" gorm:"<-;type:text;comment:Slice of Compound Merkle Path" bson:"compound_merkle_pathes,omitempty"`
+	BumpPaths            BUMPPaths         `json:"bump_pathes,omitempty" toml:"bump_pathes" yaml:"bump_pathes" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_pathes,omitempty"`
 }
 
 // newDraftTransaction will start a new draft tx
 func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...ModelOps) *DraftTransaction {
-
 	// Random GUID
 	id, _ := utils.RandomHex(32)
 
@@ -79,8 +79,8 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 
 // getDraftTransactionID will get the draft transaction with the given conditions
 func getDraftTransactionID(ctx context.Context, xPubID, id string,
-	opts ...ModelOps) (*DraftTransaction, error) {
-
+	opts ...ModelOps,
+) (*DraftTransaction, error) {
 	// Get the record
 	config := &TransactionConfig{}
 	conditions := map[string]interface{}{
@@ -106,8 +106,8 @@ func getDraftTransactionID(ctx context.Context, xPubID, id string,
 
 // getDraftTransactions will get all the draft transactions with the given conditions
 func getDraftTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*DraftTransaction, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*DraftTransaction, error) {
 	modelItems := make([]*DraftTransaction, 0)
 	if err := getModelsByConditions(ctx, ModelDraftTransaction, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
@@ -118,8 +118,8 @@ func getDraftTransactions(ctx context.Context, metadata *Metadata, conditions *m
 
 // getDraftTransactionsCount will get a count of all the access keys with the given conditions
 func getDraftTransactionsCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	opts ...ModelOps) (int64, error) {
-
+	opts ...ModelOps,
+) (int64, error) {
 	return getModelCountByConditions(ctx, ModelDraftTransaction, DraftTransaction{}, metadata, conditions, opts...)
 }
 
@@ -158,7 +158,6 @@ func (m *DraftTransaction) GetID() string {
 // processConfigOutputs will process all the outputs,
 // doing any lookups and creating locking scripts
 func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
-
 	// Get the client
 	c := m.Client()
 	// Get sender's paymail
@@ -229,7 +228,6 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 
 // createTransactionHex will create the transaction with the given inputs and outputs
 func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error) {
-
 	// Check that we have outputs
 	if len(m.Configuration.Outputs) == 0 && m.Configuration.SendAllTo == nil {
 		return ErrMissingTransactionOutputs
@@ -420,6 +418,13 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		}
 		m.CompoundMerklePathes = append(m.CompoundMerklePathes, cmp)
 	}
+	for _, v := range merkleProofs {
+		bump, err := CalculateMergedBUMP(v)
+		if err != nil {
+			return err
+		}
+		m.BumpPaths = append(m.BumpPaths, bump)
+	}
 	// Create the final hex (without signatures)
 	m.Hex = tx.String()
 
@@ -512,7 +517,6 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 				sc.Script,
 			); err != nil {
 				return
-
 			}
 
 			scriptType := sc.ScriptType
@@ -555,7 +559,6 @@ func (m *DraftTransaction) addOutputsToTx(tx *bt.Tx) (err error) {
 
 // setChangeDestination will make a new change destination
 func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisChange uint64, fee uint64) (uint64, error) {
-
 	m.Configuration.ChangeSatoshis = satoshisChange
 
 	useExistingOutputsForChange := make([]int, 0)
@@ -629,7 +632,6 @@ func (m *DraftTransaction) setChangeDestination(ctx context.Context, satoshisCha
 
 // split the change satoshis amongst the change destinations according to the strategy given in config
 func (m *DraftTransaction) getChangeSatoshis(satoshisChange uint64) (changeSatoshis map[string]uint64, err error) {
-
 	changeSatoshis = make(map[string]uint64)
 	var lastDestination string
 	changeUsed := uint64(0)
@@ -670,7 +672,6 @@ func (m *DraftTransaction) getChangeSatoshis(satoshisChange uint64) (changeSatos
 
 // setChangeDestinations will set the change destinations based on the number
 func (m *DraftTransaction) setChangeDestinations(ctx context.Context, numberOfDestinations int) error {
-
 	// Set the options
 	opts := m.GetOptions(false)
 	optsNew := append(opts, New())
@@ -759,7 +760,6 @@ func (m *DraftTransaction) getTotalSatoshis() (satoshis uint64) {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *DraftTransaction) BeforeCreating(ctx context.Context) (err error) {
-
 	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
 
 	// Prepare the transaction
@@ -804,7 +804,6 @@ func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
 
 // RegisterTasks will register the model specific tasks on client initialization
 func (m *DraftTransaction) RegisterTasks() error {
-
 	// No task manager loaded?
 	tm := m.Client().Taskmanager()
 	if tm == nil {
@@ -844,7 +843,6 @@ func (m *DraftTransaction) Migrate(client datastore.ClientInterface) error {
 
 // SignInputsWithKey will sign all the inputs using a key (string) (helper method)
 func (m *DraftTransaction) SignInputsWithKey(xPrivKey string) (signedHex string, err error) {
-
 	// Decode the xPriv using the key
 	var xPriv *bip32.ExtendedKey
 	if xPriv, err = bip32.NewKeyFromString(xPrivKey); err != nil {
@@ -856,7 +854,6 @@ func (m *DraftTransaction) SignInputsWithKey(xPrivKey string) (signedHex string,
 
 // SignInputs will sign all the inputs using the given xPriv key
 func (m *DraftTransaction) SignInputs(xPriv *bip32.ExtendedKey) (signedHex string, err error) {
-
 	// Start a bt draft transaction
 	var txDraft *bt.Tx
 	if txDraft, err = bt.NewTxFromString(m.Hex); err != nil {

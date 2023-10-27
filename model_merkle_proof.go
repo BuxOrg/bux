@@ -29,7 +29,7 @@ func (m MerkleProof) ToCompoundMerklePath() CompoundMerklePath {
 	cmp[0] = pathMap
 	for i := 1; i < height; i++ {
 		path := make(map[string]bt.VarInt, 1)
-		offset = parrentOffset(offset)
+		offset = parentOffset(offset)
 		path[m.Nodes[i]] = bt.VarInt(offset)
 		cmp[i] = path
 	}
@@ -43,7 +43,7 @@ func offsetPair(offset uint64) uint64 {
 	return offset - 1
 }
 
-func parrentOffset(offset uint64) uint64 {
+func parentOffset(offset uint64) uint64 {
 	return offsetPair(offset / 2)
 }
 
@@ -82,21 +82,44 @@ func (m MerkleProof) Value() (driver.Value, error) {
 
 func (m *MerkleProof) ToBUMP() BUMP {
 	bump := BUMP{}
+
 	height := len(m.Nodes)
 	if height == 0 {
 		return bump
 	}
-	path := make([]BUMPPathMap, 0)
-	txIdPath := make(BUMPPathMap, 2)
+
+	path := make([][]BUMPNode, 0)
+	txIdPath := make([]BUMPNode, 2)
+
 	offset := m.Index
-	op := offsetPair(offset)
-	txIdPath[fmt.Sprint(offset)] = BUMPPathElement{Hash: m.TxOrID, TxId: true}
-	txIdPath[fmt.Sprint(op)] = BUMPPathElement{Hash: m.Nodes[0]}
+	pairOffset := offsetPair(offset)
+
+	txIdPath1 := BUMPNode{
+		Offset: offset,
+		Hash:   m.TxOrID,
+		TxId:   true,
+	}
+	txIdPath2 := BUMPNode{
+		Offset: offsetPair(offset),
+		Hash:   m.Nodes[0],
+	}
+
+	if offset < pairOffset {
+		txIdPath[0] = txIdPath1
+		txIdPath[1] = txIdPath2
+	} else {
+		txIdPath[0] = txIdPath2
+		txIdPath[1] = txIdPath1
+	}
+
 	path = append(path, txIdPath)
 	for i := 1; i < height; i++ {
-		p := make(BUMPPathMap, 1)
-		offset = parrentOffset(offset)
-		p[fmt.Sprint(offset)] = BUMPPathElement{Hash: m.Nodes[i]}
+		p := make([]BUMPNode, 0)
+		offset = parentOffset(offset)
+		p = append(p, BUMPNode{
+			Offset: offset,
+			Hash:   m.Nodes[i],
+		})
 		path = append(path, p)
 	}
 	bump.Path = path

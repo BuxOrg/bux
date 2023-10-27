@@ -134,7 +134,6 @@ func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 		for _, n := range nodes {
 			buff.WriteString(hex.EncodeToString(bt.VarInt(n.Offset).Bytes()))
 			buff.WriteString(fmt.Sprintf("%02x", flags(n.TxId, n.Duplicate)))
-			// buff.WriteString(n.Hash)
 			decodedHex, _ := hex.DecodeString(n.Hash)
 			buff.WriteString(hex.EncodeToString(bt.ReverseBytes(decodedHex)))
 		}

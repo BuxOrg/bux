@@ -78,8 +78,8 @@ func getBumpPathIndex(tx *bt.Tx, bumps BUMPPaths) int {
 	bumpIndex := -1
 
 	for i, bump := range bumps {
-		for txID := range bump.Path[0] {
-			if txID == txID {
+		for _, path := range bump.Path[0] {
+			if path.Hash == tx.TxID() {
 				bumpIndex = i
 			}
 		}

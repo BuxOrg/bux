@@ -81,15 +81,13 @@ func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInt
 
 	_hydrateOutgoingWithSync(tx)
 
-	// Process the UTXOs
 	if err := tx.processUtxos(ctx); err != nil {
 		return nil, err
 	}
 
-	// Set the values from the inputs/outputs and draft tx
-	tx.TotalValue, tx.Fee = tx.getValues()
+	tx.TotalValue, tx.Fee = tx.getValues() // @arkadiusz: why it's not inside ctor? investigate it
 
-	// Add values if found
+	// Add values if found	// @arkadiusz: why it's not inside ctor? investigate it
 	if tx.TransactionBase.parsedTx != nil {
 		tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
 		tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
@@ -137,7 +135,7 @@ func _hydrateOutgoingWithSync(tx *Transaction) {
 	sync.transaction = tx
 	tx.syncTransaction = sync
 
-	// @arkadiusz: my assumptium is we cannot skip sync here
+	// @arkadiusz: my assumption is we cannot skip sync here
 	// // If all the options are skipped, do not make a new model (ignore the record)
 	// if !sync.isSkipped() {
 	// 	m.syncTransaction = sync

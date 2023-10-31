@@ -64,9 +64,9 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): addind new IncomingTx to check queue failed. Reason: %w", err)
 	}
 
-	// TODO: ensure I don't need syncTransaction here
-
-	return newTransactionFromIncomingTransaction(incomingTx), nil // TODO: change incoming processing
+	result := incomingTx.toTransactionDto()
+	result.Status = statusProcessing
+	return result, nil
 }
 
 func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
@@ -79,15 +79,13 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 		return nil, ErrNoMatchingOutputs
 	}
 
-	// Process the UTXOs
 	if err := tx.processUtxos(ctx); err != nil {
 		return nil, err
 	}
 
-	// Set the values from the inputs/outputs and draft tx
-	tx.TotalValue, tx.Fee = tx.getValues()
+	tx.TotalValue, tx.Fee = tx.getValues() // @arkadiusz: why it's not inside ctor? investigate it
 
-	// Add values if found
+	// Add values if found // @arkadiusz: why it's not inside ctor? investigate it
 	if tx.TransactionBase.parsedTx != nil {
 		tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
 		tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
@@ -113,7 +111,7 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	// Use the same metadata
 	sync.Metadata = tx.Metadata
 
-	// @arkadiusz: my assumptium is we cannot skip sync here
+	// @arkadiusz: my assumption is we cannot skip sync here
 	// // If all the options are skipped, do not make a new model (ignore the record)
 	// if !sync.isSkipped() {
 	// 	m.syncTransaction = sync

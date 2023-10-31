@@ -126,37 +126,24 @@ func leadingZeroInt(i int) string {
 
 func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 	var buff bytes.Buffer
-	buff.WriteString(hex.EncodeToString(addBlockHeight(bump.BlockHeight)))
-	buff.WriteString(leadingZeroInt(len(bump.Path)))
+	buff.WriteString(hex.EncodeToString(bt.VarInt(bump.BlockHeight).Bytes()))
 
-	for _, nodes := range bump.Path {
-		buff.WriteString(hex.EncodeToString(addPath(nodes)))
+	height := len(bump.Path)
+	buff.WriteString(leadingZeroInt(height))
+
+	for i := 0; i < height; i++ {
+		nodes := bump.Path[i]
+
+		nLeafs := len(nodes)
+		buff.WriteString(hex.EncodeToString(bt.VarInt(nLeafs).Bytes()))
+		for _, n := range nodes {
+			buff.WriteString(hex.EncodeToString(bt.VarInt(n.Offset).Bytes()))
+			buff.WriteString(fmt.Sprintf("%02x", flags(n.TxID, n.Duplicate)))
+			decodedHex, _ := hex.DecodeString(n.Hash)
+			buff.WriteString(hex.EncodeToString(bt.ReverseBytes(decodedHex)))
+		}
 	}
 	return &buff
-}
-
-func addBlockHeight(blockHeight uint64) []byte {
-	return bt.VarInt(blockHeight).Bytes()
-}
-
-func addPath(nodes []BUMPNode) []byte {
-	var buff bytes.Buffer
-	buff.WriteString(hex.EncodeToString(bt.VarInt(len(nodes)).Bytes()))
-
-	for _, n := range nodes {
-		buff.WriteString(hex.EncodeToString(addNode(n)))
-	}
-	return buff.Bytes()
-}
-
-func addNode(n BUMPNode) []byte {
-	var buff bytes.Buffer
-	buff.WriteString(hex.EncodeToString(bt.VarInt(n.Offset).Bytes()))
-	buff.WriteString(fmt.Sprintf("%02x", flags(n.TxID, n.Duplicate)))
-
-	decodedHex, _ := hex.DecodeString(n.Hash)
-	buff.WriteString(hex.EncodeToString(bt.ReverseBytes(decodedHex)))
-	return buff.Bytes()
 }
 
 func flags(txID, duplicate bool) byte {

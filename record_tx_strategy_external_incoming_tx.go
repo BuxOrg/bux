@@ -26,7 +26,7 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 
 	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
-			// ignore error, transaction will be broadcaset by cron task - @arkadiusz: to chyba nie do końca prawda
+			// ignore error, transaction will be broadcaset by cron task
 			transaction.client.Logger().
 				Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err)) // TODO: add transaction info to log context
 		}

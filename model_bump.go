@@ -119,6 +119,11 @@ func (bump *BUMP) Hex() string {
 	return bump.bytesBuffer().String()
 }
 
+// In case the offset or height is less than 10, they must be written with a leading zero
+func leadingZeroInt(i int) string {
+	return fmt.Sprintf("%02x", i)
+}
+
 func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 	var buff bytes.Buffer
 	buff.WriteString(hex.EncodeToString(bt.VarInt(bump.BlockHeight).Bytes()))
@@ -141,16 +146,11 @@ func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 	return &buff
 }
 
-// In case the offset or height is less than 10, they must be written with a leading zero
-func leadingZeroInt(i int) string {
-	return fmt.Sprintf("%02x", i)
-}
-
 func flags(txID, duplicate bool) byte {
 	var (
-		dataFlag      byte = 00
-		duplicateFlag byte = 01
-		txIDFlag      byte = 02
+		dataFlag      byte = 0o0
+		duplicateFlag byte = 0o1
+		txIDFlag      byte = 0o2
 	)
 
 	if duplicate {
@@ -188,6 +188,39 @@ func (bump BUMP) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	marshal, err := json.Marshal(bump)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(marshal), nil
+}
+
+// Scan scan value into Json, implements sql.Scanner interface
+func (paths *BUMPPaths) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	xType := fmt.Sprintf("%T", value)
+	var byteValue []byte
+	if xType == ValueTypeString {
+		byteValue = []byte(value.(string))
+	} else {
+		byteValue = value.([]byte)
+	}
+	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+		return nil
+	}
+
+	return json.Unmarshal(byteValue, &paths)
+}
+
+// Value return json value, implement driver.Valuer interface
+func (paths BUMPPaths) Value() (driver.Value, error) {
+	if reflect.DeepEqual(paths, BUMPPaths{}) {
+		return nil, nil
+	}
+	marshal, err := json.Marshal(paths)
 	if err != nil {
 		return nil, err
 	}

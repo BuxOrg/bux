@@ -38,7 +38,7 @@ type DraftTransaction struct {
 	Status               DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
 	FinalTxID            string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
 	CompoundMerklePathes CMPSlice          `json:"compound_merkle_pathes,omitempty" toml:"compound_merkle_pathes" yaml:"compound_merkle_pathes" gorm:"<-;type:text;comment:Slice of Compound Merkle Path" bson:"compound_merkle_pathes,omitempty"`
-	BumpPaths            BUMPPaths         `json:"bump_pathes,omitempty" toml:"bump_pathes" yaml:"bump_pathes" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_pathes,omitempty"`
+	BUMPPaths            BUMPPaths         `json:"bump_paths,omitempty" toml:"bump_paths" yaml:"bump_paths" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_paths,omitempty"`
 }
 
 // newDraftTransaction will start a new draft tx
@@ -423,7 +423,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		if err != nil {
 			return err
 		}
-		m.BumpPaths = append(m.BumpPaths, bump)
+		m.BUMPPaths = append(m.BUMPPaths, bump)
 	}
 	// Create the final hex (without signatures)
 	m.Hex = tx.String()

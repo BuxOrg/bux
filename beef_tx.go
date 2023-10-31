@@ -27,9 +27,9 @@ func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
 }
 
 type beefTx struct {
-	version             uint32
-	compoundMerklePaths CMPSlice
-	transactions        []*bt.Tx
+	version      uint32
+	bumpPaths    BUMPPaths
+	transactions []*bt.Tx
 }
 
 func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, error) {
@@ -42,7 +42,7 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 		return nil, err
 	}
 
-	if err = validateCompoundMerklePathes(tx.draftTransaction.CompoundMerklePathes); err != nil {
+	if err = validateBumpPaths(tx.draftTransaction.BUMPPaths); err != nil {
 		return nil, err
 	}
 
@@ -69,9 +69,9 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 	transactions = append(transactions, btTx)
 
 	beef := &beefTx{
-		version:             version,
-		compoundMerklePaths: tx.draftTransaction.CompoundMerklePathes,
-		transactions:        kahnTopologicalSortTransactions(transactions),
+		version:      version,
+		bumpPaths:    tx.draftTransaction.BUMPPaths,
+		transactions: kahnTopologicalSortTransactions(transactions),
 	}
 
 	return beef, nil
@@ -93,14 +93,14 @@ func hydrateTransaction(ctx context.Context, tx *Transaction) error {
 	return nil
 }
 
-func validateCompoundMerklePathes(compountedPaths CMPSlice) error {
-	if len(compountedPaths) == 0 {
-		return errors.New("empty compounted paths slice")
+func validateBumpPaths(bumpPaths BUMPPaths) error {
+	if len(bumpPaths) == 0 {
+		return errors.New("empty bump paths slice")
 	}
 
-	for _, c := range compountedPaths {
-		if len(c) == 0 {
-			return errors.New("one of compounted merkle paths is empty")
+	for _, p := range bumpPaths {
+		if len(p.Path) == 0 {
+			return errors.New("one of bump path is empty")
 		}
 	}
 

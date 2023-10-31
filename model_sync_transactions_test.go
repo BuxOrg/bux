@@ -34,12 +34,12 @@ func Test_areParentsBroadcast(t *testing.T) {
 	txErr := tx.Save(ctx)
 	require.NoError(t, txErr)
 
-	tx = newTransaction(testTx2Hex, append(opts, New())...)
-	txErr = tx.Save(ctx)
+	tx2 := newTransaction(testTx2Hex, append(opts, New())...)
+	txErr = tx2.Save(ctx)
 	require.NoError(t, txErr)
 
-	tx = newTransaction(testTx3Hex, append(opts, New())...)
-	txErr = tx.Save(ctx)
+	tx3 := newTransaction(testTx3Hex, append(opts, New())...)
+	txErr = tx3.Save(ctx)
 	require.NoError(t, txErr)
 
 	// input of testTxID
@@ -54,7 +54,7 @@ func Test_areParentsBroadcast(t *testing.T) {
 	require.NoError(t, txErr)
 
 	type args struct {
-		tx   *SyncTransaction
+		tx   *Transaction
 		opts []ModelOps
 	}
 	tests := []struct {
@@ -66,7 +66,7 @@ func Test_areParentsBroadcast(t *testing.T) {
 		{
 			name: "no parents",
 			args: args{
-				tx:   newSyncTransaction(testTxID3, &SyncConfig{SyncOnChain: true, Broadcast: true}, New()),
+				tx:   tx3,
 				opts: opts,
 			},
 			want:    true,
@@ -75,7 +75,7 @@ func Test_areParentsBroadcast(t *testing.T) {
 		{
 			name: "parent not broadcast",
 			args: args{
-				tx:   newSyncTransaction(testTxID2, &SyncConfig{SyncOnChain: true, Broadcast: true}, New()),
+				tx:   tx2,
 				opts: opts,
 			},
 			want:    false,
@@ -84,7 +84,7 @@ func Test_areParentsBroadcast(t *testing.T) {
 		{
 			name: "parent broadcast",
 			args: args{
-				tx:   newSyncTransaction(testTxID, &SyncConfig{SyncOnChain: true, Broadcast: true}, New()),
+				tx:   tx,
 				opts: opts,
 			},
 			want:    true,
@@ -93,7 +93,7 @@ func Test_areParentsBroadcast(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := _areParentsBroadcast(ctx, tt.args.tx, tt.args.opts...)
+			got, err := _areParentsBroadcasted(ctx, tt.args.tx, tt.args.opts...)
 			if !tt.wantErr(t, err, fmt.Sprintf("areParentsBroadcast(%v, %v, %v)", ctx, tt.args.tx, tt.args.opts)) {
 				return
 			}

@@ -221,8 +221,16 @@ func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, 
 	require.NoError(t, err)
 	assert.NotEmpty(t, hex)
 
-	var transaction *Transaction
-	transaction, err = client.RecordTransaction(ctx, testXPub, hex, draftTransaction.ID, client.DefaultModelOptions()...)
+	newOpts := client.DefaultModelOptions(WithXPub(testXPub), New())
+	transaction := newTransactionWithDraftID(
+		hex, draftTransaction.ID, newOpts...,
+	)
+	transaction.draftTransaction = draftTransaction
+	_hydrateOutgoingWithSync(transaction)
+	err = transaction.processUtxos(ctx)
+	require.NoError(t, err)
+
+	err = transaction.Save(ctx)
 	require.NoError(t, err)
 	assert.NotEmpty(t, transaction)
 

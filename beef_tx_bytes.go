@@ -63,10 +63,10 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 func toBeefBytes(tx *bt.Tx, bumps BUMPPaths) ([]byte, error) {
 	txBeefBytes := tx.Bytes()
 
-	cmpIdx := getBumpPathIndex(tx, bumps)
-	if cmpIdx > -1 {
+	bumpIdx := getBumpPathIndex(tx, bumps)
+	if bumpIdx > -1 {
 		txBeefBytes = append(txBeefBytes, hasBUMP)
-		txBeefBytes = append(txBeefBytes, bt.VarInt(cmpIdx).Bytes()...)
+		txBeefBytes = append(txBeefBytes, bt.VarInt(bumpIdx).Bytes()...)
 	} else {
 		txBeefBytes = append(txBeefBytes, hasNoBUMP)
 	}

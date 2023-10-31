@@ -63,7 +63,7 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 		if err != nil {
 			return nil, err
 		} else if sTx.transaction == nil {
-			return nil, ErrMissingTransaction // TODO: think about context in error
+			return nil, ErrMissingTransaction
 		}
 
 		parentsBroadcast, err := _areParentsBroadcasted(ctx, sTx.transaction, opts...)

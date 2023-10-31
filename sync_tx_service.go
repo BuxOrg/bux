@@ -128,7 +128,7 @@ func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...Mo
 	return nil
 }
 
-// broadcastSyncTransaction will process a sync transaction record and broadcast it
+// broadcastSyncTransaction will broadcast transaction related to syncTx record
 func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
 	defer recoverAndLog(ctx, syncTx.client.Logger())
@@ -142,7 +142,7 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		return err
 	}
 
-	// Get the transaction transaction HEX
+	// Get the transaction HEX
 	var txHex string
 	if syncTx.transaction != nil && syncTx.transaction.Hex != "" {
 		// the transaction has already been retrieved and added to the syncTx object, just use that

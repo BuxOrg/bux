@@ -12,9 +12,6 @@ type internalIncomingTx struct {
 }
 
 func (tx *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
-	// if I'm a classic - can I even be recorded this way?
-	// if I'm a paymail - I can be broadcasted but not have to, P2P providers are notified for sure
-
 	transaction := tx.Tx
 
 	// process

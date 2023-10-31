@@ -49,7 +49,7 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 	}
 
 	// Sync
-	ss := SyncStatusReady
+	ss := SyncStatusReady // @arkadiusz: as I understand without this we won't be able to determine if transaction is mined or not
 	if !config.SyncOnChain {
 		ss = SyncStatusSkipped
 	}
@@ -107,17 +107,6 @@ func (m *SyncTransaction) BeforeCreating(_ context.Context) error {
 // AfterCreated will fire after the model is created in the Datastore
 func (m *SyncTransaction) AfterCreated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
-
-	// Should we broadcast immediately?
-	if m.Configuration.Broadcast &&
-		m.Configuration.BroadcastInstant {
-		if err := processBroadcastTransaction( // TODO: remove business logic
-			ctx, m,
-		); err != nil {
-			// return err (do not return and fail the record creation)
-			m.Client().Logger().Error(ctx, "error running broadcast tx: "+err.Error())
-		}
-	}
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil

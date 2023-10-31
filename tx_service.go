@@ -195,8 +195,7 @@ func _processTransaction(ctx context.Context, transaction *Transaction) error {
 		return err
 	}
 
-	transaction.BlockHash = txInfo.BlockHash
-	transaction.BlockHeight = uint64(txInfo.BlockHeight)
+	transaction.updateChainInfo(txInfo)
 
 	return transaction.Save(ctx)
 }

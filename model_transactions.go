@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt/v2"
@@ -122,11 +123,6 @@ func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Tra
 		_ = tx.setID()
 	}
 
-	// Set the fields
-	tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
-	tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
-	tx.Status = statusProcessing
-
 	return tx
 }
 
@@ -225,6 +221,20 @@ func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
 
 func (m *Transaction) isExternal() bool {
 	return m.draftTransaction == nil
+}
+
+func (m *Transaction) updateChainInfo(txInfo *chainstate.TransactionInfo) {
+	m.BlockHash = txInfo.BlockHash
+	m.BlockHeight = uint64(txInfo.BlockHeight)
+
+	if txInfo.MerkleProof != nil {
+		mp := MerkleProof(*txInfo.MerkleProof)
+		m.MerkleProof = mp
+
+		bump := mp.ToBUMP()
+		bump.BlockHeight = m.BlockHeight
+		m.BUMP = bump
+	}
 }
 
 // IsXpubAssociated will check if this key is associated to this transaction

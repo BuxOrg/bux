@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"encoding/hex"
 
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
@@ -226,69 +225,6 @@ func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
 
 func (m *Transaction) isExternal() bool {
 	return m.draftTransaction == nil
-}
-
-// processTxInputs will process the transaction inputs
-func (m *Transaction) processInputs(ctx context.Context) (err error) {
-	// Pre-build the options
-	opts := m.GetOptions(false)
-	client := m.Client()
-
-	var utxo *Utxo
-
-	// check whether we are spending an internal utxo
-	for index := range m.TransactionBase.parsedTx.Inputs {
-		// todo: optimize this SQL SELECT to get all utxos in one query?
-		if utxo, err = m.transactionService.getUtxo(ctx,
-			hex.EncodeToString(m.TransactionBase.parsedTx.Inputs[index].PreviousTxID()),
-			m.TransactionBase.parsedTx.Inputs[index].PreviousTxOutIndex,
-			opts...,
-		); err != nil {
-			return
-		} else if utxo != nil { // Found a UTXO record
-
-			// Is Spent?
-			if len(utxo.SpendingTxID.String) > 0 {
-				return ErrUtxoAlreadySpent
-			}
-
-			// Only if IUC is enabled (or client is nil which means its enabled by default)
-			if client == nil || client.IsIUCEnabled() {
-
-				// check whether the utxo is spent
-				isReserved := len(utxo.DraftID.String) > 0
-				matchesDraft := m.draftTransaction != nil && utxo.DraftID.String == m.draftTransaction.ID
-
-				// Check whether the spending transaction was reserved by the draft transaction (in the utxo)
-				if !isReserved {
-					return ErrUtxoNotReserved
-				}
-				if !matchesDraft {
-					return ErrDraftIDMismatch
-				}
-			}
-
-			// Update the output value
-			if _, ok := m.XpubOutputValue[utxo.XpubID]; !ok {
-				m.XpubOutputValue[utxo.XpubID] = 0
-			}
-			m.XpubOutputValue[utxo.XpubID] -= int64(utxo.Satoshis)
-
-			// Mark utxo as spent
-			utxo.SpendingTxID.Valid = true
-			utxo.SpendingTxID.String = m.ID
-			m.utxos = append(m.utxos, *utxo)
-
-			// Add the xPub ID
-			if !utils.StringInSlice(utxo.XpubID, m.XpubInIDs) {
-				m.XpubInIDs = append(m.XpubInIDs, utxo.XpubID)
-			}
-		}
-
-		// todo: what if the utxo is nil (not found)?
-	}
-
-	return
 }
 
 // IsXpubAssociated will check if this key is associated to this transaction

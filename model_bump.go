@@ -196,3 +196,36 @@ func (bump BUMP) Value() (driver.Value, error) {
 
 	return string(marshal), nil
 }
+
+// Scan scan value into Json, implements sql.Scanner interface
+func (paths *BUMPPaths) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	xType := fmt.Sprintf("%T", value)
+	var byteValue []byte
+	if xType == ValueTypeString {
+		byteValue = []byte(value.(string))
+	} else {
+		byteValue = value.([]byte)
+	}
+	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+		return nil
+	}
+
+	return json.Unmarshal(byteValue, &paths)
+}
+
+// Value return json value, implement driver.Valuer interface
+func (paths BUMPPaths) Value() (driver.Value, error) {
+	if reflect.DeepEqual(paths, BUMPPaths{}) {
+		return nil, nil
+	}
+	marshal, err := json.Marshal(paths)
+	if err != nil {
+		return nil, err
+	}
+
+	return string(marshal), nil
+}

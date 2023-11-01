@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-minercraft/v2"
+
+	"github.com/BuxOrg/bux/utils"
 )
 
 // HTTPInterface is the HTTP client interface
@@ -50,7 +51,7 @@ type MinercraftServices interface {
 
 // HeaderService is header services interface
 type HeaderService interface {
-	VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error
+	VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRootConfirmationRequestItem) error
 }
 
 // ClientInterface is the chainstate client interface

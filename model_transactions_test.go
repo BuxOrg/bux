@@ -691,15 +691,11 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
-		// TODO: move this to one place
-		// Process the UTXOs
 		err = transaction.processUtxos(tc.ctx)
 		require.NoError(t, err)
 
-		// Set the values from the inputs/outputs and draft tx
 		transaction.TotalValue, transaction.Fee = transaction.getValues()
 
-		// Add values if found
 		if transaction.TransactionBase.parsedTx != nil {
 			transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
 			transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
@@ -757,15 +753,12 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		// add the IN transaction
 		transactionIn := newTransaction(testTx2Hex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transactionIn)
-		// TODO: move this to one place
-		// Process the UTXOs
+
 		err = transactionIn.processUtxos(tc.ctx)
 		require.NoError(t, err)
 
-		// Set the values from the inputs/outputs and draft tx
 		transactionIn.TotalValue, transactionIn.Fee = transactionIn.getValues()
 
-		// Add values if found
 		if transactionIn.TransactionBase.parsedTx != nil {
 			transactionIn.NumberOfInputs = uint32(len(transactionIn.TransactionBase.parsedTx.Inputs))
 			transactionIn.NumberOfOutputs = uint32(len(transactionIn.TransactionBase.parsedTx.Outputs))

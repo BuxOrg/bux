@@ -62,13 +62,11 @@ func getRecordTxStrategy(ctx context.Context, c ClientInterface, xPubKey, txHex,
 }
 
 func getTransactionByHex(ctx context.Context, c ClientInterface, hex string) (*Transaction, error) {
-	// @arkadiusz: maybe we should actually search by hex?
 	btTx, err := bt.NewTxFromString(hex)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the transaction by ID
 	transaction, err := getTransactionByID(
 		ctx, "", btTx.GetTxID(), c.DefaultModelOptions()...,
 	)

@@ -25,14 +25,14 @@ func (tx *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 		err := broadcastSyncTransaction(ctx, syncTx)
 		if err != nil {
 			transaction.client.Logger().
-				Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err)) // TODO: add transaction info to log context
+				Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err))
 
 			if syncTx.BroadcastStatus == SyncStatusPending { // revert status to ready after fail to re-run broadcasting
 				syncTx.BroadcastStatus = SyncStatusReady
 
 				if err = syncTx.Save(ctx); err != nil {
 					transaction.client.Logger().
-						Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): changing synctx.BroadcastStatus from Pending to Ready failed. Reason: %s", err)) // TODO: add transaction info to log context
+						Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): changing synctx.BroadcastStatus from Pending to Ready failed. Reason: %s", err))
 				}
 			}
 

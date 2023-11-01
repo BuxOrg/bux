@@ -26,9 +26,9 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 
 	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
-			// ignore error, transaction will be broadcaset by cron task
+			// ignore error, transaction will be broadcaset in a cron task
 			transaction.client.Logger().
-				Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err)) // TODO: add transaction info to log context
+				Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err))
 		}
 	}
 
@@ -74,7 +74,6 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 	tx := newTransaction(eTx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
 	_hydrateExternalWithSync(tx)
 
-	// Check that the transaction has >= 1 known destination
 	if !tx.TransactionBase.hasOneKnownDestination(ctx, c, tx.GetOptions(false)...) {
 		return nil, ErrNoMatchingOutputs
 	}
@@ -83,9 +82,7 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 		return nil, err
 	}
 
-	tx.TotalValue, tx.Fee = tx.getValues() // @arkadiusz: why it's not inside ctor? investigate it
-
-	// Add values if found // @arkadiusz: why it's not inside ctor? investigate it
+	tx.TotalValue, tx.Fee = tx.getValues()
 	if tx.TransactionBase.parsedTx != nil {
 		tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
 		tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
@@ -95,7 +92,6 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 }
 
 func _hydrateExternalWithSync(tx *Transaction) {
-	// Create the sync transaction model
 	sync := newSyncTransaction(
 		tx.ID,
 		tx.Client().DefaultSyncConfig(),
@@ -105,18 +101,11 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	// to simplfy: broadcast every external incoming txs
 	sync.BroadcastStatus = SyncStatusReady
 
-	sync.P2PStatus = SyncStatusSkipped // The owner of the Tx should have already notified paymail providers
+	sync.P2PStatus = SyncStatusSkipped // the owner of the Tx should have already notified paymail providers
 	//sync.SyncStatus = SyncStatusReady
 
 	// Use the same metadata
 	sync.Metadata = tx.Metadata
-
-	// @arkadiusz: my assumption is we cannot skip sync here
-	// // If all the options are skipped, do not make a new model (ignore the record)
-	// if !sync.isSkipped() {
-	// 	m.syncTransaction = sync
-	// }
-
 	sync.transaction = tx
 	tx.syncTransaction = sync
 }

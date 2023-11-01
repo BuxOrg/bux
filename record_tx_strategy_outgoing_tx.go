@@ -85,9 +85,7 @@ func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInt
 		return nil, err
 	}
 
-	tx.TotalValue, tx.Fee = tx.getValues() // @arkadiusz: why it's not inside ctor? investigate it
-
-	// Add values if found	// @arkadiusz: why it's not inside ctor? investigate it
+	tx.TotalValue, tx.Fee = tx.getValues()
 	if tx.TransactionBase.parsedTx != nil {
 		tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
 		tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
@@ -111,8 +109,7 @@ func _hydrateOutgoingWithDraft(ctx context.Context, tx *Transaction) error {
 		return errors.New("corresponding draft transaction has no outputs")
 	}
 
-	// No config set? Use the default from the client
-	if draft.Configuration.Sync == nil { // @arkadiusz: is it valid record? maybe it would be better to return error?
+	if draft.Configuration.Sync == nil {
 		draft.Configuration.Sync = tx.Client().DefaultSyncConfig()
 	}
 
@@ -129,32 +126,22 @@ func _hydrateOutgoingWithSync(tx *Transaction) {
 	sync.P2PStatus = _getP2pSyncStatus(tx)
 	//sync.SyncStatus = SyncStatusReady
 
-	// Use the same metadata
 	sync.Metadata = tx.Metadata
 
 	sync.transaction = tx
 	tx.syncTransaction = sync
-
-	// @arkadiusz: my assumption is we cannot skip sync here
-	// // If all the options are skipped, do not make a new model (ignore the record)
-	// if !sync.isSkipped() {
-	// 	m.syncTransaction = sync
-	// }
 }
 
 func _getBroadcastSyncStatus(tx *Transaction) SyncStatus {
-	// @arkadiusz: should I use draft sync config? for now, I don't
-	// immediately broadcast if is not BEEF (@arkadiusz: or maybe for classic adresses only?)
-
+	// immediately broadcast if is not BEEF
 	broadcast := SyncStatusReady // broadcast immediately
 
 	outputs := tx.draftTransaction.Configuration.Outputs
 
-	// postpone broadcasting if tx contains outputs in BEEF
 	for _, o := range outputs {
 		if o.PaymailP4 != nil {
 			if o.PaymailP4.Format == BeefPaymailPayloadFormat {
-				broadcast = SyncStatusPending
+				broadcast = SyncStatusPending // postpone broadcasting if tx contains outputs in BEEF
 
 				break
 			}
@@ -165,8 +152,6 @@ func _getBroadcastSyncStatus(tx *Transaction) SyncStatus {
 }
 
 func _getP2pSyncStatus(tx *Transaction) SyncStatus {
-	// @arkadiusz: should I use draft sync config? for now, I don't
-
 	p2pStatus := SyncStatusSkipped
 
 	outputs := tx.draftTransaction.Configuration.Outputs

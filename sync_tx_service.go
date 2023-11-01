@@ -83,7 +83,6 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 				if err = broadcastSyncTransaction(
 					ctx, tx,
 				); err != nil {
-					// TODO: do not rely on "model" logger
 					tx.Client().Logger().Error(ctx,
 						fmt.Sprintf("error running broadcast tx for xpub %s, tx %s: %s", xPubID, tx.ID, err.Error()),
 					)

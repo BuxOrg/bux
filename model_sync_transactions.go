@@ -49,7 +49,7 @@ func newSyncTransaction(txID string, config *SyncConfig, opts ...ModelOps) *Sync
 	}
 
 	// Sync
-	ss := SyncStatusReady // @arkadiusz: as I understand without this we won't be able to determine if transaction is mined or not
+	ss := SyncStatusReady
 	if !config.SyncOnChain {
 		ss = SyncStatusSkipped
 	}

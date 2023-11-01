@@ -131,7 +131,6 @@ func (m *IncomingTransaction) toTransactionDto() *Transaction {
 	t := Transaction{}
 	t.Hex = m.Hex
 
-	// @arkadiusz: check if we need to set these fields here
 	t.parsedTx = m.parsedTx
 	t.rawXpubKey = m.rawXpubKey
 	t.setXPubID()
@@ -310,7 +309,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 
 	// Find in mempool or on-chain
 	var txInfo *chainstate.TransactionInfo
-	if txInfo, err = incomingTx.Client().Chainstate().QueryTransactionFastest( // @arkadiusz: why QyeryTransactionFastest() here? In syncTx we use QueryTransaction()
+	if txInfo, err = incomingTx.Client().Chainstate().QueryTransactionFastest(
 		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
@@ -354,7 +353,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 
 	logClient.Info(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
 
-	// Check if we have transaction in DB already (@arkadiusz: it always should be false - to confirm in next refactorization iteration)
+	// Check if we have transaction in DB already
 	transaction, _ := getTransactionByID(
 		ctx, incomingTx.rawXpubKey, incomingTx.ID, incomingTx.client.DefaultModelOptions()...,
 	)
@@ -368,10 +367,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 			return err
 		}
 
-		// Set the values from the inputs/outputs and draft tx // @arkadiusz: why it's not inside ctor? investigate it
 		transaction.TotalValue, transaction.Fee = transaction.getValues()
-
-		// Set the fields // @arkadiusz: why it's not inside ctor? investigate it
 		transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
 		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
 	}

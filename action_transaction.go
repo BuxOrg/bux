@@ -66,7 +66,7 @@ func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txH
 		return nil, err
 	}
 
-	if transaction.BlockHash == "" { // @arkadiusz: it's always true, i guess
+	if transaction.BlockHash == "" {
 		// Create the sync transaction model
 		sync := newSyncTransaction(
 			transaction.GetID(),

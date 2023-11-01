@@ -13,6 +13,8 @@ import (
 	"github.com/libsv/go-bt/v2"
 )
 
+const maxBumpHeight = 64
+
 // BUMPPaths represents a slice of BUMPs (BSV Unified Merkle Paths)
 type BUMPPaths []BUMP
 
@@ -41,9 +43,9 @@ func CalculateMergedBUMP(mp []MerkleProof) (BUMP, error) {
 	}
 
 	height := len(mp[0].Nodes)
-	if height > maxCmpHeight {
+	if height > maxBumpHeight {
 		return bump,
-			fmt.Errorf("BUMP cannot be higher than %d", maxCmpHeight)
+			fmt.Errorf("BUMP cannot be higher than %d", maxBumpHeight)
 	}
 
 	for _, m := range mp {
@@ -119,11 +121,6 @@ func (bump *BUMP) Hex() string {
 	return bump.bytesBuffer().String()
 }
 
-// In case the offset or height is less than 10, they must be written with a leading zero
-func leadingZeroInt(i int) string {
-	return fmt.Sprintf("%02x", i)
-}
-
 func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 	var buff bytes.Buffer
 	buff.WriteString(hex.EncodeToString(bt.VarInt(bump.BlockHeight).Bytes()))
@@ -144,6 +141,11 @@ func (bump *BUMP) bytesBuffer() *bytes.Buffer {
 		}
 	}
 	return &buff
+}
+
+// In case the offset or height is less than 10, they must be written with a leading zero
+func leadingZeroInt(i int) string {
+	return fmt.Sprintf("%02x", i)
 }
 
 func flags(txID, duplicate bool) byte {

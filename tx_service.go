@@ -195,7 +195,7 @@ func _processTransaction(ctx context.Context, transaction *Transaction) error {
 		return err
 	}
 
-	transaction.updateChainInfo(txInfo)
+	transaction.setChainInfo(txInfo)
 
 	return transaction.Save(ctx)
 }

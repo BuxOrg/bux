@@ -223,16 +223,19 @@ func (m *Transaction) isExternal() bool {
 	return m.draftTransaction == nil
 }
 
-func (m *Transaction) updateChainInfo(txInfo *chainstate.TransactionInfo) {
+func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {
 	m.BlockHash = txInfo.BlockHash
 	m.BlockHeight = uint64(txInfo.BlockHeight)
+	m.setMerkleRoot(txInfo)
+}
 
+func (m *Transaction) setMerkleRoot(txInfo *chainstate.TransactionInfo) {
 	if txInfo.MerkleProof != nil {
 		mp := MerkleProof(*txInfo.MerkleProof)
 		m.MerkleProof = mp
 
 		bump := mp.ToBUMP()
-		bump.BlockHeight = m.BlockHeight
+		bump.BlockHeight = uint64(txInfo.BlockHeight)
 		m.BUMP = bump
 	}
 }

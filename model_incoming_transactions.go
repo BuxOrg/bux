@@ -372,7 +372,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
 	}
 
-	transaction.updateChainInfo(txInfo)
+	transaction.setChainInfo(txInfo)
 
 	// Create status message
 	onChain := len(transaction.BlockHash) > 0 || transaction.BlockHeight > 0

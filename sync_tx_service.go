@@ -275,7 +275,7 @@ func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, trans
 		return nil
 	}
 
-	transaction.updateChainInfo(txInfo)
+	transaction.setChainInfo(txInfo)
 
 	// Create status message
 	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient

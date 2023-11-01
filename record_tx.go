@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	"github.com/libsv/go-bt"
 )
 
 type recordTxStrategy interface {
@@ -22,35 +20,20 @@ func recordTransaction(ctx context.Context, c ClientInterface, strategy recordTx
 	unlock := waitForRecordTxWriteLock(ctx, c, strategy.TxID())
 	defer unlock()
 
-	transaction, err := strategy.Execute(ctx, c, opts)
-	return transaction, err
+	return strategy.Execute(ctx, c, opts)
 }
 
 func getRecordTxStrategy(ctx context.Context, c ClientInterface, xPubKey, txHex, draftID string) (recordTxStrategy, error) {
 	var rts recordTxStrategy
 
 	if draftID != "" {
-		rts = &outgoingTx{
-			Hex:            txHex,
-			RelatedDraftID: draftID,
-			XPubKey:        xPubKey,
-		}
+		rts = getOutgoingTxRecordStrategy(xPubKey, txHex, draftID)
 	} else {
-		tx, err := getTransactionByHex(ctx, c, txHex)
+		var err error
+		rts, err = getIncomingTxRecordStrategy(ctx, c, txHex)
+
 		if err != nil {
 			return nil, err
-		}
-
-		if tx != nil {
-			rts = &internalIncomingTx{
-				Tx:           tx,
-				BroadcastNow: false,
-			}
-		} else {
-			rts = &externalIncomingTx{
-				Hex:          txHex,
-				BroadcastNow: false,
-			}
 		}
 	}
 
@@ -61,17 +44,35 @@ func getRecordTxStrategy(ctx context.Context, c ClientInterface, xPubKey, txHex,
 	return rts, nil
 }
 
-func getTransactionByHex(ctx context.Context, c ClientInterface, hex string) (*Transaction, error) {
-	btTx, err := bt.NewTxFromString(hex)
+func getOutgoingTxRecordStrategy(xPubKey, txHex, draftID string) recordTxStrategy {
+	return &outgoingTx{
+		Hex:            txHex,
+		RelatedDraftID: draftID,
+		XPubKey:        xPubKey,
+	}
+}
+
+func getIncomingTxRecordStrategy(ctx context.Context, c ClientInterface, txHex string) (recordTxStrategy, error) {
+	tx, err := getTransactionByHex(ctx, txHex, c.DefaultModelOptions()...)
 	if err != nil {
 		return nil, err
 	}
 
-	transaction, err := getTransactionByID(
-		ctx, "", btTx.GetTxID(), c.DefaultModelOptions()...,
-	)
+	var rts recordTxStrategy
 
-	return transaction, err
+	if tx != nil {
+		rts = &internalIncomingTx{
+			Tx:           tx,
+			BroadcastNow: false,
+		}
+	} else {
+		rts = &externalIncomingTx{
+			Hex:          txHex,
+			BroadcastNow: false,
+		}
+	}
+
+	return rts, nil
 }
 
 func waitForRecordTxWriteLock(ctx context.Context, c ClientInterface, key string) func() {

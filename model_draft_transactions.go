@@ -32,13 +32,12 @@ type DraftTransaction struct {
 	TransactionBase `bson:",inline"`
 
 	// Model specific fields
-	XpubID               string            `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
-	ExpiresAt            time.Time         `json:"expires_at" toml:"expires_at" yaml:"expires_at" gorm:"<-:create;comment:Time when the draft expires" bson:"expires_at"`
-	Configuration        TransactionConfig `json:"configuration" toml:"configuration" yaml:"configuration" gorm:"<-;type:text;comment:This is the configuration struct in JSON" bson:"configuration"`
-	Status               DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
-	FinalTxID            string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
-	CompoundMerklePathes CMPSlice          `json:"compound_merkle_pathes,omitempty" toml:"compound_merkle_pathes" yaml:"compound_merkle_pathes" gorm:"<-;type:text;comment:Slice of Compound Merkle Path" bson:"compound_merkle_pathes,omitempty"`
-	BUMPPaths            BUMPPaths         `json:"bump_paths,omitempty" toml:"bump_paths" yaml:"bump_paths" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_paths,omitempty"`
+	XpubID        string            `json:"xpub_id" toml:"xpub_id" yaml:"xpub_id" gorm:"<-:create;type:char(64);index;comment:This is the related xPub" bson:"xpub_id"`
+	ExpiresAt     time.Time         `json:"expires_at" toml:"expires_at" yaml:"expires_at" gorm:"<-:create;comment:Time when the draft expires" bson:"expires_at"`
+	Configuration TransactionConfig `json:"configuration" toml:"configuration" yaml:"configuration" gorm:"<-;type:text;comment:This is the configuration struct in JSON" bson:"configuration"`
+	Status        DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
+	FinalTxID     string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
+	BUMPPaths     BUMPPaths         `json:"bump_paths,omitempty" toml:"bump_paths" yaml:"bump_paths" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_paths,omitempty"`
 }
 
 // newDraftTransaction will start a new draft tx
@@ -409,14 +408,6 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	}
 	if inputValue-outputValue != m.Configuration.Fee {
 		return ErrTransactionFeeInvalid
-	}
-
-	for _, v := range merkleProofs {
-		cmp, err := CalculateCompoundMerklePath(v)
-		if err != nil {
-			return err
-		}
-		m.CompoundMerklePathes = append(m.CompoundMerklePathes, cmp)
 	}
 	for _, v := range merkleProofs {
 		bump, err := CalculateMergedBUMP(v)

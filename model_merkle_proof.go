@@ -66,18 +66,18 @@ func (m *MerkleProof) ToBUMP() BUMP {
 		return bump
 	}
 
-	path := make([][]BUMPNode, 0)
-	txIDPath := make([]BUMPNode, 2)
+	path := make([][]BUMPLeaf, 0)
+	txIDPath := make([]BUMPLeaf, 2)
 
 	offset := m.Index
 	pairOffset := offsetPair(offset)
 
-	txIDPath1 := BUMPNode{
+	txIDPath1 := BUMPLeaf{
 		Offset: offset,
 		Hash:   m.TxOrID,
 		TxID:   true,
 	}
-	txIDPath2 := BUMPNode{
+	txIDPath2 := BUMPLeaf{
 		Offset: offsetPair(offset),
 		Hash:   m.Nodes[0],
 	}
@@ -92,9 +92,9 @@ func (m *MerkleProof) ToBUMP() BUMP {
 
 	path = append(path, txIDPath)
 	for i := 1; i < height; i++ {
-		p := make([]BUMPNode, 0)
+		p := make([]BUMPLeaf, 0)
 		offset = parentOffset(offset)
-		p = append(p, BUMPNode{
+		p = append(p, BUMPLeaf{
 			Offset: offset,
 			Hash:   m.Nodes[i],
 		})

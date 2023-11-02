@@ -28,7 +28,7 @@ func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
 
 type beefTx struct {
 	version      uint32
-	bumpPaths    BUMPPaths
+	bumps        BUMPs
 	transactions []*bt.Tx
 }
 
@@ -42,7 +42,7 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 		return nil, err
 	}
 
-	if err = validateBumpPaths(tx.draftTransaction.BUMPPaths); err != nil {
+	if err = validateBumps(tx.draftTransaction.BUMPs); err != nil {
 		return nil, err
 	}
 
@@ -70,7 +70,7 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, e
 
 	beef := &beefTx{
 		version:      version,
-		bumpPaths:    tx.draftTransaction.BUMPPaths,
+		bumps:        tx.draftTransaction.BUMPs,
 		transactions: kahnTopologicalSortTransactions(transactions),
 	}
 
@@ -93,12 +93,12 @@ func hydrateTransaction(ctx context.Context, tx *Transaction) error {
 	return nil
 }
 
-func validateBumpPaths(bumpPaths BUMPPaths) error {
-	if len(bumpPaths) == 0 {
+func validateBumps(bumps BUMPs) error {
+	if len(bumps) == 0 {
 		return errors.New("empty bump paths slice")
 	}
 
-	for _, p := range bumpPaths {
+	for _, p := range bumps {
 		if len(p.Path) == 0 {
 			return errors.New("one of bump path is empty")
 		}

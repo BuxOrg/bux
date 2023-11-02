@@ -9,9 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
@@ -19,6 +16,10 @@ import (
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-datastore"
 	"github.com/pkg/errors"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/BuxOrg/bux/utils"
 )
 
 // DraftTransaction is an object representing the draft BitCoin transaction prior to the final transaction
@@ -37,7 +38,7 @@ type DraftTransaction struct {
 	Configuration TransactionConfig `json:"configuration" toml:"configuration" yaml:"configuration" gorm:"<-;type:text;comment:This is the configuration struct in JSON" bson:"configuration"`
 	Status        DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
 	FinalTxID     string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
-	BUMPPaths     BUMPPaths         `json:"bump_paths,omitempty" toml:"bump_paths" yaml:"bump_paths" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bump_paths,omitempty"`
+	BUMPs         BUMPs             `json:"bumps,omitempty" toml:"bumps" yaml:"bumps" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bumps,omitempty"`
 }
 
 // newDraftTransaction will start a new draft tx
@@ -414,7 +415,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		if err != nil {
 			return err
 		}
-		m.BUMPPaths = append(m.BUMPPaths, bump)
+		m.BUMPs = append(m.BUMPs, bump)
 	}
 	// Create the final hex (without signatures)
 	m.Hex = tx.String()

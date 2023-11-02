@@ -15,19 +15,19 @@ import (
 
 const maxBumpHeight = 64
 
-// BUMPPaths represents a slice of BUMPs (BSV Unified Merkle Paths)
-type BUMPPaths []BUMP
+// BUMPs represents a slice of BUMPs - BSV Unified Merkle Paths
+type BUMPs []BUMP
 
 // BUMP represents BUMP (BSV Unified Merkle Path) format
 type BUMP struct {
 	BlockHeight uint64       `json:"blockHeight,string"`
-	Path        [][]BUMPNode `json:"path"`
+	Path        [][]BUMPLeaf `json:"path"`
 	// private field for storing already used offsets to avoid duplicate nodes
 	allNodes []map[uint64]bool
 }
 
-// BUMPNode represents each BUMP path element
-type BUMPNode struct {
+// BUMPLeaf represents each BUMP path element
+type BUMPLeaf struct {
 	Offset    uint64 `json:"offset,string"`
 	Hash      string `json:"hash"`
 	TxID      bool   `json:"txid,omitempty"`
@@ -55,7 +55,7 @@ func CalculateMergedBUMP(mp []MerkleProof) (BUMP, error) {
 		}
 	}
 
-	bump.Path = make([][]BUMPNode, height)
+	bump.Path = make([][]BUMPLeaf, height)
 	bump.allNodes = make([]map[uint64]bool, height)
 	for i := range bump.allNodes {
 		bump.allNodes[i] = make(map[uint64]bool, 0)
@@ -104,11 +104,11 @@ func (bump *BUMP) add(b BUMP) error {
 	return nil
 }
 
-// Bytes returns BUMPPaths bytes
-func (bumpPaths *BUMPPaths) Bytes() []byte {
+// Bytes returns BUMPs bytes
+func (bumps *BUMPs) Bytes() []byte {
 	var buff bytes.Buffer
 
-	for _, bump := range *bumpPaths {
+	for _, bump := range *bumps {
 		bytes, _ := hex.DecodeString(bump.Hex())
 		buff.Write(bytes)
 	}
@@ -198,7 +198,7 @@ func (bump BUMP) Value() (driver.Value, error) {
 }
 
 // Scan scan value into Json, implements sql.Scanner interface
-func (paths *BUMPPaths) Scan(value interface{}) error {
+func (bumps *BUMPs) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -214,15 +214,15 @@ func (paths *BUMPPaths) Scan(value interface{}) error {
 		return nil
 	}
 
-	return json.Unmarshal(byteValue, &paths)
+	return json.Unmarshal(byteValue, &bumps)
 }
 
 // Value return json value, implement driver.Valuer interface
-func (paths BUMPPaths) Value() (driver.Value, error) {
-	if reflect.DeepEqual(paths, BUMPPaths{}) {
+func (bumps BUMPs) Value() (driver.Value, error) {
+	if reflect.DeepEqual(bumps, BUMPs{}) {
 		return nil, nil
 	}
-	marshal, err := json.Marshal(paths)
+	marshal, err := json.Marshal(bumps)
 	if err != nil {
 		return nil, err
 	}

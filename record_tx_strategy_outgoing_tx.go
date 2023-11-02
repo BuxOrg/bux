@@ -22,19 +22,20 @@ func (tx *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []Mod
 		return nil, fmt.Errorf("OutgoingTx.Execute(): creation of outgoing tx failed. Reason: %w", err)
 	}
 
+	if transaction.syncTransaction.P2PStatus == SyncStatusReady {
+		if err = _processP2PTransaction(ctx, transaction.syncTransaction, transaction); err != nil {
+			transaction.client.Logger().
+				Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s", err)) // TODO: add transaction info to log context
+
+			return nil, err // reject transaction if P2P notification failed
+		}
+	}
+
 	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
 			// ignore error, transaction will be broadcasted by cron task
 			transaction.client.Logger().
 				Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed. Reason: %s", err)) // TODO: add transaction info to log context
-		}
-	}
-
-	if transaction.syncTransaction.P2PStatus == SyncStatusReady {
-		if err = _processP2PTransaction(ctx, transaction.syncTransaction, transaction); err != nil {
-			// ignore error, transaction will be broadcasted by cron task
-			transaction.client.Logger().
-				Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s", err)) // TODO: add transaction info to log context
 		}
 	}
 

@@ -12,7 +12,7 @@ var (
 )
 
 func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
-	if len(beefTx.bumpPaths) == 0 || len(beefTx.transactions) < 2 { // valid BEEF contains at least two transactions (new transaction and one parent transaction)
+	if len(beefTx.bumps) == 0 || len(beefTx.transactions) < 2 { // valid BEEF contains at least two transactions (new transaction and one parent transaction)
 		return nil, errors.New("beef tx is incomplete")
 	}
 
@@ -24,10 +24,10 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	ver[3] = 0xEF
 	beefSize += len(ver)
 
-	nBUMPS := bt.VarInt(len(beefTx.bumpPaths)).Bytes()
+	nBUMPS := bt.VarInt(len(beefTx.bumps)).Bytes()
 	beefSize += len(nBUMPS)
 
-	bumps := beefTx.bumpPaths.Bytes()
+	bumps := beefTx.bumps.Bytes()
 	beefSize += len(bumps)
 
 	nTransactions := bt.VarInt(uint64(len(beefTx.transactions))).Bytes()
@@ -36,7 +36,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	transactions := make([][]byte, 0, len(beefTx.transactions))
 
 	for _, t := range beefTx.transactions {
-		txBytes, err := toBeefBytes(t, beefTx.bumpPaths)
+		txBytes, err := toBeefBytes(t, beefTx.bumps)
 		if err != nil {
 			return nil, err
 		}
@@ -60,7 +60,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	return buffer, nil
 }
 
-func toBeefBytes(tx *bt.Tx, bumps BUMPPaths) ([]byte, error) {
+func toBeefBytes(tx *bt.Tx, bumps BUMPs) ([]byte, error) {
 	txBeefBytes := tx.Bytes()
 
 	bumpIdx := getBumpPathIndex(tx, bumps)
@@ -74,7 +74,7 @@ func toBeefBytes(tx *bt.Tx, bumps BUMPPaths) ([]byte, error) {
 	return txBeefBytes, nil
 }
 
-func getBumpPathIndex(tx *bt.Tx, bumps BUMPPaths) int {
+func getBumpPathIndex(tx *bt.Tx, bumps BUMPs) int {
 	bumpIndex := -1
 
 	for i, bump := range bumps {

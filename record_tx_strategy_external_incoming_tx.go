@@ -13,6 +13,8 @@ type externalIncomingTx struct {
 }
 
 func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+	logger := c.Logger()
+
 	// process
 	if !tx.BroadcastNow && c.IsITCEnabled() { // do not save transaction to database now, save IncomingTransaction instead and let task manager handle and process it
 		return _addTxToCheck(ctx, tx, c, opts)
@@ -20,15 +22,22 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 
 	transaction, err := _createExternalTxToRecord(ctx, tx, c, opts)
 
+	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
+
 	if err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): creation of external incoming tx failed. Reason: %w", err)
 	}
 
 	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
+		logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
+
 		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
 			// ignore error, transaction will be broadcaset in a cron task
-			transaction.client.Logger().
-				Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err))
+			logger.
+				Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, transaction.ID))
+		} else {
+			logger.
+				Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
 		}
 	}
 
@@ -37,6 +46,7 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): saving of Transaction failed. Reason: %w", err)
 	}
 
+	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID))
 	return transaction, nil
 }
 
@@ -58,7 +68,11 @@ func (tx *externalIncomingTx) ForceBroadcast(force bool) {
 }
 
 func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+	logger := c.Logger()
+
 	incomingTx := newIncomingTransaction(tx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
+
+	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID))
 
 	if err := incomingTx.Save(ctx); err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): addind new IncomingTx to check queue failed. Reason: %w", err)
@@ -66,6 +80,8 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 
 	result := incomingTx.toTransactionDto()
 	result.Status = statusProcessing
+
+	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): complete ITC, TxID: %s", incomingTx.ID))
 	return result, nil
 }
 

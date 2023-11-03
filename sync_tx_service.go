@@ -117,7 +117,7 @@ func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...Mo
 
 	// Process the incoming transaction
 	for index := range records {
-		if err = _processP2PTransaction(
+		if err = processP2PTransaction(
 			ctx, records[index], nil,
 		); err != nil {
 			return err
@@ -309,8 +309,8 @@ func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, trans
 	return nil
 }
 
-// _processP2PTransaction will process the sync transaction record, or save the failure
-func _processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+// processP2PTransaction will process the sync transaction record, or save the failure
+func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
 	defer recoverAndLog(ctx, syncTx.client.Logger())
 

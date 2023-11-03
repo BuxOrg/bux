@@ -196,9 +196,16 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(
 // VerifyMerkleRoots will verify the merkle roots by checking them in external header service - Pulse
 func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(
 	ctx context.Context,
-	merkleRoots []chainstate.MerkleRootConfirmationRequestItem,
+	merkleRoots []paymail.MerkleRootConfirmationRequestItem,
 ) error {
-	return p.client.Chainstate().VerifyMerkleRoots(ctx, merkleRoots)
+	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0)
+	for _, m := range merkleRoots {
+		request = append(request, chainstate.MerkleRootConfirmationRequestItem{
+			MerkleRoot:  m.MerkleRoot,
+			BlockHeight: m.BlockHeight,
+		})
+	}
+	return p.client.Chainstate().VerifyMerkleRoots(ctx, request)
 }
 
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {

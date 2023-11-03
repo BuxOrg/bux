@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 type internalIncomingTx struct {
@@ -23,28 +25,10 @@ func (tx *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 	}
 
 	if tx.BroadcastNow || syncTx.BroadcastStatus == SyncStatusReady {
-		logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
-
 		syncTx.transaction = transaction
-		err := broadcastSyncTransaction(ctx, syncTx)
-		if err != nil {
-			logger.
-				Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, transaction.ID))
+		transaction.syncTransaction = syncTx
 
-			if syncTx.BroadcastStatus == SyncStatusSkipped { // revert status to ready after fail to re-run broadcasting, this can happen when we received internal BEEF tx
-				syncTx.BroadcastStatus = SyncStatusReady
-
-				if err = syncTx.Save(ctx); err != nil {
-					logger.
-						Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): changing synctx.BroadcastStatus from Pending to Ready failed. Reason: %s, TxID: %s", err, transaction.ID))
-				}
-			}
-
-			// ignore broadcast error - will be repeted by task manager
-		} else {
-			logger.
-				Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
-		}
+		_internalIncomingBroadcast(ctx, logger, transaction) // ignore broadcast error - will be repeted by task manager
 	}
 
 	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID))
@@ -65,4 +49,29 @@ func (tx *internalIncomingTx) TxID() string {
 
 func (tx *internalIncomingTx) ForceBroadcast(force bool) {
 	tx.BroadcastNow = force
+}
+
+func _internalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, transaction *Transaction) {
+	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
+
+	syncTx := transaction.syncTransaction
+	err := broadcastSyncTransaction(ctx, syncTx)
+	if err != nil {
+		logger.
+			Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, transaction.ID))
+
+		if syncTx.BroadcastStatus == SyncStatusSkipped { // revert status to ready after fail to re-run broadcasting, this can happen when we received internal BEEF tx
+			syncTx.BroadcastStatus = SyncStatusReady
+
+			if err = syncTx.Save(ctx); err != nil {
+				logger.
+					Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): changing synctx.BroadcastStatus from Pending to Ready failed. Reason: %s, TxID: %s", err, transaction.ID))
+			}
+		}
+
+		// ignore broadcast error - will be repeted by task manager
+	} else {
+		logger.
+			Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
+	}
 }

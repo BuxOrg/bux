@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/libsv/go-bt/v2"
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 type externalIncomingTx struct {
@@ -21,24 +22,14 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 	}
 
 	transaction, err := _createExternalTxToRecord(ctx, tx, c, opts)
-
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
-
 	if err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): creation of external incoming tx failed. Reason: %w", err)
 	}
 
-	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
-		logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
+	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
 
-		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
-			// ignore error, transaction will be broadcaset in a cron task
-			logger.
-				Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, transaction.ID))
-		} else {
-			logger.
-				Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
-		}
+	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
+		_externalIncomingBroadcast(ctx, logger, transaction) // ignore error, transaction will be broadcaset in a cron task
 	}
 
 	// record
@@ -124,4 +115,17 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	sync.Metadata = tx.Metadata
 	sync.transaction = tx
 	tx.syncTransaction = sync
+}
+
+func _externalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction) {
+	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", tx.ID))
+
+	if err := broadcastSyncTransaction(ctx, tx.syncTransaction); err != nil {
+		// ignore error, transaction will be broadcaset in a cron task
+		logger.
+			Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, tx.ID))
+	} else {
+		logger.
+			Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID))
+	}
 }

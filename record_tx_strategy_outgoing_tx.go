@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/libsv/go-bt/v2"
+	zLogger "github.com/mrz1836/go-logger"
 )
 
 type outgoingTx struct {
@@ -27,29 +28,13 @@ func (tx *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []Mod
 	}
 
 	if transaction.syncTransaction.P2PStatus == SyncStatusReady {
-		logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start p2p, TxID: %s", transaction.ID))
-
-		if err = processP2PTransaction(ctx, transaction.syncTransaction, transaction); err != nil {
-			logger.
-				Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s, TxID: %s", err, transaction.ID))
-
+		if err = _outgoingNotifyP2p(ctx, logger, transaction); err != nil {
 			return nil, err // reject transaction if P2P notification failed
 		}
-
-		logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): p2p complete, TxID: %s", transaction.ID))
 	}
 
 	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
-		logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
-
-		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
-			// ignore error, transaction will be broadcasted by cron task
-			logger.
-				Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, transaction.ID))
-		} else {
-			logger.
-				Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
-		}
+		_outgoingBroadcast(ctx, logger, transaction) // ignore error, transaction will be broadcasted by cron task
 	}
 
 	// record
@@ -179,4 +164,31 @@ func _getP2pSyncStatus(tx *Transaction) SyncStatus {
 	}
 
 	return p2pStatus
+}
+
+func _outgoingNotifyP2p(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction) error {
+	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start p2p, TxID: %s", tx.ID))
+
+	if err := processP2PTransaction(ctx, tx.syncTransaction, tx); err != nil {
+		logger.
+			Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s, TxID: %s", err, tx.ID))
+
+		return err
+	}
+
+	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): p2p complete, TxID: %s", tx.ID))
+	return nil
+}
+
+func _outgoingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction) {
+	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start broadcast, TxID: %s", tx.ID))
+
+	if err := broadcastSyncTransaction(ctx, tx.syncTransaction); err != nil {
+		// ignore error, transaction will be broadcasted by cron task
+		logger.
+			Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, tx.ID))
+	} else {
+		logger.
+			Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcast complete, TxID: %s", tx.ID))
+	}
 }

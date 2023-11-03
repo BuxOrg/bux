@@ -18,7 +18,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/korovkin/limiter v0.0.0-20230307205149-3d4b2b34c99d
-	github.com/libsv/go-bc v0.1.18
+	github.com/libsv/go-bc v0.1.19
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
 	github.com/libsv/go-bt/v2 v2.2.5
@@ -82,6 +82,7 @@ require (
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/libsv/go-p2p v0.1.3 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/miekg/dns v1.1.56 // indirect

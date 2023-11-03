@@ -27,7 +27,7 @@ func (tx *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 			transaction.client.Logger().
 				Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed. Reason: %s", err))
 
-			if syncTx.BroadcastStatus == SyncStatusPending { // revert status to ready after fail to re-run broadcasting
+			if syncTx.BroadcastStatus == SyncStatusSkipped { // revert status to ready after fail to re-run broadcasting, this can happen when we received internal BEEF tx
 				syncTx.BroadcastStatus = SyncStatusReady
 
 				if err = syncTx.Save(ctx); err != nil {

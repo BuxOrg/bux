@@ -142,7 +142,7 @@ func _getBroadcastSyncStatus(tx *Transaction) SyncStatus {
 	for _, o := range outputs {
 		if o.PaymailP4 != nil {
 			if o.PaymailP4.Format == BeefPaymailPayloadFormat {
-				broadcast = SyncStatusPending // postpone broadcasting if tx contains outputs in BEEF
+				broadcast = SyncStatusSkipped // postpone broadcasting if tx contains outputs in BEEF
 
 				break
 			}

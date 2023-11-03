@@ -15,27 +15,40 @@ type outgoingTx struct {
 }
 
 func (tx *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+	logger := c.Logger()
+
 	// process
 	transaction, err := _createOutgoingTxToRecord(ctx, tx, c, opts)
+
+	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start, TxID: %s", transaction.ID))
 
 	if err != nil {
 		return nil, fmt.Errorf("OutgoingTx.Execute(): creation of outgoing tx failed. Reason: %w", err)
 	}
 
 	if transaction.syncTransaction.P2PStatus == SyncStatusReady {
-		if err = _processP2PTransaction(ctx, transaction.syncTransaction, transaction); err != nil {
-			transaction.client.Logger().
-				Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s", err)) // TODO: add transaction info to log context
+		logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start p2p, TxID: %s", transaction.ID))
+
+		if err = processP2PTransaction(ctx, transaction.syncTransaction, transaction); err != nil {
+			logger.
+				Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s, TxID: %s", err, transaction.ID))
 
 			return nil, err // reject transaction if P2P notification failed
 		}
+
+		logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): p2p complete, TxID: %s", transaction.ID))
 	}
 
 	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
+		logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
+
 		if err = broadcastSyncTransaction(ctx, transaction.syncTransaction); err != nil {
 			// ignore error, transaction will be broadcasted by cron task
-			transaction.client.Logger().
-				Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed. Reason: %s", err)) // TODO: add transaction info to log context
+			logger.
+				Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, transaction.ID))
+		} else {
+			logger.
+				Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
 		}
 	}
 
@@ -44,6 +57,7 @@ func (tx *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []Mod
 		return nil, fmt.Errorf("OutgoingTx.Execute(): saving of Transaction failed. Reason: %w", err)
 	}
 
+	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): complete, TxID: %s", transaction.ID))
 	return transaction, nil
 }
 
@@ -158,7 +172,7 @@ func _getP2pSyncStatus(tx *Transaction) SyncStatus {
 	outputs := tx.draftTransaction.Configuration.Outputs
 	for _, o := range outputs {
 		if o.PaymailP4 != nil && o.PaymailP4.ResolutionType == ResolutionTypeP2P {
-			p2pStatus = SyncStatusPending
+			p2pStatus = SyncStatusReady // notify p2p immediately
 
 			break
 		}

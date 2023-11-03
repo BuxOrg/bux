@@ -38,7 +38,7 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 
 	// Process the incoming transaction
 	for index := range records {
-		if err = _processSyncTransaction(
+		if err = _syncTxDataFromChain(
 			ctx, records[index], nil,
 		); err != nil {
 			return err
@@ -220,8 +220,8 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 
 /////////////////
 
-// _processSyncTransaction will process the sync transaction record, or save the failure
-func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+// _syncTxDataFromChain will process the sync transaction record, or save the failure
+func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
 	defer recoverAndLog(ctx, syncTx.client.Logger())
 
@@ -438,6 +438,7 @@ func _groupByXpub(scTxs []*SyncTransaction) map[string][]*SyncTransaction {
 func _bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus,
 	action, provider, message string,
 ) {
+
 	if action == syncActionSync {
 		syncTx.SyncStatus = status
 	} else if action == syncActionP2P {
@@ -458,5 +459,10 @@ func _bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, s
 		Provider:      provider,
 		StatusMessage: message,
 	})
+
+	if syncTx.IsNew() {
+		return // do not save if new record! caller should decide if want to save new record
+	}
+
 	_ = syncTx.Save(ctx)
 }

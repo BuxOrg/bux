@@ -122,6 +122,21 @@ func (m *SyncTransaction) AfterCreated(ctx context.Context) error {
 	return nil
 }
 
+func (m *SyncTransaction) BeforeUpdating(ctx context.Context) error {
+	m.DebugLog("starting: " + m.Name() + " BeforeUpdate hook...")
+
+	// Trim the results to the last 20
+	maxResultsLength := 20
+
+	ln := len(m.Results.Results)
+	if ln > maxResultsLength {
+		m.Results.Results = m.Results.Results[ln-maxResultsLength:]
+	}
+
+	m.DebugLog("end: " + m.Name() + " BeforeUpdate hook")
+	return nil
+}
+
 // Migrate model specific migration on startup
 func (m *SyncTransaction) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableSyncTransactions), metadataField)

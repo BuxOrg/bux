@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-datastore"
@@ -130,6 +131,9 @@ func (m *SyncTransaction) BeforeUpdating(ctx context.Context) error {
 
 	ln := len(m.Results.Results)
 	if ln > maxResultsLength {
+		m.Client().Logger().
+			Warn(ctx, fmt.Sprintf("trimming syncTx.Results, TxID: %s", m.ID))
+
 		m.Results.Results = m.Results.Results[ln-maxResultsLength:]
 	}
 

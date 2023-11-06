@@ -70,7 +70,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(merkleProofs)
+		bump, err := CalculateMergedBUMP(0, merkleProofs)
 
 		// then
 		assert.NoError(t, err)
@@ -194,7 +194,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(merkleProofs)
+		bump, err := CalculateMergedBUMP(0, merkleProofs)
 
 		// then
 		assert.NoError(t, err)
@@ -267,7 +267,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(merkleProofs)
+		bump, err := CalculateMergedBUMP(0, merkleProofs)
 
 		// then
 		assert.NoError(t, err)
@@ -290,7 +290,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(merkleProofs)
+		bump, err := CalculateMergedBUMP(0, merkleProofs)
 
 		// then
 		assert.Error(t, err)
@@ -302,7 +302,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		merkleProof := []MerkleProof{}
 
 		// when
-		bump, err := CalculateMergedBUMP(merkleProof)
+		bump, err := CalculateMergedBUMP(0, merkleProof)
 
 		// then
 		assert.NoError(t, err)
@@ -315,7 +315,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 			{}, {}, {},
 		}
 		// when
-		bump, err := CalculateMergedBUMP(merkleProofs)
+		bump, err := CalculateMergedBUMP(0, merkleProofs)
 
 		// then
 		assert.NoError(t, err)
@@ -727,7 +727,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 			"3d2388f114e6f627fd9dd632e72502699e419338bed5022840f4176e1731f715"
 
 		// when
-		bump, err := CalculateMergedBUMP(merkleProof)
+		bump, err := CalculateMergedBUMP(0, merkleProof)
 		actualHex := bump.Hex()
 
 		// then

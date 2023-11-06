@@ -43,7 +43,7 @@ func (m *mockServiceProvider) RecordTransaction(_ context.Context,
 }
 
 // RecordTransaction is a demo implementation of this interface
-func (m *mockServiceProvider) VerifyMerkleRoots(_ context.Context, _ []string) error {
+func (m *mockServiceProvider) VerifyMerkleRoots(_ context.Context, _ []paymail.MerkleRootConfirmationRequestItem) error {
 
 	// Verify merkle roots
 	return nil

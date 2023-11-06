@@ -4,27 +4,29 @@ import (
 	"context"
 	"time"
 
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/tonicpow/go-minercraft/v2"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/utils"
 )
 
 // chainStateBase is the base interface / methods
-type chainStateBase struct {
-}
+type chainStateBase struct{}
 
 func (c *chainStateBase) Broadcast(context.Context, string, string, time.Duration) (string, error) {
 	return "", nil
 }
 
 func (c *chainStateBase) QueryTransaction(context.Context, string,
-	chainstate.RequiredIn, time.Duration) (*chainstate.TransactionInfo, error) {
+	chainstate.RequiredIn, time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	return nil, nil
 }
 
 func (c *chainStateBase) QueryTransactionFastest(context.Context, string, chainstate.RequiredIn,
-	time.Duration) (*chainstate.TransactionInfo, error) {
+	time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	return nil, nil
 }
 
@@ -81,8 +83,8 @@ func (c *chainStateEverythingInMempool) Broadcast(context.Context, string, strin
 }
 
 func (c *chainStateEverythingInMempool) QueryTransaction(_ context.Context, id string,
-	_ chainstate.RequiredIn, _ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ chainstate.RequiredIn, _ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	minerID, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     "",
@@ -95,8 +97,8 @@ func (c *chainStateEverythingInMempool) QueryTransaction(_ context.Context, id s
 }
 
 func (c *chainStateEverythingInMempool) QueryTransactionFastest(_ context.Context, id string, _ chainstate.RequiredIn,
-	_ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	minerID, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     "",
@@ -121,8 +123,8 @@ func (c *chainStateEverythingOnChain) BroadcastClient() broadcast.Client {
 }
 
 func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id string,
-	_ chainstate.RequiredIn, _ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ chainstate.RequiredIn, _ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	hash, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     hash,
@@ -135,8 +137,8 @@ func (c *chainStateEverythingOnChain) QueryTransaction(_ context.Context, id str
 }
 
 func (c *chainStateEverythingOnChain) QueryTransactionFastest(_ context.Context, id string, _ chainstate.RequiredIn,
-	_ time.Duration) (*chainstate.TransactionInfo, error) {
-
+	_ time.Duration,
+) (*chainstate.TransactionInfo, error) {
 	hash, _ := utils.RandomHex(32)
 	return &chainstate.TransactionInfo{
 		BlockHash:     hash,
@@ -152,6 +154,6 @@ func (c *chainStateEverythingOnChain) FeeUnit() *utils.FeeUnit {
 	return chainstate.DefaultFee
 }
 
-func (c *chainStateEverythingOnChain) VerifyMerkleRoots(_ context.Context, _ []string) error {
+func (c *chainStateEverythingOnChain) VerifyMerkleRoots(_ context.Context, _ []chainstate.MerkleRootConfirmationRequestItem) error {
 	return nil
 }

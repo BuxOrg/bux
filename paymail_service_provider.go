@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/bitcoinschema/go-bitcoin/v2"
@@ -16,6 +15,9 @@ import (
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/utils"
 )
 
 // PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server
@@ -48,9 +50,11 @@ func (p *PaymailDefaultServiceProvider) createMetadata(serverMetaData *server.Re
 }
 
 // GetPaymailByAlias will get a paymail address and information by alias
-func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(ctx context.Context, alias, domain string,
-	requestMetadata *server.RequestMetadata) (*paymail.AddressInformation, error) {
-
+func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(
+	ctx context.Context,
+	alias, domain string,
+	requestMetadata *server.RequestMetadata,
+) (*paymail.AddressInformation, error) {
 	metadata := p.createMetadata(requestMetadata, "GetPaymailByAlias")
 
 	paymailAddress, pubKey, err := p.createPaymailInformation(
@@ -71,8 +75,12 @@ func (p *PaymailDefaultServiceProvider) GetPaymailByAlias(ctx context.Context, a
 }
 
 // CreateAddressResolutionResponse will create the address resolution response
-func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(ctx context.Context, alias, domain string,
-	_ bool, requestMetadata *server.RequestMetadata) (*paymail.ResolutionPayload, error) {
+func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(
+	ctx context.Context,
+	alias, domain string,
+	_ bool,
+	requestMetadata *server.RequestMetadata,
+) (*paymail.ResolutionPayload, error) {
 	metadata := p.createMetadata(requestMetadata, "CreateAddressResolutionResponse")
 
 	paymailAddress, pubKey, err := p.createPaymailInformation(
@@ -96,9 +104,12 @@ func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(ctx cont
 }
 
 // CreateP2PDestinationResponse will create a p2p destination response
-func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(ctx context.Context, alias, domain string,
-	satoshis uint64, requestMetadata *server.RequestMetadata) (*paymail.PaymentDestinationPayload, error) {
-
+func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(
+	ctx context.Context,
+	alias, domain string,
+	satoshis uint64,
+	requestMetadata *server.RequestMetadata,
+) (*paymail.PaymentDestinationPayload, error) {
 	referenceID, err := utils.RandomHex(16)
 	if err != nil {
 		return nil, err
@@ -138,9 +149,11 @@ func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(ctx context
 }
 
 // RecordTransaction will record the transaction
-func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
-	p2pTx *paymail.P2PTransaction, requestMetadata *server.RequestMetadata) (*paymail.P2PTransactionPayload, error) {
-
+func (p *PaymailDefaultServiceProvider) RecordTransaction(
+	ctx context.Context,
+	p2pTx *paymail.P2PTransaction,
+	requestMetadata *server.RequestMetadata,
+) (*paymail.P2PTransactionPayload, error) {
 	// Create the metadata
 	metadata := p.createMetadata(requestMetadata, "RecordTransaction")
 	metadata[p2pMetadataField] = p2pTx.MetaData
@@ -181,8 +194,18 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 }
 
 // VerifyMerkleRoots will verify the merkle roots by checking them in external header service - Pulse
-func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(ctx context.Context, merkleRoots []string) error {
-	return p.client.Chainstate().VerifyMerkleRoots(ctx, merkleRoots)
+func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(
+	ctx context.Context,
+	merkleRoots []paymail.MerkleRootConfirmationRequestItem,
+) error {
+	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0)
+	for _, m := range merkleRoots {
+		request = append(request, chainstate.MerkleRootConfirmationRequestItem{
+			MerkleRoot:  m.MerkleRoot,
+			BlockHeight: m.BlockHeight,
+		})
+	}
+	return p.client.Chainstate().VerifyMerkleRoots(ctx, request)
 }
 
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {
@@ -274,7 +297,6 @@ type derivedPubKey struct {
 }
 
 func deriveKey(rawXPubKey string, num uint32) (k *derivedPubKey, err error) {
-
 	k = &derivedPubKey{chainNum: num}
 
 	hdKey, err := utils.ValidateXPub(rawXPubKey)

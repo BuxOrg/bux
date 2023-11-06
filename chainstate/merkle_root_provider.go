@@ -9,19 +9,40 @@ import (
 	"net/http"
 )
 
+// MerkleRootConfirmationState represents the state of each Merkle Root verification
+// process and can be one of three values: Confirmed, Invalid and UnableToVerify.
+type MerkleRootConfirmationState string
+
+const (
+	// Confirmed state occurs when Merkle Root is found in the longest chain.
+	Confirmed MerkleRootConfirmationState = "CONFIRMED"
+	// UnableToVerify state occurs when Pulse is behind in synchronization with the longest chain.
+	Invalid MerkleRootConfirmationState = "INVALID"
+	// Invalid state occurs when Merkle Root is not found in the longest chain.
+	UnableToVerify MerkleRootConfirmationState = "UNABLE_TO_VERIFY"
+)
+
+// MerkleRootConfirmationRequestItem is a request type for verification
+// of Merkle Roots inclusion in the longest chain.
+type MerkleRootConfirmationRequestItem struct {
+	MerkleRoot  string `json:"merkleRoot"`
+	BlockHeight int32  `json:"blockHeight"`
+}
+
 // MerkleRootConfirmation is a confirmation
 // of merkle roots inclusion in the longest chain.
 type MerkleRootConfirmation struct {
-	Hash       string `json:"blockhash"`
-	MerkleRoot string `json:"merkleRoot"`
-	Confirmed  bool   `json:"confirmed"`
+	Hash         string                      `json:"blockHash"`
+	BlockHeight  int32                       `json:"blockHeight"`
+	MerkleRoot   string                      `json:"merkleRoot"`
+	Confirmation MerkleRootConfirmationState `json:"confirmation"`
 }
 
 // MerkleRootsConfirmationsResponse is an API response for confirming
 // merkle roots inclusion in the longest chain.
 type MerkleRootsConfirmationsResponse struct {
-	AllConfirmed  bool                     `json:"allConfirmed"`
-	Confirmations []MerkleRootConfirmation `json:"confirmations"`
+	ConfirmationState MerkleRootConfirmationState `json:"confirmationState"`
+	Confirmations     []MerkleRootConfirmation    `json:"confirmations"`
 }
 
 type pulseClientProvider struct {
@@ -30,9 +51,11 @@ type pulseClientProvider struct {
 }
 
 // verifyMerkleProof using Pulse
-func (p pulseClientProvider) verifyMerkleRoots(ctx context.Context, c *Client, merkleProofs []string) (*MerkleRootsConfirmationsResponse, error) {
-	jsonData, err := json.Marshal(merkleProofs)
-
+func (p pulseClientProvider) verifyMerkleRoots(
+	ctx context.Context,
+	c *Client, merkleRoots []MerkleRootConfirmationRequestItem,
+) (*MerkleRootsConfirmationsResponse, error) {
+	jsonData, err := json.Marshal(merkleRoots)
 	if err != nil {
 		return nil, err
 	}

@@ -216,11 +216,6 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		},
 	}
 
-	// Trim the results to the last 20
-	if len(syncTx.Results.Results) >= 19 {
-		syncTx.Results.Results = syncTx.Results.Results[1:]
-	}
-
 	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
 		Action:        syncActionBroadcast,
 		ExecutedAt:    time.Now().UTC(),

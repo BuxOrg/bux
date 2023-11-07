@@ -16,7 +16,7 @@ import (
 const maxBumpHeight = 64
 
 // BUMPs represents a slice of BUMPs - BSV Unified Merkle Paths
-type BUMPs []BUMP
+type BUMPs []*BUMP
 
 // BUMP represents BUMP (BSV Unified Merkle Path) format
 type BUMP struct {
@@ -35,24 +35,24 @@ type BUMPLeaf struct {
 }
 
 // CalculateMergedBUMP calculates Merged BUMP from a slice of Merkle Proofs
-func CalculateMergedBUMP(bh uint64, mp []MerkleProof) (BUMP, error) {
+func CalculateMergedBUMP(bh uint64, bumps []BUMP) (*BUMP, error) {
 	bump := BUMP{
 		BlockHeight: bh,
 	}
 
-	if len(mp) == 0 || mp == nil {
-		return bump, nil
+	if len(bumps) == 0 || bumps == nil {
+		return nil, nil
 	}
 
-	height := len(mp[0].Nodes)
+	height := len(bumps[0].Path)
 	if height > maxBumpHeight {
-		return bump,
+		return nil,
 			fmt.Errorf("BUMP cannot be higher than %d", maxBumpHeight)
 	}
 
-	for _, m := range mp {
-		if height != len(m.Nodes) {
-			return bump,
+	for _, b := range bumps {
+		if height != len(b.Path) {
+			return nil,
 				errors.New("Merged BUMP cannot be obtained from Merkle Proofs of different heights")
 		}
 	}
@@ -63,11 +63,10 @@ func CalculateMergedBUMP(bh uint64, mp []MerkleProof) (BUMP, error) {
 		bump.allNodes[i] = make(map[uint64]bool, 0)
 	}
 
-	for _, m := range mp {
-		bumpToAdd := m.ToBUMP()
-		err := bump.add(bumpToAdd)
+	for _, b := range bumps {
+		err := bump.add(b)
 		if err != nil {
-			return BUMP{}, err
+			return nil, err
 		}
 	}
 
@@ -77,7 +76,7 @@ func CalculateMergedBUMP(bh uint64, mp []MerkleProof) (BUMP, error) {
 		})
 	}
 
-	return bump, nil
+	return &bump, nil
 }
 
 func (bump *BUMP) add(b BUMP) error {

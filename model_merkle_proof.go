@@ -79,7 +79,11 @@ func (m *MerkleProof) ToBUMP() BUMP {
 	}
 	txIDPath2 := BUMPLeaf{
 		Offset: offsetPair(offset),
-		Hash:   m.Nodes[0],
+	}
+	if m.Nodes[0] != "*" {
+		txIDPath2.Hash = m.Nodes[0]
+	} else {
+		txIDPath2.Duplicate = true
 	}
 
 	if offset < pairOffset {
@@ -94,10 +98,17 @@ func (m *MerkleProof) ToBUMP() BUMP {
 	for i := 1; i < height; i++ {
 		p := make([]BUMPLeaf, 0)
 		offset = parentOffset(offset)
-		p = append(p, BUMPLeaf{
-			Offset: offset,
-			Hash:   m.Nodes[i],
-		})
+
+		leaf := BUMPLeaf{Offset: offset}
+
+		isDuplicate := m.Nodes[i] == "*"
+		if !isDuplicate {
+			leaf.Hash = m.Nodes[i]
+		} else {
+			leaf.Duplicate = true
+		}
+
+		p = append(p, leaf)
 		path = append(path, p)
 	}
 	bump.Path = path

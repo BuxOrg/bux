@@ -19,30 +19,30 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						{
 							Offset: 0,
-							Hash:   "node0",
+							Hash:   "123b00", // this has to be a valid hex now
 						},
 						{
 							Offset: 1,
-							Hash:   "txId",
+							Hash:   "123b",
 							TxID:   true,
 						},
 					},
 					{
 						{
 							Offset: 1,
-							Hash:   "node1",
+							Hash:   "123b01",
 						},
 					},
 					{
 						{
 							Offset: 1,
-							Hash:   "node2",
+							Hash:   "123b02",
 						},
 					},
 					{
 						{
 							Offset: 1,
-							Hash:   "node3",
+							Hash:   "123b03",
 						},
 					},
 				},
@@ -54,30 +54,30 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 				{
 					{
 						Offset: 0,
-						Hash:   "node0",
+						Hash:   "123b00",
 					},
 					{
 						Offset: 1,
-						Hash:   "txId",
+						Hash:   "123b",
 						TxID:   true,
 					},
 				},
 				{
 					{
 						Offset: 1,
-						Hash:   "node1",
+						Hash:   "123b01",
 					},
 				},
 				{
 					{
 						Offset: 1,
-						Hash:   "node2",
+						Hash:   "123b02",
 					},
 				},
 				{
 					{
 						Offset: 1,
-						Hash:   "node3",
+						Hash:   "123b03",
 					},
 				},
 			},
@@ -99,223 +99,225 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(0, bumps)
+		bump, err := CalculateMergedBUMP(bumps)
 
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, expectedBUMP, bump)
 	})
 
-	t.Run("Slice of BUMPS", func(t *testing.T) {
-		// given
-		bumps := []BUMP{
-			{
-				BlockHeight: 0,
-				Path: [][]BUMPLeaf{
-					{
-						{
-							Offset: 2,
-							Hash:   "txId1",
-							TxID:   true,
-						},
-						{
-							Offset: 3,
-							Hash:   "D",
-						},
-					},
-					{
-						{
-							Offset: 0,
-							Hash:   "AB",
-						},
-					},
-					{
-						{
-							Offset: 1,
-							Hash:   "EFGH",
-						},
-					},
-					{
-						{
-							Offset: 1,
-							Hash:   "IJKLMNOP",
-						},
-					},
-				},
-			},
-			{
-				BlockHeight: 0,
-				Path: [][]BUMPLeaf{
-					{
-						{
-							Offset: 6,
-							Hash:   "G",
-						},
-						{
-							Offset: 7,
-							Hash:   "txId2",
-							TxID:   true,
-						},
-					},
-					{
-						{
-							Offset: 2,
-							Hash:   "EF",
-						},
-					},
-					{
-						{
-							Offset: 0,
-							Hash:   "ABCD",
-						},
-					},
-					{
-						{
-							Offset: 1,
-							Hash:   "IJKLMNOP",
-						},
-					},
-				},
-			},
-			{
-				BlockHeight: 0,
-				Path: [][]BUMPLeaf{
-					{
-						{
-							Offset: 12,
-							Hash:   "M",
-						},
-						{
-							Offset: 13,
-							Hash:   "txId3",
-							TxID:   true,
-						},
-					},
-					{
-						{
-							Offset: 7,
-							Hash:   "OP",
-						},
-					},
-					{
-						{
-							Offset: 2,
-							Hash:   "IJKL",
-						},
-					},
-					{
-						{
-							Offset: 0,
-							Hash:   "ABCDEFGH",
-						},
-					},
-				},
-			},
-		}
-		expectedBUMP := &BUMP{
-			BlockHeight: 0,
-			Path: [][]BUMPLeaf{
-				{
-					{
-						Offset: 2,
-						Hash:   "txId1",
-						TxID:   true,
-					},
-					{
-						Offset: 3,
-						Hash:   "D",
-					},
-					{
-						Offset: 6,
-						Hash:   "G",
-					},
-					{
-						Offset: 7,
-						Hash:   "txId2",
-						TxID:   true,
-					},
-					{
-						Offset: 12,
-						Hash:   "M",
-					},
-					{
-						Offset: 13,
-						Hash:   "txId3",
-						TxID:   true,
-					},
-				},
-				{
-					{
-						Offset: 0,
-						Hash:   "AB",
-					},
-					{
-						Offset: 2,
-						Hash:   "EF",
-					},
-					{
-						Offset: 7,
-						Hash:   "OP",
-					},
-				},
-				{
-					{
-						Offset: 0,
-						Hash:   "ABCD",
-					},
-					{
-						Offset: 1,
-						Hash:   "EFGH",
-					},
-					{
-						Offset: 2,
-						Hash:   "IJKL",
-					},
-				},
-				{
-					{
-						Offset: 0,
-						Hash:   "ABCDEFGH",
-					},
-					{
-						Offset: 1,
-						Hash:   "IJKLMNOP",
-					},
-				},
-			},
-			allNodes: []map[uint64]bool{
-				{
-					2:  true,
-					3:  true,
-					6:  true,
-					7:  true,
-					12: true,
-					13: true,
-				},
-				{
-					0: true,
-					2: true,
-					7: true,
-				},
-				{
-					0: true,
-					1: true,
-					2: true,
-				},
-				{
-					0: true,
-					1: true,
-				},
-			},
-		}
-
-		// when
-		bump, err := CalculateMergedBUMP(0, bumps)
-
-		// then
-		assert.NoError(t, err)
-		assert.Equal(t, expectedBUMP, bump)
-	})
+	// Cannot test unless we get real BUMPs - Merkle Proofs don't match in these examples
+	// For test on real data look at the last test in this file.
+	// t.Run("Slice of BUMPS", func(t *testing.T) {
+	// 	// given
+	// 	bumps := []BUMP{
+	// 		{
+	// 			BlockHeight: 0,
+	// 			Path: [][]BUMPLeaf{
+	// 				{
+	// 					{
+	// 						Offset: 2,
+	// 						Hash:   "123b",
+	// 						TxID:   true,
+	// 					},
+	// 					{
+	// 						Offset: 3,
+	// 						Hash:   "123b04",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 0,
+	// 						Hash:   "123b0102",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 1,
+	// 						Hash:   "123b05060708",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 1,
+	// 						Hash:   "123b0910111213141516",
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 		{
+	// 			BlockHeight: 0,
+	// 			Path: [][]BUMPLeaf{
+	// 				{
+	// 					{
+	// 						Offset: 6,
+	// 						Hash:   "123b07",
+	// 					},
+	// 					{
+	// 						Offset: 7,
+	// 						Hash:   "456b",
+	// 						TxID:   true,
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 2,
+	// 						Hash:   "123b0506",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 0,
+	// 						Hash:   "123b01020304",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 1,
+	// 						Hash:   "123b0910111213141516",
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 		{
+	// 			BlockHeight: 0,
+	// 			Path: [][]BUMPLeaf{
+	// 				{
+	// 					{
+	// 						Offset: 12,
+	// 						Hash:   "123b13",
+	// 					},
+	// 					{
+	// 						Offset: 13,
+	// 						Hash:   "789b",
+	// 						TxID:   true,
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 7,
+	// 						Hash:   "123b1516",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 2,
+	// 						Hash:   "123b09101112",
+	// 					},
+	// 				},
+	// 				{
+	// 					{
+	// 						Offset: 0,
+	// 						Hash:   "123b0102030405060708",
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+	// 	expectedBUMP := &BUMP{
+	// 		BlockHeight: 0,
+	// 		Path: [][]BUMPLeaf{
+	// 			{
+	// 				{
+	// 					Offset: 2,
+	// 					Hash:   "123b",
+	// 					TxID:   true,
+	// 				},
+	// 				{
+	// 					Offset: 3,
+	// 					Hash:   "123b04",
+	// 				},
+	// 				{
+	// 					Offset: 6,
+	// 					Hash:   "123b07",
+	// 				},
+	// 				{
+	// 					Offset: 7,
+	// 					Hash:   "456b",
+	// 					TxID:   true,
+	// 				},
+	// 				{
+	// 					Offset: 12,
+	// 					Hash:   "123b13",
+	// 				},
+	// 				{
+	// 					Offset: 13,
+	// 					Hash:   "789b",
+	// 					TxID:   true,
+	// 				},
+	// 			},
+	// 			{
+	// 				{
+	// 					Offset: 0,
+	// 					Hash:   "123b0102",
+	// 				},
+	// 				{
+	// 					Offset: 2,
+	// 					Hash:   "123b0506",
+	// 				},
+	// 				{
+	// 					Offset: 7,
+	// 					Hash:   "123b1516",
+	// 				},
+	// 			},
+	// 			{
+	// 				{
+	// 					Offset: 0,
+	// 					Hash:   "123b01020304",
+	// 				},
+	// 				{
+	// 					Offset: 1,
+	// 					Hash:   "123b05060708",
+	// 				},
+	// 				{
+	// 					Offset: 2,
+	// 					Hash:   "123b09101112",
+	// 				},
+	// 			},
+	// 			{
+	// 				{
+	// 					Offset: 0,
+	// 					Hash:   "123b0102030405060708",
+	// 				},
+	// 				{
+	// 					Offset: 1,
+	// 					Hash:   "123b0910111213141516",
+	// 				},
+	// 			},
+	// 		},
+	// 		allNodes: []map[uint64]bool{
+	// 			{
+	// 				2:  true,
+	// 				3:  true,
+	// 				6:  true,
+	// 				7:  true,
+	// 				12: true,
+	// 				13: true,
+	// 			},
+	// 			{
+	// 				0: true,
+	// 				2: true,
+	// 				7: true,
+	// 			},
+	// 			{
+	// 				0: true,
+	// 				1: true,
+	// 				2: true,
+	// 			},
+	// 			{
+	// 				0: true,
+	// 				1: true,
+	// 			},
+	// 		},
+	// 	}
+	//
+	// 	// when
+	// 	bump, err := CalculateMergedBUMP(bumps)
+	//
+	// 	// then
+	// 	assert.NoError(t, err)
+	// 	assert.Equal(t, expectedBUMP, bump)
+	// })
 
 	t.Run("Paired Transactions", func(t *testing.T) {
 		// given
@@ -326,30 +328,30 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						{
 							Offset: 8,
-							Hash:   "I",
+							Hash:   "123b09",
 							TxID:   true,
 						},
 						{
 							Offset: 9,
-							Hash:   "J",
+							Hash:   "123b10",
 						},
 					},
 					{
 						{
 							Offset: 5,
-							Hash:   "KL",
+							Hash:   "123b1112",
 						},
 					},
 					{
 						{
 							Offset: 3,
-							Hash:   "MNOP",
+							Hash:   "123b13141516",
 						},
 					},
 					{
 						{
 							Offset: 0,
-							Hash:   "ABCDEFGH",
+							Hash:   "123b0102030405060708",
 						},
 					},
 				},
@@ -360,30 +362,30 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						{
 							Offset: 8,
-							Hash:   "I",
+							Hash:   "123b09",
 						},
 						{
 							Offset: 9,
-							Hash:   "J",
+							Hash:   "123b10",
 							TxID:   true,
 						},
 					},
 					{
 						{
 							Offset: 5,
-							Hash:   "KL",
+							Hash:   "123b1112",
 						},
 					},
 					{
 						{
 							Offset: 3,
-							Hash:   "MNOP",
+							Hash:   "123b13141516",
 						},
 					},
 					{
 						{
 							Offset: 0,
-							Hash:   "ABCDEFGH",
+							Hash:   "123b0102030405060708",
 						},
 					},
 				},
@@ -395,31 +397,31 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 				{
 					{
 						Offset: 8,
-						Hash:   "I",
+						Hash:   "123b09",
 						TxID:   true,
 					},
 					{
 						Offset: 9,
-						Hash:   "J",
+						Hash:   "123b10",
 						TxID:   true,
 					},
 				},
 				{
 					{
 						Offset: 5,
-						Hash:   "KL",
+						Hash:   "123b1112",
 					},
 				},
 				{
 					{
 						Offset: 3,
-						Hash:   "MNOP",
+						Hash:   "123b13141516",
 					},
 				},
 				{
 					{
 						Offset: 0,
-						Hash:   "ABCDEFGH",
+						Hash:   "123b0102030405060708",
 					},
 				},
 			},
@@ -441,7 +443,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(0, bumps)
+		bump, err := CalculateMergedBUMP(bumps)
 
 		// then
 		assert.NoError(t, err)
@@ -457,30 +459,30 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						{
 							Offset: 8,
-							Hash:   "I",
+							Hash:   "123b09",
 							TxID:   true,
 						},
 						{
 							Offset: 9,
-							Hash:   "J",
+							Hash:   "123b10",
 						},
 					},
 					{
 						{
 							Offset: 5,
-							Hash:   "KL",
+							Hash:   "123b1112",
 						},
 					},
 					{
 						{
 							Offset: 3,
-							Hash:   "MNOP",
+							Hash:   "123b13141516",
 						},
 					},
 					{
 						{
 							Offset: 0,
-							Hash:   "ABCDEFGH",
+							Hash:   "123b0102030405060708",
 						},
 					},
 				},
@@ -491,24 +493,24 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 					{
 						{
 							Offset: 8,
-							Hash:   "I",
+							Hash:   "123b09",
 						},
 						{
 							Offset: 9,
-							Hash:   "J",
+							Hash:   "123b10",
 							TxID:   true,
 						},
 					},
 					{
 						{
 							Offset: 5,
-							Hash:   "KL",
+							Hash:   "123b1112",
 						},
 					},
 					{
 						{
 							Offset: 3,
-							Hash:   "MNOP",
+							Hash:   "123b0102030405060708",
 						},
 					},
 				},
@@ -516,7 +518,64 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		}
 
 		// when
-		bump, err := CalculateMergedBUMP(0, bumps)
+		bump, err := CalculateMergedBUMP(bumps)
+
+		// then
+		assert.Error(t, err)
+		assert.Nil(t, bump)
+	})
+
+	t.Run("BUMPs with different block heights", func(t *testing.T) {
+		// given
+		bumps := []BUMP{
+			{
+				BlockHeight: 0,
+				Path: [][]BUMPLeaf{
+					{
+						{
+							Offset: 8,
+							Hash:   "123b09",
+							TxID:   true,
+						},
+						{
+							Offset: 9,
+							Hash:   "123b10",
+						},
+					},
+					{
+						{
+							Offset: 5,
+							Hash:   "123b1112",
+						},
+					},
+				},
+			},
+			{
+				BlockHeight: 100,
+				Path: [][]BUMPLeaf{
+					{
+						{
+							Offset: 8,
+							Hash:   "123b09",
+						},
+						{
+							Offset: 9,
+							Hash:   "123b10",
+							TxID:   true,
+						},
+					},
+					{
+						{
+							Offset: 5,
+							Hash:   "123b1112",
+						},
+					},
+				},
+			},
+		}
+
+		// when
+		bump, err := CalculateMergedBUMP(bumps)
 
 		// then
 		assert.Error(t, err)
@@ -528,7 +587,7 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 		bumps := []BUMP{}
 
 		// when
-		bump, err := CalculateMergedBUMP(0, bumps)
+		bump, err := CalculateMergedBUMP(bumps)
 
 		// then
 		assert.NoError(t, err)
@@ -541,15 +600,11 @@ func TestBUMPModel_CalculateBUMP(t *testing.T) {
 			{}, {}, {},
 		}
 		// when
-		bump, err := CalculateMergedBUMP(0, bumps)
+		bump, err := CalculateMergedBUMP(bumps)
 
 		// then
-		assert.NoError(t, err)
-		assert.Equal(t, bump, &BUMP{
-			BlockHeight: 0,
-			Path:        [][]BUMPLeaf{},
-			allNodes:    []map[uint64]bool{},
-		})
+		assert.Error(t, err)
+		assert.Nil(t, bump)
 	})
 }
 
@@ -957,7 +1012,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 		for _, mp := range merkleProof {
 			bumps = append(bumps, mp.ToBUMP())
 		}
-		bump, err := CalculateMergedBUMP(0, bumps)
+		bump, err := CalculateMergedBUMP(bumps)
 		actualHex := bump.Hex()
 
 		// then

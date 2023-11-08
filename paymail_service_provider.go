@@ -194,6 +194,8 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	paymailAddress, err = getPaymailAddress(ctx, alias+"@"+domain, opts...)
 	if err != nil {
 		return nil, nil, err
+	} else if paymailAddress == nil {
+		return nil, nil, ErrMissingPaymail
 	}
 
 	unlock, err := newWaitWriteLock(ctx, lockKey(paymailAddress), p.client.Cachestore())

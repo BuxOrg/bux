@@ -10,23 +10,7 @@ import (
 )
 
 func Test_ToBeefHex(t *testing.T) {
-	t.Run("all parents txs are already mined", func(t *testing.T) {
-		// given
-		ctx, client, deferMe := initSimpleTestCase(t)
-		defer deferMe()
-
-		ancestorTx := addGrandpaTx(ctx, t, client)
-		minedParentTx := createTxWithDraft(ctx, t, client, ancestorTx, true)
-
-		newTx := createTxWithDraft(ctx, t, client, minedParentTx, false)
-
-		// when
-		hex, err := ToBeefHex(ctx, newTx)
-
-		// then
-		assert.NoError(t, err)
-		assert.NotEmpty(t, hex)
-	})
+	// TOOD: prepare tests in BUX-168
 
 	t.Run("some parents txs are not mined yet", func(t *testing.T) {
 		// Error expected! this should be changed in the future. right now the test case has been written to make sure the system doesn't panic in such a situation

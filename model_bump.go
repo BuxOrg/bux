@@ -10,13 +10,14 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt/v2"
 )
 
 const maxBumpHeight = 64
 
 // BUMPs represents a slice of BUMPs - BSV Unified Merkle Paths
-type BUMPs []BUMP
+type BUMPs []*BUMP
 
 // BUMP represents BUMP (BSV Unified Merkle Path) format
 type BUMP struct {
@@ -35,39 +36,58 @@ type BUMPLeaf struct {
 }
 
 // CalculateMergedBUMP calculates Merged BUMP from a slice of Merkle Proofs
-func CalculateMergedBUMP(bh uint64, mp []MerkleProof) (BUMP, error) {
-	bump := BUMP{
-		BlockHeight: bh,
+func CalculateMergedBUMP(bumps []BUMP) (*BUMP, error) {
+	if len(bumps) == 0 || bumps == nil {
+		return nil, nil
 	}
 
-	if len(mp) == 0 || mp == nil {
-		return bump, nil
-	}
-
-	height := len(mp[0].Nodes)
-	if height > maxBumpHeight {
-		return bump,
+	blockHeight := bumps[0].BlockHeight
+	bumpHeight := len(bumps[0].Path)
+	if bumpHeight > maxBumpHeight {
+		return nil,
 			fmt.Errorf("BUMP cannot be higher than %d", maxBumpHeight)
 	}
 
-	for _, m := range mp {
-		if height != len(m.Nodes) {
-			return bump,
+	for _, b := range bumps {
+		if bumpHeight != len(b.Path) {
+			return nil,
 				errors.New("Merged BUMP cannot be obtained from Merkle Proofs of different heights")
+		}
+		if b.BlockHeight != blockHeight {
+			return nil,
+				errors.New("BUMPs have different block heights. Cannot merge BUMPs from different blocks")
+		}
+		if len(b.Path) == 0 {
+			return nil,
+				errors.New("Empty BUMP given")
 		}
 	}
 
-	bump.Path = make([][]BUMPLeaf, height)
-	bump.allNodes = make([]map[uint64]bool, height)
+	bump := BUMP{BlockHeight: blockHeight}
+	bump.Path = make([][]BUMPLeaf, bumpHeight)
+	bump.allNodes = make([]map[uint64]bool, bumpHeight)
 	for i := range bump.allNodes {
 		bump.allNodes[i] = make(map[uint64]bool, 0)
 	}
 
-	for _, m := range mp {
-		bumpToAdd := m.ToBUMP()
-		err := bump.add(bumpToAdd)
+	merkleRoot, err := bumps[0].calculateMerkleRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, b := range bumps {
+		mr, err := b.calculateMerkleRoot()
 		if err != nil {
-			return BUMP{}, err
+			return nil, err
+		}
+
+		if merkleRoot != mr {
+			return nil, errors.New("BUMPs have different merkle roots")
+		}
+
+		err = bump.add(b)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -77,7 +97,7 @@ func CalculateMergedBUMP(bh uint64, mp []MerkleProof) (BUMP, error) {
 		})
 	}
 
-	return bump, nil
+	return &bump, nil
 }
 
 func (bump *BUMP) add(b BUMP) error {
@@ -104,6 +124,97 @@ func (bump *BUMP) add(b BUMP) error {
 	}
 
 	return nil
+}
+
+func (b *BUMP) calculateMerkleRoot() (string, error) {
+	merkleRoot := ""
+
+	for _, bumpPathElement := range b.Path[0] {
+		if bumpPathElement.TxID {
+			calcMerkleRoot, err := calculateMerkleRoot(bumpPathElement, b)
+			if err != nil {
+				return "", err
+			}
+
+			if merkleRoot == "" {
+				merkleRoot = calcMerkleRoot
+				continue
+			}
+
+			if calcMerkleRoot != merkleRoot {
+				return "", errors.New("different merkle roots for the same block")
+			}
+		}
+	}
+	return merkleRoot, nil
+}
+
+// calculateMerkleRoots will calculate one merkle root for tx in the BUMPLeaf
+func calculateMerkleRoot(baseLeaf BUMPLeaf, bump *BUMP) (string, error) {
+	calculatedHash := baseLeaf.Hash
+	offset := baseLeaf.Offset
+
+	for _, bLevel := range bump.Path {
+		newOffset := getOffsetPair(offset)
+		leafInPair := findLeafByOffset(newOffset, bLevel)
+		if leafInPair == nil {
+			return "", errors.New("could not find pair")
+		}
+
+		leftNode, rightNode := prepareNodes(baseLeaf, offset, *leafInPair, newOffset)
+
+		str, err := bc.MerkleTreeParentStr(leftNode, rightNode)
+		if err != nil {
+			return "", err
+		}
+		calculatedHash = str
+
+		offset = offset / 2
+
+		baseLeaf = BUMPLeaf{
+			Hash:   calculatedHash,
+			Offset: offset,
+		}
+	}
+
+	return calculatedHash, nil
+}
+
+func findLeafByOffset(offset uint64, bumpLeaves []BUMPLeaf) *BUMPLeaf {
+	for _, bumpTx := range bumpLeaves {
+		if bumpTx.Offset == offset {
+			return &bumpTx
+		}
+	}
+	return nil
+}
+
+func getOffsetPair(offset uint64) uint64 {
+	if offset%2 == 0 {
+		return offset + 1
+	}
+	return offset - 1
+}
+
+func prepareNodes(baseLeaf BUMPLeaf, offset uint64, leafInPair BUMPLeaf, newOffset uint64) (string, string) {
+	var baseLeafHash, pairLeafHash string
+
+	if baseLeaf.Duplicate {
+		baseLeafHash = leafInPair.Hash
+	} else {
+		baseLeafHash = baseLeaf.Hash
+	}
+
+	if leafInPair.Duplicate {
+		pairLeafHash = baseLeaf.Hash
+	} else {
+		pairLeafHash = leafInPair.Hash
+	}
+
+	if newOffset > offset {
+		return baseLeafHash, pairLeafHash
+	}
+	return pairLeafHash, baseLeafHash
 }
 
 // Bytes returns BUMPs bytes

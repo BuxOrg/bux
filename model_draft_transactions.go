@@ -380,7 +380,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	// final sanity check
 	inputValue := uint64(0)
 	usedUtxos := make([]string, 0)
-	merkleProofs := make(map[uint64][]MerkleProof)
+	bumps := make(map[uint64][]BUMP)
 	for _, input := range m.Configuration.Inputs {
 		// check whether an utxo was used twice, this is not valid
 		if utils.StringInSlice(input.Utxo.ID, usedUtxos) {
@@ -392,8 +392,8 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		if err != nil {
 			return err
 		}
-		if tx.MerkleProof.TxOrID != "" {
-			merkleProofs[tx.BlockHeight] = append(merkleProofs[tx.BlockHeight], tx.MerkleProof)
+		if len(tx.BUMP.Path) != 0 {
+			bumps[tx.BlockHeight] = append(bumps[tx.BlockHeight], tx.BUMP)
 		}
 	}
 	outputValue := uint64(0)
@@ -410,10 +410,13 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	if inputValue-outputValue != m.Configuration.Fee {
 		return ErrTransactionFeeInvalid
 	}
-	for bh, v := range merkleProofs {
-		bump, err := CalculateMergedBUMP(bh, v)
+	for _, b := range bumps {
+		bump, err := CalculateMergedBUMP(b)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error while calculating Merged BUMP: %s", err.Error())
+		}
+		if bump == nil {
+			continue
 		}
 		m.BUMPs = append(m.BUMPs, bump)
 	}

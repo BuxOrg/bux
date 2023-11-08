@@ -30,7 +30,7 @@ type BUMP struct {
 // BUMPLeaf represents each BUMP path element
 type BUMPLeaf struct {
 	Offset    uint64 `json:"offset,string"`
-	Hash      string `json:"hash"`
+	Hash      string `json:"hash,omitempty"`
 	TxID      bool   `json:"txid,omitempty"`
 	Duplicate bool   `json:"duplicate,omitempty"`
 }

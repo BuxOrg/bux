@@ -163,6 +163,10 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 
 	rts.(recordIncomingTxStrategy).ForceBroadcast(true)
 
+	if p2pTx.Beef != "" {
+		rts.(recordIncomingTxStrategy).FailOnBroadcastError(true)
+	}
+
 	transaction, err := recordTransaction(ctx, p.client, rts, WithMetadatas(metadata))
 	if err != nil {
 		return nil, err

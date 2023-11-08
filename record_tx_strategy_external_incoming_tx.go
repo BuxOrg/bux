@@ -9,27 +9,35 @@ import (
 )
 
 type externalIncomingTx struct {
-	Hex          string
-	BroadcastNow bool // e.g. BEEF must be broadcasted now
+	Hex                  string
+	broadcastNow         bool // e.g. BEEF must be broadcasted now
+	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 }
 
-func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
 
 	// process
-	if !tx.BroadcastNow && c.IsITCEnabled() { // do not save transaction to database now, save IncomingTransaction instead and let task manager handle and process it
-		return _addTxToCheck(ctx, tx, c, opts)
+	if !strategy.broadcastNow && c.IsITCEnabled() { // do not save transaction to database now, save IncomingTransaction instead and let task manager handle and process it
+		return _addTxToCheck(ctx, strategy, c, opts)
 	}
 
-	transaction, err := _createExternalTxToRecord(ctx, tx, c, opts)
+	transaction, err := _createExternalTxToRecord(ctx, strategy, c, opts)
 	if err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): creation of external incoming tx failed. Reason: %w", err)
 	}
 
 	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
 
-	if tx.BroadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
-		_externalIncomingBroadcast(ctx, logger, transaction) // ignore error, transaction will be broadcaset in a cron task
+	if strategy.broadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
+
+		err := _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
+		if err != nil {
+			logger.
+				Error(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID))
+
+			return nil, fmt.Errorf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
+		}
 	}
 
 	// record
@@ -41,21 +49,25 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 	return transaction, nil
 }
 
-func (tx *externalIncomingTx) Validate() error {
-	if tx.Hex == "" {
+func (strategy *externalIncomingTx) Validate() error {
+	if strategy.Hex == "" {
 		return ErrMissingFieldHex
 	}
 
 	return nil // is valid
 }
 
-func (tx *externalIncomingTx) TxID() string {
-	btTx, _ := bt.NewTxFromString(tx.Hex)
+func (strategy *externalIncomingTx) TxID() string {
+	btTx, _ := bt.NewTxFromString(strategy.Hex)
 	return btTx.TxID()
 }
 
-func (tx *externalIncomingTx) ForceBroadcast(force bool) {
-	tx.BroadcastNow = force
+func (strategy *externalIncomingTx) ForceBroadcast(force bool) {
+	strategy.broadcastNow = force
+}
+
+func (strategy *externalIncomingTx) FailOnBroadcastError(forceFail bool) {
+	strategy.allowBroadcastErrors = !forceFail
 }
 
 func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
@@ -117,15 +129,25 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	tx.syncTransaction = sync
 }
 
-func _externalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction) {
+func _externalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction, allowErrors bool) error {
 	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", tx.ID))
 
-	if err := broadcastSyncTransaction(ctx, tx.syncTransaction); err != nil {
-		// ignore error, transaction will be broadcaset in a cron task
-		logger.
-			Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, tx.ID))
-	} else {
+	err := broadcastSyncTransaction(ctx, tx.syncTransaction)
+
+	if err == nil {
 		logger.
 			Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID))
+
+		return nil
 	}
+
+	if allowErrors {
+		logger.
+			Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID))
+
+		// ignore error, transaction will be broadcaset in a cron task
+		return nil
+	}
+
+	return err
 }

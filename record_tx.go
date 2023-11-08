@@ -14,6 +14,7 @@ type recordTxStrategy interface {
 
 type recordIncomingTxStrategy interface {
 	ForceBroadcast(force bool)
+	FailOnBroadcastError(forceFail bool)
 }
 
 func recordTransaction(ctx context.Context, c ClientInterface, strategy recordTxStrategy, opts ...ModelOps) (*Transaction, error) {
@@ -63,12 +64,12 @@ func getIncomingTxRecordStrategy(ctx context.Context, c ClientInterface, txHex s
 	if tx != nil {
 		rts = &internalIncomingTx{
 			Tx:           tx,
-			BroadcastNow: false,
+			broadcastNow: false,
 		}
 	} else {
 		rts = &externalIncomingTx{
 			Hex:          txHex,
-			BroadcastNow: false,
+			broadcastNow: false,
 		}
 	}
 

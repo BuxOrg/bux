@@ -48,7 +48,7 @@ func addGrandpaTx(ctx context.Context, t *testing.T, client ClientInterface) *Tr
 		},
 	}
 	grandpaTx.MerkleProof = MerkleProof(grandpaTxMp)
-	grandpaTx.BUMP = grandpaTx.MerkleProof.ToBUMP()
+	grandpaTx.BUMP = grandpaTx.MerkleProof.ToBUMP(grandpaTx.BlockHeight)
 	err := grandpaTx.Save(ctx)
 	require.NoError(t, err)
 

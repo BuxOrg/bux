@@ -223,8 +223,7 @@ func (m *Transaction) migrateBUMP() error {
 		return err
 	}
 	for _, tx := range txs {
-		bump := tx.MerkleProof.ToBUMP()
-		bump.BlockHeight = tx.BlockHeight
+		bump := tx.MerkleProof.ToBUMP(tx.BlockHeight)
 		tx.BUMP = bump
 		_ = tx.Save(ctx)
 	}

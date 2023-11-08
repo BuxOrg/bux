@@ -1010,7 +1010,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 		// when
 		bumps := make([]BUMP, 0)
 		for _, mp := range merkleProof {
-			bumps = append(bumps, mp.ToBUMP())
+			bumps = append(bumps, mp.ToBUMP(0))
 		}
 		bump, err := CalculateMergedBUMP(bumps)
 		actualHex := bump.Hex()

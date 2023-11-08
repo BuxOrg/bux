@@ -58,8 +58,8 @@ func (m MerkleProof) Value() (driver.Value, error) {
 }
 
 // ToBUMP transform Merkle Proof to BUMP
-func (m *MerkleProof) ToBUMP() BUMP {
-	bump := BUMP{}
+func (m *MerkleProof) ToBUMP(blockHeight uint64) BUMP {
+	bump := BUMP{BlockHeight: blockHeight}
 
 	height := len(m.Nodes)
 	if height == 0 {

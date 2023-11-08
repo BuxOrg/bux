@@ -234,8 +234,7 @@ func (m *Transaction) setMerkleRoot(txInfo *chainstate.TransactionInfo) {
 		mp := MerkleProof(*txInfo.MerkleProof)
 		m.MerkleProof = mp
 
-		bump := mp.ToBUMP()
-		bump.BlockHeight = uint64(txInfo.BlockHeight)
+		bump := mp.ToBUMP(uint64(txInfo.BlockHeight))
 		m.BUMP = bump
 	}
 }

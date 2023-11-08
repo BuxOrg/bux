@@ -171,7 +171,7 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionBroadcast, provider, "broadcast error: "+err.Error(),
 		)
-		return nil //nolint:nolintlint,nilerr // error is not needed
+		return err
 	}
 
 	// Create status message

@@ -28,7 +28,7 @@ func (tx *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, op
 
 	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
 
-	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
+	if tx.BroadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 		_externalIncomingBroadcast(ctx, logger, transaction) // ignore error, transaction will be broadcaset in a cron task
 	}
 

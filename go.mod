@@ -31,7 +31,7 @@ require (
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.8.4
-	github.com/tonicpow/go-minercraft/v2 v2.0.6
+	github.com/tonicpow/go-minercraft/v2 v2.0.7
 	github.com/tryvium-travels/memongo v0.10.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9

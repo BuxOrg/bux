@@ -377,53 +377,41 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 		return
 	}
 
-	// final sanity check
-	inputValue := uint64(0)
+	if err = validateOutputsInputs(m.Configuration.Inputs, m.Configuration.Outputs, m.Configuration.Fee); err != nil {
+		return
+	}
+
+	// Create the final hex (without signatures)
+	m.Hex = tx.String()
+
+	return
+}
+
+func validateOutputsInputs(inputs []*TransactionInput, outputs []*TransactionOutput, fee uint64) error {
 	usedUtxos := make([]string, 0)
-	bumps := make(map[uint64][]BUMP)
-	for _, input := range m.Configuration.Inputs {
-		// check whether an utxo was used twice, this is not valid
+	inputValue := uint64(0)
+	outputValue := uint64(0)
+
+	for _, input := range inputs {
 		if utils.StringInSlice(input.Utxo.ID, usedUtxos) {
 			return ErrDuplicateUTXOs
 		}
 		usedUtxos = append(usedUtxos, input.Utxo.ID)
 		inputValue += input.Satoshis
-		tx, err := m.client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
-		if err != nil {
-			return err
-		}
-		if len(tx.BUMP.Path) != 0 {
-			bumps[tx.BlockHeight] = append(bumps[tx.BlockHeight], tx.BUMP)
-		}
 	}
-	outputValue := uint64(0)
-	for _, output := range m.Configuration.Outputs {
+
+	for _, output := range outputs {
 		outputValue += output.Satoshis
 	}
 
 	if inputValue < outputValue {
 		return ErrOutputValueTooHigh
 	}
-	if m.Configuration.Fee <= 0 {
-		return ErrTransactionFeeInvalid
-	}
-	if inputValue-outputValue != m.Configuration.Fee {
-		return ErrTransactionFeeInvalid
-	}
-	for _, b := range bumps {
-		bump, err := CalculateMergedBUMP(b)
-		if err != nil {
-			return fmt.Errorf("Error while calculating Merged BUMP: %s", err.Error())
-		}
-		if bump == nil {
-			continue
-		}
-		m.BUMPs = append(m.BUMPs, bump)
-	}
-	// Create the final hex (without signatures)
-	m.Hex = tx.String()
 
-	return
+	if inputValue-outputValue != fee {
+		return ErrTransactionFeeInvalid
+	}
+	return nil
 }
 
 // addIncludeUtxos will add the included utxos

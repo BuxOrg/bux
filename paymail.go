@@ -13,8 +13,8 @@ import (
 
 // getCapabilities is a utility function to retrieve capabilities for a Paymail provider
 func getCapabilities(ctx context.Context, cs cachestore.ClientInterface, client paymail.ClientInterface,
-	domain string) (*paymail.CapabilitiesPayload, error) {
-
+	domain string,
+) (*paymail.CapabilitiesPayload, error) {
 	// Attempt to get from cachestore
 	// todo: allow user to configure the time that they want to cache the capabilities (if they want to cache or not)
 	capabilities := new(paymail.CapabilitiesPayload)
@@ -91,8 +91,8 @@ func hasP2P(capabilities *paymail.CapabilitiesPayload) (success bool, p2pDestina
 //
 // Deprecated: this is already deprecated by TSC, use P2P or the new P4
 func resolvePaymailAddress(ctx context.Context, cs cachestore.ClientInterface, client paymail.ClientInterface,
-	capabilities *paymail.CapabilitiesPayload, alias, domain, purpose, senderPaymail string) (*paymail.ResolutionPayload, error) {
-
+	capabilities *paymail.CapabilitiesPayload, alias, domain, purpose, senderPaymail string,
+) (*paymail.ResolutionPayload, error) {
 	// Attempt to get from cachestore
 	// todo: allow user to configure the time that they want to cache the address resolution (if they want to cache or not)
 	resolution := new(paymail.ResolutionPayload)
@@ -139,8 +139,8 @@ func resolvePaymailAddress(ctx context.Context, cs cachestore.ClientInterface, c
 
 // startP2PTransaction will start the P2P transaction, returning the reference ID and outputs
 func startP2PTransaction(client paymail.ClientInterface,
-	alias, domain, p2pDestinationURL string, satoshis uint64) (*paymail.PaymentDestinationPayload, error) {
-
+	alias, domain, p2pDestinationURL string, satoshis uint64,
+) (*paymail.PaymentDestinationPayload, error) {
 	// Start the P2P transaction request
 	response, err := client.GetP2PPaymentDestination(
 		p2pDestinationURL,
@@ -191,8 +191,7 @@ func buildP2pTx(ctx context.Context, p4 *PaymailP4, transaction *Transaction) (*
 	switch p4.Format {
 
 	case BeefPaymailPayloadFormat:
-		beef, err := ToBeefHex(ctx, transaction)
-
+		beef, err := ToBeef(ctx, transaction)
 		if err != nil {
 			return nil, err
 		}

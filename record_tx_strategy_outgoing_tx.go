@@ -15,56 +15,71 @@ type outgoingTx struct {
 	XPubKey        string
 }
 
-func (tx *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
+	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start, TxID: %s", strategy.TxID()))
 
-	// process
-	transaction, err := _createOutgoingTxToRecord(ctx, tx, c, opts)
-
-	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start, TxID: %s", transaction.ID))
-
+	// create
+	transaction, err := _createOutgoingTxToRecord(ctx, strategy, c, opts)
 	if err != nil {
 		return nil, fmt.Errorf("OutgoingTx.Execute(): creation of outgoing tx failed. Reason: %w", err)
 	}
 
+	if err = transaction.Save(ctx); err != nil {
+		return nil, fmt.Errorf("OutgoingTx.Execute(): saving of Transaction failed. Reason: %w", err)
+	}
+
+	// process
 	if transaction.syncTransaction.P2PStatus == SyncStatusReady {
 		if err = _outgoingNotifyP2p(ctx, logger, transaction); err != nil {
-			return nil, err // reject transaction if P2P notification failed
+			// reject transaction if P2P notification failed
+			logger.Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): transaction rejected by P2P provider, try to revert transaction. Reason: %s", err))
+
+			if revertErr := c.RevertTransaction(ctx, transaction.ID); revertErr != nil {
+				logger.Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): FATAL! Reverting transaction after failed P2P notification failed. Reason: %s", err))
+			}
+
+			return nil, err
 		}
 	}
 
-	if transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
-		_outgoingBroadcast(ctx, logger, transaction) // ignore error, transaction will be broadcasted by cron task
+	// get newest syncTx from DB - if it's an internal tx it could be broadcasted by us already
+	syncTx, err := GetSyncTransactionByID(ctx, transaction.ID, transaction.GetOptions(false)...)
+	if err != nil || syncTx == nil {
+		return nil, fmt.Errorf("OutgoingTx.Execute(): getting syncTx failed. Reason: %w", err)
 	}
 
-	// record
-	if err = transaction.Save(ctx); err != nil {
-		return nil, fmt.Errorf("OutgoingTx.Execute(): saving of Transaction failed. Reason: %w", err)
+	if syncTx.BroadcastStatus == SyncStatusReady {
+		_outgoingBroadcast(ctx, logger, transaction) // ignore error
 	}
 
 	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): complete, TxID: %s", transaction.ID))
 	return transaction, nil
 }
 
-func (tx outgoingTx) Validate() error {
-	if tx.Hex == "" {
+func (strategy *outgoingTx) Validate() error {
+	if strategy.Hex == "" {
 		return ErrMissingFieldHex
 	}
 
-	if tx.RelatedDraftID == "" {
+	if strategy.RelatedDraftID == "" {
 		return errors.New("empty RelatedDraftID")
 	}
 
-	if tx.XPubKey == "" {
-		return errors.New("empty xPubKey") // is it required ?
+	if strategy.XPubKey == "" {
+		return errors.New("empty xPubKey")
 	}
 
 	return nil // is valid
 }
 
-func (tx outgoingTx) TxID() string {
-	btTx, _ := bt.NewTxFromString(tx.Hex)
+func (strategy *outgoingTx) TxID() string {
+	btTx, _ := bt.NewTxFromString(strategy.Hex)
 	return btTx.TxID()
+}
+
+func (strategy *outgoingTx) LockKey() string {
+	return fmt.Sprintf("outgoing-%s", strategy.TxID())
 }
 
 func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
@@ -124,7 +139,7 @@ func _hydrateOutgoingWithSync(tx *Transaction) {
 	// setup synchronization
 	sync.BroadcastStatus = _getBroadcastSyncStatus(tx)
 	sync.P2PStatus = _getP2pSyncStatus(tx)
-	//sync.SyncStatus = SyncStatusReady
+	sync.SyncStatus = SyncStatusPending // wait until transaction is broadcasted or P2P provider is notified
 
 	sync.Metadata = tx.Metadata
 
@@ -186,7 +201,7 @@ func _outgoingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface,
 	if err := broadcastSyncTransaction(ctx, tx.syncTransaction); err != nil {
 		// ignore error, transaction will be broadcasted by cron task
 		logger.
-			Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed. Reason: %s, TxID: %s", err, tx.ID))
+			Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID))
 	} else {
 		logger.
 			Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcast complete, TxID: %s", tx.ID))

@@ -36,7 +36,7 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 			logger.
 				Error(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID))
 
-			return nil, fmt.Errorf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
+			return nil, fmt.Errorf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w", err)
 		}
 	}
 
@@ -60,6 +60,10 @@ func (strategy *externalIncomingTx) Validate() error {
 func (strategy *externalIncomingTx) TxID() string {
 	btTx, _ := bt.NewTxFromString(strategy.Hex)
 	return btTx.TxID()
+}
+
+func (strategy *externalIncomingTx) LockKey() string {
+	return fmt.Sprintf("incoming-%s", strategy.TxID())
 }
 
 func (strategy *externalIncomingTx) ForceBroadcast(force bool) {
@@ -120,8 +124,8 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	// to simplfy: broadcast every external incoming txs
 	sync.BroadcastStatus = SyncStatusReady
 
-	sync.P2PStatus = SyncStatusSkipped // the owner of the Tx should have already notified paymail providers
-	//sync.SyncStatus = SyncStatusReady
+	sync.P2PStatus = SyncStatusSkipped  // the sender of the Tx should have already notified us
+	sync.SyncStatus = SyncStatusPending // wait until transaciton will be broadcasted
 
 	// Use the same metadata
 	sync.Metadata = tx.Metadata

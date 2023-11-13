@@ -194,11 +194,6 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		StatusMessage: message,
 	})
 
-	// Update the P2P status
-	if syncTx.P2PStatus == SyncStatusPending {
-		syncTx.P2PStatus = SyncStatusReady
-	}
-
 	// Update sync status to be ready now
 	if syncTx.SyncStatus == SyncStatusPending {
 		syncTx.SyncStatus = SyncStatusReady
@@ -357,6 +352,12 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 
 	// Save the record
 	syncTx.P2PStatus = SyncStatusComplete
+
+	// Update sync status to be ready now
+	if syncTx.SyncStatus == SyncStatusPending {
+		syncTx.SyncStatus = SyncStatusReady
+	}
+
 	if err = syncTx.Save(ctx); err != nil {
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionP2P, "internal", err.Error(),

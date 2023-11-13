@@ -21,7 +21,7 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 	// process
 	transaction := strategy.Tx
 	syncTx, err := GetSyncTransactionByID(ctx, transaction.ID, transaction.GetOptions(false)...)
-	if err != nil {
+	if err != nil || syncTx == nil {
 		return nil, fmt.Errorf("InternalIncomingTx.Execute(): getting syncTx failed. Reason: %w", err)
 	}
 
@@ -54,6 +54,10 @@ func (strategy *internalIncomingTx) TxID() string {
 	return strategy.Tx.ID
 }
 
+func (strategy *internalIncomingTx) LockKey() string {
+	return fmt.Sprintf("incoming-%s", strategy.Tx.ID)
+}
+
 func (strategy *internalIncomingTx) ForceBroadcast(force bool) {
 	strategy.broadcastNow = force
 }
@@ -78,16 +82,6 @@ func _internalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerIn
 	if allowErrors {
 		logger.
 			Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID))
-
-			// TODO: do I really need this?
-		if syncTx.BroadcastStatus == SyncStatusSkipped { // revert status to ready after fail to re-run broadcasting, this can happen when we received internal BEEF tx
-			syncTx.BroadcastStatus = SyncStatusReady
-
-			if err = syncTx.Save(ctx); err != nil {
-				logger.
-					Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): changing synctx.BroadcastStatus from Skipped to Ready failed. Reason: %s, TxID: %s", err, transaction.ID))
-			}
-		}
 
 		// ignore broadcast error - will be repeted by task manager
 		return nil

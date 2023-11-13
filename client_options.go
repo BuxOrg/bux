@@ -68,7 +68,7 @@ func defaultClientOptions() *clientOptions {
 		// Blank Datastore config
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
-			options:         []datastore.ClientOps{},
+			options:         []datastore.ClientOps{datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: zLogger.NewGormLogger(false, 4)})},
 		},
 
 		// Default http client

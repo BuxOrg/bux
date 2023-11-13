@@ -110,7 +110,6 @@ func defaultClientOptions() *clientOptions {
 				ModelDraftTransaction.String() + "_clean_up":              taskIntervalDraftCleanup,
 				ModelIncomingTransaction.String() + "_process":            taskIntervalProcessIncomingTxs,
 				ModelSyncTransaction.String() + "_" + syncActionBroadcast: taskIntervalSyncActionBroadcast,
-				ModelSyncTransaction.String() + "_" + syncActionP2P:       taskIntervalSyncActionP2P,
 				ModelSyncTransaction.String() + "_" + syncActionSync:      taskIntervalSyncActionSync,
 				ModelTransaction.String() + "_" + TransactionActionCheck:  taskIntervalTransactionCheck,
 			},

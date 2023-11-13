@@ -96,37 +96,6 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 	return nil
 }
 
-// processP2PTransactions will process transactions for p2p notifications
-func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-	queryParams := &datastore.QueryParams{
-		Page:          1,
-		PageSize:      maxTransactions,
-		OrderByField:  "created_at",
-		SortDirection: "asc",
-	}
-
-	// Get x records
-	records, err := getTransactionsToNotifyP2P(
-		ctx, queryParams, opts...,
-	)
-	if err != nil {
-		return err
-	} else if len(records) == 0 {
-		return nil
-	}
-
-	// Process the incoming transaction
-	for index := range records {
-		if err = processP2PTransaction(
-			ctx, records[index], nil,
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // broadcastSyncTransaction will broadcast transaction related to syncTx record
 func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 	// Successfully capture any panics, convert to readable string and log the error

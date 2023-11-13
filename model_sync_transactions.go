@@ -143,6 +143,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 		return nil
 	}
 
+	// Sync with chain - task
 	// Register the task locally (cron task - set the defaults)
 	syncTask := m.Name() + "_" + syncActionSync
 	ctx := context.Background()
@@ -171,6 +172,7 @@ func (m *SyncTransaction) RegisterTasks() error {
 		return err
 	}
 
+	// Broadcast - task
 	// Register the task locally (cron task - set the defaults)
 	broadcastTask := m.Name() + "_" + syncActionBroadcast
 
@@ -197,27 +199,5 @@ func (m *SyncTransaction) RegisterTasks() error {
 		return err
 	}
 
-	// Register the task locally (cron task - set the defaults)
-	p2pTask := m.Name() + "_" + syncActionP2P
-
-	// Register the task
-	if err = tm.RegisterTask(&taskmanager.Task{
-		Name:       p2pTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskNotifyP2P(ctx, client.Logger(), WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+p2pTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Run the task periodically
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(p2pTask),
-		TaskName:       p2pTask,
-	})
+	return nil
 }

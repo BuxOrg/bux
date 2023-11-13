@@ -34,7 +34,6 @@ const (
 	taskIntervalMonitorCheck        = defaultMonitorHeartbeat * time.Second // Default task time for cron jobs (seconds)
 	taskIntervalProcessIncomingTxs  = 30 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalSyncActionBroadcast = 30 * time.Second                      // Default task time for cron jobs (seconds)
-	taskIntervalSyncActionP2P       = 35 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalSyncActionSync      = 40 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalTransactionCheck    = 60 * time.Second                      // Default task time for cron jobs (seconds)
 )

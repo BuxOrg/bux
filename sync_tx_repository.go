@@ -37,9 +37,9 @@ func GetSyncTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*
 // getTransactionsToBroadcast will get the sync transactions to broadcast
 func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps,
-) (map[string][]*SyncTransaction, error) {
+) ([]*SyncTransaction, error) {
 	// Get the records by status
-	txs, err := _getSyncTransactionsByConditions(
+	scTxs, err := _getSyncTransactionsByConditions(
 		ctx,
 		map[string]interface{}{
 			broadcastStatusField: SyncStatusReady.String(),
@@ -48,19 +48,25 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 	)
 	if err != nil {
 		return nil, err
+	} else if len(scTxs) == 0 {
+		return nil, nil
 	}
 
-	// group transactions by xpub and return including the tx itself
-	txsByXpub := make(map[string][]*SyncTransaction)
-	for _, tx := range txs {
-		if tx.transaction, err = getTransactionByID(
-			ctx, "", tx.ID, opts...,
-		); err != nil {
+	// hydrate and see if it's ready to sync
+	res := make([]*SyncTransaction, 0, len(scTxs))
+
+	for _, sTx := range scTxs {
+		// hydrate
+		sTx.transaction, err = getTransactionByID(
+			ctx, "", sTx.ID, opts...,
+		)
+		if err != nil {
 			return nil, err
+		} else if sTx.transaction == nil {
+			return nil, ErrMissingTransaction
 		}
 
-		var parentsBroadcast bool
-		parentsBroadcast, err = _areParentsBroadcast(ctx, tx, opts...)
+		parentsBroadcast, err := _areParentsBroadcasted(ctx, sTx.transaction, opts...)
 		if err != nil {
 			return nil, err
 		}
@@ -70,20 +76,10 @@ func getTransactionsToBroadcast(ctx context.Context, queryParams *datastore.Quer
 			continue
 		}
 
-		xPubID := "" // fallback if we have no input xpubs
-		if len(tx.transaction.XpubInIDs) > 0 {
-			// use the first xpub for the grouping
-			// in most cases when we are broadcasting, there should be only 1 xpub in
-			xPubID = tx.transaction.XpubInIDs[0]
-		}
-
-		if txsByXpub[xPubID] == nil {
-			txsByXpub[xPubID] = make([]*SyncTransaction, 0)
-		}
-		txsByXpub[xPubID] = append(txsByXpub[xPubID], tx)
+		res = append(res, sTx)
 	}
 
-	return txsByXpub, nil
+	return res, nil
 }
 
 // getTransactionsToSync will get the sync transactions to sync
@@ -160,25 +156,15 @@ func _getSyncTransactionsByConditions(ctx context.Context, conditions map[string
 	return txs, nil
 }
 
-func _areParentsBroadcast(ctx context.Context, syncTx *SyncTransaction, opts ...ModelOps) (bool, error) {
-	tx, err := getTransactionByID(ctx, "", syncTx.ID, opts...)
-	if err != nil {
-		return false, err
-	}
-
-	if tx == nil {
-		return false, ErrMissingTransaction
-	}
-
+func _areParentsBroadcasted(ctx context.Context, tx *Transaction, opts ...ModelOps) (bool, error) {
 	// get the sync transaction of all inputs
-	var btTx *bt.Tx
-	btTx, err = bt.NewTxFromString(tx.Hex)
+	btTx, err := bt.NewTxFromString(tx.Hex)
 	if err != nil {
 		return false, err
 	}
 
 	// check that all inputs we handled have been broadcast, or are not handled by Bux
-	parentsBroadcast := true
+	parentsBroadcasted := true
 	for _, input := range btTx.Inputs {
 		var parentTx *SyncTransaction
 		previousTxID := hex.EncodeToString(bt.ReverseBytes(input.PreviousTxID()))
@@ -188,9 +174,9 @@ func _areParentsBroadcast(ctx context.Context, syncTx *SyncTransaction, opts ...
 		}
 		// if we have a sync transaction, and it is not complete, then we cannot broadcast
 		if parentTx != nil && parentTx.BroadcastStatus != SyncStatusComplete {
-			parentsBroadcast = false
+			parentsBroadcasted = false
 		}
 	}
 
-	return parentsBroadcast, nil
+	return parentsBroadcasted, nil
 }

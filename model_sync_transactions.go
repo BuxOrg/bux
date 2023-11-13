@@ -108,17 +108,6 @@ func (m *SyncTransaction) BeforeCreating(_ context.Context) error {
 func (m *SyncTransaction) AfterCreated(ctx context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
-	// Should we broadcast immediately?
-	if m.Configuration.Broadcast &&
-		m.Configuration.BroadcastInstant {
-		if err := processBroadcastTransaction( // TODO: remove business logic
-			ctx, m,
-		); err != nil {
-			// return err (do not return and fail the record creation)
-			m.Client().Logger().Error(ctx, "error running broadcast tx: "+err.Error())
-		}
-	}
-
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
 }

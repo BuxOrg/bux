@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"runtime/debug"
-	"strings"
 	"sync"
 	"time"
 
@@ -40,7 +38,7 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 
 	// Process the incoming transaction
 	for index := range records {
-		if err = _processSyncTransaction(
+		if err = _syncTxDataFromChain(
 			ctx, records[index], nil,
 		); err != nil {
 			return err
@@ -60,20 +58,20 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 	}
 
 	// Get maxTransactions records, grouped by xpub
-	txsByXpub, err := getTransactionsToBroadcast(
-		ctx, queryParams, opts...,
-	)
+	snTxs, err := getTransactionsToBroadcast(ctx, queryParams, opts...)
 	if err != nil {
 		return err
-	} else if len(txsByXpub) == 0 {
+	} else if len(snTxs) == 0 {
 		return nil
 	}
 
-	wg := new(sync.WaitGroup)
+	// Process the transactions per xpub, in parallel
+	txsByXpub := _groupByXpub(snTxs)
+
 	// we limit the number of concurrent broadcasts to the number of cpus*2, since there is lots of IO wait
 	limit := make(chan bool, runtime.NumCPU()*2)
+	wg := new(sync.WaitGroup)
 
-	// Process the transactions per xpub, in parallel
 	for xPubID := range txsByXpub {
 		limit <- true // limit the number of routines running at the same time
 		wg.Add(1)
@@ -82,7 +80,7 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 			defer func() { <-limit }()
 
 			for _, tx := range txsByXpub[xPubID] {
-				if err = processBroadcastTransaction(
+				if err = broadcastSyncTransaction(
 					ctx, tx,
 				); err != nil {
 					tx.Client().Logger().Error(ctx,
@@ -119,7 +117,7 @@ func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...Mo
 
 	// Process the incoming transaction
 	for index := range records {
-		if err = _processP2PTransaction(
+		if err = processP2PTransaction(
 			ctx, records[index], nil,
 		); err != nil {
 			return err
@@ -129,19 +127,10 @@ func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...Mo
 	return nil
 }
 
-// processBroadcastTransaction will process a sync transaction record and broadcast it
-func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) error {
+// broadcastSyncTransaction will broadcast transaction related to syncTx record
+func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer func() {
-		if err := recover(); err != nil {
-			syncTx.Client().Logger().Error(ctx,
-				fmt.Sprintf(
-					"panic: %v - stack trace: %v", err,
-					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
-				),
-			)
-		}
-	}()
+	defer recoverAndLog(ctx, syncTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -152,31 +141,26 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 		return err
 	}
 
-	// Get the transaction
-	var transaction *Transaction
-	var incomingTransaction *IncomingTransaction
+	// Get the transaction HEX
 	var txHex string
 	if syncTx.transaction != nil && syncTx.transaction.Hex != "" {
 		// the transaction has already been retrieved and added to the syncTx object, just use that
-		transaction = syncTx.transaction
-		txHex = transaction.Hex
+		txHex = syncTx.transaction.Hex
 	} else {
-		if transaction, err = getTransactionByID(
+		// else get hex from DB
+		transaction, err := getTransactionByID(
 			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
-		); err != nil {
+		)
+
+		if err != nil {
 			return err
-		} else if transaction == nil {
-			// maybe this is only an incoming transaction, let's try to find that and broadcast
-			// the processing of incoming transactions should then pick it up in the next job run
-			if incomingTransaction, err = getIncomingTransactionByID(ctx, syncTx.ID, syncTx.GetOptions(false)...); err != nil {
-				return err
-			} else if incomingTransaction == nil {
-				return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
-			}
-			txHex = incomingTransaction.Hex
-		} else {
-			txHex = transaction.Hex
 		}
+
+		if transaction == nil {
+			return errors.New("transaction was expected but not found, using ID: " + syncTx.ID)
+		}
+
+		txHex = transaction.Hex
 	}
 
 	// Broadcast
@@ -192,19 +176,6 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 
 	// Create status message
 	message := "broadcast success"
-
-	// process the incoming transaction before finishing the sync
-	if incomingTransaction != nil {
-		// give the transaction some time to propagate through the network
-		time.Sleep(3 * time.Second)
-
-		// we don't need to handle the error here, this is only to speed up the processing
-		// job will pick it up later if needed
-		if err = processIncomingTransaction(ctx, nil, incomingTransaction); err == nil {
-			// again ignore the error, if an error occurs the transaction will be set and will be processed further
-			transaction, _ = getTransactionByID(ctx, "", syncTx.ID, syncTx.GetOptions(false)...)
-		}
-	}
 
 	// Update the sync information
 	syncTx.BroadcastStatus = SyncStatusComplete
@@ -244,34 +215,15 @@ func processBroadcastTransaction(ctx context.Context, syncTx *SyncTransaction) e
 	// Fire a notification
 	notify(notifications.EventTypeBroadcast, syncTx)
 
-	// Notify any P2P paymail providers associated to the transaction
-	// but only if we actually found the transaction in the transactions' collection, otherwise this was an incoming
-	// transaction that needed to be broadcast and was not successfully processed after the broadcast
-	if transaction != nil {
-		if syncTx.P2PStatus == SyncStatusReady {
-			return _processP2PTransaction(ctx, syncTx, transaction)
-		} else if syncTx.P2PStatus == SyncStatusSkipped && syncTx.SyncStatus == SyncStatusReady {
-			return _processSyncTransaction(ctx, syncTx, transaction)
-		}
-	}
 	return nil
 }
 
 /////////////////
 
-// _processSyncTransaction will process the sync transaction record, or save the failure
-func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+// _syncTxDataFromChain will process the sync transaction record, or save the failure
+func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer func() {
-		if err := recover(); err != nil {
-			syncTx.Client().Logger().Error(ctx,
-				fmt.Sprintf(
-					"panic: %v - stack trace: %v", err,
-					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
-				),
-			)
-		}
-	}()
+	defer recoverAndLog(ctx, syncTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -323,13 +275,7 @@ func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, trans
 		return nil
 	}
 
-	// Add additional information (if found on-chain)
-	transaction.BlockHash = txInfo.BlockHash
-	transaction.BlockHeight = uint64(txInfo.BlockHeight)
-	transaction.MerkleProof = MerkleProof(*txInfo.MerkleProof)
-	bump := transaction.MerkleProof.ToBUMP()
-	bump.BlockHeight = transaction.BlockHeight
-	transaction.BUMP = bump
+	transaction.setChainInfo(txInfo)
 
 	// Create status message
 	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient
@@ -363,19 +309,10 @@ func _processSyncTransaction(ctx context.Context, syncTx *SyncTransaction, trans
 	return nil
 }
 
-// _processP2PTransaction will process the sync transaction record, or save the failure
-func _processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+// processP2PTransaction will process the sync transaction record, or save the failure
+func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer func() {
-		if err := recover(); err != nil {
-			syncTx.Client().Logger().Error(ctx,
-				fmt.Sprintf(
-					"panic: %v - stack trace: %v", err,
-					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
-				),
-			)
-		}
-	}()
+	defer recoverAndLog(ctx, syncTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -476,10 +413,32 @@ func _notifyPaymailProviders(ctx context.Context, transaction *Transaction) ([]*
 
 // utils
 
+func _groupByXpub(scTxs []*SyncTransaction) map[string][]*SyncTransaction {
+	txsByXpub := make(map[string][]*SyncTransaction)
+
+	// group transactions by xpub and return including the tx itself
+	for _, tx := range scTxs {
+		xPubID := "" // fallback if we have no input xpubs
+		if len(tx.transaction.XpubInIDs) > 0 {
+			// use the first xpub for the grouping
+			// in most cases when we are broadcasting, there should be only 1 xpub in
+			xPubID = tx.transaction.XpubInIDs[0]
+		}
+
+		if txsByXpub[xPubID] == nil {
+			txsByXpub[xPubID] = make([]*SyncTransaction, 0)
+		}
+		txsByXpub[xPubID] = append(txsByXpub[xPubID], tx)
+	}
+
+	return txsByXpub
+}
+
 // _bailAndSaveSyncTransaction will save the error message for a sync tx
 func _bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus,
 	action, provider, message string,
 ) {
+
 	if action == syncActionSync {
 		syncTx.SyncStatus = status
 	} else if action == syncActionP2P {
@@ -500,5 +459,10 @@ func _bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, s
 		Provider:      provider,
 		StatusMessage: message,
 	})
+
+	if syncTx.IsNew() {
+		return // do not save if new record! caller should decide if want to save new record
+	}
+
 	_ = syncTx.Save(ctx)
 }

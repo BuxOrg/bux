@@ -80,11 +80,21 @@ func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLogger
 }
 
 // taskSyncTransactions will sync any transactions
-func taskSyncTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
+func taskSyncTransactions(ctx context.Context, c ClientInterface, opts ...ModelOps) error {
 
+	logClient := c.Logger()
 	logClient.Info(ctx, "running sync transaction(s) task...")
 
-	err := processSyncTransactions(ctx, 10, opts...)
+	// Prevent concurrent running
+	unlock, err := newWriteLock(
+		ctx, lockKeyProcessSyncTx, c.Cachestore(),
+	)
+	defer unlock()
+	if err != nil {
+		return err
+	}
+
+	err = processSyncTransactions(ctx, 100, opts...)
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
 		return nil
 	}

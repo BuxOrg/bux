@@ -189,14 +189,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 	// Successfully capture any panics, convert to readable string and log the error
 	defer recoverAndLog(ctx, syncTx.client.Logger())
 
-	// Create the lock and set the release for after the function completes
-	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyProcessSyncTx, syncTx.GetID()), syncTx.Client().Cachestore(),
-	)
-	defer unlock()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	// Get the transaction
 	if transaction == nil {

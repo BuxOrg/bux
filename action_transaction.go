@@ -455,6 +455,12 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 		}
 	}
 
+	// cancel draft tx
+	draftTransaction.Status = DraftStatusCanceled
+	if err = draftTransaction.Save(ctx); err != nil {
+		return err
+	}
+
 	// cancel sync transaction
 	var syncTransaction *SyncTransaction
 	if syncTransaction, err = GetSyncTransactionByID(ctx, transaction.ID, c.DefaultModelOptions()...); err != nil {
@@ -481,6 +487,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	transaction.XpubOutputValue = XpubOutputValue{"reverted": 0}
 	transaction.DeletedAt.Valid = true
 	transaction.DeletedAt.Time = time.Now()
+
 	err = transaction.Save(ctx) // update existing record
 
 	return err

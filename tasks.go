@@ -91,7 +91,8 @@ func taskSyncTransactions(ctx context.Context, c ClientInterface, opts ...ModelO
 	)
 	defer unlock()
 	if err != nil {
-		return err
+		logClient.Warn(ctx, "cannot run sync transaction(s) task,  previous run is not complete yet...")
+		return nil
 	}
 
 	err = processSyncTransactions(ctx, 100, opts...)

@@ -17,8 +17,11 @@ type beefTx struct {
 }
 
 func ToBeef(ctx context.Context, tx *Transaction) (string, error) {
-	inputs := tx.draftTransaction.Configuration.Inputs
-	bumpBtFactors, bumpFactors, err := prepareBUMPFactors(ctx, tx.client, inputs)
+	if err := hydrateTransaction(ctx, tx); err != nil {
+		return "", err
+	}
+
+	bumpBtFactors, bumpFactors, err := prepareBUMPFactors(ctx, tx)
 	if err != nil {
 		return "", fmt.Errorf("prepareBUMPFactors() error: %w", err)
 	}
@@ -53,12 +56,7 @@ func newBeefTx(ctx context.Context, version uint32, tx *Transaction, parentTxs [
 		return nil, fmt.Errorf("version above 0x%X", maxBeefVer)
 	}
 
-	var err error
-	if err = hydrateTransaction(ctx, tx); err != nil {
-		return nil, err
-	}
-
-	if err = validateBumps(tx.draftTransaction.BUMPs); err != nil {
+	if err := validateBumps(tx.draftTransaction.BUMPs); err != nil {
 		return nil, err
 	}
 

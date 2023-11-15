@@ -47,32 +47,17 @@ func validateBumps(bumps BUMPs) error {
 	return nil
 }
 
-// getClientTransactions is a helper function to get transactions in batch to reduce API calls.
-func getClientTransactions(ctx context.Context, client ClientInterface, txIds []string) (map[string]*bt.Tx, error) {
-	transactions := make(map[string]*bt.Tx)
-	for _, txId := range txIds {
-		tx, err := client.GetTransactionByID(ctx, txId)
-		if err != nil {
-			return nil, err
-		}
-		btTx, err := bt.NewTxFromString(tx.Hex)
-		if err != nil {
-			return nil, err
-		}
-		transactions[txId] = btTx
-	}
-	return transactions, nil
-}
-
 // prepareBUMPFactors is a recursive function to find all parent transactions
 // with a valid MerkleProof or BUMP.
-func prepareBUMPFactors(ctx context.Context, client ClientInterface, inputs []*TransactionInput) ([]*bt.Tx, []*Transaction, error) {
-	var btTxsNeededForBUMP []*bt.Tx
-	var txsNeededForBUMP []*Transaction
+func prepareBUMPFactors(ctx context.Context, tx *Transaction) ([]*bt.Tx, []*Transaction, error) {
+	btTxsNeededForBUMP, txsNeededForBUMP, err := initializeRequiredTxsCollection(tx)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	for _, input := range inputs {
+	for _, input := range tx.draftTransaction.Configuration.Inputs {
 		// TODO: Before finishing I will try to move to client.GetTransactions to reduce calls. Need to dig into the metadata construction.
-		inputTx, err := client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
+		inputTx, err := tx.client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -86,7 +71,7 @@ func prepareBUMPFactors(ctx context.Context, client ClientInterface, inputs []*T
 			txsNeededForBUMP = append(txsNeededForBUMP, inputTx)
 			btTxsNeededForBUMP = append(btTxsNeededForBUMP, inputBtTx)
 		} else {
-			parentBtTransactions, parentTransactions, err := checkParentTransactions(ctx, client, inputTx)
+			parentBtTransactions, parentTransactions, err := checkParentTransactions(ctx, tx.client, inputTx)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -95,6 +80,21 @@ func prepareBUMPFactors(ctx context.Context, client ClientInterface, inputs []*T
 			btTxsNeededForBUMP = append(btTxsNeededForBUMP, parentBtTransactions...)
 		}
 	}
+
+	return btTxsNeededForBUMP, txsNeededForBUMP, nil
+}
+
+func initializeRequiredTxsCollection(tx *Transaction) ([]*bt.Tx, []*Transaction, error) {
+	var btTxsNeededForBUMP []*bt.Tx
+	var txsNeededForBUMP []*Transaction
+
+	processedBtTx, err := bt.NewTxFromString(tx.Hex)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot convert processed tx to bt.Tx from hex (tx.ID: %s). Reason: %w", tx.ID, err)
+	}
+
+	btTxsNeededForBUMP = append(btTxsNeededForBUMP, processedBtTx)
+	txsNeededForBUMP = append(txsNeededForBUMP, tx)
 
 	return btTxsNeededForBUMP, txsNeededForBUMP, nil
 }

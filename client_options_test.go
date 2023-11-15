@@ -122,7 +122,7 @@ func TestClient_defaultModelOptions(t *testing.T) {
 		require.NotNil(t, dco.dataStore)
 		require.Nil(t, dco.dataStore.ClientInterface)
 		require.NotNil(t, dco.dataStore.options)
-		assert.Equal(t, 0, len(dco.dataStore.options))
+		assert.Equal(t, 1, len(dco.dataStore.options))
 
 		require.NotNil(t, dco.newRelic)
 

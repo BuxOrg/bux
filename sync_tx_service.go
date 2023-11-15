@@ -96,37 +96,6 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 	return nil
 }
 
-// processP2PTransactions will process transactions for p2p notifications
-func processP2PTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-	queryParams := &datastore.QueryParams{
-		Page:          1,
-		PageSize:      maxTransactions,
-		OrderByField:  "created_at",
-		SortDirection: "asc",
-	}
-
-	// Get x records
-	records, err := getTransactionsToNotifyP2P(
-		ctx, queryParams, opts...,
-	)
-	if err != nil {
-		return err
-	} else if len(records) == 0 {
-		return nil
-	}
-
-	// Process the incoming transaction
-	for index := range records {
-		if err = processP2PTransaction(
-			ctx, records[index], nil,
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // broadcastSyncTransaction will broadcast transaction related to syncTx record
 func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
@@ -171,7 +140,7 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionBroadcast, provider, "broadcast error: "+err.Error(),
 		)
-		return nil //nolint:nolintlint,nilerr // error is not needed
+		return err
 	}
 
 	// Create status message
@@ -193,11 +162,6 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		Provider:      provider,
 		StatusMessage: message,
 	})
-
-	// Update the P2P status
-	if syncTx.P2PStatus == SyncStatusPending {
-		syncTx.P2PStatus = SyncStatusReady
-	}
 
 	// Update sync status to be ready now
 	if syncTx.SyncStatus == SyncStatusPending {
@@ -225,14 +189,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 	// Successfully capture any panics, convert to readable string and log the error
 	defer recoverAndLog(ctx, syncTx.client.Logger())
 
-	// Create the lock and set the release for after the function completes
-	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyProcessSyncTx, syncTx.GetID()), syncTx.Client().Cachestore(),
-	)
-	defer unlock()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	// Get the transaction
 	if transaction == nil {
@@ -357,6 +314,12 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 
 	// Save the record
 	syncTx.P2PStatus = SyncStatusComplete
+
+	// Update sync status to be ready now
+	if syncTx.SyncStatus == SyncStatusPending {
+		syncTx.SyncStatus = SyncStatusReady
+	}
+
 	if err = syncTx.Save(ctx); err != nil {
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionP2P, "internal", err.Error(),

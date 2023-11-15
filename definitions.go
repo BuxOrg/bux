@@ -22,10 +22,9 @@ const (
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
 	defaultUserAgent               = "bux: " + version // Default user agent
 	dustLimit                      = uint64(1)         // Dust limit
-	//mongoTestVersion               = "4.2.1"           // Mongo Testing Version
-	mongoTestVersion  = "6.0.4"   // Mongo Testing Version
-	sqliteTestVersion = "3.37.0"  // SQLite Testing Version (dummy version for now)
-	version           = "v0.5.19" // bux version
+	mongoTestVersion               = "6.0.4"           // Mongo Testing Version
+	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
+	version                        = "v0.6.0"          // bux version
 )
 
 // Defaults for task cron jobs (tasks)

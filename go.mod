@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.40
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/bitcoin-sv/go-broadcast-client v0.9.0
-	github.com/bitcoin-sv/go-paymail v0.7.0
+	github.com/bitcoin-sv/go-paymail v0.7.1
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
 	github.com/centrifugal/centrifuge-go v0.10.2

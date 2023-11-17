@@ -26,7 +26,7 @@ require (
 	github.com/mrz1836/go-cachestore v0.3.1
 	github.com/mrz1836/go-datastore v0.5.5
 	github.com/mrz1836/go-logger v0.3.2
-	github.com/newrelic/go-agent/v3 v3.27.0
+	github.com/newrelic/go-agent/v3 v3.28.0
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
@@ -41,7 +41,6 @@ require (
 
 require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
-	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/bitcoinschema/go-bpu v0.1.0 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
@@ -107,7 +106,6 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.50.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.10 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

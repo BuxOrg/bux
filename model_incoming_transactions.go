@@ -2,10 +2,9 @@ package bux
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"runtime/debug"
-	"strings"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -31,13 +30,12 @@ type IncomingTransaction struct {
 }
 
 // newIncomingTransaction will start a new model
-func newIncomingTransaction(txID, hex string, opts ...ModelOps) (tx *IncomingTransaction) {
+func newIncomingTransaction(hex string, opts ...ModelOps) (tx *IncomingTransaction) {
 
 	// Create the model
 	tx = &IncomingTransaction{
 		Model: *NewBaseModel(ModelIncomingTransaction, opts...),
 		TransactionBase: TransactionBase{
-			ID:  txID,
 			Hex: hex,
 		},
 		Status: SyncStatusReady,
@@ -45,7 +43,8 @@ func newIncomingTransaction(txID, hex string, opts ...ModelOps) (tx *IncomingTra
 
 	// Attempt to parse
 	if len(hex) > 0 {
-		tx.TransactionBase.parsedTx, _ = bt.NewTxFromString(hex)
+		tx.parsedTx, _ = bt.NewTxFromString(hex)
+		tx.ID = tx.parsedTx.TxID()
 	}
 
 	return
@@ -54,7 +53,7 @@ func newIncomingTransaction(txID, hex string, opts ...ModelOps) (tx *IncomingTra
 // getIncomingTransactionByID will get the incoming transactions to process
 func getIncomingTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*IncomingTransaction, error) {
 	// Construct an empty tx
-	tx := newIncomingTransaction("", "", opts...)
+	tx := newIncomingTransaction("", opts...)
 	tx.ID = id
 
 	// Get the record
@@ -128,6 +127,22 @@ func (m *IncomingTransaction) GetID() string {
 	return m.ID
 }
 
+func (m *IncomingTransaction) toTransactionDto() *Transaction {
+	t := Transaction{}
+	t.Hex = m.Hex
+
+	t.parsedTx = m.parsedTx
+	t.rawXpubKey = m.rawXpubKey
+	t.setXPubID()
+	t.setID()
+
+	t.Metadata = m.Metadata
+	t.NumberOfOutputs = uint32(len(m.parsedTx.Outputs))
+	t.NumberOfInputs = uint32(len(m.parsedTx.Inputs))
+
+	return &t
+}
+
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
@@ -189,7 +204,7 @@ func (m *IncomingTransaction) AfterCreated(ctx context.Context) error {
 
 	// todo: this should be refactored into a task
 	// go func(incomingTx *IncomingTransaction) {
-	if err := processIncomingTransaction(context.Background(), nil, m); err != nil {
+	if err := processIncomingTransaction(context.Background(), m.Client().Logger(), m); err != nil {
 		m.Client().Logger().Error(ctx, "error processing incoming transaction: "+err.Error())
 	}
 	// }(m)
@@ -274,21 +289,14 @@ func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLogg
 func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLoggerInterface,
 	incomingTx *IncomingTransaction) error {
 
-	if logClient != nil {
-		logClient.Info(ctx, fmt.Sprintf("processing incoming transaction: %v", incomingTx))
+	if logClient == nil {
+		logClient = incomingTx.client.Logger()
 	}
 
+	logClient.Info(ctx, fmt.Sprintf("processIncomingTransaction(): transaction: %v", incomingTx))
+
 	// Successfully capture any panics, convert to readable string and log the error
-	defer func() {
-		if err := recover(); err != nil {
-			incomingTx.Client().Logger().Error(ctx,
-				fmt.Sprintf(
-					"panic: %v - stack trace: %v", err,
-					strings.ReplaceAll(string(debug.Stack()), "\n", ""),
-				),
-			)
-		}
-	}()
+	defer recoverAndLog(ctx, incomingTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -305,9 +313,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
-		if logClient != nil {
-			logClient.Error(ctx, fmt.Sprintf("error finding transaction %s on chain: %s", incomingTx.ID, err.Error()))
-		}
+		logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): error finding transaction %s on chain. Reason: %s", incomingTx.ID, err))
 
 		// TX might not have been broadcast yet? (race condition, or it was never broadcast...)
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
@@ -322,42 +328,51 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 			}
 
 			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
-			if logClient != nil {
-				logClient.Info(ctx, fmt.Sprintf("broadcast of transaction was successful using %s", provider))
-			}
+			logClient.Info(ctx, fmt.Sprintf("processIncomingTransaction(): broadcast of transaction %s was successful using %s. Incoming tx will be processed again.", incomingTx.ID, provider))
+
 			// allow propagation
 			time.Sleep(3 * time.Second)
-			if txInfo, err = incomingTx.Client().Chainstate().QueryTransactionFastest(
-				ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
-			); err != nil {
-				incomingTx.Status = statusReady
-				incomingTx.StatusMessage = "tx was not found on-chain, attempting to broadcast using provider: " + provider
-				_ = incomingTx.Save(ctx)
-				return err
-			}
-		} else {
-			// Actual error occurred
-			bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
+			return nil // reprocess it when triggering the task again
+		}
+
+		// Actual error occurred
+		bailAndSaveIncomingTransaction(ctx, incomingTx, err.Error())
+		return err
+	}
+
+	// validate txInfo
+	if txInfo.BlockHash == "" || txInfo.MerkleProof == nil || txInfo.MerkleProof.TxOrID == "" || len(txInfo.MerkleProof.Nodes) == 0 {
+		logClient.Warn(ctx, fmt.Sprintf("processIncomingTransaction(): txInfo for %s is invalid, will try again later", incomingTx.ID))
+
+		if incomingTx.client.IsDebug() {
+			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr // error is not needed
+			incomingTx.DebugLog(string(txInfoJSON))
+		}
+		return nil
+	}
+
+	logClient.Info(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
+
+	// Check if we have transaction in DB already
+	transaction, _ := getTransactionByID(
+		ctx, incomingTx.rawXpubKey, incomingTx.ID, incomingTx.client.DefaultModelOptions()...,
+	)
+
+	if transaction == nil {
+		// Create the new transaction model
+		transaction = newTransactionFromIncomingTransaction(incomingTx)
+
+		if err = transaction.processUtxos(ctx); err != nil {
+			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): processUtxos() for %s failed. Reason: %s", incomingTx.ID, err))
 			return err
 		}
+
+		transaction.TotalValue, transaction.Fee = transaction.getValues()
+		transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
+		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
 	}
 
-	if logClient != nil {
-		logClient.Info(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
-	}
-
-	// Create the new transaction model
-	transaction := newTransactionFromIncomingTransaction(incomingTx)
-
-	// Get the transaction by ID
-	if tx, _ := getTransactionByID(
-		ctx, transaction.rawXpubKey, transaction.TransactionBase.ID, transaction.client.DefaultModelOptions()...,
-	); tx != nil {
-		transaction = tx
-	}
-	// Add additional information (if found on-chain)
-	transaction.BlockHeight = uint64(txInfo.BlockHeight)
-	transaction.BlockHash = txInfo.BlockHash
+	transaction.setChainInfo(txInfo)
 
 	// Create status message
 	onChain := len(transaction.BlockHash) > 0 || transaction.BlockHeight > 0

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"time"
 
@@ -12,8 +11,6 @@ import (
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
-	"github.com/libsv/go-bt/v2"
-	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -149,47 +146,36 @@ func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(
 }
 
 // RecordTransaction will record the transaction
-func (p *PaymailDefaultServiceProvider) RecordTransaction(
-	ctx context.Context,
-	p2pTx *paymail.P2PTransaction,
-	requestMetadata *server.RequestMetadata,
-) (*paymail.P2PTransactionPayload, error) {
+// TODO: rename to HandleReceivedP2pTransaction
+func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
+	p2pTx *paymail.P2PTransaction, requestMetadata *server.RequestMetadata) (*paymail.P2PTransactionPayload, error) {
+
 	// Create the metadata
-	metadata := p.createMetadata(requestMetadata, "RecordTransaction")
+	metadata := p.createMetadata(requestMetadata, "HandleReceivedP2pTransaction")
 	metadata[p2pMetadataField] = p2pTx.MetaData
 	metadata[ReferenceIDField] = p2pTx.Reference
 
-	var draftID string
-	if tx, _ := p.client.GetTransactionByHex(ctx, p2pTx.Hex); tx != nil {
-		draftID = tx.DraftID
-	}
-
 	// Record the transaction
-	transaction, err := p.client.RecordTransaction(
-		ctx, "", p2pTx.Hex, draftID, []ModelOps{WithMetadatas(metadata)}...,
-	)
-	// do not return an error if we already have the transaction
-	if err != nil && !errors.Is(err, datastore.ErrDuplicateKey) {
+	rts, err := getIncomingTxRecordStrategy(ctx, p.client, p2pTx.Hex)
+	if err != nil {
 		return nil, err
 	}
 
-	// we need to set the tx ID here, since our transaction will be empty if we already had it in the DB
-	txID := ""
-	if transaction != nil {
-		txID = transaction.ID
-	} else {
-		var btTx *bt.Tx
-		btTx, err = bt.NewTxFromString(p2pTx.Hex)
-		if err != nil {
-			return nil, err
-		}
-		txID = btTx.TxID()
+	rts.ForceBroadcast(true)
+
+	if p2pTx.Beef != "" {
+		rts.FailOnBroadcastError(true)
+	}
+
+	transaction, err := recordTransaction(ctx, p.client, rts, WithMetadatas(metadata))
+	if err != nil {
+		return nil, err
 	}
 
 	// Return the response from the p2p request
 	return &paymail.P2PTransactionPayload{
 		Note: p2pTx.MetaData.Note,
-		TxID: txID,
+		TxID: transaction.ID,
 	}, nil
 }
 
@@ -212,6 +198,8 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	paymailAddress, err = getPaymailAddress(ctx, alias+"@"+domain, opts...)
 	if err != nil {
 		return nil, nil, err
+	} else if paymailAddress == nil {
+		return nil, nil, ErrMissingPaymail
 	}
 
 	unlock, err := newWaitWriteLock(ctx, lockKey(paymailAddress), p.client.Cachestore())

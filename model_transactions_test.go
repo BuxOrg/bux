@@ -359,7 +359,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		transaction.transactionService = transactionServiceMock{}
 
 		ctx := context.Background()
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.NoError(t, err)
 		assert.Nil(t, transaction.utxos)
 		assert.Nil(t, transaction.XpubInIDs)
@@ -392,7 +392,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -436,7 +436,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.ErrorIs(t, err, ErrUtxoAlreadySpent)
 	})
 
@@ -463,7 +463,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.ErrorIs(t, err, ErrUtxoNotReserved)
 	})
 
@@ -494,7 +494,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.ErrorIs(t, err, ErrDraftIDMismatch)
 	})
 
@@ -523,7 +523,7 @@ func TestTransaction_processInputs(t *testing.T) {
 			},
 		}
 
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.NoError(t, err)
 	})
 
@@ -556,7 +556,7 @@ func TestTransaction_processInputs(t *testing.T) {
 			},
 		}
 
-		err := transaction.processInputs(ctx)
+		err := transaction._processInputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -691,6 +691,16 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transaction)
 
+		err = transaction.processUtxos(tc.ctx)
+		require.NoError(t, err)
+
+		transaction.TotalValue, transaction.Fee = transaction.getValues()
+
+		if transaction.TransactionBase.parsedTx != nil {
+			transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
+			transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
+		}
+
 		err = transaction.Save(tc.ctx)
 		require.NoError(t, err)
 
@@ -744,6 +754,15 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		transactionIn := newTransaction(testTx2Hex, append(tc.client.DefaultModelOptions(), New())...)
 		require.NotNil(t, transactionIn)
 
+		err = transactionIn.processUtxos(tc.ctx)
+		require.NoError(t, err)
+
+		transactionIn.TotalValue, transactionIn.Fee = transactionIn.getValues()
+
+		if transactionIn.TransactionBase.parsedTx != nil {
+			transactionIn.NumberOfInputs = uint32(len(transactionIn.TransactionBase.parsedTx.Inputs))
+			transactionIn.NumberOfOutputs = uint32(len(transactionIn.TransactionBase.parsedTx.Outputs))
+		}
 		err = transactionIn.Save(tc.ctx)
 		require.NoError(t, err)
 
@@ -769,10 +788,23 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		require.NoError(t, err)
 
 		// this transaction should spend the utxo of the IN transaction
-		transaction := newTransaction(testTxHex,
+		transaction := newTransactionWithDraftID(testTxHex, draftTransaction.ID,
 			append(tc.client.DefaultModelOptions(), WithXPub(xPub.rawXpubKey), New())...)
 		require.NotNil(t, transactionIn)
-		transaction.DraftID = draftTransaction.ID
+
+		transaction.draftTransaction = draftTransaction
+
+		err = transaction.processUtxos(tc.ctx)
+		require.NoError(t, err)
+
+		// Set the values from the inputs/outputs and draft tx
+		transaction.TotalValue, transaction.Fee = transactionIn.getValues()
+
+		// Add values if found
+		if transaction.TransactionBase.parsedTx != nil {
+			transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
+			transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
+		}
 
 		err = transaction.Save(tc.ctx)
 		require.NoError(t, err)

@@ -24,103 +24,15 @@ import (
 // txHex is the raw transaction hex
 // draftID is the unique draft id from a previously started New() transaction (draft_transaction.ID)
 // opts are model options and can include "metadata"
-func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
-	opts ...ModelOps,
-) (*Transaction, error) {
-	// Check for existing NewRelic transaction
+func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string, opts ...ModelOps) (*Transaction, error) {
 	ctx = c.GetOrStartTxn(ctx, "record_transaction")
 
-	// Create the model & set the default options (gives options from client->model)
-	newOpts := c.DefaultModelOptions(append(opts, WithXPub(xPubKey), New())...)
-	transaction := newTransactionWithDraftID(
-		txHex, draftID, newOpts...,
-	)
-
-	// Ensure that we have a transaction id (created from the txHex)
-	id := transaction.GetID()
-	if len(id) == 0 {
-		return nil, ErrMissingTxHex
-	}
-
-	var (
-		unlock func()
-		err    error
-	)
-	// Create the lock and set the release for after the function completes
-	// Waits for the moment when the transaction is unlocked and creates a new lock
-	// Relevant for bux to bux transactions, as we have 1 tx but need to record 2 txs - outgoing and incoming
-	for {
-		unlock, err = newWriteLock(
-			ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
-		)
-		if err == nil {
-			break
-		}
-		time.Sleep(time.Second * 1)
-	}
-	defer unlock()
-
-	// OPTION: check incoming transactions (if enabled, will add to queue for checking on-chain)
-	if !c.IsITCEnabled() {
-		transaction.DebugLog("incoming transaction check is disabled")
-	} else {
-
-		// Incoming (external/unknown) transaction (no draft id was given)
-		if len(transaction.DraftID) == 0 {
-
-			// Process & save the model
-			incomingTx := newIncomingTransaction(
-				transaction.ID, txHex, newOpts...,
-			)
-			if err = incomingTx.Save(ctx); err != nil {
-				return nil, err
-			}
-
-			// Check if sync transaction exist. And if not, we should create it
-			if syncTx, _ := GetSyncTransactionByID(ctx, transaction.ID, transaction.client.DefaultModelOptions()...); syncTx == nil {
-				// Create the sync transaction model
-				sync := newSyncTransaction(
-					transaction.GetID(),
-					transaction.Client().DefaultSyncConfig(),
-					transaction.GetOptions(true)...,
-				)
-
-				// Skip broadcasting and skip P2P (incoming tx should have been broadcasted already)
-				sync.BroadcastStatus = SyncStatusSkipped // todo: this is an assumption
-				sync.P2PStatus = SyncStatusSkipped       // The owner of the Tx should have already notified paymail providers
-
-				// Use the same metadata
-				sync.Metadata = transaction.Metadata
-
-				// If all the options are skipped, do not make a new model (ignore the record)
-				if !sync.isSkipped() {
-					if err = sync.Save(ctx); err != nil {
-						return nil, err
-					}
-				}
-			}
-			// Added to queue
-			return newTransactionFromIncomingTransaction(incomingTx), nil
-		}
-
-		// Internal tx (must match draft tx)
-		if transaction.draftTransaction, err = getDraftTransactionID(
-			ctx, transaction.XPubID, transaction.DraftID,
-			transaction.GetOptions(false)...,
-		); err != nil {
-			return nil, err
-		} else if transaction.draftTransaction == nil {
-			return nil, ErrDraftNotFound
-		}
-	}
-
-	// Process & save the transaction model
-	if err = transaction.Save(ctx); err != nil {
+	rts, err := getRecordTxStrategy(ctx, c, xPubKey, txHex, draftID)
+	if err != nil {
 		return nil, err
 	}
 
-	// Return the response
-	return transaction, nil
+	return recordTransaction(ctx, c, rts, opts...)
 }
 
 // RecordRawTransaction will parse the transaction and save it into the Datastore directly, without any checks
@@ -198,10 +110,29 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 		return nil, err
 	}
 
-	// run before create to see whether xpub_in_ids or xpub_out_ids is set
-	if err = transaction.BeforeCreating(ctx); err != nil {
+	// Logic moved from BeforeCreating hook - should be refactorized in next iteration
+
+	// If we are external and the user disabled incoming transaction checking, check outputs
+	if transaction.isExternal() && !transaction.Client().IsITCEnabled() {
+		// Check that the transaction has >= 1 known destination
+		if !transaction.TransactionBase.hasOneKnownDestination(ctx, transaction.Client(), transaction.GetOptions(false)...) {
+			return nil, ErrNoMatchingOutputs
+		}
+	}
+
+	// Process the UTXOs
+	if err = transaction.processUtxos(ctx); err != nil {
 		return nil, err
 	}
+
+	// Set the values from the inputs/outputs and draft tx
+	transaction.TotalValue, transaction.Fee = transaction.getValues()
+
+	// Add values
+	transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
+	transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
+
+	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
 	monitor := c.options.chainstate.Monitor()
 
@@ -213,7 +144,7 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 		}
 	}
 
-	// Process & save the transaction model
+	// save the transaction model
 	if err = transaction.Save(ctx); err != nil {
 		return nil, err
 	}
@@ -418,7 +349,7 @@ func (c *Client) UpdateTransactionMetadata(ctx context.Context, xPubID, id strin
 		return nil, err
 	}
 
-	// Save the model
+	// Save the model	// update existing record
 	if err = transaction.Save(ctx); err != nil {
 		return nil, err
 	}
@@ -524,6 +455,12 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 		}
 	}
 
+	// cancel draft tx
+	draftTransaction.Status = DraftStatusCanceled
+	if err = draftTransaction.Save(ctx); err != nil {
+		return err
+	}
+
 	// cancel sync transaction
 	var syncTransaction *SyncTransaction
 	if syncTransaction, err = GetSyncTransactionByID(ctx, transaction.ID, c.DefaultModelOptions()...); err != nil {
@@ -550,7 +487,8 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	transaction.XpubOutputValue = XpubOutputValue{"reverted": 0}
 	transaction.DeletedAt.Valid = true
 	transaction.DeletedAt.Time = time.Now()
-	err = transaction.Save(ctx)
+
+	err = transaction.Save(ctx) // update existing record
 
 	return err
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/libsv/go-bt"
 	"github.com/mrz1836/go-datastore"
 )
 
@@ -253,4 +254,13 @@ func getTransactionsToCalculateBUMP(ctx context.Context, queryParams *datastore.
 		return nil, err
 	}
 	return txs, nil
+}
+
+func getTransactionByHex(ctx context.Context, hex string, opts ...ModelOps) (*Transaction, error) {
+	btTx, err := bt.NewTxFromString(hex)
+	if err != nil {
+		return nil, err
+	}
+
+	return getTransactionByID(ctx, "", btTx.GetTxID(), opts...)
 }

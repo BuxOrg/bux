@@ -59,80 +59,6 @@ func (m *Transaction) BeforeCreating(ctx context.Context) error {
 		return err
 	}
 
-	// 	m.xPubID is the xpub of the user registering the transaction
-	if len(m.XPubID) > 0 && len(m.DraftID) > 0 {
-		// Only get the draft if we haven't already
-		if m.draftTransaction == nil {
-			if m.draftTransaction, err = getDraftTransactionID(
-				ctx, m.XPubID, m.DraftID, m.GetOptions(false)...,
-			); err != nil {
-				return err
-			} else if m.draftTransaction == nil {
-				return ErrDraftNotFound
-			}
-		}
-	}
-
-	// Validations and broadcast config check
-	if m.draftTransaction != nil {
-
-		// No config set? Use the default from the client
-		if m.draftTransaction.Configuration.Sync == nil {
-			m.draftTransaction.Configuration.Sync = m.Client().DefaultSyncConfig()
-		}
-
-		// Create the sync transaction model
-		sync := newSyncTransaction(
-			m.GetID(),
-			m.draftTransaction.Configuration.Sync,
-			m.GetOptions(true)...,
-		)
-
-		// Found any p2p outputs?
-		p2pStatus := SyncStatusSkipped
-		if m.draftTransaction.Configuration.Outputs != nil {
-			for _, output := range m.draftTransaction.Configuration.Outputs {
-				if output.PaymailP4 != nil && output.PaymailP4.ResolutionType == ResolutionTypeP2P {
-					p2pStatus = SyncStatusPending
-				}
-			}
-		}
-		sync.P2PStatus = p2pStatus
-
-		// Use the same metadata
-		sync.Metadata = m.Metadata
-
-		// set this transaction on the sync transaction object. This is needed for the first broadcast
-		sync.transaction = m
-
-		// If all the options are skipped, do not make a new model (ignore the record)
-		if !sync.isSkipped() {
-			m.syncTransaction = sync
-		}
-	}
-
-	// If we are external and the user disabled incoming transaction checking, check outputs
-	if m.isExternal() && !m.Client().IsITCEnabled() {
-		// Check that the transaction has >= 1 known destination
-		if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client(), m.GetOptions(false)...) {
-			return ErrNoMatchingOutputs
-		}
-	}
-
-	// Process the UTXOs
-	if err = m.processUtxos(ctx); err != nil {
-		return err
-	}
-
-	// Set the values from the inputs/outputs and draft tx
-	m.TotalValue, m.Fee = m.getValues()
-
-	// Add values if found
-	if m.TransactionBase.parsedTx != nil {
-		m.NumberOfInputs = uint32(len(m.TransactionBase.parsedTx.Inputs))
-		m.NumberOfOutputs = uint32(len(m.TransactionBase.parsedTx.Outputs))
-	}
-
 	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
 	m.beforeCreateCalled = true
 	return nil
@@ -297,8 +223,7 @@ func (m *Transaction) migrateBUMP() error {
 		return err
 	}
 	for _, tx := range txs {
-		bump := tx.MerkleProof.ToBUMP()
-		bump.BlockHeight = tx.BlockHeight
+		bump := tx.MerkleProof.ToBUMP(tx.BlockHeight)
 		tx.BUMP = bump
 		_ = tx.Save(ctx)
 	}

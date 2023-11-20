@@ -68,7 +68,7 @@ func defaultClientOptions() *clientOptions {
 		// Blank Datastore config
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
-			options:         []datastore.ClientOps{},
+			options:         []datastore.ClientOps{datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: zLogger.NewGormLogger(false, 4)})},
 		},
 
 		// Default http client
@@ -110,7 +110,6 @@ func defaultClientOptions() *clientOptions {
 				ModelDraftTransaction.String() + "_clean_up":              taskIntervalDraftCleanup,
 				ModelIncomingTransaction.String() + "_process":            taskIntervalProcessIncomingTxs,
 				ModelSyncTransaction.String() + "_" + syncActionBroadcast: taskIntervalSyncActionBroadcast,
-				ModelSyncTransaction.String() + "_" + syncActionP2P:       taskIntervalSyncActionP2P,
 				ModelSyncTransaction.String() + "_" + syncActionSync:      taskIntervalSyncActionSync,
 				ModelTransaction.String() + "_" + TransactionActionCheck:  taskIntervalTransactionCheck,
 			},

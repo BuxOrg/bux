@@ -47,7 +47,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 
 	// compose beef
 	buffer := make([]byte, 0, beefSize)
-	buffer = append(buffer, version...)
+	buffer = append(buffer, ver...)
 	buffer = append(buffer, nBUMPS...)
 	buffer = append(buffer, bumps...)
 

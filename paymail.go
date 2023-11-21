@@ -191,7 +191,7 @@ func buildP2pTx(ctx context.Context, p4 *PaymailP4, transaction *Transaction) (*
 	switch p4.Format {
 
 	case BeefPaymailPayloadFormat:
-		beef, err := ToBeef(ctx, transaction)
+		beef, err := ToBeef(ctx, transaction, transaction.client)
 		if err != nil {
 			return nil, err
 		}

@@ -14,7 +14,7 @@ func calculateMergedBUMP(txs []*Transaction) (BUMPs, error) {
 
 	for _, tx := range txs {
 		if tx.BUMP.BlockHeight == 0 || len(tx.BUMP.Path) == 0 {
-			return nil, fmt.Errorf("BUMP is not valid (tx.ID: %s)", tx.ID)
+			continue
 		}
 
 		bumps[tx.BlockHeight] = append(bumps[tx.BlockHeight], tx.BUMP)
@@ -47,19 +47,16 @@ func validateBumps(bumps BUMPs) error {
 	return nil
 }
 
-// prepareBUMPFactors is a recursive function to find all parent transactions
-// with a valid MerkleProof or BUMP.
-func prepareBUMPFactors(ctx context.Context, tx *Transaction) ([]*bt.Tx, []*Transaction, error) {
+func prepareBUMPFactors(ctx context.Context, tx *Transaction, store TransactionGetter) ([]*bt.Tx, []*Transaction, error) {
 	btTxsNeededForBUMP, txsNeededForBUMP, err := initializeRequiredTxsCollection(tx)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	for _, input := range tx.draftTransaction.Configuration.Inputs {
-		// TODO: Before finishing I will try to move to client.GetTransactions to reduce calls. Need to dig into the metadata construction.
-		inputTx, err := tx.client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
+		inputTx, err := store.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("cannot get transaction by ID (tx.ID: %s). Reason: %w", input.UtxoPointer.TransactionID, err)
 		}
 
 		inputBtTx, err := bt.NewTxFromString(inputTx.Hex)
@@ -67,11 +64,11 @@ func prepareBUMPFactors(ctx context.Context, tx *Transaction) ([]*bt.Tx, []*Tran
 			return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
 		}
 
-		if inputTx.MerkleProof.TxOrID != "" || inputTx.BUMP.BlockHeight != 0 || len(inputTx.BUMP.Path) != 0 {
-			txsNeededForBUMP = append(txsNeededForBUMP, inputTx)
-			btTxsNeededForBUMP = append(btTxsNeededForBUMP, inputBtTx)
-		} else {
-			parentBtTransactions, parentTransactions, err := checkParentTransactions(ctx, tx.client, inputTx)
+		txsNeededForBUMP = append(txsNeededForBUMP, inputTx)
+		btTxsNeededForBUMP = append(btTxsNeededForBUMP, inputBtTx)
+
+		if inputTx.BUMP.BlockHeight == 0 && len(inputTx.BUMP.Path) == 0 {
+			parentBtTransactions, parentTransactions, err := checkParentTransactions(ctx, store, inputTx)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -82,6 +79,44 @@ func prepareBUMPFactors(ctx context.Context, tx *Transaction) ([]*bt.Tx, []*Tran
 	}
 
 	return btTxsNeededForBUMP, txsNeededForBUMP, nil
+}
+
+func checkParentTransactions(ctx context.Context, store TransactionGetter, inputTx *Transaction) ([]*bt.Tx, []*Transaction, error) {
+	btTx, err := bt.NewTxFromString(inputTx.Hex)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
+	}
+
+	var validTxs []*Transaction
+	var validBtTxs []*bt.Tx
+	for _, txIn := range btTx.Inputs {
+		parentTx, err := store.GetTransactionByID(ctx, txIn.PreviousTxIDStr())
+		if err != nil {
+			return nil, nil, err
+		}
+
+		parentBtTx, err := bt.NewTxFromString(parentTx.Hex)
+		if err != nil {
+			return nil, nil, err
+		}
+		validTxs = append(validTxs, parentTx)
+		validBtTxs = append(validBtTxs, parentBtTx)
+
+		if parentTx.BUMP.BlockHeight == 0 && len(parentTx.BUMP.Path) == 0 {
+			parentValidBtTxs, parentValidTxs, err := checkParentTransactions(ctx, store, parentTx)
+			if err != nil {
+				return nil, nil, err
+			}
+			validTxs = append(validTxs, parentValidTxs...)
+			validBtTxs = append(validBtTxs, parentValidBtTxs...)
+		}
+	}
+
+	if len(validBtTxs) == 0 {
+		return nil, nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID)
+	}
+
+	return validBtTxs, validTxs, nil
 }
 
 func initializeRequiredTxsCollection(tx *Transaction) ([]*bt.Tx, []*Transaction, error) {
@@ -97,45 +132,4 @@ func initializeRequiredTxsCollection(tx *Transaction) ([]*bt.Tx, []*Transaction,
 	txsNeededForBUMP = append(txsNeededForBUMP, tx)
 
 	return btTxsNeededForBUMP, txsNeededForBUMP, nil
-}
-
-// checkParentTransactions is a helper recursive function to check the parent transactions.
-func checkParentTransactions(ctx context.Context, client ClientInterface, inputTx *Transaction) ([]*bt.Tx, []*Transaction, error) {
-	btTx, err := bt.NewTxFromString(inputTx.Hex)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
-	}
-
-	var validTxs []*Transaction
-	var validBtTxs []*bt.Tx
-	for _, txIn := range btTx.Inputs {
-		parentTx, err := client.GetTransactionByID(ctx, txIn.PreviousTxIDStr())
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// If the parent transaction has a MerkleProof or a BUMP, add it to the list.
-		if parentTx.MerkleProof.TxOrID != "" || parentTx.BUMP.BlockHeight != 0 {
-			parentBtTx, err := bt.NewTxFromString(parentTx.Hex)
-			if err != nil {
-				return nil, nil, err
-			}
-			validTxs = append(validTxs, parentTx)
-			validBtTxs = append(validBtTxs, parentBtTx)
-		} else {
-			// Otherwise, recursively check the parents of this parent.
-			parentValidBtTxs, parentValidTxs, err := checkParentTransactions(ctx, client, parentTx)
-			if err != nil {
-				return nil, nil, err
-			}
-			validTxs = append(validTxs, parentValidTxs...)
-			validBtTxs = append(validBtTxs, parentValidBtTxs...)
-		}
-	}
-
-	if len(validBtTxs) == 0 {
-		return nil, nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID)
-	}
-
-	return validBtTxs, validTxs, nil
 }

@@ -16,12 +16,13 @@ type beefTx struct {
 	transactions []*bt.Tx
 }
 
-func ToBeef(ctx context.Context, tx *Transaction) (string, error) {
+// ToBeef generates BEEF Hex for transaction
+func ToBeef(ctx context.Context, tx *Transaction, store TransactionGetter) (string, error) {
 	if err := hydrateTransaction(ctx, tx); err != nil {
 		return "", err
 	}
 
-	bumpBtFactors, bumpFactors, err := prepareBUMPFactors(ctx, tx)
+	bumpBtFactors, bumpFactors, err := prepareBUMPFactors(ctx, tx, store)
 	if err != nil {
 		return "", fmt.Errorf("prepareBUMPFactors() error: %w", err)
 	}
@@ -29,6 +30,7 @@ func ToBeef(ctx context.Context, tx *Transaction) (string, error) {
 	tx.draftTransaction.BUMPs, err = calculateMergedBUMP(bumpFactors)
 	sortedTxs := kahnTopologicalSortTransactions(bumpBtFactors)
 	beefHex, err := toBeefHex(ctx, tx, sortedTxs)
+	fmt.Printf("beefHex: %s\n", beefHex)
 	if err != nil {
 		return "", fmt.Errorf("ToBeef() error: %w", err)
 	}
@@ -36,7 +38,6 @@ func ToBeef(ctx context.Context, tx *Transaction) (string, error) {
 	return beefHex, nil
 }
 
-// toBeefHex generates BEEF Hex for transaction
 func toBeefHex(ctx context.Context, tx *Transaction, parentTxs []*bt.Tx) (string, error) {
 	beef, err := newBeefTx(ctx, 1, tx, parentTxs)
 	if err != nil {

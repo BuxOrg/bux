@@ -5,23 +5,21 @@ import (
 	"fmt"
 )
 
-type MockTransactionGetter struct {
+type MockTransactionStore struct {
 	Transactions map[string]*Transaction
 }
 
-func NewMockTransactionGetter() *MockTransactionGetter {
-	return &MockTransactionGetter{
+func NewMockTransactionStore() *MockTransactionStore {
+	return &MockTransactionStore{
 		Transactions: make(map[string]*Transaction),
 	}
 }
 
-func (m *MockTransactionGetter) Init(transactions []*Transaction) {
-	for _, tx := range transactions {
-		m.Transactions[tx.ID] = tx
-	}
+func (m *MockTransactionStore) AddToStore(tx *Transaction) {
+	m.Transactions[tx.ID] = tx
 }
 
-func (m *MockTransactionGetter) GetTransactionByID(ctx context.Context, txID string) (*Transaction, error) {
+func (m *MockTransactionStore) GetTransactionByID(ctx context.Context, txID string) (*Transaction, error) {
 	if tx, exists := m.Transactions[txID]; exists {
 		return tx, nil
 	}

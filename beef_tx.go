@@ -30,7 +30,6 @@ func ToBeef(ctx context.Context, tx *Transaction, store TransactionGetter) (stri
 	tx.draftTransaction.BUMPs, err = calculateMergedBUMP(bumpFactors)
 	sortedTxs := kahnTopologicalSortTransactions(bumpBtFactors)
 	beefHex, err := toBeefHex(ctx, tx, sortedTxs)
-	fmt.Printf("beefHex: %s\n", beefHex)
 	if err != nil {
 		return "", fmt.Errorf("ToBeef() error: %w", err)
 	}

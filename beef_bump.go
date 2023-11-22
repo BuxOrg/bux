@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/libsv/go-bt/v2"
 )
@@ -19,8 +20,16 @@ func calculateMergedBUMP(txs []*Transaction) (BUMPs, error) {
 
 		bumps[tx.BlockHeight] = append(bumps[tx.BlockHeight], tx.BUMP)
 	}
-	for _, b := range bumps {
-		bump, err := CalculateMergedBUMP(b)
+
+	// ensure that BUMPs are sorted by block height and will always be put in beef in the same order
+	mapKeys := make([]uint64, 0, len(bumps))
+	for k := range bumps {
+		mapKeys = append(mapKeys, k)
+	}
+	sort.Slice(mapKeys, func(i, j int) bool { return mapKeys[i] < mapKeys[j] })
+
+	for _, k := range mapKeys {
+		bump, err := CalculateMergedBUMP(bumps[k])
 		if err != nil {
 			return nil, fmt.Errorf("Error while calculating Merged BUMP: %s", err.Error())
 		}
@@ -92,12 +101,12 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, input
 	for _, txIn := range btTx.Inputs {
 		parentTx, err := store.GetTransactionByID(ctx, txIn.PreviousTxIDStr())
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("cannot get parent transaction by ID (tx.ID: %s). Reason: %w", txIn.PreviousTxIDStr(), err)
 		}
 
 		parentBtTx, err := bt.NewTxFromString(parentTx.Hex)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
 		}
 		validTxs = append(validTxs, parentTx)
 		validBtTxs = append(validBtTxs, parentBtTx)
@@ -113,7 +122,7 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, input
 	}
 
 	if len(validBtTxs) == 0 {
-		return nil, nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID)
+		return nil, nil, fmt.Errorf("transaction is not mined yet and their parents are not present or mined (tx.ID: %s)", inputTx.ID)
 	}
 
 	return validBtTxs, validTxs, nil

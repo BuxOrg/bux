@@ -124,3 +124,50 @@ func getParentTransactionsForInput(ctx context.Context, client ClientInterface, 
 
 	return nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID) // TODO: handle it in next iterration
 }
+
+func saveBeefTransactionInput(ctx context.Context, c ClientInterface, input *bt.Tx) error {
+	inputTx, err := c.GetTransactionByID(ctx, input.TxID())
+	if err != nil && err != ErrMissingTransaction {
+		return fmt.Errorf("error in saveBeefTransactionInput during getting transaction: %s", err.Error())
+	}
+
+	if inputTx != nil {
+		if inputTx.BUMP.BlockHeight > 0 {
+			return nil
+		}
+
+		// Sync tx if BUMP is empty
+		err = _syncTxDataFromChain(ctx, inputTx.syncTransaction, inputTx)
+		if err != nil {
+			return fmt.Errorf("error in saveBeefTransactionInput during syncing transaction: %s", err.Error())
+		}
+		return nil
+	}
+
+	newOpts := c.DefaultModelOptions(New())
+	inputTx = newTransaction(input.String(), newOpts...)
+
+	err = inputTx.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("error in saveBeefTransactionInput during saving tx: %s", err.Error())
+	}
+
+	sync := newSyncTransaction(
+		inputTx.GetID(),
+		inputTx.Client().DefaultSyncConfig(),
+		inputTx.GetOptions(true)...,
+	)
+	sync.BroadcastStatus = SyncStatusSkipped
+	sync.P2PStatus = SyncStatusSkipped
+	sync.SyncStatus = SyncStatusReady
+
+	if err = sync.Save(ctx); err != nil {
+		return fmt.Errorf("error in saveBeefTransactionInput during saving sync tx: %s", err.Error())
+	}
+
+	err = _syncTxDataFromChain(ctx, sync, inputTx)
+	if err != nil {
+		return fmt.Errorf("error in saveBeefTransactionInput during syncing transaction: %s", err.Error())
+	}
+	return nil
+}

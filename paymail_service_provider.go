@@ -9,6 +9,7 @@ import (
 
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
+	"github.com/bitcoin-sv/go-paymail/spv"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
@@ -182,7 +183,7 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 // VerifyMerkleRoots will verify the merkle roots by checking them in external header service - Pulse
 func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(
 	ctx context.Context,
-	merkleRoots []paymail.MerkleRootConfirmationRequestItem,
+	merkleRoots []*spv.MerkleRootConfirmationRequestItem,
 ) error {
 	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0)
 	for _, m := range merkleRoots {

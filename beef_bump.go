@@ -56,7 +56,7 @@ func validateBumps(bumps BUMPs) error {
 	return nil
 }
 
-func prepareBUMPFactors(ctx context.Context, tx *Transaction, store TransactionGetter) ([]*bt.Tx, []*Transaction, error) {
+func prepareBEEFFactors(ctx context.Context, tx *Transaction, store TransactionGetter) ([]*bt.Tx, []*Transaction, error) {
 	btTxsNeededForBUMP, txsNeededForBUMP, err := initializeRequiredTxsCollection(tx)
 	if err != nil {
 		return nil, nil, err
@@ -87,7 +87,7 @@ func prepareBUMPFactors(ctx context.Context, tx *Transaction, store TransactionG
 		btTxsNeededForBUMP = append(btTxsNeededForBUMP, inputBtTx)
 
 		if inputTx.BUMP.BlockHeight == 0 && len(inputTx.BUMP.Path) == 0 {
-			parentBtTransactions, parentTransactions, err := checkParentTransactions(ctx, store, inputTx)
+			parentBtTransactions, parentTransactions, err := checkParentTransactions(ctx, store, inputBtTx)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -100,12 +100,7 @@ func prepareBUMPFactors(ctx context.Context, tx *Transaction, store TransactionG
 	return btTxsNeededForBUMP, txsNeededForBUMP, nil
 }
 
-func checkParentTransactions(ctx context.Context, store TransactionGetter, inputTx *Transaction) ([]*bt.Tx, []*Transaction, error) {
-	btTx, err := bt.NewTxFromString(inputTx.Hex)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
-	}
-
+func checkParentTransactions(ctx context.Context, store TransactionGetter, btTx *bt.Tx) ([]*bt.Tx, []*Transaction, error) {
 	var parentTxIDs []string
 	for _, txIn := range btTx.Inputs {
 		parentTxIDs = append(parentTxIDs, txIn.PreviousTxIDStr())
@@ -132,7 +127,7 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, input
 		validBtTxs = append(validBtTxs, parentBtTx)
 
 		if parentTx.BUMP.BlockHeight == 0 && len(parentTx.BUMP.Path) == 0 {
-			parentValidBtTxs, parentValidTxs, err := checkParentTransactions(ctx, store, parentTx)
+			parentValidBtTxs, parentValidTxs, err := checkParentTransactions(ctx, store, parentBtTx)
 			if err != nil {
 				return nil, nil, err
 			}

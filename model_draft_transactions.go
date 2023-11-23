@@ -38,7 +38,6 @@ type DraftTransaction struct {
 	Configuration TransactionConfig `json:"configuration" toml:"configuration" yaml:"configuration" gorm:"<-;type:text;comment:This is the configuration struct in JSON" bson:"configuration"`
 	Status        DraftStatus       `json:"status" toml:"status" yaml:"status" gorm:"<-;type:varchar(10);index;comment:This is the status of the draft" bson:"status"`
 	FinalTxID     string            `json:"final_tx_id,omitempty" toml:"final_tx_id" yaml:"final_tx_id" gorm:"<-;type:char(64);index;comment:This is the final tx ID" bson:"final_tx_id,omitempty"`
-	BUMPs         BUMPs             `json:"bumps,omitempty" toml:"bumps" yaml:"bumps" gorm:"<-;type:text;comment:Slice of BUMPs (BSV Unified Merkle Paths)" bson:"bumps,omitempty"`
 }
 
 // newDraftTransaction will start a new draft tx

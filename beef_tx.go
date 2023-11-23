@@ -22,14 +22,14 @@ func ToBeef(ctx context.Context, tx *Transaction, store TransactionGetter) (stri
 		return "", err
 	}
 
-	bumpBtFactors, bumpFactors, err := prepareBUMPFactors(ctx, tx, store)
+	bumpBtFactors, bumpFactors, err := prepareBEEFFactors(ctx, tx, store)
 	if err != nil {
 		return "", fmt.Errorf("prepareBUMPFactors() error: %w", err)
 	}
 
-	tx.draftTransaction.BUMPs, err = calculateMergedBUMP(bumpFactors)
+	bumps, err := calculateMergedBUMP(bumpFactors)
 	sortedTxs := kahnTopologicalSortTransactions(bumpBtFactors)
-	beefHex, err := toBeefHex(ctx, tx, sortedTxs)
+	beefHex, err := toBeefHex(ctx, bumps, sortedTxs)
 	if err != nil {
 		return "", fmt.Errorf("ToBeef() error: %w", err)
 	}
@@ -37,8 +37,8 @@ func ToBeef(ctx context.Context, tx *Transaction, store TransactionGetter) (stri
 	return beefHex, nil
 }
 
-func toBeefHex(ctx context.Context, tx *Transaction, parentTxs []*bt.Tx) (string, error) {
-	beef, err := newBeefTx(ctx, 1, tx, parentTxs)
+func toBeefHex(ctx context.Context, bumps BUMPs, parentTxs []*bt.Tx) (string, error) {
+	beef, err := newBeefTx(ctx, 1, bumps, parentTxs)
 	if err != nil {
 		return "", fmt.Errorf("ToBeefHex() error: %w", err)
 	}
@@ -51,18 +51,18 @@ func toBeefHex(ctx context.Context, tx *Transaction, parentTxs []*bt.Tx) (string
 	return hex.EncodeToString(beefBytes), nil
 }
 
-func newBeefTx(ctx context.Context, version uint32, tx *Transaction, parentTxs []*bt.Tx) (*beefTx, error) {
+func newBeefTx(ctx context.Context, version uint32, bumps BUMPs, parentTxs []*bt.Tx) (*beefTx, error) {
 	if version > maxBeefVer {
 		return nil, fmt.Errorf("version above 0x%X", maxBeefVer)
 	}
 
-	if err := validateBumps(tx.draftTransaction.BUMPs); err != nil {
+	if err := validateBumps(bumps); err != nil {
 		return nil, err
 	}
 
 	beef := &beefTx{
 		version:      version,
-		bumps:        tx.draftTransaction.BUMPs,
+		bumps:        bumps,
 		transactions: parentTxs,
 	}
 

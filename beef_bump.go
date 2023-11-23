@@ -62,12 +62,22 @@ func prepareBUMPFactors(ctx context.Context, tx *Transaction, store TransactionG
 		return nil, nil, err
 	}
 
+	var txIDs []string
 	for _, input := range tx.draftTransaction.Configuration.Inputs {
-		inputTx, err := store.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
-		if err != nil {
-			return nil, nil, fmt.Errorf("cannot get transaction by ID (tx.ID: %s). Reason: %w", input.UtxoPointer.TransactionID, err)
-		}
+		txIDs = append(txIDs, input.UtxoPointer.TransactionID)
+	}
 
+	inputTxs, err := store.GetTransactionsByIDs(ctx, txIDs)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot get transactions from database: %w", err)
+	}
+
+	if len(inputTxs) != len(txIDs) {
+		missingTxIDs := getMissingTxs(txIDs, inputTxs)
+		return nil, nil, fmt.Errorf("required transactions not found in database: %v", missingTxIDs)
+	}
+
+	for _, inputTx := range inputTxs {
 		inputBtTx, err := bt.NewTxFromString(inputTx.Hex)
 		if err != nil {
 			return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
@@ -96,17 +106,27 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, input
 		return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
 	}
 
+	var parentTxIDs []string
+	for _, txIn := range btTx.Inputs {
+		parentTxIDs = append(parentTxIDs, txIn.PreviousTxIDStr())
+	}
+
+	parentTxs, err := store.GetTransactionsByIDs(ctx, parentTxIDs)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot get transactions from database: %w", err)
+	}
+
+	if len(parentTxs) != len(parentTxIDs) {
+		missingTxIDs := getMissingTxs(parentTxIDs, parentTxs)
+		return nil, nil, fmt.Errorf("required transactions not found in database: %v", missingTxIDs)
+	}
+
 	var validTxs []*Transaction
 	var validBtTxs []*bt.Tx
-	for _, txIn := range btTx.Inputs {
-		parentTx, err := store.GetTransactionByID(ctx, txIn.PreviousTxIDStr())
-		if err != nil {
-			return nil, nil, fmt.Errorf("cannot get parent transaction by ID (tx.ID: %s). Reason: %w", txIn.PreviousTxIDStr(), err)
-		}
-
+	for _, parentTx := range parentTxs {
 		parentBtTx, err := bt.NewTxFromString(parentTx.Hex)
 		if err != nil {
-			return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
+			return nil, nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", parentTx.ID, err)
 		}
 		validTxs = append(validTxs, parentTx)
 		validBtTxs = append(validBtTxs, parentBtTx)
@@ -121,11 +141,22 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, input
 		}
 	}
 
-	if len(validBtTxs) == 0 {
-		return nil, nil, fmt.Errorf("transaction is not mined yet and their parents are not present or mined (tx.ID: %s)", inputTx.ID)
+	return validBtTxs, validTxs, nil
+}
+
+func getMissingTxs(txIDs []string, foundTxs []*Transaction) []string {
+	foundTxIDs := make(map[string]bool)
+	for _, tx := range foundTxs {
+		foundTxIDs[tx.ID] = true
 	}
 
-	return validBtTxs, validTxs, nil
+	var missingTxIDs []string
+	for _, txID := range txIDs {
+		if !foundTxIDs[txID] {
+			missingTxIDs = append(missingTxIDs, txID)
+		}
+	}
+	return missingTxIDs
 }
 
 func initializeRequiredTxsCollection(tx *Transaction) ([]*bt.Tx, []*Transaction, error) {

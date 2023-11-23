@@ -74,6 +74,7 @@ type Transaction struct {
 
 type TransactionGetter interface {
 	GetTransactionByID(ctx context.Context, txID string) (*Transaction, error)
+	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
 }
 
 // newTransactionBase creates the standard transaction model base

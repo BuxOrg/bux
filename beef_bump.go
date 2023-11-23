@@ -67,14 +67,9 @@ func prepareBEEFFactors(ctx context.Context, tx *Transaction, store TransactionG
 		txIDs = append(txIDs, input.UtxoPointer.TransactionID)
 	}
 
-	inputTxs, err := store.GetTransactionsByIDs(ctx, txIDs)
+	inputTxs, err := getRequiredTransactions(ctx, txIDs, store)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot get transactions from database: %w", err)
-	}
-
-	if len(inputTxs) != len(txIDs) {
-		missingTxIDs := getMissingTxs(txIDs, inputTxs)
-		return nil, nil, fmt.Errorf("required transactions not found in database: %v", missingTxIDs)
+		return nil, nil, err
 	}
 
 	for _, inputTx := range inputTxs {
@@ -106,14 +101,9 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, btTx 
 		parentTxIDs = append(parentTxIDs, txIn.PreviousTxIDStr())
 	}
 
-	parentTxs, err := store.GetTransactionsByIDs(ctx, parentTxIDs)
+	parentTxs, err := getRequiredTransactions(ctx, parentTxIDs, store)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot get transactions from database: %w", err)
-	}
-
-	if len(parentTxs) != len(parentTxIDs) {
-		missingTxIDs := getMissingTxs(parentTxIDs, parentTxs)
-		return nil, nil, fmt.Errorf("required transactions not found in database: %v", missingTxIDs)
+		return nil, nil, err
 	}
 
 	var validTxs []*Transaction
@@ -137,6 +127,20 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, btTx 
 	}
 
 	return validBtTxs, validTxs, nil
+}
+
+func getRequiredTransactions(ctx context.Context, txIds []string, store TransactionGetter) ([]*Transaction, error) {
+	txs, err := store.GetTransactionsByIDs(ctx, txIds)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get transactions from database: %w", err)
+	}
+
+	if len(txs) != len(txIds) {
+		missingTxIDs := getMissingTxs(txIds, txs)
+		return nil, fmt.Errorf("required transactions not found in database: %v", missingTxIDs)
+	}
+
+	return txs, nil
 }
 
 func getMissingTxs(txIDs []string, foundTxs []*Transaction) []string {

@@ -25,3 +25,13 @@ func (m *MockTransactionStore) GetTransactionByID(ctx context.Context, txID stri
 	}
 	return nil, fmt.Errorf("no records found")
 }
+
+func (m *MockTransactionStore) GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error) {
+	var txs []*Transaction
+	for _, txID := range txIDs {
+		if tx, exists := m.Transactions[txID]; exists {
+			txs = append(txs, tx)
+		}
+	}
+	return txs, nil
+}

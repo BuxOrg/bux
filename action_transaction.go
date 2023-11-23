@@ -218,6 +218,25 @@ func (c *Client) GetTransactionByID(ctx context.Context, txID string) (*Transact
 	return c.GetTransaction(ctx, "", txID)
 }
 
+func (c *Client) GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error) {
+	// Check for existing NewRelic transaction
+	ctx = c.GetOrStartTxn(ctx, "get_transactions_by_ids")
+
+	// Create the conditions
+	conditions := generateTxIdFilterConditions(txIDs)
+
+	// Get the transactions by it's IDs
+	transactions, err := getTransactions(
+		ctx, nil, conditions, nil,
+		c.DefaultModelOptions()...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
 // GetTransactionByHex will get a transaction from the Datastore by its full hex string
 // uses GetTransaction
 func (c *Client) GetTransactionByHex(ctx context.Context, hex string) (*Transaction, error) {
@@ -491,4 +510,18 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	err = transaction.Save(ctx) // update existing record
 
 	return err
+}
+
+func generateTxIdFilterConditions(txIDs []string) *map[string]interface{} {
+	orConditions := make([]map[string]interface{}, len(txIDs))
+
+	for i, txID := range txIDs {
+		orConditions[i] = map[string]interface{}{"id": txID}
+	}
+
+	conditions := &map[string]interface{}{
+		"$or": orConditions,
+	}
+
+	return conditions
 }

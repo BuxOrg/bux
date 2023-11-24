@@ -72,6 +72,10 @@ type Transaction struct {
 	beforeCreateCalled bool                 `gorm:"-" bson:"-"` // Private information that the transaction lifecycle method BeforeCreate was already called
 }
 
+type TransactionGetter interface {
+	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
+}
+
 // newTransactionBase creates the standard transaction model base
 func newTransactionBase(hex string, opts ...ModelOps) *Transaction {
 	return &Transaction{

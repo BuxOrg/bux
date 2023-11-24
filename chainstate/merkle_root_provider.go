@@ -26,14 +26,14 @@ const (
 // of Merkle Roots inclusion in the longest chain.
 type MerkleRootConfirmationRequestItem struct {
 	MerkleRoot  string `json:"merkleRoot"`
-	BlockHeight int32  `json:"blockHeight"`
+	BlockHeight uint64 `json:"blockHeight"`
 }
 
 // MerkleRootConfirmation is a confirmation
 // of merkle roots inclusion in the longest chain.
 type MerkleRootConfirmation struct {
 	Hash         string                      `json:"blockHash"`
-	BlockHeight  int32                       `json:"blockHeight"`
+	BlockHeight  uint64                      `json:"blockHeight"`
 	MerkleRoot   string                      `json:"merkleRoot"`
 	Confirmation MerkleRootConfirmationState `json:"confirmation"`
 }

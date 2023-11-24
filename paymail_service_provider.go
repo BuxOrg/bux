@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/bitcoin-sv/go-paymail"
@@ -171,6 +172,22 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	transaction, err := recordTransaction(ctx, p.client, rts, WithMetadatas(metadata))
 	if err != nil {
 		return nil, err
+	}
+
+	if p2pTx.DecodedBeef == nil {
+		return &paymail.P2PTransactionPayload{
+			Note: p2pTx.MetaData.Note,
+			TxID: transaction.ID,
+		}, nil
+	}
+
+	if reflect.TypeOf(rts) == reflect.TypeOf(&externalIncomingTx{}) {
+		for _, input := range p2pTx.DecodedBeef.InputsTxData {
+			err = saveBeefTransactionInput(ctx, p.client, input.Transaction)
+			if err != nil {
+				p.client.Logger().Error(ctx, "error in saveBeefTransactionInput", err)
+			}
+		}
 	}
 
 	// Return the response from the p2p request

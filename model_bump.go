@@ -35,7 +35,7 @@ type BUMPLeaf struct {
 	Duplicate bool   `json:"duplicate,omitempty"`
 }
 
-// CalculateMergedBUMP calculates Merged BUMP from a slice of Merkle Proofs
+// CalculateMergedBUMP calculates Merged BUMP from a slice of BUMPs
 func CalculateMergedBUMP(bumps []BUMP) (*BUMP, error) {
 	if len(bumps) == 0 || bumps == nil {
 		return nil, nil

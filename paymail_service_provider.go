@@ -323,7 +323,7 @@ func saveBEEFTxInputs(ctx context.Context, c ClientInterface, p2pTx *paymail.P2P
 		return
 	}
 
-	inputsToAdd, err := getInputsWhichAreNotInDb(ctx, c, p2pTx)
+	inputsToAdd, err := getInputsWhichAreNotInDb(c, p2pTx)
 	if err != nil {
 		c.Logger().Error(ctx, "error in saveBEEFTxInputs", err)
 	}
@@ -342,10 +342,11 @@ func saveBEEFTxInputs(ctx context.Context, c ClientInterface, p2pTx *paymail.P2P
 }
 
 func getBump(p2pTx *paymail.P2PTransaction, input *beef.TxData) (*BUMP, error) {
-	if input.BumpIndex.Length() > len(p2pTx.DecodedBeef.BUMPs) {
+	bumpIndex := uint(input.BumpIndex.Length())
+	if bumpIndex > uint(len(p2pTx.DecodedBeef.BUMPs)) {
 		return nil, fmt.Errorf("error in getBump: bump index exceeds bumps length")
 	}
-	bump := p2pTx.DecodedBeef.BUMPs[input.BumpIndex.Length()]
+	bump := p2pTx.DecodedBeef.BUMPs[bumpIndex]
 	paths := make([][]BUMPLeaf, 0)
 
 	for _, path := range bump.Path {
@@ -367,7 +368,7 @@ func getBump(p2pTx *paymail.P2PTransaction, input *beef.TxData) (*BUMP, error) {
 	}, nil
 }
 
-func getInputsWhichAreNotInDb(ctx context.Context, c ClientInterface, p2pTx *paymail.P2PTransaction) ([]*beef.TxData, error) {
+func getInputsWhichAreNotInDb(c ClientInterface, p2pTx *paymail.P2PTransaction) ([]*beef.TxData, error) {
 	var txIDs []string
 	for _, tx := range p2pTx.DecodedBeef.Transactions {
 		txIDs = append(txIDs, tx.GetTxID())

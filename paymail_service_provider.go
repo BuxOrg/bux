@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"github.com/libsv/go-bt/v2"
 	"reflect"
 	"time"
 
@@ -181,14 +182,7 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 		}, nil
 	}
 
-	if reflect.TypeOf(rts) == reflect.TypeOf(&externalIncomingTx{}) {
-		for _, input := range p2pTx.DecodedBeef.InputsTxData {
-			err = saveBeefTransactionInput(ctx, p.client, input.Transaction)
-			if err != nil {
-				p.client.Logger().Error(ctx, "error in saveBeefTransactionInput", err)
-			}
-		}
-	}
+	saveBEEFTxInputs(ctx, p.client, p2pTx, rts)
 
 	// Return the response from the p2p request
 	return &paymail.P2PTransactionPayload{
@@ -322,4 +316,86 @@ func deriveKey(rawXPubKey string, num uint32) (k *derivedPubKey, err error) {
 
 	k.pubKey = hex.EncodeToString(k.ecPubKey.SerialiseCompressed())
 	return
+}
+
+func saveBEEFTxInputs(ctx context.Context, c ClientInterface, p2pTx *paymail.P2PTransaction, rts recordIncomingTxStrategy) {
+	if reflect.TypeOf(rts) != reflect.TypeOf(&externalIncomingTx{}) {
+		return
+	}
+
+	inputsToAdd, err := getInputsWhichAreNotInDb(ctx, c, p2pTx)
+	if err != nil {
+		c.Logger().Error(ctx, "error in saveBEEFTxInputs", err)
+	}
+
+	for _, input := range inputsToAdd {
+		err := saveBeefTransactionInput(ctx, c, input)
+		if err != nil {
+			c.Logger().Error(ctx, "error in saveBEEFTxInputs", err)
+		}
+	}
+
+}
+
+func getInputsWhichAreNotInDb(ctx context.Context, c ClientInterface, p2pTx *paymail.P2PTransaction) ([]*bt.Tx, error) {
+	var txIDs []string
+	for _, tx := range p2pTx.DecodedBeef.Transactions {
+		txIDs = append(txIDs, tx.GetTxID())
+	}
+	dbTxs, err := c.GetTransactionsByIDs(ctx, txIDs)
+	if err != nil {
+		return nil, fmt.Errorf("error during getting txs from db: %s", err)
+	}
+
+	txs := make([]*bt.Tx, 0)
+
+	if len(dbTxs) == len(txIDs) {
+		return txs, nil
+	}
+
+	for _, input := range p2pTx.DecodedBeef.Transactions {
+		found := false
+		for _, dbTx := range dbTxs {
+			if dbTx.GetID() == input.GetTxID() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			txs = append(txs, input.Transaction)
+		}
+	}
+
+	return txs, nil
+}
+
+func saveBeefTransactionInput(ctx context.Context, c ClientInterface, input *bt.Tx) error {
+	inputTx, err := c.GetTransactionByID(ctx, input.TxID())
+	if err != nil && err != ErrMissingTransaction {
+		return fmt.Errorf("error in saveBeefTransactionInput during getting transaction: %s", err.Error())
+	}
+
+	if inputTx != nil {
+		return nil
+	}
+
+	newOpts := c.DefaultModelOptions(New())
+	inputTx = newTransaction(input.String(), newOpts...)
+
+	sync := newSyncTransaction(
+		inputTx.GetID(),
+		inputTx.Client().DefaultSyncConfig(),
+		inputTx.GetOptions(true)...,
+	)
+	sync.BroadcastStatus = SyncStatusSkipped
+	sync.P2PStatus = SyncStatusSkipped
+	sync.SyncStatus = SyncStatusReady
+
+	inputTx.syncTransaction = sync
+
+	err = inputTx.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("error in saveBeefTransactionInput during saving tx: %s", err.Error())
+	}
+	return nil
 }

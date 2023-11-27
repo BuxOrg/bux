@@ -84,21 +84,3 @@ func hydrateTransaction(ctx context.Context, tx *Transaction) error {
 
 	return nil
 }
-
-func getParentTransactionsForInput(ctx context.Context, client ClientInterface, input *TransactionInput) ([]*bt.Tx, error) {
-	inputTx, err := client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
-	if err != nil {
-		return nil, err
-	}
-
-	if inputTx.MerkleProof.TxOrID != "" {
-		inputBtTx, err := bt.NewTxFromString(inputTx.Hex)
-		if err != nil {
-			return nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
-		}
-
-		return []*bt.Tx{inputBtTx}, nil
-	}
-
-	return nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID) // TODO: handle it in next iterration
-}

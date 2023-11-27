@@ -403,10 +403,6 @@ func saveBeefTransactionInput(ctx context.Context, c ClientInterface, input *bee
 	newOpts := c.DefaultModelOptions(New())
 	inputTx := newTransaction(input.Transaction.String(), newOpts...)
 
-	if bump != nil {
-		inputTx.BUMP = *bump
-	}
-
 	sync := newSyncTransaction(
 		inputTx.GetID(),
 		inputTx.Client().DefaultSyncConfig(),
@@ -415,6 +411,11 @@ func saveBeefTransactionInput(ctx context.Context, c ClientInterface, input *bee
 	sync.BroadcastStatus = SyncStatusSkipped
 	sync.P2PStatus = SyncStatusSkipped
 	sync.SyncStatus = SyncStatusReady
+
+	if bump != nil {
+		inputTx.BUMP = *bump
+		sync.SyncStatus = SyncStatusSkipped
+	}
 
 	inputTx.syncTransaction = sync
 

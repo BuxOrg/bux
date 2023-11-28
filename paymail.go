@@ -193,6 +193,10 @@ func buildP2pTx(ctx context.Context, p4 *PaymailP4, transaction *Transaction) (*
 	case BeefPaymailPayloadFormat:
 		beef, err := ToBeefHex(ctx, transaction)
 
+		if transaction.client != nil {
+			transaction.client.Logger().Info(ctx, fmt.Sprintf("BEEF hex: [%s]", beef))
+		}
+
 		if err != nil {
 			return nil, err
 		}

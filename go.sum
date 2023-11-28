@@ -55,8 +55,8 @@ github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNg
 github.com/aws/aws-sdk-go v1.43.45 h1:2708Bj4uV+ym62MOtBnErm/CDX61C4mFe9V2gXy1caE=
 github.com/bitcoin-sv/go-broadcast-client v0.9.0 h1:6oR1th7TppFtWxcfCHFvEM0XnwTvuO4yTx1tg3rlOIc=
 github.com/bitcoin-sv/go-broadcast-client v0.9.0/go.mod h1:hami7qUkK0eoZolDXeo4tOLD16qbDXuZRV7BQ1RDzaE=
-github.com/bitcoin-sv/go-paymail v0.7.2 h1:JsO1VclbBSVfVB6lbH5IBIYWUBCwn6OX4Ti/deV4J0k=
-github.com/bitcoin-sv/go-paymail v0.7.2/go.mod h1:i0mTFBj3hfKEZ1tJUgUfV38b3jJVFgyeIBGR0c9lqOI=
+github.com/bitcoin-sv/go-paymail v0.9.2 h1:41hWOn3N3tpOPh0VZN7wsb+8OhvFzNJSaWTkCJW/vjE=
+github.com/bitcoin-sv/go-paymail v0.9.2/go.mod h1:i0mTFBj3hfKEZ1tJUgUfV38b3jJVFgyeIBGR0c9lqOI=
 github.com/bitcoinschema/go-bitcoin/v2 v2.0.5 h1:Sgh5Eb746Zck/46rFDrZZEXZWyO53fMuWYhNoZa1tck=
 github.com/bitcoinschema/go-bitcoin/v2 v2.0.5/go.mod h1:JjO1ivfZv6vhK0uAXzyH08AAHlzNMAfnyK1Fiv9r4ZA=
 github.com/bitcoinschema/go-bob v0.4.0 h1:adsAEboLQCg0D6e9vwcJUJEJScszsouAYCYu35UAiGo=

@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/bitcoin-sv/go-paymail"
+	"github.com/bitcoin-sv/go-paymail/beef"
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/bitcoin-sv/go-paymail/spv"
 	"github.com/bitcoinschema/go-bitcoin/v2"
@@ -173,6 +175,12 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 		return nil, err
 	}
 
+	if p2pTx.DecodedBeef != nil {
+		if reflect.TypeOf(rts) == reflect.TypeOf(&externalIncomingTx{}) {
+			go saveBEEFTxInputs(ctx, p.client, p2pTx.DecodedBeef)
+		}
+	}
+
 	// Return the response from the p2p request
 	return &paymail.P2PTransactionPayload{
 		Note: p2pTx.MetaData.Note,
@@ -305,4 +313,114 @@ func deriveKey(rawXPubKey string, num uint32) (k *derivedPubKey, err error) {
 
 	k.pubKey = hex.EncodeToString(k.ecPubKey.SerialiseCompressed())
 	return
+}
+
+func saveBEEFTxInputs(ctx context.Context, c ClientInterface, dBeef *beef.DecodedBEEF) {
+	inputsToAdd, err := getInputsWhichAreNotInDb(c, dBeef)
+	if err != nil {
+		c.Logger().Error(ctx, "error in saveBEEFTxInputs", err)
+	}
+
+	for _, input := range inputsToAdd {
+		var bump *BUMP
+		if input.BumpIndex != nil { // mined
+			bump, err = getBump(int(*input.BumpIndex), dBeef.BUMPs)
+			if err != nil {
+				c.Logger().Error(ctx, fmt.Errorf("error in saveBEEFTxInputs: %w for beef: %v", err, dBeef).Error())
+			}
+
+		}
+
+		err = saveBeefTransactionInput(ctx, c, input, bump)
+		if err != nil {
+			c.Logger().Error(ctx, fmt.Errorf("error in saveBEEFTxInputs: %w for beef: %v", err, dBeef).Error())
+		}
+	}
+}
+
+func getInputsWhichAreNotInDb(c ClientInterface, dBeef *beef.DecodedBEEF) ([]*beef.TxData, error) {
+	var txIDs []string
+	for _, tx := range dBeef.Transactions {
+		txIDs = append(txIDs, tx.GetTxID())
+	}
+	dbTxs, err := c.GetTransactionsByIDs(context.Background(), txIDs)
+	if err != nil {
+		return nil, fmt.Errorf("error during getting txs from db: %w", err)
+	}
+
+	txs := make([]*beef.TxData, 0)
+
+	if len(dbTxs) == len(txIDs) {
+		return txs, nil
+	}
+
+	for _, input := range dBeef.Transactions {
+		found := false
+		for _, dbTx := range dbTxs {
+			if dbTx.GetID() == input.GetTxID() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			txs = append(txs, input)
+		}
+	}
+
+	return txs, nil
+}
+
+func getBump(bumpIndx int, bumps beef.BUMPs) (*BUMP, error) {
+	if bumpIndx > len(bumps) {
+		return nil, fmt.Errorf("error in getBump: bump index exceeds bumps length")
+	}
+
+	bump := bumps[bumpIndx]
+	paths := make([][]BUMPLeaf, 0)
+
+	for _, path := range bump.Path {
+		pathLeaves := make([]BUMPLeaf, 0)
+		for _, leaf := range path {
+			l := BUMPLeaf{
+				Offset:    leaf.Offset,
+				Hash:      leaf.Hash,
+				TxID:      leaf.TxId,
+				Duplicate: leaf.Duplicate,
+			}
+			pathLeaves = append(pathLeaves, l)
+		}
+		paths = append(paths, pathLeaves)
+	}
+
+	return &BUMP{
+		BlockHeight: bump.BlockHeight,
+		Path:        paths,
+	}, nil
+}
+
+func saveBeefTransactionInput(ctx context.Context, c ClientInterface, input *beef.TxData, bump *BUMP) error {
+	newOpts := c.DefaultModelOptions(New())
+	inputTx := newTransaction(input.Transaction.String(), newOpts...)
+
+	sync := newSyncTransaction(
+		inputTx.GetID(),
+		inputTx.Client().DefaultSyncConfig(),
+		inputTx.GetOptions(true)...,
+	)
+	sync.BroadcastStatus = SyncStatusSkipped
+	sync.P2PStatus = SyncStatusSkipped
+	sync.SyncStatus = SyncStatusReady
+
+	if bump != nil {
+		inputTx.BUMP = *bump
+		sync.SyncStatus = SyncStatusSkipped
+	}
+
+	inputTx.syncTransaction = sync
+
+	err := inputTx.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("error in saveBeefTransactionInput during saving tx: %w", err)
+	}
+	return nil
 }

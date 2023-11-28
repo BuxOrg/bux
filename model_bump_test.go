@@ -3,6 +3,7 @@ package bux
 import (
 	"testing"
 
+	"github.com/libsv/go-bc"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -568,7 +569,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 
 	t.Run("Real Merkle Proof", func(t *testing.T) {
 		// given
-		merkleProof := []MerkleProof{
+		merkleProof := []bc.MerkleProof{
 			{
 				Index:  1153,
 				TxOrID: "2130b63dcbfe1356a30137fe9578691f59c6cf42d5e8928a800619de7f8e14da",
@@ -797,7 +798,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 		// when
 		bumps := make([]BUMP, 0)
 		for _, mp := range merkleProof {
-			bumps = append(bumps, mp.ToBUMP(0))
+			bumps = append(bumps, MerkleProofToBUMP(&mp, 0))
 		}
 		bump, err := CalculateMergedBUMP(bumps)
 		actualHex := bump.Hex()
@@ -806,5 +807,242 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expectedBUMP, bump)
 		assert.Equal(t, expectedHex, actualHex)
+	})
+}
+
+// TestBUMPModel_MerkleProofToBUMP will test the method MerkleProofToBUMP()
+func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid Merkle Proof #1", func(t *testing.T) {
+		// given
+		blockHeight := uint64(0)
+		mp := bc.MerkleProof{
+			Index:  1,
+			TxOrID: "txId",
+			Nodes:  []string{"node0", "node1", "node2", "node3"},
+		}
+		expectedBUMP := BUMP{
+			BlockHeight: blockHeight,
+			Path: [][]BUMPLeaf{
+				{
+					{Offset: 0, Hash: "node0"},
+					{Offset: 1, Hash: "txId", TxID: true},
+				},
+				{
+					{Offset: 1, Hash: "node1"},
+				},
+				{
+					{Offset: 1, Hash: "node2"},
+				},
+				{
+					{Offset: 1, Hash: "node3"},
+				},
+			},
+		}
+
+		// when
+		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+
+		// then
+		assert.Equal(t, expectedBUMP, actualBUMP)
+	})
+
+	t.Run("Valid Merkle Proof #2", func(t *testing.T) {
+		// given
+		blockHeight := uint64(0)
+		mp := bc.MerkleProof{
+			Index:  14,
+			TxOrID: "txId",
+			Nodes:  []string{"node0", "node1", "node2", "node3", "node4"},
+		}
+		expectedBUMP := BUMP{
+			BlockHeight: blockHeight,
+			Path: [][]BUMPLeaf{
+				{
+					{Offset: 14, Hash: "txId", TxID: true},
+					{Offset: 15, Hash: "node0"},
+				},
+				{
+					{Offset: 6, Hash: "node1"},
+				},
+				{
+					{Offset: 2, Hash: "node2"},
+				},
+				{
+					{Offset: 0, Hash: "node3"},
+				},
+				{
+					{Offset: 1, Hash: "node4"},
+				},
+			},
+		}
+
+		// when
+		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+
+		// then
+		assert.Equal(t, expectedBUMP, actualBUMP)
+	})
+
+	t.Run("Valid Merkle Proof #3 - with *", func(t *testing.T) {
+		// given
+		blockHeight := uint64(0)
+		mp := bc.MerkleProof{
+			Index:  14,
+			TxOrID: "txId",
+			Nodes:  []string{"*", "node1", "node2", "node3", "node4"},
+		}
+		expectedBUMP := BUMP{
+			BlockHeight: blockHeight,
+			Path: [][]BUMPLeaf{
+				{
+					{Offset: 14, Hash: "txId", TxID: true},
+					{Offset: 15, Duplicate: true},
+				},
+				{
+					{Offset: 6, Hash: "node1"},
+				},
+				{
+					{Offset: 2, Hash: "node2"},
+				},
+				{
+					{Offset: 0, Hash: "node3"},
+				},
+				{
+					{Offset: 1, Hash: "node4"},
+				},
+			},
+		}
+
+		// when
+		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+
+		// then
+		assert.Equal(t, expectedBUMP, actualBUMP)
+	})
+
+	t.Run("Empty Merkle Proof", func(t *testing.T) {
+		blockHeight := uint64(0)
+		mp := bc.MerkleProof{}
+		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		assert.Equal(t, BUMP{BlockHeight: blockHeight}, actualBUMP)
+	})
+}
+
+// TestBUMPModel_MerklePathToBUMP will test the method MerklePathToBUMP()
+func TestBUMPModel_MerklePathToBUMP(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Valid Merkle Path #1", func(t *testing.T) {
+		// given
+		blockHeight := uint64(0)
+		mp := bc.MerklePath{
+			Index: 1,
+			Path:  []string{"txId", "node0", "node1", "node2", "node3"},
+		}
+		expectedBUMP := BUMP{
+			BlockHeight: blockHeight,
+			Path: [][]BUMPLeaf{
+				{
+					{Offset: 0, Hash: "node0"},
+					{Offset: 1, Hash: "txId", TxID: true},
+				},
+				{
+					{Offset: 1, Hash: "node1"},
+				},
+				{
+					{Offset: 1, Hash: "node2"},
+				},
+				{
+					{Offset: 1, Hash: "node3"},
+				},
+			},
+		}
+
+		// when
+		actualBUMP := MerklePathToBUMP(&mp, blockHeight)
+
+		// then
+		assert.Equal(t, expectedBUMP, actualBUMP)
+	})
+
+	t.Run("Valid Merkle Path #2", func(t *testing.T) {
+		// given
+		blockHeight := uint64(0)
+		mp := bc.MerklePath{
+			Index: 14,
+			Path:  []string{"txId", "node0", "node1", "node2", "node3", "node4"},
+		}
+		expectedBUMP := BUMP{
+			BlockHeight: blockHeight,
+			Path: [][]BUMPLeaf{
+				{
+					{Offset: 14, Hash: "txId", TxID: true},
+					{Offset: 15, Hash: "node0"},
+				},
+				{
+					{Offset: 6, Hash: "node1"},
+				},
+				{
+					{Offset: 2, Hash: "node2"},
+				},
+				{
+					{Offset: 0, Hash: "node3"},
+				},
+				{
+					{Offset: 1, Hash: "node4"},
+				},
+			},
+		}
+
+		// when
+		actualBUMP := MerklePathToBUMP(&mp, blockHeight)
+
+		// then
+		assert.Equal(t, expectedBUMP, actualBUMP)
+	})
+
+	t.Run("Valid Merkle Path #3 - with *", func(t *testing.T) {
+		// given
+		blockHeight := uint64(0)
+		mp := bc.MerklePath{
+			Index: 14,
+			Path:  []string{"txId", "*", "node1", "node2", "node3", "node4"},
+		}
+		expectedBUMP := BUMP{
+			BlockHeight: blockHeight,
+			Path: [][]BUMPLeaf{
+				{
+					{Offset: 14, Hash: "txId", TxID: true},
+					{Offset: 15, Duplicate: true},
+				},
+				{
+					{Offset: 6, Hash: "node1"},
+				},
+				{
+					{Offset: 2, Hash: "node2"},
+				},
+				{
+					{Offset: 0, Hash: "node3"},
+				},
+				{
+					{Offset: 1, Hash: "node4"},
+				},
+			},
+		}
+
+		// when
+		actualBUMP := MerklePathToBUMP(&mp, blockHeight)
+
+		// then
+		assert.Equal(t, expectedBUMP, actualBUMP)
+	})
+
+	t.Run("Empty Merkle Path", func(t *testing.T) {
+		blockHeight := uint64(0)
+		mp := bc.MerklePath{}
+		actualBUMP := MerklePathToBUMP(&mp, blockHeight)
+		assert.Equal(t, BUMP{BlockHeight: blockHeight}, actualBUMP)
 	})
 }

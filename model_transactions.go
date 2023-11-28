@@ -3,10 +3,11 @@ package bux
 import (
 	"context"
 
+	"github.com/libsv/go-bt/v2"
+
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
-	"github.com/libsv/go-bt/v2"
 )
 
 // TransactionBase is the same fields share between multiple transaction models
@@ -54,7 +55,6 @@ type Transaction struct {
 	TotalValue      uint64          `json:"total_value" toml:"total_value" yaml:"total_value" gorm:"<-create;type:bigint" bson:"total_value,omitempty"`
 	XpubMetadata    XpubMetadata    `json:"-" toml:"xpub_metadata" gorm:"<-;type:json;xpub_id specific metadata" bson:"xpub_metadata,omitempty"`
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
-	MerkleProof     MerkleProof     `json:"merkle_proof" toml:"merkle_proof" yaml:"merkle_proof" gorm:"<-;type:text;comment:Merkle Proof payload from mAPI" bson:"merkle_proof,omitempty"`
 	BUMP            BUMP            `json:"bump" toml:"bump" yaml:"bump" gorm:"<-;type:text;comment:BSV Unified Merkle Path (BUMP) Format" bson:"bump,omitempty"`
 
 	// Virtual Fields
@@ -230,15 +230,15 @@ func (m *Transaction) isExternal() bool {
 func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {
 	m.BlockHash = txInfo.BlockHash
 	m.BlockHeight = uint64(txInfo.BlockHeight)
-	m.setMerkleRoot(txInfo)
+	m.setBUMP(txInfo)
 }
 
-func (m *Transaction) setMerkleRoot(txInfo *chainstate.TransactionInfo) {
+func (m *Transaction) setBUMP(txInfo *chainstate.TransactionInfo) {
 	if txInfo.MerkleProof != nil {
-		mp := MerkleProof(*txInfo.MerkleProof)
-		m.MerkleProof = mp
-
-		bump := mp.ToBUMP(uint64(txInfo.BlockHeight))
+		bump := MerkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
+		m.BUMP = bump
+	} else if txInfo.MerklePath != nil {
+		bump := MerklePathToBUMP(txInfo.MerklePath, uint64(txInfo.BlockHeight))
 		m.BUMP = bump
 	}
 }

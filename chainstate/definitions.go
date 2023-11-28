@@ -3,8 +3,9 @@ package chainstate
 import (
 	"time"
 
-	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bc"
+
+	"github.com/BuxOrg/bux/utils"
 )
 
 // Chainstate configuration defaults
@@ -61,6 +62,7 @@ type TransactionInfo struct {
 	MinerID       string          `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
 	Provider      string          `json:"provider,omitempty"`      // Provider is our internal source
 	MerkleProof   *bc.MerkleProof `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY. Should be also supported by Arc in future
+	MerklePath    *bc.MerklePath  `json:"merkle_path,omitempty"`   // ARC only. Should be removed in the future in favor of BUMP
 }
 
 // DefaultFee is used when a fee has not been set by the user

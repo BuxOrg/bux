@@ -6,14 +6,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BuxOrg/bux/utils"
 	"github.com/tonicpow/go-minercraft/v2"
+
+	"github.com/BuxOrg/bux/utils"
 )
 
 // query will try ALL providers in order and return the first "valid" response based on requirements
 func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
-	timeout time.Duration) *TransactionInfo {
-
+	timeout time.Duration,
+) *TransactionInfo {
 	// Create a context (to cancel or timeout)
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -50,8 +51,8 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 
 // fastestQuery will try ALL providers on once and return the fastest "valid" response based on requirements
 func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn RequiredIn,
-	timeout time.Duration) *TransactionInfo {
-
+	timeout time.Duration,
+) *TransactionInfo {
 	// The channel for the internal results
 	resultsChannel := make(
 		chan *TransactionInfo,
@@ -139,6 +140,7 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 			BlockHeight: resp.BlockHeight,
 			ID:          resp.TxID,
 			Provider:    resp.Miner,
+			MerklePath:  resp.MerklePath,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

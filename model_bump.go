@@ -196,6 +196,10 @@ func getOffsetPair(offset uint64) uint64 {
 	return offset - 1
 }
 
+func getParentOffset(offset uint64) uint64 {
+	return getOffsetPair(offset / 2)
+}
+
 func prepareNodes(baseLeaf BUMPLeaf, offset uint64, leafInPair BUMPLeaf, newOffset uint64) (string, string) {
 	var baseLeafHash, pairLeafHash string
 
@@ -341,4 +345,120 @@ func (bumps BUMPs) Value() (driver.Value, error) {
 	}
 
 	return string(marshal), nil
+}
+
+// MerklePathToBUMP transforms Merkle Path to BUMP
+func MerklePathToBUMP(merklePath *bc.MerklePath, blockHeight uint64) BUMP {
+	bump := BUMP{BlockHeight: blockHeight}
+
+	height := len(merklePath.Path)
+	if height == 0 {
+		return bump
+	}
+
+	path := make([][]BUMPLeaf, 0)
+	txIDPath := make([]BUMPLeaf, 2)
+
+	offset := merklePath.Index
+	pairOffset := getOffsetPair(offset)
+
+	txIDPath1 := BUMPLeaf{
+		Offset: offset,
+		Hash:   merklePath.Path[0],
+		TxID:   true,
+	}
+	txIDPath2 := BUMPLeaf{
+		Offset: getOffsetPair(offset),
+	}
+	if merklePath.Path[1] != "*" {
+		txIDPath2.Hash = merklePath.Path[1]
+	} else {
+		txIDPath2.Duplicate = true
+	}
+
+	if offset < pairOffset {
+		txIDPath[0] = txIDPath1
+		txIDPath[1] = txIDPath2
+	} else {
+		txIDPath[0] = txIDPath2
+		txIDPath[1] = txIDPath1
+	}
+
+	path = append(path, txIDPath)
+	for i := 2; i < height; i++ {
+		p := make([]BUMPLeaf, 0)
+		offset = getParentOffset(offset)
+
+		leaf := BUMPLeaf{Offset: offset}
+
+		isDuplicate := merklePath.Path[i] == "*"
+		if !isDuplicate {
+			leaf.Hash = merklePath.Path[i]
+		} else {
+			leaf.Duplicate = true
+		}
+
+		p = append(p, leaf)
+		path = append(path, p)
+	}
+	bump.Path = path
+	return bump
+}
+
+// MerkleProofToBUMP transforms Merkle Proof to BUMP
+func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
+	bump := BUMP{BlockHeight: blockHeight}
+
+	height := len(merkleProof.Nodes)
+	if height == 0 {
+		return bump
+	}
+
+	path := make([][]BUMPLeaf, 0)
+	txIDPath := make([]BUMPLeaf, 2)
+
+	offset := merkleProof.Index
+	pairOffset := getOffsetPair(offset)
+
+	txIDPath1 := BUMPLeaf{
+		Offset: offset,
+		Hash:   merkleProof.TxOrID,
+		TxID:   true,
+	}
+	txIDPath2 := BUMPLeaf{
+		Offset: getOffsetPair(offset),
+	}
+	if merkleProof.Nodes[0] != "*" {
+		txIDPath2.Hash = merkleProof.Nodes[0]
+	} else {
+		txIDPath2.Duplicate = true
+	}
+
+	if offset < pairOffset {
+		txIDPath[0] = txIDPath1
+		txIDPath[1] = txIDPath2
+	} else {
+		txIDPath[0] = txIDPath2
+		txIDPath[1] = txIDPath1
+	}
+
+	path = append(path, txIDPath)
+	for i := 1; i < height; i++ {
+		p := make([]BUMPLeaf, 0)
+		offset = getParentOffset(offset)
+
+		leaf := BUMPLeaf{Offset: offset}
+
+		isDuplicate := merkleProof.Nodes[i] == "*"
+		if !isDuplicate {
+			leaf.Hash = merkleProof.Nodes[i]
+		} else {
+			leaf.Duplicate = true
+		}
+
+		p = append(p, leaf)
+		path = append(path, p)
+	}
+	bump.Path = path
+	return bump
 }

@@ -196,6 +196,10 @@ func getOffsetPair(offset uint64) uint64 {
 	return offset - 1
 }
 
+func getParentOffset(offset uint64) uint64 {
+	return getOffsetPair(offset / 2)
+}
+
 func prepareNodes(baseLeaf BUMPLeaf, offset uint64, leafInPair BUMPLeaf, newOffset uint64) (string, string) {
 	var baseLeafHash, pairLeafHash string
 
@@ -341,4 +345,67 @@ func (bumps BUMPs) Value() (driver.Value, error) {
 	}
 
 	return string(marshal), nil
+}
+
+// MerkleProofToBUMP transforms Merkle Proof to BUMP
+func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
+	bump := BUMP{BlockHeight: blockHeight}
+
+	height := len(merkleProof.Nodes)
+	if height == 0 {
+		return bump
+	}
+
+	offset := merkleProof.Index
+	pairOffset := getOffsetPair(offset)
+
+	txIDPath1 := BUMPLeaf{
+		Offset: offset,
+		Hash:   merkleProof.TxOrID,
+		TxID:   true,
+	}
+	txIDPath2 := createLeaf(getOffsetPair(offset), merkleProof.Nodes[0])
+
+	path := sortAndAddToPath(txIDPath1, offset, txIDPath2, pairOffset)
+
+	for i := 1; i < height; i++ {
+		p := make([]BUMPLeaf, 0)
+		offset = getParentOffset(offset)
+
+		leaf := createLeaf(offset, merkleProof.Nodes[i])
+
+		p = append(p, leaf)
+		path = append(path, p)
+	}
+	bump.Path = path
+	return bump
+}
+
+func sortAndAddToPath(txIDPath1 BUMPLeaf, offset uint64, txIDPath2 BUMPLeaf, pairOffset uint64) [][]BUMPLeaf {
+	path := make([][]BUMPLeaf, 0)
+	txIDPath := make([]BUMPLeaf, 2)
+
+	if offset < pairOffset {
+		txIDPath[0] = txIDPath1
+		txIDPath[1] = txIDPath2
+	} else {
+		txIDPath[0] = txIDPath2
+		txIDPath[1] = txIDPath1
+	}
+
+	path = append(path, txIDPath)
+	return path
+}
+
+func createLeaf(offset uint64, node string) BUMPLeaf {
+	leaf := BUMPLeaf{Offset: offset}
+
+	isDuplicate := node == "*"
+	if !isDuplicate {
+		leaf.Hash = node
+	} else {
+		leaf.Duplicate = true
+	}
+
+	return leaf
 }

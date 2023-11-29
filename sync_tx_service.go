@@ -10,11 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/notifications"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/notifications"
 )
 
 // processSyncTransactions will process sync transaction records
@@ -120,7 +121,6 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		transaction, err := getTransactionByID(
 			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
 		)
-
 		if err != nil {
 			return err
 		}
@@ -221,8 +221,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		return err
 	}
 
-	// validate txInfo
-	if txInfo.BlockHash == "" || txInfo.MerkleProof == nil || txInfo.MerkleProof.TxOrID == "" || len(txInfo.MerkleProof.Nodes) == 0 {
+	if !txInfo.Valid() {
 		syncTx.client.Logger().Warn(ctx, fmt.Sprintf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID))
 
 		if syncTx.client.IsDebug() {
@@ -401,7 +400,6 @@ func _groupByXpub(scTxs []*SyncTransaction) map[string][]*SyncTransaction {
 func _bailAndSaveSyncTransaction(ctx context.Context, syncTx *SyncTransaction, status SyncStatus,
 	action, provider, message string,
 ) {
-
 	if action == syncActionSync {
 		syncTx.SyncStatus = status
 	} else if action == syncActionP2P {

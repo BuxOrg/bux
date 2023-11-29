@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/taskmanager"
 )
 
 // IncomingTransaction is an object representing the incoming (external) transaction (for pre-processing)
@@ -31,7 +32,6 @@ type IncomingTransaction struct {
 
 // newIncomingTransaction will start a new model
 func newIncomingTransaction(hex string, opts ...ModelOps) (tx *IncomingTransaction) {
-
 	// Create the model
 	tx = &IncomingTransaction{
 		Model: *NewBaseModel(ModelIncomingTransaction, opts...),
@@ -69,8 +69,8 @@ func getIncomingTransactionByID(ctx context.Context, id string, opts ...ModelOps
 
 // getIncomingTransactionsToProcess will get the incoming transactions to process
 func getIncomingTransactionsToProcess(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps) ([]*IncomingTransaction, error) {
-
+	opts ...ModelOps,
+) ([]*IncomingTransaction, error) {
 	// Construct an empty model
 	var models []IncomingTransaction
 	conditions := map[string]interface{}{
@@ -220,7 +220,6 @@ func (m *IncomingTransaction) Migrate(client datastore.ClientInterface) error {
 
 // RegisterTasks will register the model specific tasks on client initialization
 func (m *IncomingTransaction) RegisterTasks() error {
-
 	// No task manager loaded?
 	tm := m.Client().Taskmanager()
 	if tm == nil {
@@ -255,8 +254,8 @@ func (m *IncomingTransaction) RegisterTasks() error {
 
 // processIncomingTransactions will process incoming transaction records
 func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, maxTransactions int,
-	opts ...ModelOps) error {
-
+	opts ...ModelOps,
+) error {
 	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
 
 	// Get x records:
@@ -287,8 +286,8 @@ func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLogg
 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
 func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLoggerInterface,
-	incomingTx *IncomingTransaction) error {
-
+	incomingTx *IncomingTransaction,
+) error {
 	if logClient == nil {
 		logClient = incomingTx.client.Logger()
 	}
@@ -341,7 +340,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	}
 
 	// validate txInfo
-	if txInfo.BlockHash == "" || txInfo.MerkleProof == nil || txInfo.MerkleProof.TxOrID == "" || len(txInfo.MerkleProof.Nodes) == 0 {
+	if !txInfo.Valid() {
 		logClient.Warn(ctx, fmt.Sprintf("processIncomingTransaction(): txInfo for %s is invalid, will try again later", incomingTx.ID))
 
 		if incomingTx.client.IsDebug() {

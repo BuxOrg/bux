@@ -305,15 +305,17 @@ func (m *Transaction) Display() interface{} {
 // hasOneKnownDestination will check if the transaction has at least one known destination
 //
 // This is used to validate if an external transaction should be recorded into the engine
-func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface, opts ...ModelOps) bool {
+func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface) bool {
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
 	lockingScript := ""
-	for index := range m.parsedTx.Outputs {
-		lockingScript = m.parsedTx.Outputs[index].LockingScript.String()
-		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript, opts...)
+	for _, output := range m.parsedTx.Outputs {
+		lockingScript = output.LockingScript.String()
+		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript)
+
 		if err != nil {
-			destination = newDestination("", lockingScript, opts...)
-			destination.Client().Logger().Error(ctx, "error getting destination: "+err.Error())
+			client.Logger().Error(ctx, "error getting destination: "+err.Error())
+			continue
+
 		} else if destination != nil && destination.LockingScript == lockingScript {
 			return true
 		}

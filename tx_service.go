@@ -10,10 +10,10 @@ import (
 
 func registerRawTransaction(ctx context.Context, c ClientInterface, allowUnknown bool, txHex string, opts ...ModelOps) (*Transaction, error) {
 	newOpts := c.DefaultModelOptions(append(opts, New())...)
-	transaction := newTransaction(txHex, newOpts...)
+	tx := newTransaction(txHex, newOpts...)
 
 	// Ensure that we have a transaction id (created from the txHex)
-	id := transaction.GetID()
+	id := tx.GetID()
 	if len(id) == 0 {
 		return nil, ErrMissingTxHex
 	}
@@ -29,51 +29,47 @@ func registerRawTransaction(ctx context.Context, c ClientInterface, allowUnknown
 
 	// Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
-	// If we are external and the user disabled incoming transaction checking, check outputs
-	if transaction.isExternal() && !transaction.Client().IsITCEnabled() {
-		// Check that the transaction has >= 1 known destination
-		if !transaction.TransactionBase.hasOneKnownDestination(ctx, transaction.Client(), transaction.GetOptions(false)...) {
-			return nil, ErrNoMatchingOutputs
-		}
+	if !c.IsITCEnabled() && !tx.hasOneKnownDestination(ctx, c) {
+		return nil, ErrNoMatchingOutputs
 	}
 
 	// Process the UTXOs
-	if err = transaction.processUtxos(ctx); err != nil {
+	if err = tx.processUtxos(ctx); err != nil {
 		return nil, err
 	}
 
 	// Set the values from the inputs/outputs and draft tx
-	transaction.TotalValue, transaction.Fee = transaction.getValues()
+	tx.TotalValue, tx.Fee = tx.getValues()
 
 	// Add values
-	transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
-	transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
+	tx.NumberOfInputs = uint32(len(tx.parsedTx.Inputs))
+	tx.NumberOfOutputs = uint32(len(tx.parsedTx.Outputs))
 
 	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
 	// do not register transactions we have nothing to do with (this check must be done after transaction.processUtxos())
-	if !allowUnknown && transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil {
+	if !allowUnknown && tx.XpubInIDs == nil && tx.XpubOutIDs == nil {
 		return nil, ErrTransactionUnknown
 	}
 
-	if !transaction.isMined() {
+	if !tx.isMined() {
 		sync := newSyncTransaction(
-			transaction.GetID(),
-			transaction.Client().DefaultSyncConfig(),
-			transaction.GetOptions(true)...,
+			tx.GetID(),
+			c.DefaultSyncConfig(),
+			tx.GetOptions(true)...,
 		)
 		sync.BroadcastStatus = SyncStatusSkipped
 		sync.P2PStatus = SyncStatusSkipped
 
-		sync.Metadata = transaction.Metadata
-		transaction.syncTransaction = sync
+		sync.Metadata = tx.Metadata
+		tx.syncTransaction = sync
 	}
 
-	if err = transaction.Save(ctx); err != nil {
+	if err = tx.Save(ctx); err != nil {
 		return nil, err
 	}
 
-	return transaction, nil
+	return tx, nil
 }
 
 // processUtxos will process the inputs and outputs for UTXOs

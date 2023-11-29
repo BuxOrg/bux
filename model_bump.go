@@ -356,9 +356,6 @@ func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 		return bump
 	}
 
-	path := make([][]BUMPLeaf, 0)
-	txIDPath := make([]BUMPLeaf, 2)
-
 	offset := merkleProof.Index
 	pairOffset := getOffsetPair(offset)
 
@@ -369,15 +366,8 @@ func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 	}
 	txIDPath2 := createLeaf(getOffsetPair(offset), merkleProof.Nodes[0])
 
-	if offset < pairOffset {
-		txIDPath[0] = txIDPath1
-		txIDPath[1] = txIDPath2
-	} else {
-		txIDPath[0] = txIDPath2
-		txIDPath[1] = txIDPath1
-	}
+	path := sortAndAddToPath(txIDPath1, offset, txIDPath2, pairOffset)
 
-	path = append(path, txIDPath)
 	for i := 1; i < height; i++ {
 		p := make([]BUMPLeaf, 0)
 		offset = getParentOffset(offset)
@@ -389,6 +379,22 @@ func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 	}
 	bump.Path = path
 	return bump
+}
+
+func sortAndAddToPath(txIDPath1 BUMPLeaf, offset uint64, txIDPath2 BUMPLeaf, pairOffset uint64) [][]BUMPLeaf {
+	path := make([][]BUMPLeaf, 0)
+	txIDPath := make([]BUMPLeaf, 2)
+
+	if offset < pairOffset {
+		txIDPath[0] = txIDPath1
+		txIDPath[1] = txIDPath2
+	} else {
+		txIDPath[0] = txIDPath2
+		txIDPath[1] = txIDPath1
+	}
+
+	path = append(path, txIDPath)
+	return path
 }
 
 func createLeaf(offset uint64, node string) BUMPLeaf {

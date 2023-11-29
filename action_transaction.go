@@ -46,10 +46,16 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 ) (*Transaction, error) {
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
-	return c.recordTxHex(ctx, txHex, opts...)
+	allowUnknown := false
+	monitor := c.options.chainstate.Monitor()
+	if monitor != nil {
+		allowUnknown = monitor.AllowUnknownTransactions()
+	}
+
+	return recordTxHex(ctx, c, allowUnknown, txHex, opts...)
 }
 
-func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
+func recordTxHex(ctx context.Context, c ClientInterface, allowUnknown bool, txHex string, opts ...ModelOps) (*Transaction, error) {
 	// Create the model & set the default options (gives options from client->model)
 	newOpts := c.DefaultModelOptions(append(opts, New())...)
 	transaction := newTransaction(txHex, newOpts...)
@@ -93,18 +99,12 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 
 	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
-	// this check must be done after transaction.processUtxos()
-	monitor := c.options.chainstate.Monitor()
-	if monitor != nil {
-		// do not register transactions we have nothing to do with
-		allowUnknown := monitor.AllowUnknownTransactions()
-		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-			return nil, ErrTransactionUnknown
-		}
+	// do not register transactions we have nothing to do with (this check must be done after transaction.processUtxos())
+	if !allowUnknown && transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil {
+		return nil, ErrTransactionUnknown
 	}
 
 	if !transaction.isMined() {
-		// Create the sync transaction model
 		sync := newSyncTransaction(
 			transaction.GetID(),
 			transaction.Client().DefaultSyncConfig(),

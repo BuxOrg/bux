@@ -35,8 +35,8 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 	return recordTransaction(ctx, c, rts, opts...)
 }
 
-// RecordRawTransaction will parse the transaction and save it into the Datastore directly, without any checks
-//
+// RecordRawTransaction will parse the transaction and save it into the Datastore directly, without any checks or broadcast but bux will ask network for information if transaction was mined
+// The transaction is treat as external incoming transaction - transaction without a draft
 // Only use this function when you know what you are doing!
 //
 // txHex is the raw transaction hex
@@ -52,7 +52,7 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 		allowUnknown = monitor.AllowUnknownTransactions()
 	}
 
-	return registerRawTransaction(ctx, c, allowUnknown, txHex, opts...)
+	return saveRawTransaction(ctx, c, allowUnknown, txHex, opts...)
 }
 
 // NewTransaction will create a new draft transaction and return it

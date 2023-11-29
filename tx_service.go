@@ -8,7 +8,9 @@ import (
 	"github.com/BuxOrg/bux/utils"
 )
 
-func registerRawTransaction(ctx context.Context, c ClientInterface, allowUnknown bool, txHex string, opts ...ModelOps) (*Transaction, error) {
+// The transaction is treat as external incoming transaction - transaction without a draft
+// Only use this function when you know what you are doing!
+func saveRawTransaction(ctx context.Context, c ClientInterface, allowUnknown bool, txHex string, opts ...ModelOps) (*Transaction, error) {
 	newOpts := c.DefaultModelOptions(append(opts, New())...)
 	tx := newTransaction(txHex, newOpts...)
 
@@ -33,8 +35,7 @@ func registerRawTransaction(ctx context.Context, c ClientInterface, allowUnknown
 		return nil, ErrNoMatchingOutputs
 	}
 
-	// Process the UTXOs
-	if err = tx.processUtxos(ctx); err != nil {
+	if err = tx._processOutputs(ctx); err != nil {
 		return nil, err
 	}
 
@@ -47,8 +48,8 @@ func registerRawTransaction(ctx context.Context, c ClientInterface, allowUnknown
 
 	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
-	// do not register transactions we have nothing to do with (this check must be done after transaction.processUtxos())
-	if !allowUnknown && tx.XpubInIDs == nil && tx.XpubOutIDs == nil {
+	// do not register transactions we have nothing to do with (this check must be done after transaction._processOutputs())
+	if !allowUnknown && tx.XpubOutIDs == nil {
 		return nil, ErrTransactionUnknown
 	}
 

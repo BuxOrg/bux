@@ -44,7 +44,6 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 	opts ...ModelOps,
 ) (*Transaction, error) {
-	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
 	return c.recordTxHex(ctx, txHex, opts...)
@@ -58,36 +57,9 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txHex string,
 	opts ...ModelOps,
 ) (*Transaction, error) {
-	// Check for existing NewRelic transaction
 	ctx = client.GetOrStartTxn(ctx, "record_monitored_transaction")
 
-	transaction, err := client.recordTxHex(ctx, txHex, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	if transaction.BlockHash == "" {
-		// Create the sync transaction model
-		sync := newSyncTransaction(
-			transaction.GetID(),
-			transaction.Client().DefaultSyncConfig(),
-			transaction.GetOptions(true)...,
-		)
-		sync.BroadcastStatus = SyncStatusSkipped
-		sync.P2PStatus = SyncStatusSkipped
-
-		// Use the same metadata
-		sync.Metadata = transaction.Metadata
-
-		// If all the options are skipped, do not make a new model (ignore the record)
-		if !sync.isSkipped() {
-			if err = sync.Save(ctx); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return transaction, nil
+	return client.recordTxHex(ctx, txHex, opts...)
 }
 
 func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
@@ -108,6 +80,16 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 	defer unlock()
 	if err != nil {
 		return nil, err
+	}
+
+	monitor := c.options.chainstate.Monitor()
+
+	if monitor != nil {
+		// do not register transactions we have nothing to do with
+		allowUnknown := monitor.AllowUnknownTransactions()
+		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
+			return nil, ErrTransactionUnknown
+		}
 	}
 
 	// Logic moved from BeforeCreating hook - should be refactorized in next iteration
@@ -134,22 +116,24 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 
 	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
-	monitor := c.options.chainstate.Monitor()
+	if !transaction.isMined() {
+		// Create the sync transaction model
+		sync := newSyncTransaction(
+			transaction.GetID(),
+			transaction.Client().DefaultSyncConfig(),
+			transaction.GetOptions(true)...,
+		)
+		sync.BroadcastStatus = SyncStatusSkipped
+		sync.P2PStatus = SyncStatusSkipped
 
-	if monitor != nil {
-		// do not register transactions we have nothing to do with
-		allowUnknown := monitor.AllowUnknownTransactions()
-		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-			return nil, ErrTransactionUnknown
-		}
+		sync.Metadata = transaction.Metadata
+		transaction.syncTransaction = sync
 	}
 
-	// save the transaction model
 	if err = transaction.Save(ctx); err != nil {
 		return nil, err
 	}
 
-	// Return the response
 	return transaction, nil
 }
 

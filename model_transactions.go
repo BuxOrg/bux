@@ -237,6 +237,10 @@ func (m *Transaction) setBUMP(txInfo *chainstate.TransactionInfo) {
 	m.BUMP = bump
 }
 
+func (m *Transaction) isMined() bool {
+	return m.BlockHash != ""
+}
+
 // IsXpubAssociated will check if this key is associated to this transaction
 func (m *Transaction) IsXpubAssociated(rawXpubKey string) bool {
 	// Hash the raw key

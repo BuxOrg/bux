@@ -69,16 +69,6 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 		return nil, err
 	}
 
-	monitor := c.options.chainstate.Monitor()
-
-	if monitor != nil {
-		// do not register transactions we have nothing to do with
-		allowUnknown := monitor.AllowUnknownTransactions()
-		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-			return nil, ErrTransactionUnknown
-		}
-	}
-
 	// Logic moved from BeforeCreating hook - should be refactorized in next iteration
 
 	// If we are external and the user disabled incoming transaction checking, check outputs
@@ -102,6 +92,16 @@ func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps
 	transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
 
 	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
+
+	// this check must be done after transaction.processUtxos()
+	monitor := c.options.chainstate.Monitor()
+	if monitor != nil {
+		// do not register transactions we have nothing to do with
+		allowUnknown := monitor.AllowUnknownTransactions()
+		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
+			return nil, ErrTransactionUnknown
+		}
+	}
 
 	if !transaction.isMined() {
 		// Create the sync transaction model

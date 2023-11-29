@@ -129,12 +129,6 @@ const (
 	ChangeStrategyNominations ChangeStrategy = "nominations"
 )
 
-// Types of Transaction actions
-const (
-	// TransactionActionCheck Get on-chain data about the transaction which have height == 0(IE: block hash, height, etc)
-	TransactionActionCheck = "check"
-)
-
 // ScriptOutput is the actual script record (could be several for one output record)
 type ScriptOutput struct {
 	Address    string `json:"address,omitempty"`  // Hex encoded locking script

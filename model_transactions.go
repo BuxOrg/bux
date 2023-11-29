@@ -6,7 +6,6 @@ import (
 	"github.com/libsv/go-bt/v2"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 )
 
@@ -316,35 +315,4 @@ func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client Cli
 		}
 	}
 	return false
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *Transaction) RegisterTasks() error {
-	// No task manager loaded?
-	tm := m.Client().Taskmanager()
-	if tm == nil {
-		return nil
-	}
-
-	ctx := context.Background()
-	checkTask := m.Name() + "_" + TransactionActionCheck
-
-	if err := tm.RegisterTask(&taskmanager.Task{
-		Name:       checkTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskCheckTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+checkTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(checkTask),
-		TaskName:       checkTask,
-	})
 }

@@ -37,7 +37,6 @@ func processSyncTransactions(ctx context.Context, maxTransactions int, opts ...M
 		return nil
 	}
 
-	// Process the incoming transaction
 	for index := range records {
 		if err = _syncTxDataFromChain(
 			ctx, records[index], nil,

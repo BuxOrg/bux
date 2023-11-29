@@ -97,7 +97,7 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 	tx := newTransaction(eTx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
 	_hydrateExternalWithSync(tx)
 
-	if !tx.TransactionBase.hasOneKnownDestination(ctx, c, tx.GetOptions(false)...) {
+	if !tx.TransactionBase.hasOneKnownDestination(ctx, c) {
 		return nil, ErrNoMatchingOutputs
 	}
 

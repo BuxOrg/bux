@@ -234,13 +234,8 @@ func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {
 }
 
 func (m *Transaction) setBUMP(txInfo *chainstate.TransactionInfo) {
-	if txInfo.MerkleProof != nil {
-		bump := MerkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
-		m.BUMP = bump
-	} else if txInfo.MerklePath != nil {
-		bump := MerklePathToBUMP(txInfo.MerklePath, uint64(txInfo.BlockHeight))
-		m.BUMP = bump
-	}
+	bump := MerkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
+	m.BUMP = bump
 }
 
 // IsXpubAssociated will check if this key is associated to this transaction

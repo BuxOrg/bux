@@ -340,7 +340,7 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	}
 
 	// validate txInfo
-	if txInfoValid := txInfo.Validate(); !txInfoValid {
+	if !txInfo.Valid() {
 		logClient.Warn(ctx, fmt.Sprintf("processIncomingTransaction(): txInfo for %s is invalid, will try again later", incomingTx.ID))
 
 		if incomingTx.client.IsDebug() {

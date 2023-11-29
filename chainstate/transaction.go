@@ -140,7 +140,6 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 			BlockHeight: resp.BlockHeight,
 			ID:          resp.TxID,
 			Provider:    resp.Miner,
-			MerklePath:  resp.MerklePath,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

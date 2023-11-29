@@ -221,8 +221,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		return err
 	}
 
-	// validate txInfo
-	if txInfoValid := txInfo.Validate(); !txInfoValid {
+	if !txInfo.Valid() {
 		syncTx.client.Logger().Warn(ctx, fmt.Sprintf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID))
 
 		if syncTx.client.IsDebug() {

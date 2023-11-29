@@ -169,7 +169,7 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 	}
 
 	// Check that the transaction has >= 1 known destination
-	if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client(), m.GetOptions(false)...) {
+	if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client()) {
 		return ErrNoMatchingOutputs
 	}
 

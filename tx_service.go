@@ -3,54 +3,9 @@ package bux
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 
-	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-datastore"
 )
-
-// processTransactions will process transaction records
-func processTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-	queryParams := &datastore.QueryParams{
-		Page:          1,
-		PageSize:      maxTransactions,
-		OrderByField:  "created_at",
-		SortDirection: "asc",
-	}
-
-	conditions := map[string]interface{}{
-		"$or": []map[string]interface{}{{
-			blockHeightField: 0,
-		}, {
-			blockHeightField: nil,
-		}},
-	}
-
-	records := make([]Transaction, 0)
-	err := getModelsByConditions(ctx, ModelTransaction, &records, nil, &conditions, queryParams, opts...)
-	if err != nil {
-		return err
-	} else if len(records) == 0 {
-		return nil
-	}
-
-	txs := make([]*Transaction, 0)
-	for index := range records {
-		records[index].enrich(ModelTransaction, opts...)
-		txs = append(txs, &records[index])
-	}
-
-	for index := range records {
-		if err = _processTransaction(
-			ctx, txs[index],
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 // processUtxos will process the inputs and outputs for UTXOs
 func (m *Transaction) processUtxos(ctx context.Context) error {
@@ -181,21 +136,4 @@ func (m *Transaction) _processOutputs(ctx context.Context) (err error) {
 	}
 
 	return
-}
-
-// _processTransaction will process the sync transaction record, or save the failure
-func _processTransaction(ctx context.Context, transaction *Transaction) error {
-	txInfo, err := transaction.Client().Chainstate().QueryTransactionFastest(
-		ctx, transaction.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
-	)
-	if err != nil {
-		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			return nil
-		}
-		return err
-	}
-
-	transaction.setChainInfo(txInfo)
-
-	return transaction.Save(ctx)
 }

@@ -46,7 +46,7 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 ) (*Transaction, error) {
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
-	allowUnknown := false
+	allowUnknown := true
 	monitor := c.options.chainstate.Monitor()
 	if monitor != nil {
 		allowUnknown = monitor.AllowUnknownTransactions()

@@ -367,14 +367,7 @@ func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 		Hash:   merkleProof.TxOrID,
 		TxID:   true,
 	}
-	txIDPath2 := BUMPLeaf{
-		Offset: getOffsetPair(offset),
-	}
-	if merkleProof.Nodes[0] != "*" {
-		txIDPath2.Hash = merkleProof.Nodes[0]
-	} else {
-		txIDPath2.Duplicate = true
-	}
+	txIDPath2 := createLeaf(getOffsetPair(offset), merkleProof.Nodes[0])
 
 	if offset < pairOffset {
 		txIDPath[0] = txIDPath1
@@ -389,18 +382,24 @@ func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 		p := make([]BUMPLeaf, 0)
 		offset = getParentOffset(offset)
 
-		leaf := BUMPLeaf{Offset: offset}
-
-		isDuplicate := merkleProof.Nodes[i] == "*"
-		if !isDuplicate {
-			leaf.Hash = merkleProof.Nodes[i]
-		} else {
-			leaf.Duplicate = true
-		}
+		leaf := createLeaf(offset, merkleProof.Nodes[i])
 
 		p = append(p, leaf)
 		path = append(path, p)
 	}
 	bump.Path = path
 	return bump
+}
+
+func createLeaf(offset uint64, node string) BUMPLeaf {
+	leaf := BUMPLeaf{Offset: offset}
+
+	isDuplicate := node == "*"
+	if !isDuplicate {
+		leaf.Hash = node
+	} else {
+		leaf.Duplicate = true
+	}
+
+	return leaf
 }

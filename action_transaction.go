@@ -49,19 +49,6 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 	return c.recordTxHex(ctx, txHex, opts...)
 }
 
-// RecordMonitoredTransaction will parse the transaction and save it into the Datastore
-//
-// This function will try to record the transaction directly, without checking draft ids etc.
-//
-//nolint:nolintlint,unparam,gci // opts is the way, but not yet being used
-func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txHex string,
-	opts ...ModelOps,
-) (*Transaction, error) {
-	ctx = client.GetOrStartTxn(ctx, "record_monitored_transaction")
-
-	return client.recordTxHex(ctx, txHex, opts...)
-}
-
 func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
 	// Create the model & set the default options (gives options from client->model)
 	newOpts := c.DefaultModelOptions(append(opts, New())...)

@@ -58,8 +58,10 @@ func TestTransaction_newTransaction(t *testing.T) {
 	t.Parallel()
 
 	t.Run("New transaction model", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction, err := txFromHex(testTxHex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
+
 		assert.IsType(t, Transaction{}, *transaction)
 		assert.Equal(t, ModelTransaction.String(), transaction.GetModelName())
 		assert.Equal(t, testTxID, transaction.ID)
@@ -68,7 +70,7 @@ func TestTransaction_newTransaction(t *testing.T) {
 	})
 
 	t.Run("New transaction model - no hex, no options", func(t *testing.T) {
-		transaction := newTransaction("")
+		transaction := emptyTx()
 		require.NotNil(t, transaction)
 		assert.IsType(t, Transaction{}, *transaction)
 		assert.Equal(t, ModelTransaction.String(), transaction.GetModelName())
@@ -83,8 +85,10 @@ func TestTransaction_newTransactionWithDraftID(t *testing.T) {
 	t.Parallel()
 
 	t.Run("New transaction model", func(t *testing.T) {
-		transaction := newTransactionWithDraftID(testTxHex, testDraftID, New())
+		transaction, err := newTransactionWithDraftID(testTxHex, testDraftID, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
+
 		assert.IsType(t, Transaction{}, *transaction)
 		assert.Equal(t, ModelTransaction.String(), transaction.GetModelName())
 		assert.Equal(t, testTxID, transaction.ID)
@@ -93,15 +97,10 @@ func TestTransaction_newTransactionWithDraftID(t *testing.T) {
 		assert.Equal(t, true, transaction.IsNew())
 	})
 
-	t.Run("New transaction model - no hex, no options", func(t *testing.T) {
-		transaction := newTransactionWithDraftID("", "")
-		require.NotNil(t, transaction)
-		assert.IsType(t, Transaction{}, *transaction)
-		assert.Equal(t, ModelTransaction.String(), transaction.GetModelName())
-		assert.Equal(t, "", transaction.ID)
-		assert.Equal(t, "", transaction.DraftID)
-		assert.Equal(t, "", transaction.GetID())
-		assert.Equal(t, false, transaction.IsNew())
+	t.Run("New transaction model - no hex - return error", func(t *testing.T) {
+		transaction, err := newTransactionWithDraftID("", "")
+		require.Nil(t, transaction)
+		require.Error(t, err)
 	})
 }
 
@@ -118,8 +117,10 @@ func TestTransaction_getTransactionByID(t *testing.T) {
 	t.Run("found tx", func(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true)
 		defer deferMe()
+
 		opts := client.DefaultModelOptions()
-		tx := newTransaction(testTxHex, append(opts, New())...)
+		tx, err := txFromHex(testTxHex, append(opts, New())...)
+		require.NoError(t, err)
 		txErr := tx.Save(ctx)
 		require.NoError(t, txErr)
 
@@ -146,7 +147,9 @@ func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 	t.Run("tx found", func(t *testing.T) {
 		ctx, client, _ := CreateTestSQLiteClient(t, true, true)
 		opts := client.DefaultModelOptions()
-		tx := newTransaction(testTxHex, append(opts, New())...)
+		tx, err := txFromHex(testTxHex, append(opts, New())...)
+		require.NoError(t, err)
+
 		tx.XpubInIDs = append(tx.XpubInIDs, testXPubID)
 		txErr := tx.Save(ctx)
 		require.NoError(t, txErr)
@@ -167,13 +170,15 @@ func TestTransaction_UpdateTransactionMetadata(t *testing.T) {
 	t.Run("tx without meta data", func(t *testing.T) {
 		_, client, _ := CreateTestSQLiteClient(t, true, true)
 		opts := client.DefaultModelOptions()
-		tx := newTransaction(testTxHex, append(opts, New())...)
+		tx, err := txFromHex(testTxHex, append(opts, New())...)
+		require.NoError(t, err)
+
 		assert.Nil(t, tx.XpubMetadata)
 
 		metadata := Metadata{
 			"test-key": "test-value",
 		}
-		err := tx.UpdateTransactionMetadata(testXPubID, metadata)
+		err = tx.UpdateTransactionMetadata(testXPubID, metadata)
 		require.NoError(t, err)
 		assert.Equal(t, XpubMetadata{testXPubID: metadata}, tx.XpubMetadata)
 
@@ -209,13 +214,12 @@ func TestTransaction_BeforeCreating(t *testing.T) {
 	// t.Parallel()
 
 	t.Run("incorrect transaction hex", func(t *testing.T) {
-		transaction := newTransaction("test")
-		err := transaction.BeforeCreating(context.Background())
+		_, err := txFromHex("test")
 		assert.Error(t, err)
 	})
 
 	t.Run("no transaction hex", func(t *testing.T) {
-		transaction := newTransaction("")
+		transaction := emptyTx()
 		err := transaction.BeforeCreating(context.Background())
 		assert.Error(t, err)
 		assert.ErrorIs(t, ErrMissingFieldHex, err)
@@ -228,10 +232,11 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_BeforeCreating() {
 		tc := ts.genericDBClient(t, datastore.SQLite, true)
 		defer tc.Close(tc.ctx)
 
-		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
-		err := transaction.BeforeCreating(tc.ctx)
+		err = transaction.BeforeCreating(tc.ctx)
 		require.NoError(t, err)
 	})
 }
@@ -241,14 +246,16 @@ func TestTransaction_GetID(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no id", func(t *testing.T) {
-		transaction := newTransaction("")
+		transaction := emptyTx()
 		require.NotNil(t, transaction)
 		assert.Equal(t, "", transaction.GetID())
 	})
 
 	t.Run("valid id", func(t *testing.T) {
-		transaction := newTransaction(testTxHex)
+		transaction, err := txFromHex(testTxHex)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
+
 		assert.Equal(t, testTxID, transaction.GetID())
 	})
 }
@@ -258,7 +265,7 @@ func TestTransaction_GetModelName(t *testing.T) {
 	t.Parallel()
 
 	t.Run("model name", func(t *testing.T) {
-		transaction := newTransaction("")
+		transaction := emptyTx()
 		assert.Equal(t, ModelTransaction.String(), transaction.GetModelName())
 	})
 }
@@ -269,13 +276,14 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		tc := ts.genericDBClient(t, datastore.SQLite, true)
 		defer tc.Close(tc.ctx)
 
-		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{}
 
 		ctx := context.Background()
-		err := transaction._processOutputs(ctx)
+		err = transaction._processOutputs(ctx)
 		require.NoError(t, err)
 		assert.Nil(t, transaction.utxos)
 		assert.Nil(t, transaction.XpubOutIDs)
@@ -285,7 +293,8 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		tc := ts.genericDBClient(t, datastore.SQLite, true)
 		defer tc.Close(tc.ctx)
 
-		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{
@@ -298,7 +307,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		}
 
 		ctx := context.Background()
-		err := transaction._processOutputs(ctx)
+		err = transaction._processOutputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -315,7 +324,8 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		tc := ts.genericDBClient(t, datastore.SQLite, true)
 		defer tc.Close(tc.ctx)
 
-		transaction := newTransaction(testSTAStxHex, append(tc.client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testSTAStxHex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{
@@ -328,7 +338,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 		}
 
 		ctx := context.Background()
-		err := transaction._processOutputs(ctx)
+		err = transaction._processOutputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -353,20 +363,22 @@ func TestTransaction_processInputs(t *testing.T) {
 	// t.Parallel()
 
 	t.Run("no utxo", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction, err := txFromHex(testTxHex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.transactionService = transactionServiceMock{}
 
 		ctx := context.Background()
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.NoError(t, err)
 		assert.Nil(t, transaction.utxos)
 		assert.Nil(t, transaction.XpubInIDs)
 	})
 
 	t.Run("got utxo", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction, err := txFromHex(testTxHex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{
@@ -392,7 +404,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -408,7 +420,8 @@ func TestTransaction_processInputs(t *testing.T) {
 	})
 
 	t.Run("spent utxo", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction, err := txFromHex(testTxHex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{}
@@ -436,12 +449,13 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.ErrorIs(t, err, ErrUtxoAlreadySpent)
 	})
 
 	t.Run("not reserved utxo", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction, err := txFromHex(testTxHex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{
@@ -463,12 +477,13 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.ErrorIs(t, err, ErrUtxoNotReserved)
 	})
 
 	t.Run("incorrect reservation ID of utxo", func(t *testing.T) {
-		transaction := newTransaction(testTxHex, New())
+		transaction, err := txFromHex(testTxHex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{
@@ -494,7 +509,7 @@ func TestTransaction_processInputs(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.ErrorIs(t, err, ErrDraftIDMismatch)
 	})
 
@@ -502,7 +517,8 @@ func TestTransaction_processInputs(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}), WithIUCDisabled())
 		defer deferMe()
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{
@@ -523,14 +539,15 @@ func TestTransaction_processInputs(t *testing.T) {
 			},
 		}
 
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.NoError(t, err)
 	})
 
 	t.Run("STAS token input", func(t *testing.T) {
 		ctx := context.Background()
 
-		transaction := newTransaction(testSTAStx2Hex, New())
+		transaction, err := txFromHex(testSTAStx2Hex, New())
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		transaction.draftTransaction = &DraftTransaction{
@@ -556,7 +573,7 @@ func TestTransaction_processInputs(t *testing.T) {
 			},
 		}
 
-		err := transaction._processInputs(ctx)
+		err = transaction._processInputs(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, transaction.utxos)
 		assert.IsType(t, Utxo{}, transaction.utxos[0])
@@ -642,10 +659,11 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		tc := ts.genericDBClient(t, datastore.SQLite, false)
 		defer tc.Close(tc.ctx)
 
-		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
-		err := transaction.Save(tc.ctx)
+		err = transaction.Save(tc.ctx)
 		require.NoError(t, err)
 
 		var transaction2 *Transaction
@@ -688,7 +706,8 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		err = destination2.Save(tc.ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transaction)
 
 		err = transaction.processUtxos(tc.ctx)
@@ -744,7 +763,8 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		require.NoError(t, err)
 
 		// add the IN transaction
-		transactionIn := newTransaction(testTx2Hex, append(tc.client.DefaultModelOptions(), New())...)
+		transactionIn, err := txFromHex(testTx2Hex, append(tc.client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transactionIn)
 
 		err = transactionIn.processUtxos(tc.ctx)
@@ -775,8 +795,9 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		require.NoError(t, err)
 
 		// this transaction should spend the utxo of the IN transaction
-		transaction := newTransactionWithDraftID(testTxHex, draftTransaction.ID,
+		transaction, err := newTransactionWithDraftID(testTxHex, draftTransaction.ID,
 			append(tc.client.DefaultModelOptions(), WithXPub(xPub.rawXpubKey), New())...)
+		require.NoError(t, err)
 		require.NotNil(t, transactionIn)
 
 		transaction.draftTransaction = draftTransaction
@@ -808,7 +829,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 // BenchmarkTransaction_newTransaction will benchmark the method newTransaction()
 func BenchmarkTransaction_newTransaction(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_ = newTransaction(testTxHex, New())
+		_, _ = txFromHex(testTxHex, New())
 	}
 }
 

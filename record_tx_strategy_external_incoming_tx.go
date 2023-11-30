@@ -77,11 +77,14 @@ func (strategy *externalIncomingTx) FailOnBroadcastError(forceFail bool) {
 func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
 
-	incomingTx := newIncomingTransaction(tx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
+	incomingTx, err := newIncomingTransaction(tx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
+	if err != nil {
+		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): tx creation failed. Reason: %w", err)
+	}
 
 	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID))
 
-	if err := incomingTx.Save(ctx); err != nil {
+	if err = incomingTx.Save(ctx); err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): addind new IncomingTx to check queue failed. Reason: %w", err)
 	}
 
@@ -94,14 +97,18 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 
 func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	// Create NEW tx model
-	tx := newTransaction(eTx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
+	tx, err := txFromHex(eTx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
+	if err != nil {
+		return nil, err
+	}
+
 	_hydrateExternalWithSync(tx)
 
 	if !tx.TransactionBase.hasOneKnownDestination(ctx, c) {
 		return nil, ErrNoMatchingOutputs
 	}
 
-	if err := tx.processUtxos(ctx); err != nil {
+	if err = tx.processUtxos(ctx); err != nil {
 		return nil, err
 	}
 

@@ -85,12 +85,16 @@ func (strategy *outgoingTx) LockKey() string {
 func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	// Create NEW transaction model
 	newOpts := c.DefaultModelOptions(append(opts, WithXPub(oTx.XPubKey), New())...)
-	tx := newTransactionWithDraftID(
+	tx, err := newTransactionWithDraftID(
 		oTx.Hex, oTx.RelatedDraftID, newOpts...,
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
 	// hydrate
-	if err := _hydrateOutgoingWithDraft(ctx, tx); err != nil {
+	if err = _hydrateOutgoingWithDraft(ctx, tx); err != nil {
 		return nil, err
 	}
 

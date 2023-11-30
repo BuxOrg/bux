@@ -1561,12 +1561,6 @@ func initSimpleTestCase(t *testing.T) (context.Context, ClientInterface, func())
 	transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
 	err = transaction.processUtxos(ctx)
 	require.NoError(t, err)
-	transaction.TotalValue, transaction.Fee = transaction.getValues()
-
-	if transaction.TransactionBase.parsedTx != nil {
-		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
-		transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-	}
 
 	err = transaction.Save(ctx)
 	require.NoError(t, err)

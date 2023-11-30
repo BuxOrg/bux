@@ -344,10 +344,6 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): processUtxos() for %s failed. Reason: %s", incomingTx.ID, err))
 			return err
 		}
-
-		transaction.TotalValue, transaction.Fee = transaction.getValues()
-		transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
 	}
 
 	transaction.setChainInfo(txInfo)

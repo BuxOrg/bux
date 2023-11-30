@@ -307,9 +307,8 @@ func (m *Transaction) Display() interface{} {
 // This is used to validate if an external transaction should be recorded into the engine
 func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface) bool {
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
-	lockingScript := ""
 	for _, output := range m.parsedTx.Outputs {
-		lockingScript = output.LockingScript.String()
+		lockingScript := output.LockingScript.String()
 		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript)
 
 		if err != nil {

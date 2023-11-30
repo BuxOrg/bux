@@ -173,27 +173,6 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 		return ErrNoMatchingOutputs
 	}
 
-	// Match a known destination
-	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
-	matchingOutput := false
-	lockingScript := ""
-	opts := m.GetOptions(false)
-	for index := range m.TransactionBase.parsedTx.Outputs {
-		lockingScript = m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
-		destination, err := getDestinationWithCache(ctx, m.Client(), "", "", lockingScript, opts...)
-		if err != nil {
-			m.Client().Logger().Warn(ctx, "error getting destination: "+err.Error())
-		} else if destination != nil && destination.LockingScript == lockingScript {
-			matchingOutput = true
-			break
-		}
-	}
-
-	// Does not match any known destination
-	if !matchingOutput {
-		return ErrNoMatchingOutputs
-	}
-
 	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
 	return nil
 }

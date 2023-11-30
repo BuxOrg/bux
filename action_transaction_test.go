@@ -222,11 +222,14 @@ func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, 
 	assert.NotEmpty(t, hex)
 
 	newOpts := client.DefaultModelOptions(WithXPub(testXPub), New())
-	transaction := newTransactionWithDraftID(
+	transaction, err := newTransactionWithDraftID(
 		hex, draftTransaction.ID, newOpts...,
 	)
+	require.NoError(t, err)
+
 	transaction.draftTransaction = draftTransaction
 	_hydrateOutgoingWithSync(transaction)
+
 	err = transaction.processUtxos(ctx)
 	require.NoError(t, err)
 

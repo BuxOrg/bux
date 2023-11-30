@@ -301,17 +301,23 @@ func createProcessedTx(ctx context.Context, t *testing.T, client ClientInterface
 		append(client.DefaultModelOptions(), New())...,
 	)
 
-	transaction := newTransaction(testCase.hexForProcessedTx, append(client.DefaultModelOptions(), New())...)
+	transaction, err := txFromHex(testCase.hexForProcessedTx, append(client.DefaultModelOptions(), New())...)
+	require.NoError(t, err)
+
 	transaction.draftTransaction = draftTx
 	transaction.DraftID = draftTx.ID
 
-	assert.NotEmpty(t, transaction)
+	require.NotEmpty(t, transaction)
 
 	return transaction
 }
 
 func addAncestor(ctx context.Context, testCase *beefTestCaseAncestor, client ClientInterface, store *MockTransactionStore, t *testing.T) *Transaction {
-	ancestor := newTransaction(testCase.hex, append(client.DefaultModelOptions(), New())...)
+	ancestor, err := txFromHex(testCase.hex, append(client.DefaultModelOptions(), New())...)
+	if err != nil {
+		ancestor = emptyTx(append(client.DefaultModelOptions(), New())...)
+		ancestor.Hex = testCase.hex
+	}
 
 	if testCase.isMined {
 		ancestor.BlockHeight = uint64(testCase.blockHeight)

@@ -11,7 +11,7 @@ import (
 // getTransactionByID will get the model from a given transaction ID
 func getTransactionByID(ctx context.Context, xPubID, txID string, opts ...ModelOps) (*Transaction, error) {
 	// Construct an empty tx
-	tx := newTransaction("", opts...)
+	tx := emptyTx(opts...)
 	tx.ID = txID
 	tx.XPubID = xPubID
 

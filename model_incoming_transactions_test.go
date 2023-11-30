@@ -12,7 +12,7 @@ import (
 func TestIncomingTransaction_GetModelName(t *testing.T) {
 	t.Parallel()
 
-	bTx := newIncomingTransaction(testTxHex, New())
+	bTx, _ := newIncomingTransaction(testTxHex, New())
 	assert.Equal(t, ModelIncomingTransaction.String(), bTx.GetModelName())
 }
 

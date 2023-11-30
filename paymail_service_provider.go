@@ -400,7 +400,7 @@ func getBump(bumpIndx int, bumps beef.BUMPs) (*BUMP, error) {
 
 func saveBeefTransactionInput(ctx context.Context, c ClientInterface, input *beef.TxData, bump *BUMP) error {
 	newOpts := c.DefaultModelOptions(New())
-	inputTx := newTransaction(input.Transaction.String(), newOpts...)
+	inputTx, _ := txFromHex(input.Transaction.String(), newOpts...) // we can ignore error here
 
 	sync := newSyncTransaction(
 		inputTx.GetID(),

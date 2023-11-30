@@ -75,12 +75,9 @@ type TransactionGetter interface {
 	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
 }
 
-// newTransactionBase creates the standard transaction model base
-func newTransactionBase(hex string, opts ...ModelOps) *Transaction {
+func emptyTx(opts ...ModelOps) *Transaction {
 	return &Transaction{
-		TransactionBase: TransactionBase{
-			Hex: hex,
-		},
+		TransactionBase:    TransactionBase{},
 		Model:              *NewBaseModel(ModelTransaction, opts...),
 		Status:             statusComplete,
 		transactionService: transactionService{},
@@ -88,45 +85,64 @@ func newTransactionBase(hex string, opts ...ModelOps) *Transaction {
 	}
 }
 
-// newTransaction will start a new transaction model
-func newTransaction(txHex string, opts ...ModelOps) (tx *Transaction) {
-	tx = newTransactionBase(txHex, opts...)
+// baseTxFromHex creates the standard transaction model base
+func baseTxFromHex(hex string, opts ...ModelOps) (*Transaction, error) {
+	var btTx *bt.Tx
+	var err error
 
-	// Set the ID
-	if len(tx.Hex) > 0 {
-		_ = tx.setID()
+	if btTx, err = bt.NewTxFromString(hex); err != nil {
+		return nil, err
+	}
+
+	tx := emptyTx(opts...)
+	tx.ID = btTx.TxID()
+	tx.Hex = hex
+	tx.parsedTx = btTx
+
+	return tx, nil
+}
+
+// txFromHex will start a new transaction model
+func txFromHex(txHex string, opts ...ModelOps) (*Transaction, error) {
+
+	tx, err := baseTxFromHex(txHex, opts...)
+	if err != nil {
+		return nil, err
 	}
 
 	// Set xPub ID
 	tx.setXPubID()
 
-	return
+	return tx, nil
 }
 
 // newTransactionWithDraftID will start a new transaction model and set the draft ID
-func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (tx *Transaction) {
-	tx = newTransaction(txHex, opts...)
+func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transaction, error) {
+
+	tx, err := txFromHex(txHex, opts...)
+	if err != nil {
+		return nil, err
+	}
+
 	tx.DraftID = draftID
-	return
+
+	return tx, nil
 }
 
 // newTransactionFromIncomingTransaction will start a new transaction model using an incomingTx
-func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Transaction {
+func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) (*Transaction, error) {
 	// Create the base
-	tx := newTransactionBase(incomingTx.Hex, incomingTx.GetOptions(true)...)
-	tx.TransactionBase.parsedTx = incomingTx.TransactionBase.parsedTx
-	tx.rawXpubKey = incomingTx.rawXpubKey
-	tx.setXPubID()
+	tx, err := baseTxFromHex(incomingTx.Hex, incomingTx.GetOptions(true)...)
 
-	// Set the generic metadata (might be ignored if no xPub is used)
-	tx.Metadata = incomingTx.Metadata
-
-	// Set the ID (run the same method)
-	if len(tx.Hex) > 0 {
-		_ = tx.setID()
+	if err != nil {
+		return nil, err
 	}
 
-	return tx
+	tx.rawXpubKey = incomingTx.rawXpubKey
+	tx.setXPubID()
+	tx.Metadata = incomingTx.Metadata
+
+	return tx, nil
 }
 
 // setXPubID will set the xPub ID on the model

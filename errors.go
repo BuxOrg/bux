@@ -118,9 +118,6 @@ var ErrTaskManagerNotLoaded = errors.New("taskmanager must be loaded")
 // ErrTransactionNotParsed is when the transaction is not parsed but was expected
 var ErrTransactionNotParsed = errors.New("transaction is not parsed")
 
-// ErrTransactionUnknown is when the transaction is not linked to any account in our database
-var ErrTransactionUnknown = errors.New("transaction is unknown")
-
 // ErrNoMatchingOutputs is when the transaction does not match any known destinations
 var ErrNoMatchingOutputs = errors.New("transaction outputs do not match any known destinations")
 

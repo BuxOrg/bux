@@ -29,9 +29,7 @@ func saveRawTransaction(ctx context.Context, c ClientInterface, allowUnknown boo
 		return nil, err
 	}
 
-	// Logic moved from BeforeCreating hook - should be refactorized in next iteration
-
-	if !c.IsITCEnabled() && !tx.hasOneKnownDestination(ctx, c) {
+	if !allowUnknown && !tx.hasOneKnownDestination(ctx, c) {
 		return nil, ErrNoMatchingOutputs
 	}
 
@@ -45,13 +43,6 @@ func saveRawTransaction(ctx context.Context, c ClientInterface, allowUnknown boo
 	// Add values
 	tx.NumberOfInputs = uint32(len(tx.parsedTx.Inputs))
 	tx.NumberOfOutputs = uint32(len(tx.parsedTx.Outputs))
-
-	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
-
-	// do not register transactions we have nothing to do with (this check must be done after transaction._processOutputs())
-	if !allowUnknown && tx.XpubOutIDs == nil {
-		return nil, ErrTransactionUnknown
-	}
 
 	if !tx.isMined() {
 		sync := newSyncTransaction(
@@ -157,13 +148,13 @@ func (m *Transaction) _processOutputs(ctx context.Context) (err error) {
 
 	// check all the outputs for a known destination
 	numberOfOutputsProcessed := 0
-	for index := range m.TransactionBase.parsedTx.Outputs {
-		amount := m.TransactionBase.parsedTx.Outputs[index].Satoshis
+	for i, output := range m.parsedTx.Outputs {
+		amount := output.Satoshis
 
 		// only save outputs with a satoshi value attached to it
 		if amount > 0 {
 
-			txLockingScript := m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
+			txLockingScript := output.LockingScript.String()
 			lockingScript := utils.GetDestinationLockingScript(txLockingScript)
 
 			// only Save utxos for known destinations
@@ -181,10 +172,10 @@ func (m *Transaction) _processOutputs(ctx context.Context) (err error) {
 				}
 				m.XpubOutputValue[destination.XpubID] += int64(amount)
 
-				utxo, _ := m.client.GetUtxoByTransactionID(ctx, m.ID, uint32(index))
+				utxo, _ := m.client.GetUtxoByTransactionID(ctx, m.ID, uint32(i))
 				if utxo == nil {
 					utxo = newUtxo(
-						destination.XpubID, m.ID, txLockingScript, uint32(index),
+						destination.XpubID, m.ID, txLockingScript, uint32(i),
 						amount, newOpts...,
 					)
 				}

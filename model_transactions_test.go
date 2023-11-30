@@ -694,13 +694,6 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		err = transaction.processUtxos(tc.ctx)
 		require.NoError(t, err)
 
-		transaction.TotalValue, transaction.Fee = transaction.getValues()
-
-		if transaction.TransactionBase.parsedTx != nil {
-			transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
-			transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-		}
-
 		err = transaction.Save(tc.ctx)
 		require.NoError(t, err)
 
@@ -757,12 +750,6 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 		err = transactionIn.processUtxos(tc.ctx)
 		require.NoError(t, err)
 
-		transactionIn.TotalValue, transactionIn.Fee = transactionIn.getValues()
-
-		if transactionIn.TransactionBase.parsedTx != nil {
-			transactionIn.NumberOfInputs = uint32(len(transactionIn.TransactionBase.parsedTx.Inputs))
-			transactionIn.NumberOfOutputs = uint32(len(transactionIn.TransactionBase.parsedTx.Outputs))
-		}
 		err = transactionIn.Save(tc.ctx)
 		require.NoError(t, err)
 
@@ -796,15 +783,6 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_Save() {
 
 		err = transaction.processUtxos(tc.ctx)
 		require.NoError(t, err)
-
-		// Set the values from the inputs/outputs and draft tx
-		transaction.TotalValue, transaction.Fee = transactionIn.getValues()
-
-		// Add values if found
-		if transaction.TransactionBase.parsedTx != nil {
-			transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
-			transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-		}
 
 		err = transaction.Save(tc.ctx)
 		require.NoError(t, err)

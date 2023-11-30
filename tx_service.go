@@ -33,16 +33,9 @@ func saveRawTransaction(ctx context.Context, c ClientInterface, allowUnknown boo
 		return nil, ErrNoMatchingOutputs
 	}
 
-	if err = tx._processOutputs(ctx); err != nil {
+	if err = tx.processUtxos(ctx); err != nil {
 		return nil, err
 	}
-
-	// Set the values from the inputs/outputs and draft tx
-	tx.TotalValue, tx.Fee = tx.getValues()
-
-	// Add values
-	tx.NumberOfInputs = uint32(len(tx.parsedTx.Inputs))
-	tx.NumberOfOutputs = uint32(len(tx.parsedTx.Outputs))
 
 	if !tx.isMined() {
 		sync := newSyncTransaction(
@@ -73,7 +66,15 @@ func (m *Transaction) processUtxos(ctx context.Context) error {
 		}
 	}
 
-	return m._processOutputs(ctx)
+	if err := m._processOutputs(ctx); err != nil {
+		return err
+	}
+
+	m.TotalValue, m.Fee = m.getValues()
+	m.NumberOfInputs = uint32(len(m.parsedTx.Inputs))
+	m.NumberOfOutputs = uint32(len(m.parsedTx.Outputs))
+
+	return nil
 }
 
 // processTxInputs will process the transaction inputs

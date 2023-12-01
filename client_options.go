@@ -111,7 +111,6 @@ func defaultClientOptions() *clientOptions {
 				ModelIncomingTransaction.String() + "_process":            taskIntervalProcessIncomingTxs,
 				ModelSyncTransaction.String() + "_" + syncActionBroadcast: taskIntervalSyncActionBroadcast,
 				ModelSyncTransaction.String() + "_" + syncActionSync:      taskIntervalSyncActionSync,
-				ModelTransaction.String() + "_" + TransactionActionCheck:  taskIntervalTransactionCheck,
 			},
 		},
 

@@ -35,8 +35,8 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 	return recordTransaction(ctx, c, rts, opts...)
 }
 
-// RecordRawTransaction will parse the transaction and save it into the Datastore directly, without any checks
-//
+// RecordRawTransaction will parse the transaction and save it into the Datastore directly, without any checks or broadcast but bux will ask network for information if transaction was mined
+// The transaction is treat as external incoming transaction - transaction without a draft
 // Only use this function when you know what you are doing!
 //
 // txHex is the raw transaction hex
@@ -44,113 +44,15 @@ func (c *Client) RecordTransaction(ctx context.Context, xPubKey, txHex, draftID 
 func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 	opts ...ModelOps,
 ) (*Transaction, error) {
-	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
-	return c.recordTxHex(ctx, txHex, opts...)
-}
-
-// RecordMonitoredTransaction will parse the transaction and save it into the Datastore
-//
-// This function will try to record the transaction directly, without checking draft ids etc.
-//
-//nolint:nolintlint,unparam,gci // opts is the way, but not yet being used
-func recordMonitoredTransaction(ctx context.Context, client ClientInterface, txHex string,
-	opts ...ModelOps,
-) (*Transaction, error) {
-	// Check for existing NewRelic transaction
-	ctx = client.GetOrStartTxn(ctx, "record_monitored_transaction")
-
-	transaction, err := client.recordTxHex(ctx, txHex, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	if transaction.BlockHash == "" {
-		// Create the sync transaction model
-		sync := newSyncTransaction(
-			transaction.GetID(),
-			transaction.Client().DefaultSyncConfig(),
-			transaction.GetOptions(true)...,
-		)
-		sync.BroadcastStatus = SyncStatusSkipped
-		sync.P2PStatus = SyncStatusSkipped
-
-		// Use the same metadata
-		sync.Metadata = transaction.Metadata
-
-		// If all the options are skipped, do not make a new model (ignore the record)
-		if !sync.isSkipped() {
-			if err = sync.Save(ctx); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return transaction, nil
-}
-
-func (c *Client) recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error) {
-	// Create the model & set the default options (gives options from client->model)
-	newOpts := c.DefaultModelOptions(append(opts, New())...)
-	transaction := newTransaction(txHex, newOpts...)
-
-	// Ensure that we have a transaction id (created from the txHex)
-	id := transaction.GetID()
-	if len(id) == 0 {
-		return nil, ErrMissingTxHex
-	}
-
-	// Create the lock and set the release for after the function completes
-	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
-	)
-	defer unlock()
-	if err != nil {
-		return nil, err
-	}
-
-	// Logic moved from BeforeCreating hook - should be refactorized in next iteration
-
-	// If we are external and the user disabled incoming transaction checking, check outputs
-	if transaction.isExternal() && !transaction.Client().IsITCEnabled() {
-		// Check that the transaction has >= 1 known destination
-		if !transaction.TransactionBase.hasOneKnownDestination(ctx, transaction.Client(), transaction.GetOptions(false)...) {
-			return nil, ErrNoMatchingOutputs
-		}
-	}
-
-	// Process the UTXOs
-	if err = transaction.processUtxos(ctx); err != nil {
-		return nil, err
-	}
-
-	// Set the values from the inputs/outputs and draft tx
-	transaction.TotalValue, transaction.Fee = transaction.getValues()
-
-	// Add values
-	transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
-	transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-
-	// /Logic moved from BeforeCreating hook - should be refactorized in next iteration
-
+	allowUnknown := true
 	monitor := c.options.chainstate.Monitor()
-
 	if monitor != nil {
-		// do not register transactions we have nothing to do with
-		allowUnknown := monitor.AllowUnknownTransactions()
-		if transaction.XpubInIDs == nil && transaction.XpubOutIDs == nil && !allowUnknown {
-			return nil, ErrTransactionUnknown
-		}
+		allowUnknown = monitor.AllowUnknownTransactions()
 	}
 
-	// save the transaction model
-	if err = transaction.Save(ctx); err != nil {
-		return nil, err
-	}
-
-	// Return the response
-	return transaction, nil
+	return saveRawTransaction(ctx, c, allowUnknown, txHex, opts...)
 }
 
 // NewTransaction will create a new draft transaction and return it

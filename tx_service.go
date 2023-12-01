@@ -3,53 +3,58 @@ package bux
 import (
 	"context"
 	"encoding/hex"
-	"errors"
+	"fmt"
 
-	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
-	"github.com/mrz1836/go-datastore"
 )
 
-// processTransactions will process transaction records
-func processTransactions(ctx context.Context, maxTransactions int, opts ...ModelOps) error {
-	queryParams := &datastore.QueryParams{
-		Page:          1,
-		PageSize:      maxTransactions,
-		OrderByField:  "created_at",
-		SortDirection: "asc",
+// The transaction is treat as external incoming transaction - transaction without a draft
+// Only use this function when you know what you are doing!
+func saveRawTransaction(ctx context.Context, c ClientInterface, allowUnknown bool, txHex string, opts ...ModelOps) (*Transaction, error) {
+	newOpts := c.DefaultModelOptions(append(opts, New())...)
+	tx := newTransaction(txHex, newOpts...)
+
+	// Ensure that we have a transaction id (created from the txHex)
+	id := tx.GetID()
+	if len(id) == 0 {
+		return nil, ErrMissingTxHex
 	}
 
-	conditions := map[string]interface{}{
-		"$or": []map[string]interface{}{{
-			blockHeightField: 0,
-		}, {
-			blockHeightField: nil,
-		}},
-	}
-
-	records := make([]Transaction, 0)
-	err := getModelsByConditions(ctx, ModelTransaction, &records, nil, &conditions, queryParams, opts...)
+	// Create the lock and set the release for after the function completes
+	unlock, err := newWriteLock(
+		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
+	)
+	defer unlock()
 	if err != nil {
-		return err
-	} else if len(records) == 0 {
-		return nil
+		return nil, err
 	}
 
-	txs := make([]*Transaction, 0)
-	for index := range records {
-		records[index].enrich(ModelTransaction, opts...)
-		txs = append(txs, &records[index])
+	if !allowUnknown && !tx.hasOneKnownDestination(ctx, c) {
+		return nil, ErrNoMatchingOutputs
 	}
 
-	for index := range records {
-		if err = _processTransaction(
-			ctx, txs[index],
-		); err != nil {
-			return err
-		}
+	if err = tx.processUtxos(ctx); err != nil {
+		return nil, err
 	}
 
-	return nil
+	if !tx.isMined() {
+		sync := newSyncTransaction(
+			tx.GetID(),
+			c.DefaultSyncConfig(),
+			tx.GetOptions(true)...,
+		)
+		sync.BroadcastStatus = SyncStatusSkipped
+		sync.P2PStatus = SyncStatusSkipped
+
+		sync.Metadata = tx.Metadata
+		tx.syncTransaction = sync
+	}
+
+	if err = tx.Save(ctx); err != nil {
+		return nil, err
+	}
+
+	return tx, nil
 }
 
 // processUtxos will process the inputs and outputs for UTXOs
@@ -61,7 +66,15 @@ func (m *Transaction) processUtxos(ctx context.Context) error {
 		}
 	}
 
-	return m._processOutputs(ctx)
+	if err := m._processOutputs(ctx); err != nil {
+		return err
+	}
+
+	m.TotalValue, m.Fee = m.getValues()
+	m.NumberOfInputs = uint32(len(m.parsedTx.Inputs))
+	m.NumberOfOutputs = uint32(len(m.parsedTx.Outputs))
+
+	return nil
 }
 
 // processTxInputs will process the transaction inputs
@@ -136,13 +149,13 @@ func (m *Transaction) _processOutputs(ctx context.Context) (err error) {
 
 	// check all the outputs for a known destination
 	numberOfOutputsProcessed := 0
-	for index := range m.TransactionBase.parsedTx.Outputs {
-		amount := m.TransactionBase.parsedTx.Outputs[index].Satoshis
+	for i, output := range m.parsedTx.Outputs {
+		amount := output.Satoshis
 
 		// only save outputs with a satoshi value attached to it
 		if amount > 0 {
 
-			txLockingScript := m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
+			txLockingScript := output.LockingScript.String()
 			lockingScript := utils.GetDestinationLockingScript(txLockingScript)
 
 			// only Save utxos for known destinations
@@ -160,10 +173,10 @@ func (m *Transaction) _processOutputs(ctx context.Context) (err error) {
 				}
 				m.XpubOutputValue[destination.XpubID] += int64(amount)
 
-				utxo, _ := m.client.GetUtxoByTransactionID(ctx, m.ID, uint32(index))
+				utxo, _ := m.client.GetUtxoByTransactionID(ctx, m.ID, uint32(i))
 				if utxo == nil {
 					utxo = newUtxo(
-						destination.XpubID, m.ID, txLockingScript, uint32(index),
+						destination.XpubID, m.ID, txLockingScript, uint32(i),
 						amount, newOpts...,
 					)
 				}
@@ -181,21 +194,4 @@ func (m *Transaction) _processOutputs(ctx context.Context) (err error) {
 	}
 
 	return
-}
-
-// _processTransaction will process the sync transaction record, or save the failure
-func _processTransaction(ctx context.Context, transaction *Transaction) error {
-	txInfo, err := transaction.Client().Chainstate().QueryTransactionFastest(
-		ctx, transaction.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
-	)
-	if err != nil {
-		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			return nil
-		}
-		return err
-	}
-
-	transaction.setChainInfo(txInfo)
-
-	return transaction.Save(ctx)
 }

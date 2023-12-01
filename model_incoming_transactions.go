@@ -169,28 +169,7 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 	}
 
 	// Check that the transaction has >= 1 known destination
-	if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client(), m.GetOptions(false)...) {
-		return ErrNoMatchingOutputs
-	}
-
-	// Match a known destination
-	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
-	matchingOutput := false
-	lockingScript := ""
-	opts := m.GetOptions(false)
-	for index := range m.TransactionBase.parsedTx.Outputs {
-		lockingScript = m.TransactionBase.parsedTx.Outputs[index].LockingScript.String()
-		destination, err := getDestinationWithCache(ctx, m.Client(), "", "", lockingScript, opts...)
-		if err != nil {
-			m.Client().Logger().Warn(ctx, "error getting destination: "+err.Error())
-		} else if destination != nil && destination.LockingScript == lockingScript {
-			matchingOutput = true
-			break
-		}
-	}
-
-	// Does not match any known destination
-	if !matchingOutput {
+	if !m.TransactionBase.hasOneKnownDestination(ctx, m.Client()) {
 		return ErrNoMatchingOutputs
 	}
 
@@ -365,10 +344,6 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): processUtxos() for %s failed. Reason: %s", incomingTx.ID, err))
 			return err
 		}
-
-		transaction.TotalValue, transaction.Fee = transaction.getValues()
-		transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
 	}
 
 	transaction.setChainInfo(txInfo)

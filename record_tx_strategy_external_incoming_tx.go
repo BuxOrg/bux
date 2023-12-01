@@ -97,18 +97,12 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 	tx := newTransaction(eTx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
 	_hydrateExternalWithSync(tx)
 
-	if !tx.TransactionBase.hasOneKnownDestination(ctx, c, tx.GetOptions(false)...) {
+	if !tx.TransactionBase.hasOneKnownDestination(ctx, c) {
 		return nil, ErrNoMatchingOutputs
 	}
 
 	if err := tx.processUtxos(ctx); err != nil {
 		return nil, err
-	}
-
-	tx.TotalValue, tx.Fee = tx.getValues()
-	if tx.TransactionBase.parsedTx != nil {
-		tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
-		tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
 	}
 
 	return tx, nil

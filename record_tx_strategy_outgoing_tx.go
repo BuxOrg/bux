@@ -100,12 +100,6 @@ func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInt
 		return nil, err
 	}
 
-	tx.TotalValue, tx.Fee = tx.getValues()
-	if tx.TransactionBase.parsedTx != nil {
-		tx.NumberOfInputs = uint32(len(tx.TransactionBase.parsedTx.Inputs))
-		tx.NumberOfOutputs = uint32(len(tx.TransactionBase.parsedTx.Outputs))
-	}
-
 	return tx, nil
 }
 

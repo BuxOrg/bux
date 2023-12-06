@@ -24,7 +24,7 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.5
 	github.com/mrz1836/go-cache v0.9.2
 	github.com/mrz1836/go-cachestore v0.3.3
-	github.com/mrz1836/go-datastore v0.5.7
+	github.com/mrz1836/go-datastore v0.5.8
 	github.com/mrz1836/go-logger v0.3.2
 	github.com/newrelic/go-agent/v3 v3.28.1
 	github.com/pkg/errors v0.9.1
@@ -70,7 +70,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/pgx/v5 v5.5.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.17.3 // indirect
+	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/libsv/go-p2p v0.1.3 // indirect

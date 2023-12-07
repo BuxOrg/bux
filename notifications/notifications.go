@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -20,7 +19,7 @@ func (c *Client) Notify(ctx context.Context, modelType string, eventType EventTy
 
 	if len(c.options.config.webhookEndpoint) == 0 {
 		if c.IsDebug() {
-			c.Logger().Info(ctx, fmt.Sprintf("NOTIFY %s: %s - %v", eventType, id, model))
+			c.Logger().Info().Msgf("NOTIFY %s: %s - %v", eventType, id, model)
 		}
 	} else {
 		jsonData, err := json.Marshal(map[string]interface{}{
@@ -52,10 +51,8 @@ func (c *Client) Notify(ctx context.Context, modelType string, eventType EventTy
 
 		if response.StatusCode != http.StatusOK {
 			// todo queue notification for another try ...
-			c.Logger().Error(ctx, fmt.Sprintf(
-				"%s: %d",
-				"received invalid response from notification endpoint: ",
-				response.StatusCode))
+			c.Logger().Error().Msgf("received invalid response from notification endpoint: %d",
+				response.StatusCode)
 		}
 	}
 

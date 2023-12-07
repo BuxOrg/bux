@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"github.com/BuxOrg/bux/logging"
 	"net/http"
 	"os"
 	"testing"
@@ -16,7 +17,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -525,7 +525,7 @@ func TestWithLogger(t *testing.T) {
 	})
 
 	t.Run("test applying option", func(t *testing.T) {
-		customLogger := zLogger.NewGormLogger(true, 4)
+		customLogger := logging.GetDefaultLogger()
 		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithLogger(customLogger))
 

@@ -2,12 +2,12 @@ package chainstate
 
 import (
 	"context"
+	"github.com/BuxOrg/bux/logging"
 	"net/http"
 	"testing"
 	"time"
 
 	broadcast_client_mock "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client-mock"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -305,10 +305,10 @@ func TestWithLogger(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		customClient := zLogger.NewGormLogger(true, 4)
-		opt := WithLogger(customClient)
+		customLogger := logging.GetDefaultLogger()
+		opt := WithLogger(customLogger)
 		opt(options)
-		assert.Equal(t, customClient, options.logger)
+		assert.Equal(t, customLogger, options.logger)
 	})
 }
 

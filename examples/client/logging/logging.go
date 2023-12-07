@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
+	"github.com/BuxOrg/bux/logging"
 	"log"
 
 	"github.com/BuxOrg/bux"
 	"github.com/BuxOrg/bux/taskmanager"
-	zLogger "github.com/mrz1836/go-logger"
 )
 
 func main() {
 	client, err := bux.NewClient(
-		context.Background(),                                                                   // Set context
+		context.Background(), // Set context
 		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithLogger(zLogger.NewGormLogger(false, 4)),                                        // Example of using a custom logger
+		bux.WithLogger(logging.GetDefaultLogger()),                                             // Example of using a custom logger
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

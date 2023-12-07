@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"net/http"
 	"time"
 
@@ -16,12 +17,6 @@ import (
 // HTTPInterface is the HTTP client interface
 type HTTPInterface interface {
 	Do(req *http.Request) (*http.Response, error)
-}
-
-// Logger is the logger interface for debug messages
-type Logger interface {
-	Info(ctx context.Context, message string, params ...interface{})
-	Error(ctx context.Context, message string, params ...interface{})
 }
 
 // ChainService is the chain related methods
@@ -96,10 +91,10 @@ type MonitorProcessor interface {
 	GetFilters() map[string]*BloomProcessorFilter
 	GetHash() string
 	IsDebug() bool
-	Logger() Logger
+	Logger() *zerolog.Logger
 	Reload(regexString string, items []string) error
 	SetFilter(regex string, filter []byte) error
-	SetLogger(logger Logger)
+	SetLogger(logger *zerolog.Logger)
 	Test(regexString string, item string) bool
 }
 
@@ -116,7 +111,7 @@ type MonitorService interface {
 	IsDebug() bool
 	LoadMonitoredDestinations() bool
 	AllowUnknownTransactions() bool
-	Logger() Logger
+	Logger() *zerolog.Logger
 	Processor() MonitorProcessor
 	SaveDestinations() bool
 	Start(ctx context.Context, handler MonitorHandler, onStop func()) error

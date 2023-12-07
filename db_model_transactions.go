@@ -182,7 +182,7 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 		tx := client.Execute("ALTER TABLE `" + tableName + "`" +
 			" ADD INDEX " + idxName + " ( (CAST(xpub_in_ids AS CHAR(64) ARRAY)) )")
 		if tx.Error != nil {
-			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
+			m.Client().Logger().Error().Msg("failed creating json index on mysql: " + tx.Error.Error())
 			return nil //nolint:nolintlint,nilerr // error is not needed
 		}
 	}
@@ -197,14 +197,14 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 		tx := client.Execute("ALTER TABLE `" + tableName + "`" +
 			" ADD INDEX " + idxName + " ( (CAST(xpub_out_ids AS CHAR(64) ARRAY)) )")
 		if tx.Error != nil {
-			m.Client().Logger().Error(context.Background(), "failed creating json index on mysql: "+tx.Error.Error())
+			m.Client().Logger().Error().Msg("failed creating json index on mysql: " + tx.Error.Error())
 			return nil //nolint:nolintlint,nilerr // error is not needed
 		}
 	}
 
 	tx := client.Execute("ALTER TABLE `" + tableName + "` MODIFY COLUMN hex longtext")
 	if tx.Error != nil {
-		m.Client().Logger().Error(context.Background(), "failed changing hex type to longtext in MySQL: "+tx.Error.Error())
+		m.Client().Logger().Error().Msg("failed changing hex type to longtext in MySQL: " + tx.Error.Error())
 		return nil //nolint:nolintlint,nilerr // error is not needed
 	}
 

@@ -1,7 +1,8 @@
 package notifications
 
 import (
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/BuxOrg/bux/logging"
+	"github.com/rs/zerolog"
 )
 
 // EventType event types thrown in Bux
@@ -30,10 +31,10 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config     *notificationsConfig        // Configuration for broadcasting and other chain-state actions
-		debug      bool                        // Debugging mode
-		httpClient HTTPInterface               // Custom HTTP client
-		logger     zLogger.GormLoggerInterface // Custom logger interface
+		config     *notificationsConfig // Configuration for broadcasting and other chain-state actions
+		debug      bool                 // Debugging mode
+		httpClient HTTPInterface        // Custom HTTP client
+		logger     *zerolog.Logger      // Custom logger interface
 	}
 
 	// syncConfig holds all the configuration about the different notifications
@@ -57,7 +58,7 @@ func NewClient(opts ...ClientOps) (ClientInterface, error) {
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
+		client.options.logger = logging.GetDefaultLogger()
 	}
 
 	// Return the client
@@ -75,6 +76,6 @@ func (c *Client) Debug(on bool) {
 }
 
 // Logger get the logger
-func (c *Client) Logger() zLogger.GormLoggerInterface {
+func (c *Client) Logger() *zerolog.Logger {
 	return c.options.logger
 }

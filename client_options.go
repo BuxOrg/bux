@@ -3,6 +3,8 @@ package bux
 import (
 	"context"
 	"database/sql"
+	"github.com/BuxOrg/bux/logging"
+	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -268,17 +270,21 @@ func WithHTTPClient(httpClient HTTPInterface) ClientOps {
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
+func WithLogger(customLogger *zerolog.Logger, debug bool) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger
 
-			// Enable the logger on all services
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(c.logger))
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(c.logger))
-			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: c.logger}))
-			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(c.logger))
-			c.notifications.options = append(c.notifications.options, notifications.WithLogger(c.logger))
+			// Enable the logger on all bux services
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(customLogger))
+			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(customLogger))
+			c.notifications.options = append(c.notifications.options, notifications.WithLogger(customLogger))
+
+			// Enable the logger on all external services
+			gormLog := zLogger.NewGormLogger(debug, 4)
+			gLog := logging.GormLoggerAdapter{Logger: customLogger}
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: &gLog}))
+			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(gormLog))
 		}
 	}
 }

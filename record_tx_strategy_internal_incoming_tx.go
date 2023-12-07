@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 type internalIncomingTx struct {
@@ -16,7 +15,7 @@ type internalIncomingTx struct {
 
 func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
-	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID))
+	logger.Info().Msgf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID)
 
 	// process
 	transaction := strategy.Tx
@@ -32,13 +31,13 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		err := _internalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
 			logger.
-				Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID))
+				Error().Msgf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
 
 			return nil, fmt.Errorf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
 		}
 	}
 
-	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID))
+	logger.Info().Msgf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
 	return transaction, nil
 }
 
@@ -66,22 +65,22 @@ func (strategy *internalIncomingTx) FailOnBroadcastError(forceFail bool) {
 	strategy.allowBroadcastErrors = !forceFail
 }
 
-func _internalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, transaction *Transaction, allowErrors bool) error {
-	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
+func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, transaction *Transaction, allowErrors bool) error {
+	logger.Info().Msgf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID)
 
 	syncTx := transaction.syncTransaction
 	err := broadcastSyncTransaction(ctx, syncTx)
 
 	if err == nil {
 		logger.
-			Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
+			Info().Msgf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID)
 
 		return nil
 	}
 
 	if allowErrors {
 		logger.
-			Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID))
+			Warn().Msgf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID)
 
 		// ignore broadcast error - will be repeted by task manager
 		return nil

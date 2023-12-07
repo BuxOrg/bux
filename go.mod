@@ -30,6 +30,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tonicpow/go-minercraft/v2 v2.0.8
 	github.com/tryvium-travels/memongo v0.10.0
@@ -84,6 +85,8 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/libsv/go-p2p v0.1.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.18 // indirect
 	github.com/miekg/dns v1.1.57 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
@@ -114,6 +117,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
+	go.elastic.co/ecszerolog v0.2.0 // indirect
 	go.opentelemetry.io/otel v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect

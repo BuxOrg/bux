@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"net/http"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -12,7 +13,6 @@ import (
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
 )
 
 // AccessKeyService is the access key actions
@@ -63,7 +63,7 @@ type ClientService interface {
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
 	HTTPClient() HTTPInterface
-	Logger() zLogger.GormLoggerInterface
+	Logger() *zerolog.Logger
 	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface
 	Taskmanager() taskmanager.ClientInterface

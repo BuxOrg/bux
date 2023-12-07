@@ -234,14 +234,14 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 		}
 		if blockHeader0 == nil {
 			// import block headers in the background
-			m.Client().Logger().Info(ctx, "Importing block headers into database")
+			m.Client().Logger().Info().Msg("Importing block headers into database")
 			err = m.importBlockHeaders(ctx, client, blockHeadersFile)
 			if err != nil {
 				// stop execution if block headers import is not successful
 				// the block headers state can be messed up if they are not imported, or half imported
 				panic(err.Error())
 			}
-			m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
+			m.Client().Logger().Info().Msg("Successfully imported all block headers into database")
 		}
 	}
 
@@ -258,7 +258,7 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 	}
 	defer func() {
 		if err = os.Remove(file.Name()); err != nil {
-			m.Client().Logger().Error(ctx, err.Error())
+			m.Client().Logger().Error().Msg(err.Error())
 		}
 	}()
 
@@ -319,7 +319,7 @@ func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string,
 	}
 	defer func() {
 		if err = CSVFile.Close(); err != nil {
-			m.Client().Logger().Error(ctx, err.Error())
+			m.Client().Logger().Error().Msg(err.Error())
 		}
 	}()
 

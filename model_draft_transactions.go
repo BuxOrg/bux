@@ -299,7 +299,7 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit, 0)
 		if reserveSatoshis <= dustLimit && !m.containsOpReturn() {
-			m.client.Logger().Error(ctx, "amount of satoshis to send less than the dust limit")
+			m.client.Logger().Error().Msg("amount of satoshis to send less than the dust limit")
 			return ErrOutputValueTooLow
 		}
 		if reservedUtxos, err = reserveUtxos(

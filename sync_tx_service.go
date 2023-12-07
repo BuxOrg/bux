@@ -83,9 +83,7 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 				if err = broadcastSyncTransaction(
 					ctx, tx,
 				); err != nil {
-					tx.Client().Logger().Error(ctx,
-						fmt.Sprintf("error running broadcast tx for xpub %s, tx %s: %s", xPubID, tx.ID, err.Error()),
-					)
+					tx.Client().Logger().Error().Msgf("error running broadcast tx for xpub %s, tx %s: %s", xPubID, tx.ID, err.Error())
 					return // stop processing transactions for this xpub if we found an error
 				}
 			}
@@ -210,7 +208,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
 	); err != nil {
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			syncTx.client.Logger().Info(ctx, fmt.Sprintf("processSyncTransaction(): Transaction %s not found on-chain, will try again later", syncTx.ID))
+			syncTx.client.Logger().Info().Msgf("processSyncTransaction(): Transaction %s not found on-chain, will try again later", syncTx.ID)
 
 			_bailAndSaveSyncTransaction(
 				ctx, syncTx, SyncStatusReady, syncActionSync, "all", "transaction not found on-chain",
@@ -221,7 +219,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 	}
 
 	if !txInfo.Valid() {
-		syncTx.client.Logger().Warn(ctx, fmt.Sprintf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID))
+		syncTx.client.Logger().Warn().Msgf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID)
 
 		if syncTx.client.IsDebug() {
 			txInfoJSON, _ := json.Marshal(txInfo) //nolint:errchkjson // error is not needed
@@ -259,7 +257,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		return err
 	}
 
-	syncTx.client.Logger().Info(ctx, fmt.Sprintf("processSyncTransaction(): Transaction %s processed successfully", syncTx.ID))
+	syncTx.client.Logger().Info().Msgf("processSyncTransaction(): Transaction %s processed successfully", syncTx.ID)
 	// Done!
 	return nil
 }

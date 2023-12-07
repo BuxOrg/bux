@@ -3,8 +3,9 @@ package taskmanager
 import (
 	"context"
 	"errors"
+	"github.com/BuxOrg/bux/logging"
+	"github.com/rs/zerolog"
 
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	taskq "github.com/vmihailenco/taskq/v3"
 )
@@ -18,12 +19,12 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cronService     CronService                 // Internal cron job client
-		debug           bool                        // For extra logs and additional debug information
-		engine          Engine                      // Taskmanager engine (taskq or machinery)
-		logger          zLogger.GormLoggerInterface // Internal logging
-		newRelicEnabled bool                        // If NewRelic is enabled (parent application)
-		taskq           *taskqOptions               // All configuration and options for using TaskQ
+		cronService     CronService     // Internal cron job client
+		debug           bool            // For extra logs and additional debug information
+		engine          Engine          // Taskmanager engine (taskq or machinery)
+		logger          *zerolog.Logger // Internal logging
+		newRelicEnabled bool            // If NewRelic is enabled (parent application)
+		taskq           *taskqOptions   // All configuration and options for using TaskQ
 	}
 
 	// taskqOptions holds all the configuration for the TaskQ engine
@@ -51,7 +52,7 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
+		client.options.logger = logging.GetDefaultLogger()
 	}
 
 	// EMPTY! Engine was NOT set
@@ -135,7 +136,7 @@ func (c *Client) IsDebug() bool {
 // DebugLog will display verbose logs
 func (c *Client) DebugLog(text string) {
 	if c.IsDebug() {
-		c.options.logger.Info(context.Background(), text)
+		c.options.logger.Info().Msg(text)
 	}
 }
 

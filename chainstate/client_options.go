@@ -2,11 +2,11 @@ package chainstate
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"time"
 
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
 )
@@ -178,7 +178,7 @@ func WithNetwork(network Network) ClientOps {
 }
 
 // WithLogger will set a custom logger
-func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
+func WithLogger(customLogger *zerolog.Logger) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger

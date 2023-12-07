@@ -2,8 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
@@ -120,7 +118,7 @@ func (m *SyncTransaction) BeforeUpdating(ctx context.Context) error {
 	ln := len(m.Results.Results)
 	if ln > maxResultsLength {
 		m.Client().Logger().
-			Warn(ctx, fmt.Sprintf("trimming syncTx.Results, TxID: %s", m.ID))
+			Warn().Msgf("trimming syncTx.Results, TxID: %s", m.ID)
 
 		m.Results.Results = m.Results.Results[ln-maxResultsLength:]
 	}

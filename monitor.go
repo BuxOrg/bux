@@ -54,10 +54,9 @@ func loadMonitoredDestinations(ctx context.Context, client ClientInterface, moni
 
 	// Debug line
 	if client.IsDebug() && client.Logger() != nil {
-		client.Logger().Info(ctx, fmt.Sprintf(
-			"[MONITOR] Added %d destinations to monitor with hash %s",
+		client.Logger().Info().Msgf("[MONITOR] Added %d destinations to monitor with hash %s",
 			len(destinations), monitor.Processor().GetHash(),
-		))
+		)
 	}
 
 	return nil
@@ -74,10 +73,10 @@ func startDefaultMonitor(ctx context.Context, client ClientInterface, monitor ch
 
 	_, err := client.Cluster().Subscribe(cluster.DestinationNew, func(data string) {
 		if monitor.IsDebug() {
-			monitor.Logger().Info(ctx, fmt.Sprintf("[MONITOR] added %s destination to monitor: %s", utils.P2PKHRegexpString, data))
+			monitor.Logger().Info().Msgf("[MONITOR] added %s destination to monitor: %s", utils.P2PKHRegexpString, data)
 		}
 		if err := monitor.Processor().Add(utils.P2PKHRegexpString, data); err != nil {
-			client.Logger().Error(ctx, "could not add destination to monitor")
+			client.Logger().Error().Msg("could not add destination to monitor")
 		}
 	})
 	if err != nil {

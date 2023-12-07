@@ -3,9 +3,8 @@ package bux
 import (
 	"context"
 	"fmt"
-
 	"github.com/libsv/go-bt/v2"
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 type externalIncomingTx struct {
@@ -27,14 +26,14 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): creation of external incoming tx failed. Reason: %w", err)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
+	logger.Info().Msgf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID)
 
 	if strategy.broadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 
 		err := _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
 			logger.
-				Error(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID))
+				Error().Msgf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
 
 			return nil, fmt.Errorf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w", err)
 		}
@@ -45,7 +44,7 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): saving of Transaction failed. Reason: %w", err)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID))
+	logger.Info().Msgf("ExternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
 	return transaction, nil
 }
 
@@ -82,7 +81,7 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): tx creation failed. Reason: %w", err)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID))
+	logger.Info().Msgf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID)
 
 	if err = incomingTx.Save(ctx); err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): addind new IncomingTx to check queue failed. Reason: %w", err)
@@ -91,7 +90,7 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 	result := incomingTx.toTransactionDto()
 	result.Status = statusProcessing
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): complete ITC, TxID: %s", incomingTx.ID))
+	logger.Info().Msgf("ExternalIncomingTx.Execute(): complete ITC, TxID: %s", incomingTx.ID)
 	return result, nil
 }
 
@@ -134,21 +133,21 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	tx.syncTransaction = sync
 }
 
-func _externalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction, allowErrors bool) error {
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", tx.ID))
+func _externalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tx *Transaction, allowErrors bool) error {
+	logger.Info().Msgf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", tx.ID)
 
 	err := broadcastSyncTransaction(ctx, tx.syncTransaction)
 
 	if err == nil {
 		logger.
-			Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID))
+			Info().Msgf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID)
 
 		return nil
 	}
 
 	if allowErrors {
 		logger.
-			Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID))
+			Warn().Msgf("ExternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID)
 
 		// ignore error, transaction will be broadcaset in a cron task
 		return nil

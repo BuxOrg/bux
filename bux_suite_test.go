@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"fmt"
+	"github.com/BuxOrg/bux/logging"
 	"sync"
 	"testing"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/dolthub/go-mysql-server/server"
 	embeddedPostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/mrz1836/go-datastore"
-	"github.com/mrz1836/go-logger"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/tryvium-travels/memongo"
@@ -68,15 +68,17 @@ type EmbeddedDBTestSuite struct {
 func (ts *EmbeddedDBTestSuite) serveMySQL() {
 	defer ts.wg.Done()
 
+	logger := logging.GetDefaultLogger()
+
 	for {
 		err := ts.MySQLServer.Start()
 		if err != nil {
 			select {
 			case <-ts.quit:
-				logger.Data(2, logger.DEBUG, "MySQL channel has closed")
+				logger.Debug().Msg("MySQL channel has closed")
 				return
 			default:
-				logger.Data(2, logger.ERROR, "mysql server error: "+err.Error())
+				logger.Debug().Msg("mysql server error: " + err.Error())
 			}
 		}
 	}

@@ -324,9 +324,8 @@ func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client Cli
 		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript)
 
 		if err != nil {
-			client.Logger().Error(ctx, "error getting destination: "+err.Error())
+			client.Logger().Error().Msg("error getting destination: " + err.Error())
 			continue
-
 		} else if destination != nil && destination.LockingScript == lockingScript {
 			return true
 		}

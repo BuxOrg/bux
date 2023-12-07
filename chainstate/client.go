@@ -2,7 +2,8 @@ package chainstate
 
 import (
 	"context"
-	"fmt"
+	"github.com/BuxOrg/bux/logging"
+	"github.com/rs/zerolog"
 	"sync"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/libsv/go-bt/v2"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
 	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
@@ -25,12 +25,12 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config          *syncConfig                 // Configuration for broadcasting and other chain-state actions
-		debug           bool                        // For extra logs and additional debug information
-		logger          zLogger.GormLoggerInterface // Internal logger interface
-		monitor         MonitorService              // Monitor service
-		newRelicEnabled bool                        // If NewRelic is enabled (parent application)
-		userAgent       string                      // Custom user agent for outgoing HTTP Requests
+		config          *syncConfig     // Configuration for broadcasting and other chain-state actions
+		debug           bool            // For extra logs and additional debug information
+		logger          *zerolog.Logger // Internal logger interface
+		monitor         MonitorService  // Monitor service
+		newRelicEnabled bool            // If NewRelic is enabled (parent application)
+		userAgent       string          // Custom user agent for outgoing HTTP Requests
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -94,7 +94,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
+		client.options.logger = logging.GetDefaultLogger()
 	}
 
 	// Start Minercraft
@@ -134,7 +134,7 @@ func (c *Client) Debug(on bool) {
 // DebugLog will display verbose logs
 func (c *Client) DebugLog(text string) {
 	if c.IsDebug() {
-		c.options.logger.Info(context.Background(), text)
+		c.options.logger.Debug().Msg(text)
 	}
 }
 
@@ -220,21 +220,21 @@ func (c *Client) ValidateMiners(ctx context.Context) {
 			if c.Minercraft().APIType() == minercraft.MAPI {
 				quote, err := c.Minercraft().FeeQuote(ctx, miner.Miner)
 				if err != nil {
-					client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err))
+					client.options.logger.Error().Msgf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err)
 					miner.FeeUnit = nil
 					return
 				}
 
 				fee = quote.Quote.GetFee(mapi.FeeTypeData)
 				if fee == nil {
-					client.options.logger.Error(ctx, fmt.Sprintf("Fee is missing in %s's FeeQuote response", miner.Miner.Name))
+					client.options.logger.Error().Msgf("Fee is missing in %s's FeeQuote response", miner.Miner.Name)
 					return
 				}
 				// Arc doesn't support FeeQuote right now(2023.07.21), that's why PolicyQuote is used
 			} else if c.Minercraft().APIType() == minercraft.Arc {
 				quote, err := c.Minercraft().PolicyQuote(ctx, miner.Miner)
 				if err != nil {
-					client.options.logger.Error(ctx, fmt.Sprintf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err))
+					client.options.logger.Error().Msgf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err)
 					miner.FeeUnit = nil
 					return
 				}

@@ -71,7 +71,7 @@ func (p pulseClientProvider) verifyMerkleRoots(
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		c.options.logger.Error(context.Background(), "Error during creating connection to pulse client: %s", err.Error())
+		c.options.logger.Error().Msgf("Error during creating connection to pulse client: %s", err.Error())
 		return nil, err
 	}
 	defer res.Body.Close() //nolint: all // Close the body

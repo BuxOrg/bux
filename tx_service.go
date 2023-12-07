@@ -12,17 +12,15 @@ import (
 // Only use this function when you know what you are doing!
 func saveRawTransaction(ctx context.Context, c ClientInterface, allowUnknown bool, txHex string, opts ...ModelOps) (*Transaction, error) {
 	newOpts := c.DefaultModelOptions(append(opts, New())...)
-	tx := newTransaction(txHex, newOpts...)
+	tx, err := txFromHex(txHex, newOpts...)
 
-	// Ensure that we have a transaction id (created from the txHex)
-	id := tx.GetID()
-	if len(id) == 0 {
+	if err != nil {
 		return nil, ErrMissingTxHex
 	}
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
-		ctx, fmt.Sprintf(lockKeyRecordTx, id), c.Cachestore(),
+		ctx, fmt.Sprintf(lockKeyRecordTx, tx.GetID()), c.Cachestore(),
 	)
 	defer unlock()
 	if err != nil {

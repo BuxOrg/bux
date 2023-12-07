@@ -30,30 +30,35 @@ type IncomingTransaction struct {
 	StatusMessage string     `json:"status_message" toml:"status_message" yaml:"status_message" gorm:"<-;type:varchar(512);comment:This is the status message or error" bson:"status_message"`
 }
 
+func emptyIncomingTx(opts ...ModelOps) *IncomingTransaction {
+	return &IncomingTransaction{
+		Model:           *NewBaseModel(ModelIncomingTransaction, opts...),
+		TransactionBase: TransactionBase{},
+		Status:          SyncStatusReady,
+	}
+}
+
 // newIncomingTransaction will start a new model
-func newIncomingTransaction(hex string, opts ...ModelOps) (tx *IncomingTransaction) {
-	// Create the model
-	tx = &IncomingTransaction{
-		Model: *NewBaseModel(ModelIncomingTransaction, opts...),
-		TransactionBase: TransactionBase{
-			Hex: hex,
-		},
-		Status: SyncStatusReady,
+func newIncomingTransaction(hex string, opts ...ModelOps) (*IncomingTransaction, error) {
+	var btTx *bt.Tx
+	var err error
+
+	if btTx, err = bt.NewTxFromString(hex); err != nil {
+		return nil, err
 	}
 
-	// Attempt to parse
-	if len(hex) > 0 {
-		tx.parsedTx, _ = bt.NewTxFromString(hex)
-		tx.ID = tx.parsedTx.TxID()
-	}
+	tx := emptyIncomingTx(opts...)
+	tx.ID = btTx.TxID()
+	tx.Hex = hex
+	tx.parsedTx = btTx
 
-	return
+	return tx, nil
 }
 
 // getIncomingTransactionByID will get the incoming transactions to process
 func getIncomingTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*IncomingTransaction, error) {
 	// Construct an empty tx
-	tx := newIncomingTransaction("", opts...)
+	tx := emptyIncomingTx(opts...)
 	tx.ID = id
 
 	// Get the record
@@ -338,7 +343,10 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 
 	if transaction == nil {
 		// Create the new transaction model
-		transaction = newTransactionFromIncomingTransaction(incomingTx)
+		if transaction, err = newTransactionFromIncomingTransaction(incomingTx); err != nil {
+			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): newTransactionFromIncomingTransaction() for %s failed. Reason: %s", incomingTx.ID, err))
+			return err
+		}
 
 		if err = transaction.processUtxos(ctx); err != nil {
 			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): processUtxos() for %s failed. Reason: %s", incomingTx.ID, err))

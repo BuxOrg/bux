@@ -12,7 +12,9 @@ import (
 func TestIncomingTransaction_GetModelName(t *testing.T) {
 	t.Parallel()
 
-	bTx := newIncomingTransaction(testTxHex, New())
+	bTx, err := newIncomingTransaction(testTxHex, New())
+	require.NoError(t, err)
+
 	assert.Equal(t, ModelIncomingTransaction.String(), bTx.GetModelName())
 }
 

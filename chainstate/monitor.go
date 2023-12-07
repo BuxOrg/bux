@@ -3,10 +3,10 @@ package chainstate
 import (
 	"context"
 	"fmt"
-
 	"github.com/BuxOrg/bux/logging"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/rs/zerolog"
+
+	"github.com/BuxOrg/bux/utils"
 )
 
 // Monitor starts a new monitorConfig to monitor and filter transactions from a source

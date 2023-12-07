@@ -2,7 +2,6 @@ package taskmanager
 
 import (
 	"context"
-
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
 	taskq "github.com/vmihailenco/taskq/v3"

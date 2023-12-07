@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"fmt"
+	"github.com/BuxOrg/bux/logging"
 	"sync"
 	"testing"
 	"time"

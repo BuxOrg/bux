@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"fmt"
-
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/logging"

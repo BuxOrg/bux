@@ -3,13 +3,14 @@ package bux
 import (
 	"context"
 	"database/sql"
+	"github.com/BuxOrg/bux/logging"
+	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
-	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
@@ -23,7 +24,6 @@ import (
 	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
 	taskq "github.com/vmihailenco/taskq/v3"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -283,8 +283,8 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 			// Enable the logger on all external services
 			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")
 			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
-			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger}))
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: &datastoreLogger}))
+			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(&cachestoreLogger))
 		}
 	}
 }

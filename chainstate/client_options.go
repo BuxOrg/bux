@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"time"
 
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"

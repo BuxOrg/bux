@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+	"github.com/BuxOrg/bux/logging"
 	"net/http"
 	"os"
 	"testing"

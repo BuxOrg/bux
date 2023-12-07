@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"net/http"
 	"time"
 

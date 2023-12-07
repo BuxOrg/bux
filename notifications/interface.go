@@ -2,9 +2,8 @@ package notifications
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/rs/zerolog"
+	"net/http"
 )
 
 // HTTPInterface is the HTTP client interface

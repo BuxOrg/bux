@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 
 	"github.com/libsv/go-bt/v2"
@@ -11,9 +10,35 @@ import (
 
 const maxBeefVer = uint32(0xFFFF) // value from BRC-62
 
-// ToBeefHex generates BEEF Hex for transaction
-func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
-	beef, err := newBeefTx(ctx, 1, tx)
+type beefTx struct {
+	version      uint32
+	bumps        BUMPs
+	transactions []*bt.Tx
+}
+
+// ToBeef generates BEEF Hex for transaction
+func ToBeef(ctx context.Context, tx *Transaction, store TransactionGetter) (string, error) {
+	if err := hydrateTransaction(ctx, tx); err != nil {
+		return "", err
+	}
+
+	bumpBtFactors, bumpFactors, err := prepareBEEFFactors(ctx, tx, store)
+	if err != nil {
+		return "", fmt.Errorf("prepareBUMPFactors() error: %w", err)
+	}
+
+	bumps, err := calculateMergedBUMP(bumpFactors)
+	sortedTxs := kahnTopologicalSortTransactions(bumpBtFactors)
+	beefHex, err := toBeefHex(ctx, bumps, sortedTxs)
+	if err != nil {
+		return "", fmt.Errorf("ToBeef() error: %w", err)
+	}
+
+	return beefHex, nil
+}
+
+func toBeefHex(ctx context.Context, bumps BUMPs, parentTxs []*bt.Tx) (string, error) {
+	beef, err := newBeefTx(ctx, 1, bumps, parentTxs)
 	if err != nil {
 		return "", fmt.Errorf("ToBeefHex() error: %w", err)
 	}
@@ -26,52 +51,19 @@ func ToBeefHex(ctx context.Context, tx *Transaction) (string, error) {
 	return hex.EncodeToString(beefBytes), nil
 }
 
-type beefTx struct {
-	version      uint32
-	bumps        BUMPs
-	transactions []*bt.Tx
-}
-
-func newBeefTx(ctx context.Context, version uint32, tx *Transaction) (*beefTx, error) {
+func newBeefTx(ctx context.Context, version uint32, bumps BUMPs, parentTxs []*bt.Tx) (*beefTx, error) {
 	if version > maxBeefVer {
 		return nil, fmt.Errorf("version above 0x%X", maxBeefVer)
 	}
 
-	var err error
-	if err = hydrateTransaction(ctx, tx); err != nil {
+	if err := validateBumps(bumps); err != nil {
 		return nil, err
 	}
-
-	if err = validateBumps(tx.draftTransaction.BUMPs); err != nil {
-		return nil, err
-	}
-
-	// get inputs parent transactions
-	inputs := tx.draftTransaction.Configuration.Inputs
-	transactions := make([]*bt.Tx, 0, len(inputs)+1)
-
-	for _, input := range inputs {
-		var prevTxs []*bt.Tx
-		prevTxs, err = getParentTransactionsForInput(ctx, tx.client, input)
-		if err != nil {
-			return nil, fmt.Errorf("retrieve input parent transaction failed: %w", err)
-		}
-
-		transactions = append(transactions, prevTxs...)
-	}
-
-	// add current transaction
-	var btTx *bt.Tx
-	btTx, err = bt.NewTxFromString(tx.Hex)
-	if err != nil {
-		return nil, fmt.Errorf("cannot convert new transaction to bt.Tx from hex (tx.ID: %s). Reason: %w", tx.ID, err)
-	}
-	transactions = append(transactions, btTx)
 
 	beef := &beefTx{
 		version:      version,
-		bumps:        tx.draftTransaction.BUMPs,
-		transactions: kahnTopologicalSortTransactions(transactions),
+		bumps:        bumps,
+		transactions: parentTxs,
 	}
 
 	return beef, nil
@@ -91,36 +83,4 @@ func hydrateTransaction(ctx context.Context, tx *Transaction) error {
 	}
 
 	return nil
-}
-
-func validateBumps(bumps BUMPs) error {
-	if len(bumps) == 0 {
-		return errors.New("empty bump paths slice")
-	}
-
-	for _, p := range bumps {
-		if len(p.Path) == 0 {
-			return errors.New("one of bump path is empty")
-		}
-	}
-
-	return nil
-}
-
-func getParentTransactionsForInput(ctx context.Context, client ClientInterface, input *TransactionInput) ([]*bt.Tx, error) {
-	inputTx, err := client.GetTransactionByID(ctx, input.UtxoPointer.TransactionID)
-	if err != nil {
-		return nil, err
-	}
-
-	if inputTx.MerkleProof.TxOrID != "" {
-		inputBtTx, err := bt.NewTxFromString(inputTx.Hex)
-		if err != nil {
-			return nil, fmt.Errorf("cannot convert to bt.Tx from hex (tx.ID: %s). Reason: %w", inputTx.ID, err)
-		}
-
-		return []*bt.Tx{inputBtTx}, nil
-	}
-
-	return nil, fmt.Errorf("transaction is not mined yet (tx.ID: %s)", inputTx.ID) // TODO: handle it in next iterration
 }

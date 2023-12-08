@@ -3,10 +3,10 @@ package bux
 import (
 	"context"
 
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
-	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bt/v2"
+
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/utils"
 )
 
 // TransactionBase is the same fields share between multiple transaction models
@@ -54,7 +54,6 @@ type Transaction struct {
 	TotalValue      uint64          `json:"total_value" toml:"total_value" yaml:"total_value" gorm:"<-create;type:bigint" bson:"total_value,omitempty"`
 	XpubMetadata    XpubMetadata    `json:"-" toml:"xpub_metadata" gorm:"<-;type:json;xpub_id specific metadata" bson:"xpub_metadata,omitempty"`
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
-	MerkleProof     MerkleProof     `json:"merkle_proof" toml:"merkle_proof" yaml:"merkle_proof" gorm:"<-;type:text;comment:Merkle Proof payload from mAPI" bson:"merkle_proof,omitempty"`
 	BUMP            BUMP            `json:"bump" toml:"bump" yaml:"bump" gorm:"<-;type:text;comment:BSV Unified Merkle Path (BUMP) Format" bson:"bump,omitempty"`
 
 	// Virtual Fields
@@ -72,12 +71,13 @@ type Transaction struct {
 	beforeCreateCalled bool                 `gorm:"-" bson:"-"` // Private information that the transaction lifecycle method BeforeCreate was already called
 }
 
-// newTransactionBase creates the standard transaction model base
-func newTransactionBase(hex string, opts ...ModelOps) *Transaction {
+type TransactionGetter interface {
+	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
+}
+
+func emptyTx(opts ...ModelOps) *Transaction {
 	return &Transaction{
-		TransactionBase: TransactionBase{
-			Hex: hex,
-		},
+		TransactionBase:    TransactionBase{},
 		Model:              *NewBaseModel(ModelTransaction, opts...),
 		Status:             statusComplete,
 		transactionService: transactionService{},
@@ -85,45 +85,64 @@ func newTransactionBase(hex string, opts ...ModelOps) *Transaction {
 	}
 }
 
-// newTransaction will start a new transaction model
-func newTransaction(txHex string, opts ...ModelOps) (tx *Transaction) {
-	tx = newTransactionBase(txHex, opts...)
+// baseTxFromHex creates the standard transaction model base
+func baseTxFromHex(hex string, opts ...ModelOps) (*Transaction, error) {
+	var btTx *bt.Tx
+	var err error
 
-	// Set the ID
-	if len(tx.Hex) > 0 {
-		_ = tx.setID()
+	if btTx, err = bt.NewTxFromString(hex); err != nil {
+		return nil, err
+	}
+
+	tx := emptyTx(opts...)
+	tx.ID = btTx.TxID()
+	tx.Hex = hex
+	tx.parsedTx = btTx
+
+	return tx, nil
+}
+
+// txFromHex will start a new transaction model
+func txFromHex(txHex string, opts ...ModelOps) (*Transaction, error) {
+
+	tx, err := baseTxFromHex(txHex, opts...)
+	if err != nil {
+		return nil, err
 	}
 
 	// Set xPub ID
 	tx.setXPubID()
 
-	return
+	return tx, nil
 }
 
 // newTransactionWithDraftID will start a new transaction model and set the draft ID
-func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (tx *Transaction) {
-	tx = newTransaction(txHex, opts...)
+func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transaction, error) {
+
+	tx, err := txFromHex(txHex, opts...)
+	if err != nil {
+		return nil, err
+	}
+
 	tx.DraftID = draftID
-	return
+
+	return tx, nil
 }
 
 // newTransactionFromIncomingTransaction will start a new transaction model using an incomingTx
-func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) *Transaction {
+func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) (*Transaction, error) {
 	// Create the base
-	tx := newTransactionBase(incomingTx.Hex, incomingTx.GetOptions(true)...)
-	tx.TransactionBase.parsedTx = incomingTx.TransactionBase.parsedTx
-	tx.rawXpubKey = incomingTx.rawXpubKey
-	tx.setXPubID()
+	tx, err := baseTxFromHex(incomingTx.Hex, incomingTx.GetOptions(true)...)
 
-	// Set the generic metadata (might be ignored if no xPub is used)
-	tx.Metadata = incomingTx.Metadata
-
-	// Set the ID (run the same method)
-	if len(tx.Hex) > 0 {
-		_ = tx.setID()
+	if err != nil {
+		return nil, err
 	}
 
-	return tx
+	tx.rawXpubKey = incomingTx.rawXpubKey
+	tx.setXPubID()
+	tx.Metadata = incomingTx.Metadata
+
+	return tx, nil
 }
 
 // setXPubID will set the xPub ID on the model
@@ -226,17 +245,16 @@ func (m *Transaction) isExternal() bool {
 func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {
 	m.BlockHash = txInfo.BlockHash
 	m.BlockHeight = uint64(txInfo.BlockHeight)
-	m.setMerkleRoot(txInfo)
+	m.setBUMP(txInfo)
 }
 
-func (m *Transaction) setMerkleRoot(txInfo *chainstate.TransactionInfo) {
-	if txInfo.MerkleProof != nil {
-		mp := MerkleProof(*txInfo.MerkleProof)
-		m.MerkleProof = mp
+func (m *Transaction) setBUMP(txInfo *chainstate.TransactionInfo) {
+	bump := MerkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
+	m.BUMP = bump
+}
 
-		bump := mp.ToBUMP(uint64(txInfo.BlockHeight))
-		m.BUMP = bump
-	}
+func (m *Transaction) isMined() bool {
+	return m.BlockHash != ""
 }
 
 // IsXpubAssociated will check if this key is associated to this transaction
@@ -303,49 +321,19 @@ func (m *Transaction) Display() interface{} {
 // hasOneKnownDestination will check if the transaction has at least one known destination
 //
 // This is used to validate if an external transaction should be recorded into the engine
-func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface, opts ...ModelOps) bool {
+func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client ClientInterface) bool {
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
-	lockingScript := ""
-	for index := range m.parsedTx.Outputs {
-		lockingScript = m.parsedTx.Outputs[index].LockingScript.String()
-		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript, opts...)
+	for _, output := range m.parsedTx.Outputs {
+		lockingScript := output.LockingScript.String()
+		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript)
+
 		if err != nil {
-			destination = newDestination("", lockingScript, opts...)
-			destination.Client().Logger().Error(ctx, "error getting destination: "+err.Error())
+			client.Logger().Error(ctx, "error getting destination: "+err.Error())
+			continue
+
 		} else if destination != nil && destination.LockingScript == lockingScript {
 			return true
 		}
 	}
 	return false
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *Transaction) RegisterTasks() error {
-	// No task manager loaded?
-	tm := m.Client().Taskmanager()
-	if tm == nil {
-		return nil
-	}
-
-	ctx := context.Background()
-	checkTask := m.Name() + "_" + TransactionActionCheck
-
-	if err := tm.RegisterTask(&taskmanager.Task{
-		Name:       checkTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskCheckTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+checkTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(checkTask),
-		TaskName:       checkTask,
-	})
 }

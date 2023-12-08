@@ -24,7 +24,7 @@ const (
 	dustLimit                      = uint64(1)         // Dust limit
 	mongoTestVersion               = "6.0.4"           // Mongo Testing Version
 	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                        = "v0.6.0"          // bux version
+	version                        = "v0.6.1"          // bux version
 )
 
 // Defaults for task cron jobs (tasks)
@@ -34,7 +34,6 @@ const (
 	taskIntervalProcessIncomingTxs  = 30 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalSyncActionBroadcast = 30 * time.Second                      // Default task time for cron jobs (seconds)
 	taskIntervalSyncActionSync      = 120 * time.Second                     // Default task time for cron jobs (seconds)
-	taskIntervalTransactionCheck    = 60 * time.Second                      // Default task time for cron jobs (seconds)
 )
 
 // All the base models

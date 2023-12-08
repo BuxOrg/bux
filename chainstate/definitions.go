@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/libsv/go-bc"
 )
 
 // Chainstate configuration defaults
@@ -51,17 +50,6 @@ const (
 	ProviderBroadcastClient = "broadcastclient" // Query & broadcast provider for configured miners
 	ProviderPulse           = "pulse"           // MerkleProof provider
 )
-
-// TransactionInfo is the universal information about the transaction found from a chain provider
-type TransactionInfo struct {
-	BlockHash     string          `json:"block_hash,omitempty"`    // mAPI, WOC
-	BlockHeight   int64           `json:"block_height"`            // mAPI, WOC
-	Confirmations int64           `json:"confirmations,omitempty"` // mAPI, WOC
-	ID            string          `json:"id"`                      // Transaction ID (Hex)
-	MinerID       string          `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
-	Provider      string          `json:"provider,omitempty"`      // Provider is our internal source
-	MerkleProof   *bc.MerkleProof `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY. Should be also supported by Arc in future
-}
 
 // DefaultFee is used when a fee has not been set by the user
 // This default is currently accepted by all BitcoinSV miners (50/1000) (7.27.23)

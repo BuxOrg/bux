@@ -249,7 +249,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -321,7 +323,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -361,7 +365,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -420,7 +426,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -477,7 +485,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -540,7 +550,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -588,7 +600,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -648,7 +662,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -821,7 +837,9 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		err = utxo.Save(ctx)
 		require.NoError(t, err)
 
-		transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+		require.NoError(t, err)
+
 		err = transaction.Save(ctx)
 		require.NoError(t, err)
 
@@ -1472,7 +1490,9 @@ func TestDraftTransaction_SignInputs(t *testing.T) {
 	err = utxo.Save(ctx)
 	require.NoError(t, err)
 
-	transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+	transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+	require.NoError(t, err)
+
 	err = transaction.Save(ctx)
 	require.NoError(t, err)
 
@@ -1558,15 +1578,11 @@ func initSimpleTestCase(t *testing.T) (context.Context, ClientInterface, func())
 	err = utxo.Save(ctx)
 	require.NoError(t, err)
 
-	transaction := newTransaction(testTxHex, append(client.DefaultModelOptions(), New())...)
+	transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)
+	require.NoError(t, err)
+
 	err = transaction.processUtxos(ctx)
 	require.NoError(t, err)
-	transaction.TotalValue, transaction.Fee = transaction.getValues()
-
-	if transaction.TransactionBase.parsedTx != nil {
-		transaction.NumberOfInputs = uint32(len(transaction.TransactionBase.parsedTx.Inputs))
-		transaction.NumberOfOutputs = uint32(len(transaction.TransactionBase.parsedTx.Outputs))
-	}
 
 	err = transaction.Save(ctx)
 	require.NoError(t, err)

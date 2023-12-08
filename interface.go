@@ -133,6 +133,7 @@ type PaymailService interface {
 type TransactionService interface {
 	GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error)
 	GetTransactionByID(ctx context.Context, txID string) (*Transaction, error)
+	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
 	GetTransactionByHex(ctx context.Context, hex string) (*Transaction, error)
 	GetTransactions(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Transaction, error)
@@ -148,7 +149,6 @@ type TransactionService interface {
 		opts ...ModelOps) (*Transaction, error)
 	RecordRawTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
-	recordTxHex(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
 	RevertTransaction(ctx context.Context, id string) error
 }
 

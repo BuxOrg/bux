@@ -30,15 +30,21 @@ func Test_areParentsBroadcast(t *testing.T) {
 
 	opts := []ModelOps{WithClient(client)}
 
-	tx := newTransaction(testTxHex, append(opts, New())...)
+	tx, err := txFromHex(testTxHex, append(opts, New())...)
+	require.NoError(t, err)
+
 	txErr := tx.Save(ctx)
 	require.NoError(t, txErr)
 
-	tx2 := newTransaction(testTx2Hex, append(opts, New())...)
+	tx2, err := txFromHex(testTx2Hex, append(opts, New())...)
+	require.NoError(t, err)
+
 	txErr = tx2.Save(ctx)
 	require.NoError(t, txErr)
 
-	tx3 := newTransaction(testTx3Hex, append(opts, New())...)
+	tx3, err := txFromHex(testTx3Hex, append(opts, New())...)
+	require.NoError(t, err)
+
 	txErr = tx3.Save(ctx)
 	require.NoError(t, txErr)
 

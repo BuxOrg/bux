@@ -53,7 +53,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 			return
 		}
 
-		if _, err = recordMonitoredTransaction(b.ctx, b.buxClient, tx); err != nil {
+		if _, err = b.buxClient.RecordRawTransaction(b.ctx, tx); err != nil {
 			// must not override err
 			btTx, btErr := bt.NewTxFromString(tx)
 			if btErr != nil {
@@ -372,7 +372,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 	if tx == "" {
 		return
 	}
-	if _, err = recordMonitoredTransaction(h.ctx, h.buxClient, tx); err != nil {
+	if _, err = h.buxClient.RecordRawTransaction(h.ctx, tx); err != nil {
 		h.logger.Error(h.ctx, fmt.Sprintf("[MONITOR] ERROR recording tx: %v", err))
 		return
 	}
@@ -450,7 +450,7 @@ func (h *MonitorEventHandler) SetMonitor(monitor *chainstate.Monitor) {
 
 // RecordTransaction records a transaction into bux
 func (h *MonitorEventHandler) RecordTransaction(ctx context.Context, txHex string) error {
-	_, err := recordMonitoredTransaction(ctx, h.buxClient, txHex)
+	_, err := h.buxClient.RecordRawTransaction(ctx, txHex)
 	return err
 }
 

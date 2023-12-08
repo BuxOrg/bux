@@ -152,11 +152,6 @@ func (m *Transaction) Migrate(client datastore.ClientInterface) error {
 		}
 	}
 
-	err := m.migrateBUMP()
-	if err != nil {
-		return err
-	}
-
 	return client.IndexMetadata(tableName, xPubMetadataField)
 }
 
@@ -213,19 +208,5 @@ func (m *Transaction) migrateMySQL(client datastore.ClientInterface, tableName s
 		return nil //nolint:nolintlint,nilerr // error is not needed
 	}
 
-	return nil
-}
-
-func (m *Transaction) migrateBUMP() error {
-	ctx := context.Background()
-	txs, err := getTransactionsToCalculateBUMP(ctx, nil, WithClient(m.client))
-	if err != nil {
-		return err
-	}
-	for _, tx := range txs {
-		bump := tx.MerkleProof.ToBUMP(tx.BlockHeight)
-		tx.BUMP = bump
-		_ = tx.Save(ctx)
-	}
 	return nil
 }

@@ -3,10 +3,9 @@ package bux
 import (
 	"context"
 
-	"github.com/libsv/go-bt/v2"
-
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bt/v2"
 )
 
 // TransactionBase is the same fields share between multiple transaction models
@@ -104,7 +103,6 @@ func baseTxFromHex(hex string, opts ...ModelOps) (*Transaction, error) {
 
 // txFromHex will start a new transaction model
 func txFromHex(txHex string, opts ...ModelOps) (*Transaction, error) {
-
 	tx, err := baseTxFromHex(txHex, opts...)
 	if err != nil {
 		return nil, err
@@ -118,7 +116,6 @@ func txFromHex(txHex string, opts ...ModelOps) (*Transaction, error) {
 
 // newTransactionWithDraftID will start a new transaction model and set the draft ID
 func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transaction, error) {
-
 	tx, err := txFromHex(txHex, opts...)
 	if err != nil {
 		return nil, err
@@ -133,7 +130,6 @@ func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transa
 func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) (*Transaction, error) {
 	// Create the base
 	tx, err := baseTxFromHex(incomingTx.Hex, incomingTx.GetOptions(true)...)
-
 	if err != nil {
 		return nil, err
 	}

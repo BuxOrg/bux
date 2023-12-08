@@ -11,7 +11,6 @@ import (
 
 // taskCleanupDraftTransactions will clean up all old expired draft transactions
 func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
-
 	logClient.Info(ctx, "running cleanup draft transactions task...")
 
 	// Construct an empty model
@@ -57,7 +56,6 @@ func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLog
 
 // taskProcessIncomingTransactions will process any incoming transactions found
 func taskProcessIncomingTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
-
 	logClient.Info(ctx, "running process incoming transaction(s) task...")
 
 	err := processIncomingTransactions(ctx, logClient, 10, opts...)
@@ -69,7 +67,6 @@ func taskProcessIncomingTransactions(ctx context.Context, logClient zLogger.Gorm
 
 // taskBroadcastTransactions will broadcast any transactions
 func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
-
 	logClient.Info(ctx, "running broadcast transaction(s) task...")
 
 	err := processBroadcastTransactions(ctx, 1000, opts...)
@@ -81,7 +78,6 @@ func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLogger
 
 // taskSyncTransactions will sync any transactions
 func taskSyncTransactions(ctx context.Context, c ClientInterface, opts ...ModelOps) error {
-
 	logClient := c.Logger()
 	logClient.Info(ctx, "running sync transaction(s) task...")
 

@@ -56,7 +56,6 @@ type ModelInterface interface {
 	New()
 	NotNew()
 	RawXpub() string
-	RegisterTasks() error
 	Save(ctx context.Context) (err error)
 	SetOptions(opts ...ModelOps)
 	SetRecordTime(bool)

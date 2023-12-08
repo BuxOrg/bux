@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
@@ -193,7 +192,6 @@ type ClientInterface interface {
 	DefaultSyncConfig() *SyncConfig
 	EnableNewRelic()
 	GetOrStartTxn(ctx context.Context, name string) context.Context
-	GetTaskPeriod(name string) time.Duration
 	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsEncryptionKeySet() bool
@@ -201,7 +199,6 @@ type ClientInterface interface {
 	IsIUCEnabled() bool
 	IsMigrationEnabled() bool
 	IsNewRelicEnabled() bool
-	ModifyTaskPeriod(name string, period time.Duration) error
 	SetNotificationsClient(notifications.ClientInterface)
 	UserAgent() string
 	Version() string

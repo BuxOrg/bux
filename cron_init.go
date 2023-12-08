@@ -7,16 +7,16 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 )
 
-type cronFunc func(ctx context.Context, client *Client) error
+type cronHandler func(ctx context.Context, client *Client) error
 
-type cronDefinition struct {
-	Handler cronFunc
+type cronJob struct {
+	Handler cronHandler
 	Name    string
 	Period  time.Duration
 }
 
-func registerCronTasks(client *Client, definitions []cronDefinition) (err error) {
-	tm := client.Taskmanager()
+func (c *Client) cronInit(cronJobsList []cronJob) (err error) {
+	tm := c.Taskmanager()
 	tm.ResetCron()
 	defer func() {
 		// stop other, already registered tasks if the func fails
@@ -27,13 +27,13 @@ func registerCronTasks(client *Client, definitions []cronDefinition) (err error)
 
 	ctx := context.Background()
 
-	for _, taskDef := range definitions {
+	for _, taskDef := range cronJobsList {
 		if err = tm.RegisterTask(&taskmanager.Task{
 			Name:       taskDef.Name,
 			RetryLimit: 1,
 			Handler: func() error {
-				if taskErr := taskDef.Handler(ctx, client); taskErr != nil {
-					client.Logger().Error(ctx, "error running %v task: %v", taskDef.Name, taskErr.Error())
+				if taskErr := taskDef.Handler(ctx, c); taskErr != nil {
+					c.Logger().Error(ctx, "error running %v task: %v", taskDef.Name, taskErr.Error())
 				}
 				return nil
 			},

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
@@ -35,10 +34,8 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
-
 	// Set the default options
 	return &clientOptions{
-
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
 		itc: true,
 
@@ -105,13 +102,6 @@ func defaultClientOptions() *clientOptions {
 		// Blank TaskManager config
 		taskManager: &taskManagerOptions{
 			ClientInterface: nil,
-			cronTasks: map[string]time.Duration{
-				ModelDestination.String() + "_monitor":                    taskIntervalMonitorCheck,
-				ModelDraftTransaction.String() + "_clean_up":              taskIntervalDraftCleanup,
-				ModelIncomingTransaction.String() + "_process":            taskIntervalProcessIncomingTxs,
-				ModelSyncTransaction.String() + "_" + syncActionBroadcast: taskIntervalSyncActionBroadcast,
-				ModelSyncTransaction.String() + "_" + syncActionSync:      taskIntervalSyncActionSync,
-			},
 		},
 
 		// Default user agent
@@ -164,7 +154,6 @@ func (o *clientOptions) addModels(list string, models ...interface{}) {
 
 // DefaultModelOptions will set any default model options (from Client options->model)
 func (c *Client) DefaultModelOptions(opts ...ModelOps) []ModelOps {
-
 	// Set the Client from the bux.Client onto the model
 	opts = append(opts, WithClient(c))
 
@@ -461,9 +450,9 @@ func WithPaymailClient(client paymail.ClientInterface) ClientOps {
 
 // WithPaymailSupport will set the configuration for Paymail support (as a server)
 func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string,
-	domainValidation, senderValidation bool) ClientOps {
+	domainValidation, senderValidation bool,
+) ClientOps {
 	return func(c *clientOptions) {
-
 		// Add generic capabilities
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithP2PCapabilities())
 

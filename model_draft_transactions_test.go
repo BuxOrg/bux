@@ -1424,23 +1424,6 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 	})
 }
 
-// TestDraftTransaction_RegisterTasks will test the method RegisterTasks()
-func TestDraftTransaction_RegisterTasks(t *testing.T) {
-	draftCleanupTask := "draft_transaction_clean_up"
-
-	t.Run("testing task: "+draftCleanupTask, func(t *testing.T) {
-		_, client, deferMe := CreateTestSQLiteClient(t, false, false)
-		defer deferMe()
-
-		assert.Equal(t, 60*time.Second, client.GetTaskPeriod(draftCleanupTask))
-
-		err := client.ModifyTaskPeriod(draftCleanupTask, 10*time.Minute)
-		require.NoError(t, err)
-
-		assert.Equal(t, 10*time.Minute, client.GetTaskPeriod(draftCleanupTask))
-	})
-}
-
 func TestDraftTransaction_SignInputs(t *testing.T) {
 	ctx, client, deferMe := CreateTestSQLiteClient(t, true, true)
 	defer deferMe()

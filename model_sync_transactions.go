@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
@@ -133,71 +132,4 @@ func (m *SyncTransaction) BeforeUpdating(ctx context.Context) error {
 // Migrate model specific migration on startup
 func (m *SyncTransaction) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableSyncTransactions), metadataField)
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *SyncTransaction) RegisterTasks() error {
-	// No task manager loaded?
-	tm := m.Client().Taskmanager()
-	if tm == nil {
-		return nil
-	}
-
-	// Sync with chain - task
-	// Register the task locally (cron task - set the defaults)
-	syncTask := m.Name() + "_" + syncActionSync
-	ctx := context.Background()
-
-	// Register the task
-	if err := tm.RegisterTask(&taskmanager.Task{
-		Name:       syncTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskSyncTransactions(ctx, client, WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+syncTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Run the task periodically
-	err := tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(syncTask),
-		TaskName:       syncTask,
-	})
-	if err != nil {
-		return err
-	}
-
-	// Broadcast - task
-	// Register the task locally (cron task - set the defaults)
-	broadcastTask := m.Name() + "_" + syncActionBroadcast
-
-	// Register the task
-	if err = tm.RegisterTask(&taskmanager.Task{
-		Name:       broadcastTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskBroadcastTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+broadcastTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Run the task periodically
-	if err = tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(broadcastTask),
-		TaskName:       broadcastTask,
-	}); err != nil {
-		return err
-	}
-
-	return nil
 }

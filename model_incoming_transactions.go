@@ -12,7 +12,6 @@ import (
 	zLogger "github.com/mrz1836/go-logger"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
 )
 
 // IncomingTransaction is an object representing the incoming (external) transaction (for pre-processing)
@@ -200,40 +199,6 @@ func (m *IncomingTransaction) AfterCreated(ctx context.Context) error {
 // Migrate model specific migration on startup
 func (m *IncomingTransaction) Migrate(client datastore.ClientInterface) error {
 	return client.IndexMetadata(client.GetTableName(tableIncomingTransactions), metadataField)
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *IncomingTransaction) RegisterTasks() error {
-	// No task manager loaded?
-	tm := m.Client().Taskmanager()
-	if tm == nil {
-		return nil
-	}
-
-	// Register the task locally (cron task - set the defaults)
-	processTask := m.Name() + "_process"
-	ctx := context.Background()
-
-	// Register the task
-	if err := tm.RegisterTask(&taskmanager.Task{
-		Name:       processTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskProcessIncomingTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+processTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Run the task periodically
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(processTask),
-		TaskName:       processTask,
-	})
 }
 
 // processIncomingTransactions will process incoming transaction records

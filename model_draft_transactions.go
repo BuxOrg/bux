@@ -18,7 +18,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
 )
 
@@ -782,40 +781,6 @@ func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
 
 	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
 	return nil
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *DraftTransaction) RegisterTasks() error {
-	// No task manager loaded?
-	tm := m.Client().Taskmanager()
-	if tm == nil {
-		return nil
-	}
-
-	// Register the task locally (cron task - set the defaults)
-	cleanUpTask := m.Name() + "_clean_up"
-	ctx := context.Background()
-
-	// Register the task
-	if err := tm.RegisterTask(&taskmanager.Task{
-		Name:       cleanUpTask,
-		RetryLimit: 1,
-		Handler: func(client ClientInterface) error {
-			if taskErr := taskCleanupDraftTransactions(ctx, client.Logger(), WithClient(client)); taskErr != nil {
-				client.Logger().Error(ctx, "error running "+cleanUpTask+" task: "+taskErr.Error())
-			}
-			return nil
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Run the task periodically
-	return tm.RunTask(ctx, &taskmanager.TaskOptions{
-		Arguments:      []interface{}{m.Client()},
-		RunEveryPeriod: m.Client().GetTaskPeriod(cleanUpTask),
-		TaskName:       cleanUpTask,
-	})
 }
 
 // Migrate model specific migration on startup

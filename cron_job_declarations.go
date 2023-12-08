@@ -7,6 +7,7 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 )
 
+// here is where we define all the cron jobs for the client
 var cronJobs = []taskmanager.CronJob{
 	{
 		Name:    "draft_transaction_clean_up",
@@ -30,7 +31,7 @@ var cronJobs = []taskmanager.CronJob{
 	},
 }
 
-// buxClientHandler converts a handler with a *Client target to a generic taskmanager.CronJobHandler
+// utility function - converts a handler with the *Client target to a generic taskmanager.CronJobHandler
 func buxClientHandler(handler func(ctx context.Context, client *Client) error) taskmanager.CronJobHandler {
 	return func(ctx context.Context, target interface{}) error {
 		return handler(ctx, target.(*Client))

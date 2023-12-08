@@ -9,19 +9,21 @@ import (
 )
 
 func TestCronTasks(t *testing.T) {
-	t.Run("register one cron job ", func(t *testing.T) {
+	makeClient := func() *Client {
 		ctx := context.Background()
+		clientInterface, _ := NewClient(ctx, DefaultClientOpts(true, true)...)
+		return clientInterface.(*Client)
+	}
 
-		clientInterface, err := NewClient(ctx, DefaultClientOpts(true, true)...)
-		require.NoError(t, err)
-
-		client := clientInterface.(*Client)
+	t.Run("register one cron job ", func(t *testing.T) {
+		client := makeClient()
 
 		times := make(chan time.Time)
 		counter := 0
 		desiredExecutions := 0
 		desiredPeriod := 100 * time.Millisecond
-		err = client.cronInit([]cronJob{
+
+		err := client.cronInit([]cronJob{
 			{
 				Name:   "test",
 				Period: desiredPeriod,

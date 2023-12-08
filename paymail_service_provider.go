@@ -317,7 +317,7 @@ func deriveKey(rawXPubKey string, num uint32) (k *derivedPubKey, err error) {
 func saveBEEFTxInputs(ctx context.Context, c ClientInterface, dBeef *beef.DecodedBEEF) {
 	inputsToAdd, err := getInputsWhichAreNotInDb(c, dBeef)
 	if err != nil {
-		c.Logger().Error(ctx, "error in saveBEEFTxInputs", err)
+		c.Logger().Error().Msgf("error in saveBEEFTxInputs: %v", err)
 	}
 
 	for _, input := range inputsToAdd {
@@ -325,14 +325,14 @@ func saveBEEFTxInputs(ctx context.Context, c ClientInterface, dBeef *beef.Decode
 		if input.BumpIndex != nil { // mined
 			bump, err = getBump(int(*input.BumpIndex), dBeef.BUMPs)
 			if err != nil {
-				c.Logger().Error(ctx, fmt.Errorf("error in saveBEEFTxInputs: %w for beef: %v", err, dBeef).Error())
+				c.Logger().Error().Msgf("error in saveBEEFTxInputs: %v for beef: %v", err, dBeef)
 			}
 
 		}
 
 		err = saveBeefTransactionInput(ctx, c, input, bump)
 		if err != nil {
-			c.Logger().Error(ctx, fmt.Errorf("error in saveBEEFTxInputs: %w for beef: %v", err, dBeef).Error())
+			c.Logger().Error().Msgf("error in saveBEEFTxInputs: %v for beef: %v", err, dBeef)
 		}
 	}
 }

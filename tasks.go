@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
 )
 
 // taskCleanupDraftTransactions will clean up all old expired draft transactions
-func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
-	logClient.Info(ctx, "running cleanup draft transactions task...")
+func taskCleanupDraftTransactions(ctx context.Context, client *Client) error {
+	client.Logger().Info(ctx, "running cleanup draft transactions task...")
 
 	// Construct an empty model
 	var models []DraftTransaction
@@ -29,7 +28,7 @@ func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLog
 
 	// Get the records
 	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
+		ctx, NewBaseModel(ModelNameEmpty, WithClient(client)).Client().Datastore(),
 		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {
@@ -43,7 +42,7 @@ func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLog
 	timeNow := time.Now().UTC()
 	for index := range models {
 		if timeNow.After(models[index].ExpiresAt) {
-			models[index].enrich(ModelDraftTransaction, opts...)
+			models[index].enrich(ModelDraftTransaction, WithClient(client))
 			models[index].Status = DraftStatusExpired
 			if err = models[index].Save(ctx); err != nil {
 				return err
@@ -55,10 +54,10 @@ func taskCleanupDraftTransactions(ctx context.Context, logClient zLogger.GormLog
 }
 
 // taskProcessIncomingTransactions will process any incoming transactions found
-func taskProcessIncomingTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
-	logClient.Info(ctx, "running process incoming transaction(s) task...")
+func taskProcessIncomingTransactions(ctx context.Context, client *Client) error {
+	client.Logger().Info(ctx, "running process incoming transaction(s) task...")
 
-	err := processIncomingTransactions(ctx, logClient, 10, opts...)
+	err := processIncomingTransactions(ctx, client.Logger(), 10, WithClient(client))
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
 		return nil
 	}
@@ -66,10 +65,10 @@ func taskProcessIncomingTransactions(ctx context.Context, logClient zLogger.Gorm
 }
 
 // taskBroadcastTransactions will broadcast any transactions
-func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, opts ...ModelOps) error {
-	logClient.Info(ctx, "running broadcast transaction(s) task...")
+func taskBroadcastTransactions(ctx context.Context, client *Client) error {
+	client.Logger().Info(ctx, "running broadcast transaction(s) task...")
 
-	err := processBroadcastTransactions(ctx, 1000, opts...)
+	err := processBroadcastTransactions(ctx, 1000, WithClient(client))
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
 		return nil
 	}
@@ -77,13 +76,13 @@ func taskBroadcastTransactions(ctx context.Context, logClient zLogger.GormLogger
 }
 
 // taskSyncTransactions will sync any transactions
-func taskSyncTransactions(ctx context.Context, c ClientInterface, opts ...ModelOps) error {
-	logClient := c.Logger()
+func taskSyncTransactions(ctx context.Context, client *Client) error {
+	logClient := client.Logger()
 	logClient.Info(ctx, "running sync transaction(s) task...")
 
 	// Prevent concurrent running
 	unlock, err := newWriteLock(
-		ctx, lockKeyProcessSyncTx, c.Cachestore(),
+		ctx, lockKeyProcessSyncTx, client.Cachestore(),
 	)
 	defer unlock()
 	if err != nil {
@@ -91,7 +90,7 @@ func taskSyncTransactions(ctx context.Context, c ClientInterface, opts ...ModelO
 		return nil
 	}
 
-	err = processSyncTransactions(ctx, 100, opts...)
+	err = processSyncTransactions(ctx, 100, WithClient(client))
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
 		return nil
 	}

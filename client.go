@@ -181,7 +181,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	}
 
 	// Register all model tasks & custom tasks
-	if err = client.cronInit(cronJobs); err != nil {
+	if err = client.Taskmanager().CronJobsInit(client, cronJobs); err != nil {
 		return nil, err
 	}
 

@@ -3,14 +3,13 @@ package bux
 import (
 	"context"
 	"database/sql"
-	"github.com/BuxOrg/bux/logging"
-	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
@@ -24,6 +23,7 @@ import (
 	"github.com/mrz1836/go-datastore"
 	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
 	taskq "github.com/vmihailenco/taskq/v3"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -270,7 +270,7 @@ func WithHTTPClient(httpClient HTTPInterface) ClientOps {
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger *zerolog.Logger, debug bool) ClientOps {
+func WithLogger(customLogger *zerolog.Logger) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger
@@ -281,10 +281,10 @@ func WithLogger(customLogger *zerolog.Logger, debug bool) ClientOps {
 			c.notifications.options = append(c.notifications.options, notifications.WithLogger(customLogger))
 
 			// Enable the logger on all external services
-			gormLog := zLogger.NewGormLogger(debug, 4)
-			gLog := logging.GormLoggerAdapter{Logger: customLogger}
-			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: &gLog}))
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(gormLog))
+			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")
+			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger}))
+			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
 		}
 	}
 }

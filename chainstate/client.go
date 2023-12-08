@@ -2,16 +2,16 @@ package chainstate
 
 import (
 	"context"
-	"github.com/BuxOrg/bux/logging"
-	"github.com/rs/zerolog"
 	"sync"
 	"time"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/libsv/go-bt/v2"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
 	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
 )

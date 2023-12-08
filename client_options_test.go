@@ -2,13 +2,13 @@ package bux
 
 import (
 	"context"
-	"github.com/BuxOrg/bux/logging"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/BuxOrg/bux/utils"

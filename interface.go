@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"github.com/rs/zerolog"
 	"net/http"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -13,6 +12,7 @@ import (
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 )
 
 // AccessKeyService is the access key actions

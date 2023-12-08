@@ -2,10 +2,10 @@ package cluster
 
 import (
 	"context"
-	"github.com/BuxOrg/bux/logging"
-	"github.com/rs/zerolog"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/go-redis/redis/v8"
+	"github.com/rs/zerolog"
 )
 
 type (

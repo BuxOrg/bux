@@ -97,7 +97,7 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 // broadcastSyncTransaction will broadcast transaction related to syncTx record
 func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(ctx, syncTx.client.Logger())
+	defer recoverAndLog(syncTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -184,7 +184,7 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 // _syncTxDataFromChain will process the sync transaction record, or save the failure
 func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(ctx, syncTx.client.Logger())
+	defer recoverAndLog(syncTx.client.Logger())
 
 	var err error
 
@@ -265,7 +265,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 // processP2PTransaction will process the sync transaction record, or save the failure
 func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(ctx, syncTx.client.Logger())
+	defer recoverAndLog(syncTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(

@@ -16,9 +16,9 @@ type MerkleRootConfirmationState string
 const (
 	// Confirmed state occurs when Merkle Root is found in the longest chain.
 	Confirmed MerkleRootConfirmationState = "CONFIRMED"
-	// UnableToVerify state occurs when Pulse is behind in synchronization with the longest chain.
-	Invalid MerkleRootConfirmationState = "INVALID"
 	// Invalid state occurs when Merkle Root is not found in the longest chain.
+	Invalid MerkleRootConfirmationState = "INVALID"
+	// UnableToVerify state occurs when Pulse is behind in synchronization with the longest chain.
 	UnableToVerify MerkleRootConfirmationState = "UNABLE_TO_VERIFY"
 )
 

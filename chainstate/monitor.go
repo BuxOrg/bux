@@ -3,10 +3,10 @@ package chainstate
 import (
 	"context"
 	"fmt"
-	"github.com/BuxOrg/bux/logging"
-	"github.com/rs/zerolog"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/rs/zerolog"
 )
 
 // Monitor starts a new monitorConfig to monitor and filter transactions from a source
@@ -217,7 +217,7 @@ func (m *Monitor) SetChainstateOptions(options *clientOptions) {
 }
 
 // Start open a socket to the service provider and monitorConfig transactions
-func (m *Monitor) Start(ctx context.Context, handler MonitorHandler, onStop func()) error {
+func (m *Monitor) Start(_ context.Context, handler MonitorHandler, onStop func()) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
@@ -234,7 +234,7 @@ func (m *Monitor) Start(ctx context.Context, handler MonitorHandler, onStop func
 }
 
 // Stop closes the monitoring socket and pauses monitoring
-func (m *Monitor) Stop(ctx context.Context) error {
+func (m *Monitor) Stop(_ context.Context) error {
 	m.logger.Info().Msg("[MONITOR] Stopping monitor...")
 	if m.IsConnected() { // Only close if still connected
 		if m.mempoolSyncChannelActive {

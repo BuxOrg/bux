@@ -2,16 +2,15 @@ package chainstate
 
 import (
 	"context"
-	"github.com/rs/zerolog"
 	"net/http"
 	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/centrifugal/centrifuge-go"
 	"github.com/libsv/go-bc"
+	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
-
-	"github.com/BuxOrg/bux/utils"
 )
 
 // HTTPInterface is the HTTP client interface

@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/rs/zerolog"
 	"regexp"
 	"strings"
 
+	"github.com/rs/zerolog"
 	boom "github.com/tylertreat/BoomFilters"
 )
 

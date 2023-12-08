@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"fmt"
+
 	"github.com/libsv/go-bt/v2"
 	"github.com/rs/zerolog"
 )
@@ -30,7 +31,7 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 
 	if strategy.broadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 
-		err := _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
+		err = _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
 			logger.
 				Error().Msgf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
@@ -121,11 +122,11 @@ func _hydrateExternalWithSync(tx *Transaction) {
 		tx.GetOptions(true)...,
 	)
 
-	// to simplfy: broadcast every external incoming txs
+	// to simplify: broadcast every external incoming txs
 	sync.BroadcastStatus = SyncStatusReady
 
 	sync.P2PStatus = SyncStatusSkipped  // the sender of the Tx should have already notified us
-	sync.SyncStatus = SyncStatusPending // wait until transaciton will be broadcasted
+	sync.SyncStatus = SyncStatusPending // wait until transactions will be broadcasted
 
 	// Use the same metadata
 	sync.Metadata = tx.Metadata

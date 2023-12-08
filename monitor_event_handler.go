@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog"
 	"runtime"
 	"strings"
 	"sync"
@@ -16,6 +15,7 @@ import (
 	"github.com/korovkin/limiter"
 	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt/v2"
+	"github.com/rs/zerolog"
 )
 
 // MonitorEventHandler for handling transaction events from a monitor

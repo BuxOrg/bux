@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/rs/zerolog"
 )
 
@@ -13,7 +14,7 @@ type internalIncomingTx struct {
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 }
 
-func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
 	logger.Info().Msgf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID)
 

@@ -4,12 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-minercraft/v2"
-
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/utils"
 )
 
 // chainStateBase is the base interface / methods

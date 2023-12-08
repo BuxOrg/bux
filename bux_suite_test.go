@@ -3,12 +3,12 @@ package bux
 import (
 	"context"
 	"fmt"
-	"github.com/BuxOrg/bux/logging"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/DATA-DOG/go-sqlmock"

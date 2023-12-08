@@ -310,7 +310,7 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 }
 
 // importCSVFile will import the block headers from a given CSV file
-func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string,
+func (m *BlockHeader) importCSVFile(_ context.Context, blockFile string,
 	readModel func(model *BlockHeader) error) error {
 
 	CSVFile, err := os.Open(blockFile) //nolint:gosec // file only added by administrator via config

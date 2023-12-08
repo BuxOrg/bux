@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 )
 
 // taskCleanupDraftTransactions will clean up all old expired draft transactions
@@ -87,7 +88,7 @@ func taskSyncTransactions(ctx context.Context, client *Client) error {
 	defer unlock()
 	if err != nil {
 		logClient.Warn().Msg("cannot run sync transaction(s) task,  previous run is not complete yet...")
-		return nil
+		return nil //nolint:nilerr // previous run is not complete yet
 	}
 
 	err = processSyncTransactions(ctx, 100, WithClient(client))

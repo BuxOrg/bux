@@ -126,12 +126,12 @@ func (bump *BUMP) add(b BUMP) error {
 	return nil
 }
 
-func (b *BUMP) calculateMerkleRoot() (string, error) {
+func (bump *BUMP) calculateMerkleRoot() (string, error) {
 	merkleRoot := ""
 
-	for _, bumpPathElement := range b.Path[0] {
+	for _, bumpPathElement := range bump.Path[0] {
 		if bumpPathElement.TxID {
-			calcMerkleRoot, err := calculateMerkleRoot(bumpPathElement, b)
+			calcMerkleRoot, err := calculateMerkleRoot(bumpPathElement, bump)
 			if err != nil {
 				return "", err
 			}

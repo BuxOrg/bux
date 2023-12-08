@@ -2,11 +2,11 @@ package chainstate
 
 import (
 	"context"
-	"github.com/BuxOrg/bux/logging"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/BuxOrg/bux/logging"
 	broadcast_client_mock "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client-mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

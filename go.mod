@@ -36,6 +36,7 @@ require (
 	github.com/tryvium-travels/memongo v0.10.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
+	go.elastic.co/ecszerolog v0.2.0
 	go.mongodb.org/mongo-driver v1.13.0
 	gorm.io/gorm v1.25.5
 )
@@ -117,7 +118,6 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	go.elastic.co/ecszerolog v0.2.0 // indirect
 	go.opentelemetry.io/otel v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect

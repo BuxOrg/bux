@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 )
 
 // IncomingTransaction is an object representing the incoming (external) transaction (for pre-processing)
@@ -137,7 +137,7 @@ func (m *IncomingTransaction) toTransactionDto() *Transaction {
 	t.parsedTx = m.parsedTx
 	t.rawXpubKey = m.rawXpubKey
 	t.setXPubID()
-	t.setID()
+	t.setID() //nolint:errcheck,gosec // error is not needed
 
 	t.Metadata = m.Metadata
 	t.NumberOfOutputs = uint32(len(m.parsedTx.Outputs))
@@ -181,7 +181,7 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 }
 
 // AfterCreated will fire after the model is created
-func (m *IncomingTransaction) AfterCreated(ctx context.Context) error {
+func (m *IncomingTransaction) AfterCreated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
 	// todo: this should be refactored into a task
@@ -242,7 +242,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 	logClient.Info().Msgf("processIncomingTransaction(): transaction: %v", incomingTx)
 
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(ctx, incomingTx.client.Logger())
+	defer recoverAndLog(incomingTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -290,7 +290,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 		logClient.Warn().Msgf("processIncomingTransaction(): txInfo for %s is invalid, will try again later", incomingTx.ID)
 
 		if incomingTx.client.IsDebug() {
-			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr // error is not needed
+			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr,govet,errchkjson // error is not needed
 			incomingTx.DebugLog(string(txInfoJSON))
 		}
 		return nil

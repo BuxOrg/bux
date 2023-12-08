@@ -1,13 +1,13 @@
 package bux
 
 import (
-	"context"
-	"github.com/rs/zerolog"
 	"runtime/debug"
 	"strings"
+
+	"github.com/rs/zerolog"
 )
 
-func recoverAndLog(ctx context.Context, log *zerolog.Logger) {
+func recoverAndLog(log *zerolog.Logger) {
 	if err := recover(); err != nil {
 		log.Error().Msgf(
 			"panic: %v - stack trace: %v", err,

@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/rs/zerolog"
 )

@@ -1,13 +1,13 @@
 package logging
 
 import (
-	"github.com/rs/zerolog"
-	"go.elastic.co/ecszerolog"
 	"os"
 
-	"context"
+	"github.com/rs/zerolog"
+	"go.elastic.co/ecszerolog"
 )
 
+// GetDefaultLogger generates and returns a default logger instance.
 func GetDefaultLogger() *zerolog.Logger {
 	logger := ecszerolog.New(os.Stdout, ecszerolog.Level(zerolog.DebugLevel)).
 		With().
@@ -17,12 +17,4 @@ func GetDefaultLogger() *zerolog.Logger {
 		Logger()
 
 	return &logger
-}
-
-type Logger struct {
-	*zerolog.Logger
-}
-
-func (l *Logger) Error(ctx context.Context, s string, i ...interface{}) {
-
 }

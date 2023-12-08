@@ -37,7 +37,7 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 }
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
-func (m *Transaction) BeforeCreating(ctx context.Context) error {
+func (m *Transaction) BeforeCreating(_ context.Context) error {
 	if m.beforeCreateCalled {
 		m.DebugLog("skipping: " + m.Name() + " BeforeCreating hook, because already called")
 		return nil

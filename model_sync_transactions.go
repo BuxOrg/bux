@@ -102,14 +102,15 @@ func (m *SyncTransaction) BeforeCreating(_ context.Context) error {
 }
 
 // AfterCreated will fire after the model is created in the Datastore
-func (m *SyncTransaction) AfterCreated(ctx context.Context) error {
+func (m *SyncTransaction) AfterCreated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
 	return nil
 }
 
-func (m *SyncTransaction) BeforeUpdating(ctx context.Context) error {
+// BeforeUpdating will fire before the model is being updated
+func (m *SyncTransaction) BeforeUpdating(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " BeforeUpdate hook...")
 
 	// Trim the results to the last 20

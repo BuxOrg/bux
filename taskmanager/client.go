@@ -3,10 +3,10 @@ package taskmanager
 import (
 	"context"
 	"errors"
-	"github.com/BuxOrg/bux/logging"
-	"github.com/rs/zerolog"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog"
 	taskq "github.com/vmihailenco/taskq/v3"
 )
 

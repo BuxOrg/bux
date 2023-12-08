@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 )
 
 // IncomingTransaction is an object representing the incoming (external) transaction (for pre-processing)

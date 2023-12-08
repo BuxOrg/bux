@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/rs/zerolog"
 	"regexp"
 	"strings"
 

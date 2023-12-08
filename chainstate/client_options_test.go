@@ -2,7 +2,6 @@ package chainstate
 
 import (
 	"context"
-	"github.com/BuxOrg/bux/logging"
 	"net/http"
 	"testing"
 	"time"

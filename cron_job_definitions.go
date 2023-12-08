@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 )
 
 // taskCleanupDraftTransactions will clean up all old expired draft transactions

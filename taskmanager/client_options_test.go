@@ -1,9 +1,9 @@
 package taskmanager
 
 import (
-	"github.com/BuxOrg/bux/logging"
 	"testing"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/stretchr/testify/assert"
 )
 

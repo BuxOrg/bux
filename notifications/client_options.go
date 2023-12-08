@@ -1,9 +1,10 @@
 package notifications
 
 import (
-	"github.com/rs/zerolog"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 const (

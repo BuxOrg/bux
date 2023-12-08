@@ -2,8 +2,6 @@ package chainstate
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/rs/zerolog"
@@ -100,19 +98,6 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 
 	// Set logger if not set
 	if monitor.logger == nil {
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println("monitor.logger is nil")
 		monitor.logger = logging.GetDefaultLogger()
 	}
 

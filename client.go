@@ -136,17 +136,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set the logger (if no custom logger was detected)
 	if client.options.logger == nil {
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println()
-		fmt.Println("New Client")
 		client.options.logger = logging.GetDefaultLogger()
 	}
 

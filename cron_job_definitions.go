@@ -28,7 +28,7 @@ func taskCleanupDraftTransactions(ctx context.Context, client *Client) error {
 
 	// Get the records
 	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, WithClient(client)).Client().Datastore(),
+		ctx, client.Datastore(),
 		&models, conditions, queryParams, defaultDatabaseReadTimeout,
 	); err != nil {
 		if errors.Is(err, datastore.ErrNoResults) {

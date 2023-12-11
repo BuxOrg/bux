@@ -120,7 +120,7 @@ func (m *SyncTransaction) BeforeUpdating(_ context.Context) error {
 	if ln > maxResultsLength {
 		m.Client().Logger().Warn().
 			Str("txID", m.ID).
-			Msgf("trimming syncTx.Results, TxID: %s", m.ID)
+			Msgf("trimming syncTx.Results")
 
 		m.Results.Results = m.Results.Results[ln-maxResultsLength:]
 	}

@@ -159,7 +159,7 @@ func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface,
 	if transaction.client != nil {
 		transaction.client.Logger().Info().
 			Str("txID", transaction.ID).
-			Msgf("finalizeP2PTransaction(): start %s for TxID: %s", p4.Format, transaction.ID)
+			Msgf("start %s", p4.Format)
 	}
 
 	p2pTransaction, err := buildP2pTx(ctx, p4, transaction)
@@ -172,7 +172,7 @@ func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface,
 		if transaction.client != nil {
 			transaction.client.Logger().Info().
 				Str("txID", transaction.ID).
-				Msgf("finalizeP2PTransaction(): error %s for TxID: %s, reason: %s", p4.Format, transaction.ID, err.Error())
+				Msgf("finalizeerror %s, reason: %s", p4.Format, err.Error())
 		}
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func finalizeP2PTransaction(ctx context.Context, client paymail.ClientInterface,
 	if transaction.client != nil {
 		transaction.client.Logger().Info().
 			Str("txID", transaction.ID).
-			Msgf("finalizeP2PTransaction(): successfully finished %s for TxID: %s", p4.Format, transaction.ID)
+			Msgf("successfully finished %s", p4.Format)
 	}
 	return &response.P2PTransactionPayload, nil
 }

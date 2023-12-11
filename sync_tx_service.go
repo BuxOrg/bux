@@ -85,7 +85,8 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 				); err != nil {
 					tx.Client().Logger().Error().
 						Str("txID", tx.ID).
-						Msgf("error running broadcast tx for xpub %s, tx %s: %s", xPubID, tx.ID, err.Error())
+						Str("xpubID", xPubID).
+						Msgf("error running broadcast tx: %s", err.Error())
 					return // stop processing transactions for this xpub if we found an error
 				}
 			}
@@ -212,7 +213,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
 			syncTx.client.Logger().Info().
 				Str("txID", syncTx.ID).
-				Msgf("processSyncTransaction(): Transaction %s not found on-chain, will try again later", syncTx.ID)
+				Msgf("Transaction not found on-chain, will try again later")
 
 			_bailAndSaveSyncTransaction(
 				ctx, syncTx, SyncStatusReady, syncActionSync, "all", "transaction not found on-chain",
@@ -225,7 +226,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 	if !txInfo.Valid() {
 		syncTx.client.Logger().Warn().
 			Str("txID", syncTx.ID).
-			Msgf("processSyncTransaction(): txInfo for %s is invalid, will try again later", syncTx.ID)
+			Msgf("txInfo is invalid, will try again later")
 
 		if syncTx.client.IsDebug() {
 			txInfoJSON, _ := json.Marshal(txInfo) //nolint:errchkjson // error is not needed
@@ -265,7 +266,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 
 	syncTx.client.Logger().Info().
 		Str("txID", syncTx.ID).
-		Msgf("processSyncTransaction(): Transaction %s processed successfully", syncTx.ID)
+		Msgf("Transaction processed successfully")
 	// Done!
 	return nil
 }

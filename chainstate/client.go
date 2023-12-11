@@ -27,7 +27,7 @@ type (
 	clientOptions struct {
 		config          *syncConfig     // Configuration for broadcasting and other chain-state actions
 		debug           bool            // For extra logs and additional debug information
-		logger          *zerolog.Logger // Internal logger interface
+		logger          *zerolog.Logger // Logger interface
 		monitor         MonitorService  // Monitor service
 		newRelicEnabled bool            // If NewRelic is enabled (parent application)
 		userAgent       string          // Custom user agent for outgoing HTTP Requests

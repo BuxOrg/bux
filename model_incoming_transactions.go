@@ -186,7 +186,9 @@ func (m *IncomingTransaction) AfterCreated(_ context.Context) error {
 
 	// todo: this should be refactored into a task
 	if err := processIncomingTransaction(context.Background(), m.Client().Logger(), m); err != nil {
-		m.Client().Logger().Error().Str("txID", m.GetID()).Msgf("error processing incoming transaction: %v", err.Error())
+		m.Client().Logger().Error().
+			Str("txID", m.GetID()).
+			Msgf("error processing incoming transaction: %v", err.Error())
 	}
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook...")
@@ -276,7 +278,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
 			logClient.Info().
 				Str("txID", incomingTx.GetID()).
-				Msgf("processIncomingTransaction(): broadcast of transaction %s was successful using %s. Incoming tx will be processed again.", incomingTx.ID, provider)
+				Msgf("broadcast of transaction was successful using %s. Incoming tx will be processed again.", provider)
 
 			// allow propagation
 			time.Sleep(3 * time.Second)
@@ -289,7 +291,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 	}
 
 	if !txInfo.Valid() {
-		logClient.Warn().Msgf("processIncomingTransaction(): txInfo for %s is invalid, will try again later", incomingTx.ID)
+		logClient.Warn().Str("txID", incomingTx.ID).Msg("txInfo is invalid, will try again later")
 
 		if incomingTx.client.IsDebug() {
 			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr,govet,errchkjson // error is not needed
@@ -298,7 +300,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 		return nil
 	}
 
-	logClient.Info().Msgf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider)
+	logClient.Info().Str("txID", incomingTx.ID).Msgf("found incoming transaction in %s", txInfo.Provider)
 
 	// Check if we have transaction in DB already
 	transaction, _ := getTransactionByID(
@@ -308,12 +310,14 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 	if transaction == nil {
 		// Create the new transaction model
 		if transaction, err = newTransactionFromIncomingTransaction(incomingTx); err != nil {
-			logClient.Error().Msgf("processIncomingTransaction(): newTransactionFromIncomingTransaction() for %s failed. Reason: %s", incomingTx.ID, err)
+			logClient.Error().Str("txID", incomingTx.ID).Msgf("creating a new tx failed. Reason: %s", err)
 			return err
 		}
 
 		if err = transaction.processUtxos(ctx); err != nil {
-			logClient.Error().Msgf("processIncomingTransaction(): processUtxos() for %s failed. Reason: %s", incomingTx.ID, err)
+			logClient.Error().
+				Str("txID", incomingTx.ID).
+				Msgf("processing utxos for tx failed. Reason: %s", err)
 			return err
 		}
 	}

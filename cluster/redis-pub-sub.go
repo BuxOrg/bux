@@ -40,7 +40,7 @@ func (r *RedisPubSub) Subscribe(channel Channel, callback func(data string)) (fu
 	channelName := r.prefix + string(channel)
 
 	if r.debug {
-		r.Logger().Info().Msgf("NEW SUBSCRIPTION: %s -> %s", channel, channelName)
+		r.Logger().Debug().Msgf("NEW SUBSCRIPTION: %s -> %s", channel, channelName)
 	}
 	sub := r.client.Subscribe(r.ctx, channelName)
 

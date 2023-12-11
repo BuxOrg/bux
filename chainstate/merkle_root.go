@@ -21,7 +21,7 @@ func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRoot
 	}
 
 	if merkleRootsRes.ConfirmationState == UnableToVerify {
-		c.options.logger.Warn().Msg("Warn: Some merkle roots were unable to be verified. Proceeding regardless.")
+		c.options.logger.Warn().Msg("Some merkle roots were unable to be verified. Proceeding regardless.")
 	}
 
 	return nil

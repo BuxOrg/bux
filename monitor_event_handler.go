@@ -47,7 +47,7 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 		tx, err := b.monitor.Processor().FilterTransactionPublishEvent(e.Data)
 		if err != nil {
 			b.errors = append(b.errors, err)
-			b.logger.Error().Msgf("[MONITOR] Error processing block data: %s", err.Error())
+			b.logger.Error().Msgf("[MONITOR] processing block data: %s", err.Error())
 		}
 
 		if tx == "" {
@@ -58,11 +58,11 @@ func (b *blockSubscriptionHandler) OnPublish(subscription *centrifuge.Subscripti
 			// must not override err
 			btTx, btErr := bt.NewTxFromString(tx)
 			if btErr != nil {
-				b.logger.Error().Msgf("[MONITOR] ERROR could not parse transaction: %v", btErr)
+				b.logger.Error().Msgf("[MONITOR] could not parse transaction: %v", btErr)
 				return
 			}
 
-			b.logger.Error().Msgf("[MONITOR] ERROR recording tx %s: %v", btTx.TxID(), err)
+			b.logger.Error().Msgf("[MONITOR] recording tx %s: %v", btTx.TxID(), err)
 			b.errors = append(b.errors, err)
 			return
 		}
@@ -106,13 +106,13 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 	filters := h.monitor.Processor().GetFilters()
 	for regex, bloomFilter := range filters {
 		if _, err := agentClient.SetFilter(regex, bloomFilter); err != nil {
-			h.logger.Error().Msgf("[MONITOR] ERROR processing mempool: %s", err.Error())
+			h.logger.Error().Msgf("[MONITOR] processing mempool: %s", err.Error())
 		}
 	}
 
 	h.logger.Info().Msg("[MONITOR] PROCESS BLOCK HEADERS")
 	if err := h.ProcessBlockHeaders(h.ctx, client); err != nil {
-		h.logger.Error().Msgf("[MONITOR] ERROR processing block headers: %s", err.Error())
+		h.logger.Error().Msgf("[MONITOR] processing block headers: %s", err.Error())
 	}
 
 	h.logger.Info().Msg("[MONITOR] PROCESS BLOCKS")
@@ -120,7 +120,7 @@ func (h *MonitorEventHandler) OnConnect(client *centrifuge.Client, e centrifuge.
 	go func() {
 		ctx := context.Background()
 		if err := h.ProcessBlocks(ctx, client, h.blockSyncChannel); err != nil {
-			h.logger.Error().Msgf("[MONITOR] ERROR processing blocks: %s", err.Error())
+			h.logger.Error().Msgf("[MONITOR] processing blocks: %s", err.Error())
 		}
 	}()
 
@@ -269,13 +269,13 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 		bi := chainstate.BlockInfo{}
 		err := json.Unmarshal(e.Data, &bi)
 		if err != nil {
-			h.logger.Error().Msgf("[MONITOR] ERROR unmarshalling block header: %v", err)
+			h.logger.Error().Msgf("[MONITOR] unmarshalling block header: %v", err)
 			return
 		}
 
 		var existingBlock *BlockHeader
 		if existingBlock, err = h.buxClient.GetBlockHeaderByHeight(h.ctx, uint32(bi.Height)); err != nil {
-			h.logger.Error().Msgf("[MONITOR] ERROR getting block header by height: %v", err)
+			h.logger.Error().Msgf("[MONITOR] getting block header by height: %v", err)
 		}
 
 		if existingBlock == nil {
@@ -294,7 +294,7 @@ func (h *MonitorEventHandler) OnPublish(subscription *centrifuge.Subscription, e
 			if _, err = h.buxClient.RecordBlockHeader(
 				h.ctx, bi.Hash, uint32(bi.Height), bh,
 			); err != nil {
-				h.logger.Error().Msgf("[MONITOR] ERROR recording block header: %v", err)
+				h.logger.Error().Msgf("[MONITOR] recording block header: %v", err)
 				return
 			}
 		}
@@ -373,7 +373,7 @@ func (h *MonitorEventHandler) processMempoolPublish(_ *centrifuge.Client, e cent
 		return
 	}
 	if _, err = h.buxClient.RecordRawTransaction(h.ctx, tx); err != nil {
-		h.logger.Error().Msgf("[MONITOR] ERROR recording tx: %v", err)
+		h.logger.Error().Msgf("[MONITOR] recording tx: %v", err)
 		return
 	}
 
@@ -386,7 +386,7 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Clien
 	bi := chainstate.BlockInfo{}
 	err := json.Unmarshal(e.Data, &bi)
 	if err != nil {
-		h.logger.Error().Msgf("[MONITOR] ERROR unmarshalling block header: %v", err)
+		h.logger.Error().Msgf("[MONITOR] unmarshalling block header: %v", err)
 		return
 	}
 	merkleRoot, _ := hex.DecodeString(bi.MerkleRoot)
@@ -404,19 +404,19 @@ func (h *MonitorEventHandler) processBlockHeaderPublish(client *centrifuge.Clien
 	var previousBlockHeader *BlockHeader
 	previousBlockHeader, err = getBlockHeaderByHeight(h.ctx, height-1, h.buxClient.DefaultModelOptions()...)
 	if err != nil {
-		h.logger.Error().Msgf("[MONITOR] ERROR retreiving previous block header: %v", err)
+		h.logger.Error().Msgf("[MONITOR] retreiving previous block header: %v", err)
 		return
 	}
 	if previousBlockHeader == nil {
 		h.logger.Error().Msgf("[MONITOR] ERROR Previous block header not found: %d", height-1)
 		if err = h.ProcessBlockHeaders(h.ctx, client); err != nil {
-			h.logger.Error().Msgf("[MONITOR] ERROR processing block headers: %s", err.Error())
+			h.logger.Error().Msgf("[MONITOR] processing block headers: %s", err.Error())
 		}
 		return
 	}
 
 	if _, err = h.buxClient.RecordBlockHeader(h.ctx, bi.Hash, height, bh); err != nil {
-		h.logger.Error().Msgf("[MONITOR] ERROR recording block header: %v", err)
+		h.logger.Error().Msgf("[MONITOR] recording block header: %v", err)
 		return
 	}
 
@@ -439,7 +439,7 @@ func (h *MonitorEventHandler) onServerPublishParallel(c *centrifuge.Client, e ce
 		h.onServerPublishLinear(c, e)
 	})
 	if err != nil {
-		h.logger.Error().Msgf("[MONITOR] ERROR failed to start goroutine: %v", err)
+		h.logger.Error().Msgf("[MONITOR] failed to start goroutine: %v", err)
 	}
 }
 

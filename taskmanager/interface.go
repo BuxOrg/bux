@@ -12,6 +12,7 @@ type TaskService interface {
 	ResetCron()
 	RunTask(ctx context.Context, options *TaskOptions) error
 	Tasks() map[string]*taskq.Task
+	CronJobsInit(target interface{}, cronJobsMap CronJobs) error
 }
 
 // CronService is the cron service provider

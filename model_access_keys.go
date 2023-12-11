@@ -35,7 +35,6 @@ type AccessKey struct {
 
 // newAccessKey will start a new model
 func newAccessKey(xPubID string, opts ...ModelOps) *AccessKey {
-
 	privateKey, _ := bitcoin.CreatePrivateKey()
 	publicKey := hex.EncodeToString(privateKey.PubKey().SerialiseCompressed())
 	id := utils.Hash(publicKey)
@@ -53,7 +52,6 @@ func newAccessKey(xPubID string, opts ...ModelOps) *AccessKey {
 
 // getAccessKey will get the model with a given ID
 func getAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey, error) {
-
 	// Construct an empty tx
 	key := &AccessKey{
 		ID: id,
@@ -72,8 +70,8 @@ func getAccessKey(ctx context.Context, id string, opts ...ModelOps) (*AccessKey,
 
 // getAccessKeys will get all the access keys with the given conditions
 func getAccessKeys(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*AccessKey, error) {
 	modelItems := make([]*AccessKey, 0)
 	if err := getModelsByConditions(ctx, ModelAccessKey, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
@@ -84,19 +82,19 @@ func getAccessKeys(ctx context.Context, metadata *Metadata, conditions *map[stri
 
 // getAccessKeysCount will get a count of all the access keys with the given conditions
 func getAccessKeysCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	opts ...ModelOps) (int64, error) {
-
+	opts ...ModelOps,
+) (int64, error) {
 	return getModelCountByConditions(ctx, ModelAccessKey, AccessKey{}, metadata, conditions, opts...)
 }
 
 // getAccessKeysByXPubID will get all the access keys that match the metadata search
 func getAccessKeysByXPubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*AccessKey, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*AccessKey, error) {
 	// Construct an empty model
 	var models []AccessKey
 
-	var dbConditions = map[string]interface{}{}
+	dbConditions := map[string]interface{}{}
 	if conditions != nil {
 		dbConditions = *conditions
 	}
@@ -129,9 +127,9 @@ func getAccessKeysByXPubID(ctx context.Context, xPubID string, metadata *Metadat
 
 // getAccessKeysByXPubIDCount will get a count of all the access keys that match the metadata search
 func getAccessKeysByXPubIDCount(ctx context.Context, xPubID string, metadata *Metadata,
-	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
-
-	var dbConditions = map[string]interface{}{}
+	conditions *map[string]interface{}, opts ...ModelOps,
+) (int64, error) {
+	dbConditions := map[string]interface{}{}
 	if conditions != nil {
 		dbConditions = *conditions
 	}
@@ -186,11 +184,6 @@ func (m *AccessKey) BeforeCreating(_ context.Context) error {
 	}
 
 	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
-	return nil
-}
-
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *AccessKey) RegisterTasks() error {
 	return nil
 }
 

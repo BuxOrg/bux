@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
@@ -112,9 +111,9 @@ type (
 
 	// taskManagerOptions holds the configuration for taskmanager
 	taskManagerOptions struct {
-		taskmanager.ClientInterface                          // Client for TaskManager
-		cronTasks                   map[string]time.Duration // List of tasks and period times (IE: task_name 30*time.Minute = @every 30m)
-		options                     []taskmanager.ClientOps  // List of options
+		taskmanager.ClientInterface                         // Client for TaskManager
+		cronJobs                    taskmanager.CronJobs    // List of cron jobs
+		options                     []taskmanager.ClientOps // List of options
 	}
 )
 
@@ -123,7 +122,6 @@ type (
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
 func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) {
-
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 
@@ -184,7 +182,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	}
 
 	// Register all model tasks & custom tasks
-	if err = client.registerAllTasks(); err != nil {
+	if err = client.Taskmanager().CronJobsInit(client, client.options.taskManager.cronJobs); err != nil {
 		return nil, err
 	}
 
@@ -208,7 +206,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 // AddModels will add additional models to the client
 func (c *Client) AddModels(ctx context.Context, autoMigrate bool, models ...interface{}) error {
-
 	// Store the models locally in the client
 	c.options.addModels(modelList, models...)
 
@@ -235,8 +232,7 @@ func (c *Client) AddModels(ctx context.Context, autoMigrate bool, models ...inte
 		}
 	}
 
-	// Register all tasks (again)
-	return c.registerAllTasks()
+	return nil
 }
 
 // Cachestore will return the Cachestore IF: exists and is enabled
@@ -265,7 +261,6 @@ func (c *Client) Chainstate() chainstate.ClientInterface {
 
 // Close will safely close any open connections (cache, datastore, etc.)
 func (c *Client) Close(ctx context.Context) error {
-
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("close_all").End()
 	}
@@ -320,7 +315,6 @@ func (c *Client) Datastore() datastore.ClientInterface {
 
 // Debug will toggle the debug mode (for all resources)
 func (c *Client) Debug(on bool) {
-
 	// Set the flag on the current client
 	c.options.debug = on
 
@@ -379,14 +373,6 @@ func (c *Client) GetOrStartTxn(ctx context.Context, name string) context.Context
 	return ctx
 }
 
-// GetTaskPeriod will return the period for a given task name
-func (c *Client) GetTaskPeriod(name string) time.Duration {
-	if d, ok := c.options.taskManager.cronTasks[name]; ok {
-		return d
-	}
-	return 0
-}
-
 // GetModelNames will return the model names that have been loaded
 func (c *Client) GetModelNames() []string {
 	return c.options.models.modelNames
@@ -440,37 +426,6 @@ func (c *Client) IsMigrationEnabled() bool {
 // Logger will return the Logger if it exists
 func (c *Client) Logger() zLogger.GormLoggerInterface {
 	return c.options.logger
-}
-
-// ModifyTaskPeriod will modify a cron task's duration period from the default
-func (c *Client) ModifyTaskPeriod(name string, period time.Duration) error {
-
-	// Basic validation on parameters
-	if len(name) == 0 {
-		return taskmanager.ErrMissingTaskName
-	} else if period <= 0 {
-		return taskmanager.ErrInvalidTaskDuration
-	}
-
-	// Ensure task manager has been loaded
-	if c.Taskmanager() == nil || c.options.taskManager.cronTasks == nil {
-		return ErrTaskManagerNotLoaded
-	} else if len(c.options.taskManager.cronTasks) == 0 {
-		return taskmanager.ErrNoTasksFound
-	}
-
-	// Check for the task
-	if d, ok := c.options.taskManager.cronTasks[name]; !ok {
-		return taskmanager.ErrTaskNotFound
-	} else if d == period {
-		return nil
-	}
-
-	// Set the new period on the client
-	c.options.taskManager.cronTasks[name] = period
-
-	// register all tasks again (safely override)
-	return c.registerAllTasks()
 }
 
 // Notifications will return the Notifications if it exists

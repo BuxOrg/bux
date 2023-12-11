@@ -50,7 +50,6 @@ func (m *Model) enrich(name ModelName, opts ...ModelOps) {
 
 // GetOptions will get the options that are set on that model
 func (m *Model) GetOptions(isNewRecord bool) (opts []ModelOps) {
-
 	// Client was set on the model
 	if m.client != nil {
 		opts = append(opts, WithClient(m.client))
@@ -131,11 +130,6 @@ func (m *Model) Display() interface{} {
 	return m
 }
 
-// RegisterTasks will register the model specific tasks on client initialization
-func (m *Model) RegisterTasks() error {
-	return nil
-}
-
 // AfterUpdated will fire after a successful update into the Datastore
 func (m *Model) AfterUpdated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
@@ -152,8 +146,8 @@ func (m *Model) AfterCreated(_ context.Context) error {
 
 // incrementField will increment the given field atomically in the datastore
 func incrementField(ctx context.Context, model ModelInterface, fieldName string,
-	increment int64) (int64, error) {
-
+	increment int64,
+) (int64, error) {
 	// Check for client
 	c := model.Client()
 	if c == nil {
@@ -173,7 +167,6 @@ func incrementField(ctx context.Context, model ModelInterface, fieldName string,
 
 // notify about an event on the model
 func notify(eventType notifications.EventType, model interface{}) {
-
 	// run the notifications in a separate goroutine since there could be significant network delay
 	// communicating with a notification provider
 

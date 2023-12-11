@@ -17,7 +17,6 @@ import (
 
 // loadCache will load caching configuration and start the Cachestore client
 func (c *Client) loadCache(ctx context.Context) (err error) {
-
 	// Load if a custom interface was NOT provided
 	if c.options.cacheStore.ClientInterface == nil {
 		c.options.cacheStore.ClientInterface, err = cachestore.NewClient(ctx, c.options.cacheStore.options...)
@@ -27,7 +26,6 @@ func (c *Client) loadCache(ctx context.Context) (err error) {
 
 // loadCluster will load the cluster coordinator
 func (c *Client) loadCluster(ctx context.Context) (err error) {
-
 	// Load if a custom interface was NOT provided
 	if c.options.cluster.ClientInterface == nil {
 		c.options.cluster.ClientInterface, err = cluster.NewClient(ctx, c.options.cluster.options...)
@@ -38,7 +36,6 @@ func (c *Client) loadCluster(ctx context.Context) (err error) {
 
 // loadChainstate will load chainstate configuration and start the Chainstate client
 func (c *Client) loadChainstate(ctx context.Context) (err error) {
-
 	// Load chainstate if a custom interface was NOT provided
 	if c.options.chainstate.ClientInterface == nil {
 		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithUserAgent(c.UserAgent()))
@@ -53,7 +50,6 @@ func (c *Client) loadChainstate(ctx context.Context) (err error) {
 //
 // NOTE: this will run database migrations if the options was set
 func (c *Client) loadDatastore(ctx context.Context) (err error) {
-
 	// Add the models to migrate (after loading the client options)
 	if len(c.options.models.migrateModelNames) > 0 {
 		c.options.dataStore.options = append(
@@ -100,7 +96,6 @@ func (c *Client) loadDatastore(ctx context.Context) (err error) {
 
 // loadNotificationClient will load the notifications client
 func (c *Client) loadNotificationClient() (err error) {
-
 	// Load notification if a custom interface was NOT provided
 	if c.options.notifications.ClientInterface == nil {
 		c.options.notifications.ClientInterface, err = notifications.NewClient(c.options.notifications.options...)
@@ -132,7 +127,6 @@ func (c *Client) loadTaskmanager(ctx context.Context) (err error) {
 //
 // Cachestore is required to be loaded before this method is called
 func (c *Client) loadMonitor(ctx context.Context) (err error) {
-
 	// Check if the monitor was set by the user
 	monitor := c.options.chainstate.Monitor()
 	if monitor == nil {
@@ -186,7 +180,6 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 
 // runModelMigrations will run the model Migrate() method for all models
 func (c *Client) runModelMigrations(models ...interface{}) (err error) {
-
 	// If the migrations are disabled, just return
 	if c.options.dataStore.migrationDisabled {
 		return nil
@@ -203,26 +196,8 @@ func (c *Client) runModelMigrations(models ...interface{}) (err error) {
 	return
 }
 
-// runModelRegisterTasks will run the model RegisterTasks() method for all models
-func (c *Client) runModelRegisterTasks(models ...interface{}) (err error) {
-	for _, model := range models {
-		model.(ModelInterface).SetOptions(c.DefaultModelOptions()...)
-		if err = model.(ModelInterface).RegisterTasks(); err != nil {
-			return
-		}
-	}
-	return
-}
-
-// registerAllTasks will register all tasks for all models
-func (c *Client) registerAllTasks() error {
-	c.Taskmanager().ResetCron()
-	return c.runModelRegisterTasks(c.options.models.models...)
-}
-
 // loadDefaultPaymailConfig will load the default paymail server configuration
 func (c *Client) loadDefaultPaymailConfig() (err error) {
-
 	// Default FROM paymail
 	if len(c.options.paymail.serverConfig.DefaultFromPaymail) == 0 {
 		c.options.paymail.serverConfig.DefaultFromPaymail = defaultSenderPaymail

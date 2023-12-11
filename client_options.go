@@ -276,9 +276,12 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 			c.logger = customLogger
 
 			// Enable the logger on all bux services
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(customLogger))
-			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(customLogger))
-			c.notifications.options = append(c.notifications.options, notifications.WithLogger(customLogger))
+			chainstateLogger := customLogger.With().Str("subservice", "chainstate").Logger()
+			taskManagerLogger := customLogger.With().Str("subservice", "taskManager").Logger()
+			notificationsLogger := customLogger.With().Str("subservice", "notifications").Logger()
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(&chainstateLogger))
+			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(&taskManagerLogger))
+			c.notifications.options = append(c.notifications.options, notifications.WithLogger(&notificationsLogger))
 
 			// Enable the logger on all external services
 			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")

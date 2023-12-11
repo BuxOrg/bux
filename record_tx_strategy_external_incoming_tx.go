@@ -27,14 +27,17 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): creation of external incoming tx failed. Reason: %w", err)
 	}
 
-	logger.Info().Msgf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID)
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msgf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID)
 
 	if strategy.broadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 
 		err = _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
-			logger.
-				Error().Msgf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
+			logger.Error().
+				Str("txID", transaction.ID).
+				Msgf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
 
 			return nil, fmt.Errorf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w", err)
 		}
@@ -45,7 +48,9 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): saving of Transaction failed. Reason: %w", err)
 	}
 
-	logger.Info().Msgf("ExternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msgf("ExternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
 	return transaction, nil
 }
 
@@ -82,7 +87,9 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): tx creation failed. Reason: %w", err)
 	}
 
-	logger.Info().Msgf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID)
+	logger.Info().
+		Str("txID", incomingTx.ID).
+		Msgf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID)
 
 	if err = incomingTx.Save(ctx); err != nil {
 		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): addind new IncomingTx to check queue failed. Reason: %w", err)
@@ -91,7 +98,9 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 	result := incomingTx.toTransactionDto()
 	result.Status = statusProcessing
 
-	logger.Info().Msgf("ExternalIncomingTx.Execute(): complete ITC, TxID: %s", incomingTx.ID)
+	logger.Info().
+		Str("txID", incomingTx.ID).
+		Msgf("ExternalIncomingTx.Execute(): complete ITC, TxID: %s", incomingTx.ID)
 	return result, nil
 }
 
@@ -140,15 +149,17 @@ func _externalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tx 
 	err := broadcastSyncTransaction(ctx, tx.syncTransaction)
 
 	if err == nil {
-		logger.
-			Info().Msgf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID)
+		logger.Info().
+			Str("txID", tx.ID).
+			Msgf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID)
 
 		return nil
 	}
 
 	if allowErrors {
-		logger.
-			Warn().Msgf("ExternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID)
+		logger.Warn().
+			Str("txID", tx.ID).
+			Msgf("ExternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID)
 
 		// ignore error, transaction will be broadcaset in a cron task
 		return nil

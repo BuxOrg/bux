@@ -133,9 +133,7 @@ func (c *Client) Debug(on bool) {
 
 // DebugLog will display verbose logs
 func (c *Client) DebugLog(text string) {
-	if c.IsDebug() {
-		c.options.logger.Debug().Msg(text)
-	}
+	c.options.logger.Debug().Msg(text)
 }
 
 // IsDebug will return if debugging is enabled

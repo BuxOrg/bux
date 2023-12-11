@@ -16,7 +16,7 @@ func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRoot
 	}
 
 	if merkleRootsRes.ConfirmationState == Invalid {
-		c.options.logger.Warn().Msg("Warn: Not all merkle roots confirmed")
+		c.options.logger.Warn().Msg("Not all merkle roots confirmed")
 		return errors.New("not all merkle roots confirmed")
 	}
 

@@ -102,7 +102,7 @@ func getXpubWithCache(ctx context.Context, client ClientInterface,
 		return xPub, nil
 	}
 
-	client.Logger().Info().Msg("xpub not found in cache")
+	client.Logger().Info().Str("xpub", xPubID).Msg("xpub not found in cache")
 
 	// Get the xPub
 	if xPub, err = getXpubByID(

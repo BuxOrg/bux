@@ -16,7 +16,9 @@ type internalIncomingTx struct {
 
 func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
-	logger.Info().Msgf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID)
+	logger.Info().
+		Str("txID", strategy.Tx.ID).
+		Msgf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID)
 
 	// process
 	transaction := strategy.Tx
@@ -31,14 +33,17 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 
 		err := _internalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
-			logger.
-				Error().Msgf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
+			logger.Error().
+				Str("txID", transaction.ID).
+				Msgf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
 
 			return nil, fmt.Errorf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
 		}
 	}
 
-	logger.Info().Msgf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msgf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
 	return transaction, nil
 }
 
@@ -67,21 +72,25 @@ func (strategy *internalIncomingTx) FailOnBroadcastError(forceFail bool) {
 }
 
 func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, transaction *Transaction, allowErrors bool) error {
-	logger.Info().Msgf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID)
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msgf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID)
 
 	syncTx := transaction.syncTransaction
 	err := broadcastSyncTransaction(ctx, syncTx)
 
 	if err == nil {
-		logger.
-			Info().Msgf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID)
+		logger.Info().
+			Str("txID", transaction.ID).
+			Msgf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID)
 
 		return nil
 	}
 
 	if allowErrors {
-		logger.
-			Warn().Msgf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID)
+		logger.Warn().
+			Str("txID", transaction.ID).
+			Msgf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID)
 
 		// ignore broadcast error - will be repeted by task manager
 		return nil

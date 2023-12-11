@@ -34,8 +34,8 @@ func (m *Model) ChildModels() []ModelInterface {
 // DebugLog will display verbose logs
 func (m *Model) DebugLog(text string) {
 	c := m.Client()
-	if c != nil && c.IsDebug() {
-		c.Logger().Info().Msg(text)
+	if c != nil {
+		c.Logger().Debug().Msg(text)
 	}
 }
 
@@ -177,7 +177,7 @@ func notify(eventType notifications.EventType, model interface{}) {
 				if err := n.Notify(
 					context.Background(), m.GetModelName(), eventType, model, m.GetID(),
 				); err != nil {
-					client.Logger().Error().Msg("failed notifying about " + string(eventType) + " on " + m.GetID() + ": " + err.Error())
+					client.Logger().Error().Msgf("failed notifying about %s on %s: %s", string(eventType), m.GetID(), err.Error())
 				}
 			}
 		}

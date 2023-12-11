@@ -78,7 +78,7 @@ func (ts *EmbeddedDBTestSuite) serveMySQL() {
 				logger.Debug().Msg("MySQL channel has closed")
 				return
 			default:
-				logger.Debug().Msg("mysql server error: " + err.Error())
+				logger.Debug().Msgf("mysql server error: %s", err.Error())
 			}
 		}
 	}

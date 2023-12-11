@@ -158,14 +158,14 @@ func (c *Client) loadMonitor(ctx context.Context) (err error) {
 					if err = monitor.Start(ctx, &handler, func() {
 						_, err = c.Cachestore().ReleaseLock(ctx, lockKeyMonitorLockID, lockID)
 					}); err != nil {
-						monitor.Logger().Error().Msgf("[MONITOR] ERROR: failed starting monitor: %e", err)
+						monitor.Logger().Error().Msgf("[MONITOR] failed starting monitor: %e", err)
 					}
 				}
 			} else {
 				// first close any monitor if running
 				if monitor.IsConnected() {
 					if err = monitor.Stop(ctx); err != nil {
-						monitor.Logger().Info().Msgf("[MONITOR] ERROR: failed stopping monitor: %e", err)
+						monitor.Logger().Error().Msgf("[MONITOR] failed stopping monitor: %e", err)
 					}
 				}
 			}

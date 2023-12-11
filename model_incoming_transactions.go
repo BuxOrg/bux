@@ -185,11 +185,9 @@ func (m *IncomingTransaction) AfterCreated(_ context.Context) error {
 	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
 
 	// todo: this should be refactored into a task
-	// go func(incomingTx *IncomingTransaction) {
 	if err := processIncomingTransaction(context.Background(), m.Client().Logger(), m); err != nil {
-		m.Client().Logger().Error().Msg("error processing incoming transaction: " + err.Error())
+		m.Client().Logger().Error().Str("txID", m.GetID()).Msgf("error processing incoming transaction: %v", err.Error())
 	}
-	// }(m)
 
 	m.DebugLog("end: " + m.Name() + " AfterCreated hook...")
 	return nil
@@ -239,7 +237,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 		logClient = incomingTx.client.Logger()
 	}
 
-	logClient.Info().Msgf("processIncomingTransaction(): transaction: %v", incomingTx)
+	logClient.Info().Str("txID", incomingTx.GetID()).Msgf("processIncomingTransaction(): transaction: %v", incomingTx)
 
 	// Successfully capture any panics, convert to readable string and log the error
 	defer recoverAndLog(incomingTx.client.Logger())
@@ -259,7 +257,9 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
-		logClient.Error().Msgf("processIncomingTransaction(): error finding transaction %s on chain. Reason: %s", incomingTx.ID, err)
+		logClient.Error().
+			Str("txID", incomingTx.GetID()).
+			Msgf("processIncomingTransaction(): error finding transaction %s on chain. Reason: %s", incomingTx.ID, err)
 
 		// TX might not have been broadcast yet? (race condition, or it was never broadcast...)
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
@@ -274,7 +274,9 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 			}
 
 			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
-			logClient.Info().Msgf("processIncomingTransaction(): broadcast of transaction %s was successful using %s. Incoming tx will be processed again.", incomingTx.ID, provider)
+			logClient.Info().
+				Str("txID", incomingTx.GetID()).
+				Msgf("processIncomingTransaction(): broadcast of transaction %s was successful using %s. Incoming tx will be processed again.", incomingTx.ID, provider)
 
 			// allow propagation
 			time.Sleep(3 * time.Second)

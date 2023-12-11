@@ -14,8 +14,11 @@ type CronJob struct {
 	Period  time.Duration
 }
 
+// CronJobs as a map prevents duplicate jobs with the same name
+type CronJobs map[string]CronJob
+
 // CronJobsInit registers and runs the cron jobs
-func (tm *Client) CronJobsInit(target interface{}, cronJobsList map[string]CronJob) (err error) {
+func (tm *Client) CronJobsInit(target interface{}, cronJobsMap CronJobs) (err error) {
 	tm.ResetCron()
 	defer func() {
 		// stop other, already registered tasks if the func fails
@@ -26,7 +29,7 @@ func (tm *Client) CronJobsInit(target interface{}, cronJobsList map[string]CronJ
 
 	ctx := context.Background()
 
-	for name, taskDef := range cronJobsList {
+	for name, taskDef := range cronJobsMap {
 		handler := taskDef.Handler
 		if err = tm.RegisterTask(&Task{
 			Name:       name,

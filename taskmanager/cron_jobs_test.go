@@ -27,7 +27,7 @@ func TestCronTasks(t *testing.T) {
 		}
 		target := &mockTarget{make(chan bool, desiredExecutions)}
 
-		err := client.CronJobsInit(target, map[string]CronJob{
+		err := client.CronJobsInit(target, CronJobs{
 			"test": {
 				Period: 100 * time.Millisecond,
 				Handler: func(ctx context.Context, target interface{}) error {
@@ -40,6 +40,7 @@ func TestCronTasks(t *testing.T) {
 
 		require.NoError(t, err)
 
+		// wait for the task to run 'desiredExecutions' times
 		executions := 0
 		for i := 0; i < desiredExecutions; i++ {
 			<-target.times
@@ -60,7 +61,7 @@ func TestCronTasks(t *testing.T) {
 		}
 		target := &mockTarget{make(chan int, desiredExecutions)}
 
-		err := client.CronJobsInit(target, map[string]CronJob{
+		err := client.CronJobsInit(target, CronJobs{
 			"test1": {
 				Period: 100 * time.Millisecond,
 				Handler: func(ctx context.Context, target interface{}) error {
@@ -92,6 +93,7 @@ func TestCronTasks(t *testing.T) {
 			}
 		}
 
+		// check number of executions, both jobs should run at least once
 		require.Greater(t, executions1, 0)
 		require.Greater(t, executions2, 0)
 	})

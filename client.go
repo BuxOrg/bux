@@ -111,9 +111,9 @@ type (
 
 	// taskManagerOptions holds the configuration for taskmanager
 	taskManagerOptions struct {
-		taskmanager.ClientInterface                                // Client for TaskManager
-		cronJobs                    map[string]taskmanager.CronJob // List of cron jobs
-		options                     []taskmanager.ClientOps        // List of options
+		taskmanager.ClientInterface                         // Client for TaskManager
+		cronJobs                    taskmanager.CronJobs    // List of cron jobs
+		options                     []taskmanager.ClientOps // List of options
 	}
 )
 

@@ -15,7 +15,7 @@ const (
 )
 
 // here is where we define all the cron jobs for the client
-var defaultCronJobs = map[string]taskmanager.CronJob{
+var defaultCronJobs = taskmanager.CronJobs{
 	CronJobNameDraftTransactionCleanUp: {
 		Period:  defaultMonitorHeartbeat * time.Second,
 		Handler: BuxClientHandler(taskCleanupDraftTransactions),

@@ -572,7 +572,7 @@ func WithCronService(cronService taskmanager.CronService) ClientOps {
 	}
 }
 
-func WithCustomCronJobs(modifier func(cronJobs map[string]taskmanager.CronJob) map[string]taskmanager.CronJob) ClientOps {
+func WithCustomCronJobs(modifier func(cronJobs taskmanager.CronJobs) taskmanager.CronJobs) ClientOps {
 	return func(c *clientOptions) {
 		if c.taskManager != nil {
 			c.taskManager.cronJobs = modifier(c.taskManager.cronJobs)

@@ -17,30 +17,22 @@ func TestCronTasks(t *testing.T) {
 		return client.(*Client)
 	}
 
-	t.Run("register one cron job ", func(t *testing.T) {
+	t.Run("register one cron job", func(t *testing.T) {
 		client := makeClient()
 
-		desiredExecutions := 0
-		desiredPeriod := 100 * time.Millisecond
+		desiredExecutions := 2
 
 		type mockTarget struct {
-			times   chan time.Time
-			counter int
+			times chan bool
 		}
-		target := &mockTarget{make(chan time.Time), 0}
+		target := &mockTarget{make(chan bool, desiredExecutions)}
 
-		err := client.CronJobsInit(target, []CronJob{
-			{
-				Name:   "test",
-				Period: desiredPeriod,
+		err := client.CronJobsInit(target, map[string]CronJob{
+			"test": {
+				Period: 100 * time.Millisecond,
 				Handler: func(ctx context.Context, target interface{}) error {
 					t := target.(*mockTarget)
-					if t.counter < desiredExecutions {
-						t.counter++
-						t.times <- time.Now()
-					} else {
-						close(t.times)
-					}
+					t.times <- true
 					return nil
 				},
 			},
@@ -48,19 +40,59 @@ func TestCronTasks(t *testing.T) {
 
 		require.NoError(t, err)
 
-		// collect execution times from channel until it's closed after desiredExecutions
-		executionTimes := []time.Time{}
-		for range target.times {
-			executionTimes = append(executionTimes, <-target.times)
+		executions := 0
+		for i := 0; i < desiredExecutions; i++ {
+			<-target.times
+			executions++
 		}
 
 		// check number of executions
-		require.Equal(t, desiredExecutions, len(executionTimes))
+		require.Equal(t, desiredExecutions, executions)
+	})
 
-		// check time difference between executions
-		for i := 1; i < len(executionTimes); i++ {
-			diff := executionTimes[i].Sub(executionTimes[i-1])
-			require.True(t, diff >= desiredPeriod && diff <= 2*desiredPeriod)
+	t.Run("register two cron jobs", func(t *testing.T) {
+		client := makeClient()
+
+		desiredExecutions := 6
+
+		type mockTarget struct {
+			times chan int
 		}
+		target := &mockTarget{make(chan int, desiredExecutions)}
+
+		err := client.CronJobsInit(target, map[string]CronJob{
+			"test1": {
+				Period: 100 * time.Millisecond,
+				Handler: func(ctx context.Context, target interface{}) error {
+					t := target.(*mockTarget)
+					t.times <- 1
+					return nil
+				},
+			},
+			"test2": {
+				Period: 100 * time.Millisecond,
+				Handler: func(ctx context.Context, target interface{}) error {
+					t := target.(*mockTarget)
+					t.times <- 2
+					return nil
+				},
+			},
+		})
+
+		require.NoError(t, err)
+
+		executions1 := 0
+		executions2 := 0
+		for i := 0; i < desiredExecutions; i++ {
+			jobID := <-target.times
+			if jobID == 1 {
+				executions1++
+			} else {
+				executions2++
+			}
+		}
+
+		require.Greater(t, executions1, 0)
+		require.Greater(t, executions2, 0)
 	})
 }

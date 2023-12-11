@@ -11,12 +11,11 @@ type CronJobHandler func(ctx context.Context, target interface{}) error
 // CronJob definition, params reduced to the minimum, all required
 type CronJob struct {
 	Handler CronJobHandler
-	Name    string
 	Period  time.Duration
 }
 
 // CronJobsInit registers and runs the cron jobs
-func (tm *Client) CronJobsInit(target interface{}, cronJobsList []CronJob) (err error) {
+func (tm *Client) CronJobsInit(target interface{}, cronJobsList map[string]CronJob) (err error) {
 	tm.ResetCron()
 	defer func() {
 		// stop other, already registered tasks if the func fails
@@ -27,14 +26,15 @@ func (tm *Client) CronJobsInit(target interface{}, cronJobsList []CronJob) (err 
 
 	ctx := context.Background()
 
-	for _, taskDef := range cronJobsList {
+	for name, taskDef := range cronJobsList {
+		handler := taskDef.Handler
 		if err = tm.RegisterTask(&Task{
-			Name:       taskDef.Name,
+			Name:       name,
 			RetryLimit: 1,
 			Handler: func() error {
-				if taskErr := taskDef.Handler(ctx, target); taskErr != nil {
+				if taskErr := handler(ctx, target); taskErr != nil {
 					if tm.options.logger != nil {
-						tm.options.logger.Error(ctx, "error running %v task: %v", taskDef.Name, taskErr.Error())
+						tm.options.logger.Error(ctx, "error running %v task: %v", name, taskErr.Error())
 					}
 				}
 				return nil
@@ -46,7 +46,7 @@ func (tm *Client) CronJobsInit(target interface{}, cronJobsList []CronJob) (err 
 		// Run the task periodically
 		if err = tm.RunTask(ctx, &TaskOptions{
 			RunEveryPeriod: taskDef.Period,
-			TaskName:       taskDef.Name,
+			TaskName:       name,
 		}); err != nil {
 			return
 		}

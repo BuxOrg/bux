@@ -102,6 +102,7 @@ func defaultClientOptions() *clientOptions {
 		// Blank TaskManager config
 		taskManager: &taskManagerOptions{
 			ClientInterface: nil,
+			cronJobs:        defaultCronJobs,
 		},
 
 		// Default user agent
@@ -567,6 +568,14 @@ func WithCronService(cronService taskmanager.CronService) ClientOps {
 	return func(c *clientOptions) {
 		if cronService != nil && c.taskManager != nil {
 			c.taskManager.options = append(c.taskManager.options, taskmanager.WithCronService(cronService))
+		}
+	}
+}
+
+func WithCustomCronJobs(modifier func(cronJobs map[string]taskmanager.CronJob) map[string]taskmanager.CronJob) ClientOps {
+	return func(c *clientOptions) {
+		if c.taskManager != nil {
+			c.taskManager.cronJobs = modifier(c.taskManager.cronJobs)
 		}
 	}
 }

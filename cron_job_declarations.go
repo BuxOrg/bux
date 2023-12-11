@@ -7,32 +7,35 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 )
 
+const (
+	CronJobNameDraftTransactionCleanUp  = "draft_transaction_clean_up"
+	CronJobNameIncomingTransaction      = "incoming_transaction_process"
+	CronJobNameSyncTransactionBroadcast = "sync_transaction_broadcast"
+	CronJobNameSyncTransactionSync      = "sync_transaction_sync"
+)
+
 // here is where we define all the cron jobs for the client
-var cronJobs = []taskmanager.CronJob{
-	{
-		Name:    "draft_transaction_clean_up",
+var defaultCronJobs = map[string]taskmanager.CronJob{
+	CronJobNameDraftTransactionCleanUp: {
 		Period:  defaultMonitorHeartbeat * time.Second,
-		Handler: buxClientHandler(taskCleanupDraftTransactions),
+		Handler: BuxClientHandler(taskCleanupDraftTransactions),
 	},
-	{
-		Name:    "incoming_transaction_process",
+	CronJobNameIncomingTransaction: {
 		Period:  30 * time.Second,
-		Handler: buxClientHandler(taskProcessIncomingTransactions),
+		Handler: BuxClientHandler(taskProcessIncomingTransactions),
 	},
-	{
-		Name:    "sync_transaction_broadcast",
+	CronJobNameSyncTransactionBroadcast: {
 		Period:  30 * time.Second,
-		Handler: buxClientHandler(taskBroadcastTransactions),
+		Handler: BuxClientHandler(taskBroadcastTransactions),
 	},
-	{
-		Name:    "sync_transaction_sync",
+	CronJobNameSyncTransactionSync: {
 		Period:  120 * time.Second,
-		Handler: buxClientHandler(taskSyncTransactions),
+		Handler: BuxClientHandler(taskSyncTransactions),
 	},
 }
 
 // utility function - converts a handler with the *Client target to a generic taskmanager.CronJobHandler
-func buxClientHandler(handler func(ctx context.Context, client *Client) error) taskmanager.CronJobHandler {
+func BuxClientHandler(handler func(ctx context.Context, client *Client) error) taskmanager.CronJobHandler {
 	return func(ctx context.Context, target interface{}) error {
 		return handler(ctx, target.(*Client))
 	}

@@ -111,8 +111,9 @@ type (
 
 	// taskManagerOptions holds the configuration for taskmanager
 	taskManagerOptions struct {
-		taskmanager.ClientInterface                         // Client for TaskManager
-		options                     []taskmanager.ClientOps // List of options
+		taskmanager.ClientInterface                                // Client for TaskManager
+		cronJobs                    map[string]taskmanager.CronJob // List of cron jobs
+		options                     []taskmanager.ClientOps        // List of options
 	}
 )
 
@@ -181,7 +182,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	}
 
 	// Register all model tasks & custom tasks
-	if err = client.Taskmanager().CronJobsInit(client, cronJobs); err != nil {
+	if err = client.Taskmanager().CronJobsInit(client, client.options.taskManager.cronJobs); err != nil {
 		return nil, err
 	}
 

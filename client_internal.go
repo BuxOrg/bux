@@ -196,6 +196,22 @@ func (c *Client) runModelMigrations(models ...interface{}) (err error) {
 	return
 }
 
+func (c *Client) registerCronJobs() error {
+	cronJobs := c.cronJobs()
+
+	if c.options.taskManager.cronCustomPeriods != nil {
+		// override the default periods
+		for name, job := range cronJobs {
+			if custom, ok := c.options.taskManager.cronCustomPeriods[name]; ok {
+				job.Period = custom
+				cronJobs[name] = job
+			}
+		}
+	}
+
+	return c.Taskmanager().CronJobsInit(cronJobs)
+}
+
 // loadDefaultPaymailConfig will load the default paymail server configuration
 func (c *Client) loadDefaultPaymailConfig() (err error) {
 	// Default FROM paymail

@@ -27,12 +27,11 @@ func TestCronTasks(t *testing.T) {
 		}
 		target := &mockTarget{make(chan bool, desiredExecutions)}
 
-		err := client.CronJobsInit(target, CronJobs{
+		err := client.CronJobsInit(CronJobs{
 			"test": {
 				Period: 100 * time.Millisecond,
-				Handler: func(ctx context.Context, target interface{}) error {
-					t := target.(*mockTarget)
-					t.times <- true
+				Handler: func(ctx context.Context) error {
+					target.times <- true
 					return nil
 				},
 			},
@@ -61,20 +60,18 @@ func TestCronTasks(t *testing.T) {
 		}
 		target := &mockTarget{make(chan int, desiredExecutions)}
 
-		err := client.CronJobsInit(target, CronJobs{
+		err := client.CronJobsInit(CronJobs{
 			"test1": {
 				Period: 100 * time.Millisecond,
-				Handler: func(ctx context.Context, target interface{}) error {
-					t := target.(*mockTarget)
-					t.times <- 1
+				Handler: func(ctx context.Context) error {
+					target.times <- 1
 					return nil
 				},
 			},
 			"test2": {
 				Period: 100 * time.Millisecond,
-				Handler: func(ctx context.Context, target interface{}) error {
-					t := target.(*mockTarget)
-					t.times <- 2
+				Handler: func(ctx context.Context) error {
+					target.times <- 2
 					return nil
 				},
 			},

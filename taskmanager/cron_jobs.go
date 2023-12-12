@@ -37,7 +37,7 @@ func (tm *Client) CronJobsInit(target interface{}, cronJobsMap CronJobs) (err er
 			Handler: func() error {
 				if taskErr := handler(ctx, target); taskErr != nil {
 					if tm.options.logger != nil {
-						tm.options.logger.Error(ctx, "error running %v task: %v", name, taskErr.Error())
+						tm.options.logger.Error().Msgf("error running %v task: %v", name, taskErr.Error())
 					}
 				}
 				return nil

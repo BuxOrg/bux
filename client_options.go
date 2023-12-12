@@ -21,7 +21,6 @@ import (
 	"github.com/mrz1836/go-cache"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -36,6 +35,8 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
+	defaultLogger := logging.GetDefaultLogger()
+	datastoreLogger := logging.CreateGormLoggerAdapter(defaultLogger, "datastore")
 	// Set the default options
 	return &clientOptions{
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
@@ -67,7 +68,7 @@ func defaultClientOptions() *clientOptions {
 		// Blank Datastore config
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
-			options:         []datastore.ClientOps{datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: zLogger.NewGormLogger(false, 4)})},
+			options:         []datastore.ClientOps{datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger})},
 		},
 
 		// Default http client
@@ -286,8 +287,8 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 			// Enable the logger on all external services
 			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")
 			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
-			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: &datastoreLogger}))
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(&cachestoreLogger))
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger}))
+			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
 		}
 	}
 }

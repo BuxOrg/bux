@@ -52,6 +52,6 @@ func (tm *taskManagerMockBase) IsNewRelicEnabled() bool {
 	return false
 }
 
-func (tm *taskManagerMockBase) CronJobsInit(target interface{}, cronJobsMap taskmanager.CronJobs) error {
+func (tm *taskManagerMockBase) CronJobsInit(cronJobsMap taskmanager.CronJobs) error {
 	return nil
 }

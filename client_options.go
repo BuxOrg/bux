@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
@@ -101,8 +102,8 @@ func defaultClientOptions() *clientOptions {
 
 		// Blank TaskManager config
 		taskManager: &taskManagerOptions{
-			ClientInterface: nil,
-			cronJobs:        defaultCronJobs,
+			ClientInterface:   nil,
+			cronCustomPeriods: map[string]time.Duration{},
 		},
 
 		// Default user agent
@@ -572,10 +573,11 @@ func WithCronService(cronService taskmanager.CronService) ClientOps {
 	}
 }
 
-func WithCustomCronJobs(modifier func(cronJobs taskmanager.CronJobs) taskmanager.CronJobs) ClientOps {
+// WithCronJobs will set the custom cron jobs period which will override the default
+func WithCronCustmPeriod(cronJobName string, period time.Duration) ClientOps {
 	return func(c *clientOptions) {
 		if c.taskManager != nil {
-			c.taskManager.cronJobs = modifier(c.taskManager.cronJobs)
+			c.taskManager.cronCustomPeriods[cronJobName] = period
 		}
 	}
 }

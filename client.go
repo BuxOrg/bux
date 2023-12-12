@@ -3,6 +3,7 @@ package bux
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
@@ -111,9 +112,10 @@ type (
 
 	// taskManagerOptions holds the configuration for taskmanager
 	taskManagerOptions struct {
-		taskmanager.ClientInterface                         // Client for TaskManager
-		cronJobs                    taskmanager.CronJobs    // List of cron jobs
-		options                     []taskmanager.ClientOps // List of options
+		taskmanager.ClientInterface                          // Client for TaskManager
+		cronJobs                    taskmanager.CronJobs     // List of cron jobs
+		options                     []taskmanager.ClientOps  // List of options
+		cronCustomPeriods           map[string]time.Duration // will override the default period of cronJob
 	}
 )
 
@@ -181,8 +183,8 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Register all model tasks & custom tasks
-	if err = client.Taskmanager().CronJobsInit(client, client.options.taskManager.cronJobs); err != nil {
+	// Register all cron jobs
+	if err = client.registerCronJobs(); err != nil {
 		return nil, err
 	}
 

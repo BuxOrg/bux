@@ -6,7 +6,7 @@ import (
 )
 
 // CronJobHandler is the handler for a cron job
-type CronJobHandler func(ctx context.Context, target interface{}) error
+type CronJobHandler func(ctx context.Context) error
 
 // CronJob definition, params reduced to the minimum, all required
 type CronJob struct {
@@ -18,7 +18,7 @@ type CronJob struct {
 type CronJobs map[string]CronJob
 
 // CronJobsInit registers and runs the cron jobs
-func (tm *Client) CronJobsInit(target interface{}, cronJobsMap CronJobs) (err error) {
+func (tm *Client) CronJobsInit(cronJobsMap CronJobs) (err error) {
 	tm.ResetCron()
 	defer func() {
 		// stop other, already registered tasks if the func fails
@@ -35,7 +35,7 @@ func (tm *Client) CronJobsInit(target interface{}, cronJobsMap CronJobs) (err er
 			Name:       name,
 			RetryLimit: 1,
 			Handler: func() error {
-				if taskErr := handler(ctx, target); taskErr != nil {
+				if taskErr := handler(ctx); taskErr != nil {
 					if tm.options.logger != nil {
 						tm.options.logger.Error(ctx, "error running %v task: %v", name, taskErr.Error())
 					}

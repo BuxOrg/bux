@@ -14,29 +14,33 @@ const (
 	CronJobNameSyncTransactionSync      = "sync_transaction_sync"
 )
 
-// here is where we define all the cron jobs for the client
-var defaultCronJobs = taskmanager.CronJobs{
-	CronJobNameDraftTransactionCleanUp: {
-		Period:  defaultMonitorHeartbeat * time.Second,
-		Handler: BuxClientHandler(taskCleanupDraftTransactions),
-	},
-	CronJobNameIncomingTransaction: {
-		Period:  30 * time.Second,
-		Handler: BuxClientHandler(taskProcessIncomingTransactions),
-	},
-	CronJobNameSyncTransactionBroadcast: {
-		Period:  30 * time.Second,
-		Handler: BuxClientHandler(taskBroadcastTransactions),
-	},
-	CronJobNameSyncTransactionSync: {
-		Period:  120 * time.Second,
-		Handler: BuxClientHandler(taskSyncTransactions),
-	},
-}
+type cronJobHandler func(ctx context.Context, client *Client) error
 
-// utility function - converts a handler with the *Client target to a generic taskmanager.CronJobHandler
-func BuxClientHandler(handler func(ctx context.Context, client *Client) error) taskmanager.CronJobHandler {
-	return func(ctx context.Context, target interface{}) error {
-		return handler(ctx, target.(*Client))
+// here is where we define all the cron jobs for the client
+func (c *Client) cronJobs() taskmanager.CronJobs {
+	// handler adds the client pointer to the cron job handler by using a closure
+	handler := func(cronJobTask cronJobHandler) taskmanager.CronJobHandler {
+		return func(ctx context.Context) error {
+			return cronJobTask(ctx, c)
+		}
+	}
+
+	return taskmanager.CronJobs{
+		CronJobNameDraftTransactionCleanUp: {
+			Period:  defaultMonitorHeartbeat * time.Second,
+			Handler: handler(taskCleanupDraftTransactions),
+		},
+		CronJobNameIncomingTransaction: {
+			Period:  30 * time.Second,
+			Handler: handler(taskProcessIncomingTransactions),
+		},
+		CronJobNameSyncTransactionBroadcast: {
+			Period:  30 * time.Second,
+			Handler: handler(taskBroadcastTransactions),
+		},
+		CronJobNameSyncTransactionSync: {
+			Period:  120 * time.Second,
+			Handler: handler(taskSyncTransactions),
+		},
 	}
 }

@@ -10,12 +10,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/notifications"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/mrz1836/go-datastore"
 	customTypes "github.com/mrz1836/go-datastore/custom_types"
-
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/notifications"
 )
 
 // processSyncTransactions will process sync transaction records

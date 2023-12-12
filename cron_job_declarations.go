@@ -7,6 +7,7 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 )
 
+// Cron job names; defined as public constants to be used in WithCronCustmPeriod
 const (
 	CronJobNameDraftTransactionCleanUp  = "draft_transaction_clean_up"
 	CronJobNameIncomingTransaction      = "incoming_transaction_process"
@@ -18,7 +19,7 @@ type cronJobHandler func(ctx context.Context, client *Client) error
 
 // here is where we define all the cron jobs for the client
 func (c *Client) cronJobs() taskmanager.CronJobs {
-	// handler adds the client pointer to the cron job handler by using a closure
+	// handler adds the client pointer to the cronJobTask by using a closure
 	handler := func(cronJobTask cronJobHandler) taskmanager.CronJobHandler {
 		return func(ctx context.Context) error {
 			return cronJobTask(ctx, c)

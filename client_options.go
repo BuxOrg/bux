@@ -573,7 +573,7 @@ func WithCronService(cronService taskmanager.CronService) ClientOps {
 	}
 }
 
-// WithCronJobs will set the custom cron jobs period which will override the default
+// WithCronCustmPeriod will set the custom cron jobs period which will override the default
 func WithCronCustmPeriod(cronJobName string, period time.Duration) ClientOps {
 	return func(c *clientOptions) {
 		if c.taskManager != nil {

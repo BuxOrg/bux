@@ -90,28 +90,38 @@ func (m *SyncTransaction) Save(ctx context.Context) error {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *SyncTransaction) BeforeCreating(_ context.Context) error {
-	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("starting: %s BeforeCreate hook...", m.Name())
 
 	// Make sure ID is valid
 	if len(m.ID) == 0 {
 		return ErrMissingFieldID
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s BeforeCreate hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *SyncTransaction) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s AfterCreate hook", m.Name())
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s AfterCreate hook", m.Name())
 	return nil
 }
 
 // BeforeUpdating will fire before the model is being updated
 func (m *SyncTransaction) BeforeUpdating(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " BeforeUpdate hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("starting: %s BeforeUpdate hook...", m.Name())
 
 	// Trim the results to the last 20
 	maxResultsLength := 20
@@ -125,7 +135,9 @@ func (m *SyncTransaction) BeforeUpdating(_ context.Context) error {
 		m.Results.Results = m.Results.Results[ln-maxResultsLength:]
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeUpdate hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s BeforeUpdate hook", m.Name())
 	return nil
 }
 

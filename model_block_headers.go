@@ -195,22 +195,30 @@ func getBlockHeaderByHeight(ctx context.Context, height uint32, opts ...ModelOps
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *BlockHeader) BeforeCreating(_ context.Context) error {
 
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Test for required field(s)
 	if len(m.ID) == 0 {
 		return ErrMissingFieldHash
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *BlockHeader) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("starting: %s AfterCreated hook", m.Name())
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("end: AfterCreated %d hook", m.Height)
 	return nil
 }
 

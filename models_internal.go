@@ -9,15 +9,15 @@ import (
 
 // AfterDeleted will fire after a successful delete in the Datastore
 func (m *Model) AfterDeleted(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
-	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
+	m.Client().Logger().Debug().Msgf("starting: %s AfterDeleted hook...", m.Name())
+	m.Client().Logger().Debug().Msgf("end: %s AfterDeleted hook", m.Name())
 	return nil
 }
 
 // BeforeUpdating will fire before updating a model in the Datastore
 func (m *Model) BeforeUpdating(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " BeforeUpdate hook...")
-	m.DebugLog("end: " + m.Name() + " BeforeUpdate hook")
+	m.Client().Logger().Debug().Msgf("starting: %s BeforeUpdate hook...", m.Name())
+	m.Client().Logger().Debug().Msgf("end: %s BeforeUpdate hook", m.Name())
 	return nil
 }
 
@@ -29,14 +29,6 @@ func (m *Model) Client() ClientInterface {
 // ChildModels will return any child models
 func (m *Model) ChildModels() []ModelInterface {
 	return nil
-}
-
-// DebugLog will display verbose logs
-func (m *Model) DebugLog(text string) {
-	c := m.Client()
-	if c != nil {
-		c.Logger().Debug().Msg(text)
-	}
 }
 
 // enrich is run after getting a record from the database
@@ -132,15 +124,15 @@ func (m *Model) Display() interface{} {
 
 // AfterUpdated will fire after a successful update into the Datastore
 func (m *Model) AfterUpdated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
-	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	m.Client().Logger().Debug().Msgf("starting: %s AfterUpdated hook...", m.Name())
+	m.Client().Logger().Debug().Msgf("end: %s AfterUpdated hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *Model) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().Msgf("starting: %s AfterCreated hook...", m.Name())
+	m.Client().Logger().Debug().Msgf("end: %s AfterCreated hook", m.Name())
 	return nil
 }
 

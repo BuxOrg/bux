@@ -742,20 +742,26 @@ func (m *DraftTransaction) getTotalSatoshis() (satoshis uint64) {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *DraftTransaction) BeforeCreating(ctx context.Context) (err error) {
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Prepare the transaction
 	if err = m.createTransactionHex(ctx); err != nil {
 		return
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return
 }
 
 // AfterUpdated will fire after a successful update into the Datastore
 func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("starting: %s AfterUpdated hook...", m.Name())
 
 	// todo: run these in go routines?
 
@@ -780,7 +786,9 @@ func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
 		}
 	}
 
-	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("end: %s AfterUpdated hook", m.Name())
 	return nil
 }
 

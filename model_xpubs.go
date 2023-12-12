@@ -252,8 +252,9 @@ func (m *Xpub) ChildModels() (childModels []ModelInterface) {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Xpub) BeforeCreating(_ context.Context) error {
-
-	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("xpubID", m.ID).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Validate that the xPub key is correct
 	if _, err := utils.ValidateXPub(m.rawXpubKey); err != nil {
@@ -265,13 +266,17 @@ func (m *Xpub) BeforeCreating(_ context.Context) error {
 		return ErrMissingFieldID
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("xpubID", m.ID).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *Xpub) AfterCreated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("xpubID", m.ID).
+		Msgf("starting: %s AfterCreated hook...", m.Name())
 
 	// todo: run these in go routines?
 
@@ -282,13 +287,17 @@ func (m *Xpub) AfterCreated(ctx context.Context) error {
 		return err
 	}
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("xpubID", m.ID).
+		Msgf("end: %s AfterCreated hook", m.Name())
 	return nil
 }
 
 // AfterUpdated will fire after a successful update into the Datastore
 func (m *Xpub) AfterUpdated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+	m.Client().Logger().Debug().
+		Str("xpubID", m.ID).
+		Msgf("starting: %s AfterUpdated hook...", m.Name())
 
 	// Store in the cache
 	if err := saveToCache(
@@ -297,7 +306,9 @@ func (m *Xpub) AfterUpdated(ctx context.Context) error {
 		return err
 	}
 
-	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	m.Client().Logger().Debug().
+		Str("xpubID", m.ID).
+		Msgf("end: %s AfterUpdated hook", m.Name())
 	return nil
 }
 

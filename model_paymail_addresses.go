@@ -208,7 +208,9 @@ func (m *PaymailAddress) GetID() string {
 
 // BeforeCreating is called before the model is saved to the DB
 func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("paymailAddressID", m.ID).
+		Msgf("starting: %s BeforeCreate hook...", m.Name())
 
 	if m.ID == "" {
 		return ErrMissingPaymailID
@@ -234,15 +236,21 @@ func (m *PaymailAddress) BeforeCreating(_ context.Context) (err error) {
 		return ErrMissingPaymailXPubID
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("paymailAddressID", m.ID).
+		Msgf("end: %s BeforeCreate hook", m.Name())
 	return
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *PaymailAddress) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("paymailAddressID", m.ID).
+		Msgf("end: %s AfterCreated hook", m.Name())
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("paymailAddressID", m.ID).
+		Msgf("end: %s AfterCreated hook", m.Name())
 	return nil
 }
 

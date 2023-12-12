@@ -100,7 +100,7 @@ func processBroadcastTransactions(ctx context.Context, maxTransactions int, opts
 // broadcastSyncTransaction will broadcast transaction related to syncTx record
 func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(syncTx.client.Logger())
+	defer recoverAndLog(syncTx.Client().Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -187,7 +187,7 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 // _syncTxDataFromChain will process the sync transaction record, or save the failure
 func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(syncTx.client.Logger())
+	defer recoverAndLog(syncTx.Client().Logger())
 
 	var err error
 
@@ -211,7 +211,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		ctx, syncTx.ID, chainstate.RequiredOnChain, defaultQueryTxTimeout,
 	); err != nil {
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
-			syncTx.client.Logger().Info().
+			syncTx.Client().Logger().Info().
 				Str("txID", syncTx.ID).
 				Msgf("Transaction not found on-chain, will try again later")
 
@@ -224,13 +224,15 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 	}
 
 	if !txInfo.Valid() {
-		syncTx.client.Logger().Warn().
+		syncTx.Client().Logger().Warn().
 			Str("txID", syncTx.ID).
 			Msgf("txInfo is invalid, will try again later")
 
-		if syncTx.client.IsDebug() {
+		if syncTx.Client().IsDebug() {
 			txInfoJSON, _ := json.Marshal(txInfo) //nolint:errchkjson // error is not needed
-			syncTx.DebugLog(string(txInfoJSON))
+			syncTx.Client().Logger().Debug().
+				Str("txID", syncTx.ID).
+				Msgf("txInfo: %s", string(txInfoJSON))
 		}
 		return nil
 	}
@@ -264,7 +266,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		return err
 	}
 
-	syncTx.client.Logger().Info().
+	syncTx.Client().Logger().Info().
 		Str("txID", syncTx.ID).
 		Msgf("Transaction processed successfully")
 	// Done!
@@ -274,7 +276,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 // processP2PTransaction will process the sync transaction record, or save the failure
 func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(syncTx.client.Logger())
+	defer recoverAndLog(syncTx.Client().Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(

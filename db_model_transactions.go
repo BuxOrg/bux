@@ -29,7 +29,9 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 				m.XpubMetadata[m.XPubID][key] = value
 			}
 		} else {
-			m.DebugLog("xPub id is missing from transaction, cannot store metadata")
+			m.Client().Logger().Debug().
+				Str("txID", m.ID).
+				Msg("xPub id is missing from transaction, cannot store metadata")
 		}
 	}
 
@@ -39,11 +41,15 @@ func (m *Transaction) Save(ctx context.Context) (err error) {
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Transaction) BeforeCreating(_ context.Context) error {
 	if m.beforeCreateCalled {
-		m.DebugLog("skipping: " + m.Name() + " BeforeCreating hook, because already called")
+		m.Client().Logger().Debug().
+			Str("txID", m.ID).
+			Msgf("skipping: %s BeforeCreating hook, because already called", m.Name())
 		return nil
 	}
 
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Test for required field(s)
 	if len(m.Hex) == 0 {
@@ -59,14 +65,18 @@ func (m *Transaction) BeforeCreating(_ context.Context) error {
 		return err
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	m.beforeCreateCalled = true
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *Transaction) AfterCreated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("starting: %s AfterCreated hook...", m.Name())
 
 	// Pre-build the options
 	opts := m.GetOptions(false)
@@ -98,29 +108,35 @@ func (m *Transaction) AfterCreated(ctx context.Context) error {
 	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeCreate, m)
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s AfterCreated hook...", m.Name())
 	return nil
 }
 
 // AfterUpdated will fire after the model is updated in the Datastore
 func (m *Transaction) AfterUpdated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("starting: %s AfterUpdated hook...", m.Name())
 
 	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeUpdate, m)
 
-	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.ID).
+		Msgf("end: %s AfterUpdated hook", m.Name())
 	return nil
 }
 
 // AfterDeleted will fire after the model is deleted in the Datastore
 func (m *Transaction) AfterDeleted(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
+	m.Client().Logger().Debug().Msgf("starting: %s AfterDeleted hook...", m.Name())
 
 	// Fire notifications (this is already in a go routine)
 	notify(notifications.EventTypeDelete, m)
 
-	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
+	m.Client().Logger().Debug().Msgf("end: %s AfterDeleted hook", m.Name())
 	return nil
 }
 

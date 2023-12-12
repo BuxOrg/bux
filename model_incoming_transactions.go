@@ -148,7 +148,9 @@ func (m *IncomingTransaction) toTransactionDto() *Transaction {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
-	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Set status
 	m.Status = SyncStatusReady
@@ -176,13 +178,17 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 		return ErrNoMatchingOutputs
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created
 func (m *IncomingTransaction) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("starting: %s AfterCreated hook...", m.Name())
 
 	// todo: this should be refactored into a task
 	if err := processIncomingTransaction(context.Background(), m.Client().Logger(), m); err != nil {
@@ -191,7 +197,9 @@ func (m *IncomingTransaction) AfterCreated(_ context.Context) error {
 			Msgf("error processing incoming transaction: %v", err.Error())
 	}
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("end: %s AfterCreated hook", m.Name())
 	return nil
 }
 
@@ -295,7 +303,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 
 		if incomingTx.client.IsDebug() {
 			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr,govet,errchkjson // error is not needed
-			incomingTx.DebugLog(string(txInfoJSON))
+			logClient.Debug().Str("txID", incomingTx.ID).Msg(string(txInfoJSON))
 		}
 		return nil
 	}

@@ -176,14 +176,18 @@ func (m *AccessKey) GetID() string {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *AccessKey) BeforeCreating(_ context.Context) error {
-	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("accessKeyID", m.ID).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Make sure ID is valid
 	if len(m.ID) == 0 {
 		return ErrMissingFieldID
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("accessKeyID", m.ID).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return nil
 }
 

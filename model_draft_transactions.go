@@ -9,6 +9,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
 	"github.com/libsv/go-bk/bip32"
@@ -16,9 +18,6 @@ import (
 	"github.com/libsv/go-bt/v2/bscript"
 	"github.com/mrz1836/go-datastore"
 	"github.com/pkg/errors"
-
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/utils"
 )
 
 // DraftTransaction is an object representing the draft BitCoin transaction prior to the final transaction
@@ -135,7 +134,9 @@ func (m *DraftTransaction) GetModelTableName() string {
 func (m *DraftTransaction) Save(ctx context.Context) (err error) {
 	if err = Save(ctx, m); err != nil {
 
-		m.DebugLog("save tx error: " + err.Error())
+		m.Client().Logger().Error().
+			Str("draftTxID", m.GetID()).
+			Msgf("save tx error: %s", err.Error())
 
 		// todo: run in a go routine?
 		// un-reserve the utxos
@@ -299,7 +300,9 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 
 		reserveSatoshis := satoshisNeeded + m.estimateFee(m.Configuration.FeeUnit, 0)
 		if reserveSatoshis <= dustLimit && !m.containsOpReturn() {
-			m.client.Logger().Error(ctx, "amount of satoshis to send less than the dust limit")
+			m.client.Logger().Error().
+				Str("txID", m.GetID()).
+				Msg("amount of satoshis to send less than the dust limit")
 			return ErrOutputValueTooLow
 		}
 		if reservedUtxos, err = reserveUtxos(
@@ -741,20 +744,26 @@ func (m *DraftTransaction) getTotalSatoshis() (satoshis uint64) {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *DraftTransaction) BeforeCreating(ctx context.Context) (err error) {
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Prepare the transaction
 	if err = m.createTransactionHex(ctx); err != nil {
 		return
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return
 }
 
 // AfterUpdated will fire after a successful update into the Datastore
 func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("starting: %s AfterUpdated hook...", m.Name())
 
 	// todo: run these in go routines?
 
@@ -779,7 +788,9 @@ func (m *DraftTransaction) AfterUpdated(ctx context.Context) error {
 		}
 	}
 
-	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	m.Client().Logger().Debug().
+		Str("draftTxID", m.GetID()).
+		Msgf("end: %s AfterUpdated hook", m.Name())
 	return nil
 }
 

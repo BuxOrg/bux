@@ -15,7 +15,7 @@ type TransactionInfo struct {
 	MerkleProof   *bc.MerkleProof `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY. Should be also supported by Arc in future
 }
 
-// Validate validates TransactionInfo by checking if it contains
+// Valid validates TransactionInfo by checking if it contains
 // BlockHash and MerkleProof (from mAPI) or MerklePath (from Arc)
 func (t *TransactionInfo) Valid() bool {
 	return !(t.BlockHash == "" || t.MerkleProof == nil || t.MerkleProof.TxOrID == "" || len(t.MerkleProof.Nodes) == 0)

@@ -44,7 +44,6 @@ type ModelInterface interface {
 	BeforeUpdating(ctx context.Context) (err error)
 	ChildModels() []ModelInterface
 	Client() ClientInterface
-	DebugLog(text string)
 	Display() interface{}
 	GetID() string
 	GetModelName() string

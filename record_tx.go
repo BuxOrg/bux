@@ -88,10 +88,8 @@ func waitForRecordTxWriteLock(ctx context.Context, c ClientInterface, key string
 	// Relevant for bux to bux transactions, as we have 1 tx but need to record 2 txs - outgoing and incoming
 
 	lockKey := fmt.Sprintf(lockKeyRecordTx, key)
-	c.Logger().Info(ctx, lockKey)
 
-	// TODO: change to DEBUG level log when we will support it
-	c.Logger().Info(ctx, fmt.Sprintf("try add write lock %s", lockKey))
+	c.Logger().Debug().Msgf("try add write lock %s", lockKey)
 
 	for {
 
@@ -99,16 +97,14 @@ func waitForRecordTxWriteLock(ctx context.Context, c ClientInterface, key string
 			ctx, lockKey, c.Cachestore(),
 		)
 		if err == nil {
-			// TODO: change to DEBUG level log when we will support it
-			c.Logger().Info(ctx, fmt.Sprintf("added write lock %s", lockKey))
+			c.Logger().Debug().Msgf("added write lock %s", lockKey)
 			break
 		}
 		time.Sleep(time.Second * 1)
 	}
 
 	return func() {
-		// TODO: change to DEBUG level log when we will support it
-		c.Logger().Info(ctx, fmt.Sprintf("unlock %s", lockKey))
+		c.Logger().Debug().Msgf("unlock %s", lockKey)
 		unlock()
 	}
 }

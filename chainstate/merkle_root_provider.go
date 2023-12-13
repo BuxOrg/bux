@@ -16,9 +16,9 @@ type MerkleRootConfirmationState string
 const (
 	// Confirmed state occurs when Merkle Root is found in the longest chain.
 	Confirmed MerkleRootConfirmationState = "CONFIRMED"
-	// UnableToVerify state occurs when Pulse is behind in synchronization with the longest chain.
-	Invalid MerkleRootConfirmationState = "INVALID"
 	// Invalid state occurs when Merkle Root is not found in the longest chain.
+	Invalid MerkleRootConfirmationState = "INVALID"
+	// UnableToVerify state occurs when Pulse is behind in synchronization with the longest chain.
 	UnableToVerify MerkleRootConfirmationState = "UNABLE_TO_VERIFY"
 )
 
@@ -71,7 +71,7 @@ func (p pulseClientProvider) verifyMerkleRoots(
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		c.options.logger.Error(context.Background(), "Error during creating connection to pulse client: %s", err.Error())
+		c.options.logger.Error().Msgf("Error during creating connection to pulse client: %s", err.Error())
 		return nil, err
 	}
 	defer res.Body.Close() //nolint: all // Close the body

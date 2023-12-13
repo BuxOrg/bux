@@ -323,8 +323,9 @@ func (m *Destination) GetID() string {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Destination) BeforeCreating(_ context.Context) error {
-
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Set the ID and Type (from LockingScript) (if not set)
 	if len(m.LockingScript) > 0 && (len(m.ID) == 0 || len(m.Type) == 0) {
@@ -332,14 +333,18 @@ func (m *Destination) BeforeCreating(_ context.Context) error {
 		m.Type = utils.GetDestinationType(m.LockingScript)
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *Destination) AfterCreated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("starting: %s AfterCreated hook...", m.Name())
 
 	err := m.client.Cluster().Publish(cluster.DestinationNew, m.LockingScript)
 	if err != nil {
@@ -359,7 +364,9 @@ func (m *Destination) AfterCreated(ctx context.Context) error {
 
 	notify(notifications.EventTypeCreate, m)
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("end: %s AfterCreated hook", m.Name())
 	return nil
 }
 
@@ -392,7 +399,9 @@ func (m *Destination) Migrate(client datastore.ClientInterface) error {
 
 // AfterUpdated will fire after the model is updated in the Datastore
 func (m *Destination) AfterUpdated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterUpdated hook...")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("starting: %s AfterUpdated hook...", m.Name())
 
 	// Store in the cache
 	if err := saveToCache(
@@ -407,13 +416,17 @@ func (m *Destination) AfterUpdated(ctx context.Context) error {
 
 	notify(notifications.EventTypeUpdate, m)
 
-	m.DebugLog("end: " + m.Name() + " AfterUpdated hook")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("end: %s AfterUpdated hook", m.Name())
 	return nil
 }
 
 // AfterDeleted will fire after the model is deleted in the Datastore
 func (m *Destination) AfterDeleted(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterDelete hook...")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("starting: %s AfterDeleted hook...", m.Name())
 
 	// Only if we have a client, remove all keys
 	if m.Client() != nil {
@@ -434,6 +447,8 @@ func (m *Destination) AfterDeleted(ctx context.Context) error {
 
 	notify(notifications.EventTypeDelete, m)
 
-	m.DebugLog("end: " + m.Name() + " AfterDelete hook")
+	m.Client().Logger().Debug().
+		Str("destinationID", m.ID).
+		Msgf("end: %s AfterDeleted hook", m.Name())
 	return nil
 }

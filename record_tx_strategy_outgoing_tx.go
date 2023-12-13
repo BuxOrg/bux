@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/libsv/go-bt/v2"
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 type outgoingTx struct {
@@ -17,26 +17,32 @@ type outgoingTx struct {
 
 func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
-	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start, TxID: %s", strategy.TxID()))
+	logger.Info().
+		Str("txID", strategy.TxID()).
+		Msg("start recording transaction")
 
 	// create
 	transaction, err := _createOutgoingTxToRecord(ctx, strategy, c, opts)
 	if err != nil {
-		return nil, fmt.Errorf("OutgoingTx.Execute(): creation of outgoing tx failed. Reason: %w", err)
+		return nil, fmt.Errorf("creation of outgoing tx failed. Reason: %w", err)
 	}
 
 	if err = transaction.Save(ctx); err != nil {
-		return nil, fmt.Errorf("OutgoingTx.Execute(): saving of Transaction failed. Reason: %w", err)
+		return nil, fmt.Errorf("saving of Transaction failed. Reason: %w", err)
 	}
 
 	// process
 	if transaction.syncTransaction.P2PStatus == SyncStatusReady {
 		if err = _outgoingNotifyP2p(ctx, logger, transaction); err != nil {
 			// reject transaction if P2P notification failed
-			logger.Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): transaction rejected by P2P provider, try to revert transaction. Reason: %s", err))
+			logger.Error().
+				Str("txID", transaction.ID).
+				Msgf("transaction rejected by P2P provider, try to revert transaction. Reason: %s", err)
 
 			if revertErr := c.RevertTransaction(ctx, transaction.ID); revertErr != nil {
-				logger.Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): FATAL! Reverting transaction after failed P2P notification failed. Reason: %s", err))
+				logger.Error().
+					Str("txID", transaction.ID).
+					Msgf("FATAL! Reverting transaction after failed P2P notification failed. Reason: %s", err)
 			}
 
 			return nil, err
@@ -46,14 +52,16 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 	// get newest syncTx from DB - if it's an internal tx it could be broadcasted by us already
 	syncTx, err := GetSyncTransactionByID(ctx, transaction.ID, transaction.GetOptions(false)...)
 	if err != nil || syncTx == nil {
-		return nil, fmt.Errorf("OutgoingTx.Execute(): getting syncTx failed. Reason: %w", err)
+		return nil, fmt.Errorf("getting syncTx failed. Reason: %w", err)
 	}
 
 	if syncTx.BroadcastStatus == SyncStatusReady {
 		_outgoingBroadcast(ctx, logger, transaction) // ignore error
 	}
 
-	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): complete, TxID: %s", transaction.ID))
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msgf("complete, TxID: %s", transaction.ID)
 	return transaction, nil
 }
 
@@ -179,29 +187,38 @@ func _getP2pSyncStatus(tx *Transaction) SyncStatus {
 	return p2pStatus
 }
 
-func _outgoingNotifyP2p(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction) error {
-	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start p2p, TxID: %s", tx.ID))
+func _outgoingNotifyP2p(ctx context.Context, logger *zerolog.Logger, tx *Transaction) error {
+	logger.Info().
+		Str("txID", tx.ID).
+		Msg("start p2p")
 
 	if err := processP2PTransaction(ctx, tx.syncTransaction, tx); err != nil {
-		logger.
-			Error(ctx, fmt.Sprintf("OutgoingTx.Execute(): processP2PTransaction failed. Reason: %s, TxID: %s", err, tx.ID))
+		logger.Error().
+			Str("txID", tx.ID).
+			Msgf("processP2PTransaction failed. Reason: %s", err)
 
 		return err
 	}
 
-	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): p2p complete, TxID: %s", tx.ID))
+	logger.Info().
+		Str("txID", tx.ID).
+		Msg("p2p complete")
 	return nil
 }
 
-func _outgoingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction) {
-	logger.Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): start broadcast, TxID: %s", tx.ID))
+func _outgoingBroadcast(ctx context.Context, logger *zerolog.Logger, tx *Transaction) {
+	logger.Info().
+		Str("txID", tx.ID).
+		Msg("start broadcast")
 
 	if err := broadcastSyncTransaction(ctx, tx.syncTransaction); err != nil {
 		// ignore error, transaction will be broadcasted by cron task
-		logger.
-			Warn(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID))
+		logger.Warn().
+			Str("txID", tx.ID).
+			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 	} else {
-		logger.
-			Info(ctx, fmt.Sprintf("OutgoingTx.Execute(): broadcast complete, TxID: %s", tx.ID))
+		logger.Info().
+			Str("txID", tx.ID).
+			Msg("broadcast complete")
 	}
 }

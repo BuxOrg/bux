@@ -53,11 +53,11 @@ func (e *Example) GetID() string {
 
 // BeforeCreating is called before the model is saved to the DB
 func (e *Example) BeforeCreating(_ context.Context) (err error) {
-	e.DebugLog("starting: " + e.Name() + " BeforeCreating hook...")
+	e.Client().Logger().Debug().Msgf("starting: %s BeforeCreating hook...", e.Name())
 
 	// Do something here!
 
-	e.DebugLog("end: " + e.Name() + " BeforeCreating hook")
+	e.Client().Logger().Debug().Msgf("end: %s BeforeCreating hook", e.Name())
 	return
 }
 

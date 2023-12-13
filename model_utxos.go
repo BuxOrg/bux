@@ -390,7 +390,9 @@ func (m *Utxo) GetID() string {
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Utxo) BeforeCreating(_ context.Context) error {
 
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("utxoID", m.ID).
+		Msgf("starting: %s BeforeCreate hook...", m.Name())
 
 	// Test for required field(s)
 	if len(m.ScriptPubKey) == 0 {
@@ -432,7 +434,9 @@ func (m *Utxo) BeforeCreating(_ context.Context) error {
 	m.ID = m.GenerateID()
 	m.Type = utils.GetDestinationType(m.ScriptPubKey)
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("utxoID", m.ID).
+		Msgf("end: %s BeforeCreate hook", m.Name())
 	return nil
 }
 

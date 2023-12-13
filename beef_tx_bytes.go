@@ -36,11 +36,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	transactions := make([][]byte, 0, len(beefTx.transactions))
 
 	for _, t := range beefTx.transactions {
-		txBytes, err := toBeefBytes(t, beefTx.bumps)
-		if err != nil {
-			return nil, err
-		}
-
+		txBytes := toBeefBytes(t, beefTx.bumps)
 		transactions = append(transactions, txBytes)
 		beefSize += len(txBytes)
 	}
@@ -60,7 +56,7 @@ func (beefTx *beefTx) toBeefBytes() ([]byte, error) {
 	return buffer, nil
 }
 
-func toBeefBytes(tx *bt.Tx, bumps BUMPs) ([]byte, error) {
+func toBeefBytes(tx *bt.Tx, bumps BUMPs) []byte {
 	txBeefBytes := tx.Bytes()
 
 	bumpIdx := getBumpPathIndex(tx, bumps)
@@ -71,7 +67,7 @@ func toBeefBytes(tx *bt.Tx, bumps BUMPs) ([]byte, error) {
 		txBeefBytes = append(txBeefBytes, hasNoBUMP)
 	}
 
-	return txBeefBytes, nil
+	return txBeefBytes
 }
 
 func getBumpPathIndex(tx *bt.Tx, bumps BUMPs) int {

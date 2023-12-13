@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/mrz1836/go-datastore"
@@ -67,11 +66,13 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 		}
 
 		// Logs for saving models
-		model.DebugLog(fmt.Sprintf("saving %d models...", len(modelsToSave)))
+		model.Client().Logger().Debug().Msgf("saving %d models...", len(modelsToSave))
 
 		// Save all models (or fail!)
 		for index := range modelsToSave {
-			modelsToSave[index].DebugLog("starting to save model: " + modelsToSave[index].Name() + " id: " + modelsToSave[index].GetID())
+			modelsToSave[index].Client().Logger().Debug().
+				Str("modelID", modelsToSave[index].GetID()).
+				Msgf("starting to save model: %s", modelsToSave[index].Name())
 			if err = modelsToSave[index].Client().Datastore().SaveModel(
 				ctx, modelsToSave[index], tx, modelsToSave[index].IsNew(), false,
 			); err != nil {
@@ -81,7 +82,7 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 
 		// Commit all the model(s) if needed
 		if tx.CanCommit() {
-			model.DebugLog("committing db transaction...")
+			model.Client().Logger().Debug().Msg("committing db transaction...")
 			if err = tx.Commit(); err != nil {
 				return
 			}
@@ -122,7 +123,9 @@ func saveToCache(ctx context.Context, keys []string, model ModelInterface, ttl t
 			}
 		}
 	} else {
-		model.DebugLog("ignoring saveToCache: client or cachestore is missing")
+		model.Client().Logger().Debug().
+			Str("modelID", model.GetID()).
+			Msg("ignoring saveToCache: client or cachestore is missing")
 	}
 	return nil
 }

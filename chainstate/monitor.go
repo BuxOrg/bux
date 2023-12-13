@@ -2,10 +2,10 @@ package chainstate
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/utils"
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 // Monitor starts a new monitorConfig to monitor and filter transactions from a source
@@ -23,7 +23,7 @@ type Monitor struct {
 	handler                      MonitorHandler
 	loadMonitoredDestinations    bool
 	lockID                       string
-	logger                       zLogger.GormLoggerInterface
+	logger                       *zerolog.Logger
 	maxNumberOfDestinations      int
 	mempoolSyncChannelActive     bool
 	mempoolSyncChannel           chan bool
@@ -99,7 +99,7 @@ func NewMonitor(_ context.Context, options *MonitorOptions) (monitor *Monitor) {
 
 	// Set logger if not set
 	if monitor.logger == nil {
-		monitor.logger = zLogger.NewGormLogger(options.Debug, 4)
+		monitor.logger = logging.GetDefaultLogger()
 	}
 
 	// Switch on the filter type
@@ -127,7 +127,7 @@ func (m *Monitor) Add(regexString, item string) error {
 			return err
 		}
 	} else {
-		m.logger.Error(context.Background(), "client was expected but not found")
+		m.logger.Error().Msg("client was expected but not found")
 	}
 	return m.processor.Add(regexString, item)
 }
@@ -183,7 +183,7 @@ func (m *Monitor) AllowUnknownTransactions() bool {
 }
 
 // Logger gets the current logger
-func (m *Monitor) Logger() Logger {
+func (m *Monitor) Logger() *zerolog.Logger {
 	return m.logger
 }
 
@@ -203,11 +203,11 @@ func (m *Monitor) SetChainstateOptions(options *clientOptions) {
 }
 
 // Start open a socket to the service provider and monitorConfig transactions
-func (m *Monitor) Start(ctx context.Context, handler MonitorHandler, onStop func()) error {
+func (m *Monitor) Start(_ context.Context, handler MonitorHandler, onStop func()) error {
 	if m.client == nil {
 		handler.SetMonitor(m)
 		m.handler = handler
-		m.logger.Info(ctx, fmt.Sprintf("[MONITOR] Starting, connecting to server: %s", m.buxAgentURL))
+		m.logger.Info().Msgf("[MONITOR] Starting, connecting to server: %s", m.buxAgentURL)
 		m.client = newCentrifugeClient(m.buxAgentURL, handler)
 		if m.authToken != "" {
 			m.client.SetToken(m.authToken)
@@ -220,8 +220,8 @@ func (m *Monitor) Start(ctx context.Context, handler MonitorHandler, onStop func
 }
 
 // Stop closes the monitoring socket and pauses monitoring
-func (m *Monitor) Stop(ctx context.Context) error {
-	m.logger.Info(ctx, "[MONITOR] Stopping monitor...")
+func (m *Monitor) Stop(_ context.Context) error {
+	m.logger.Info().Msg("[MONITOR] Stopping monitor...")
 	if m.IsConnected() { // Only close if still connected
 		if m.mempoolSyncChannelActive {
 			close(m.mempoolSyncChannel)

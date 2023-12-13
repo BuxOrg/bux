@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/libsv/go-bt/v2"
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 type externalIncomingTx struct {
@@ -24,28 +24,33 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 
 	transaction, err := _createExternalTxToRecord(ctx, strategy, c, opts)
 	if err != nil {
-		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): creation of external incoming tx failed. Reason: %w", err)
+		return nil, fmt.Errorf("creation of external incoming tx failed. Reason: %w", err)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start without ITC, TxID: %s", transaction.ID))
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msg("start without ITC")
 
 	if strategy.broadcastNow || transaction.syncTransaction.BroadcastStatus == SyncStatusReady {
 
-		err := _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
+		err = _externalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
-			logger.
-				Error(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID))
+			logger.Error().
+				Str("txID", transaction.ID).
+				Msgf("broadcasting failed, transaction rejected! Reason: %s", err)
 
-			return nil, fmt.Errorf("ExternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w", err)
+			return nil, fmt.Errorf("broadcasting failed, transaction rejected! Reason: %w", err)
 		}
 	}
 
 	// record
 	if err = transaction.Save(ctx); err != nil {
-		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): saving of Transaction failed. Reason: %w", err)
+		return nil, fmt.Errorf("saving of Transaction failed. Reason: %w", err)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID))
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msg("External incoming tx execute complete")
 	return transaction, nil
 }
 
@@ -79,19 +84,23 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 
 	incomingTx, err := newIncomingTransaction(tx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
 	if err != nil {
-		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): tx creation failed. Reason: %w", err)
+		return nil, fmt.Errorf("tx creation failed. Reason: %w", err)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start ITC, TxID: %s", incomingTx.ID))
+	logger.Info().
+		Str("txID", incomingTx.ID).
+		Msg("start ITC")
 
 	if err = incomingTx.Save(ctx); err != nil {
-		return nil, fmt.Errorf("ExternalIncomingTx.Execute(): addind new IncomingTx to check queue failed. Reason: %w", err)
+		return nil, fmt.Errorf("addind new IncomingTx to check queue failed. Reason: %w", err)
 	}
 
 	result := incomingTx.toTransactionDto()
 	result.Status = statusProcessing
 
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): complete ITC, TxID: %s", incomingTx.ID))
+	logger.Info().
+		Str("txID", incomingTx.ID).
+		Msg("complete ITC")
 	return result, nil
 }
 
@@ -122,11 +131,11 @@ func _hydrateExternalWithSync(tx *Transaction) {
 		tx.GetOptions(true)...,
 	)
 
-	// to simplfy: broadcast every external incoming txs
+	// to simplify: broadcast every external incoming txs
 	sync.BroadcastStatus = SyncStatusReady
 
 	sync.P2PStatus = SyncStatusSkipped  // the sender of the Tx should have already notified us
-	sync.SyncStatus = SyncStatusPending // wait until transaciton will be broadcasted
+	sync.SyncStatus = SyncStatusPending // wait until transactions will be broadcasted
 
 	// Use the same metadata
 	sync.Metadata = tx.Metadata
@@ -134,21 +143,23 @@ func _hydrateExternalWithSync(tx *Transaction) {
 	tx.syncTransaction = sync
 }
 
-func _externalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, tx *Transaction, allowErrors bool) error {
-	logger.Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): start broadcast, TxID: %s", tx.ID))
+func _externalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tx *Transaction, allowErrors bool) error {
+	logger.Info().Str("txID", tx.ID).Msg("start broadcast")
 
 	err := broadcastSyncTransaction(ctx, tx.syncTransaction)
 
 	if err == nil {
-		logger.
-			Info(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcast complete, TxID: %s", tx.ID))
+		logger.Info().
+			Str("txID", tx.ID).
+			Msg("broadcast complete")
 
 		return nil
 	}
 
 	if allowErrors {
-		logger.
-			Warn(ctx, fmt.Sprintf("ExternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID))
+		logger.Warn().
+			Str("txID", tx.ID).
+			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 
 		// ignore error, transaction will be broadcaset in a cron task
 		return nil

@@ -7,14 +7,15 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog"
 )
 
 type (
@@ -26,23 +27,23 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cacheStore            *cacheStoreOptions          // Configuration options for Cachestore (ristretto, redis, etc.)
-		cluster               *clusterOptions             // Configuration options for the cluster coordinator
-		chainstate            *chainstateOptions          // Configuration options for Chainstate (broadcast, sync, etc.)
-		dataStore             *dataStoreOptions           // Configuration options for the DataStore (MySQL, etc.)
-		debug                 bool                        // If the client is in debug mode
-		encryptionKey         string                      // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
-		httpClient            HTTPInterface               // HTTP interface to use
-		importBlockHeadersURL string                      // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
-		itc                   bool                        // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
-		iuc                   bool                        // (Input UTXO Check) True will check input utxos when saving transactions
-		logger                zLogger.GormLoggerInterface // Internal logging
-		models                *modelOptions               // Configuration options for the loaded models
-		newRelic              *newRelicOptions            // Configuration options for NewRelic
-		notifications         *notificationsOptions       // Configuration options for Notifications
-		paymail               *paymailOptions             // Paymail options & client
-		taskManager           *taskManagerOptions         // Configuration options for the TaskManager (TaskQ, etc.)
-		userAgent             string                      // User agent for all outgoing requests
+		cacheStore            *cacheStoreOptions    // Configuration options for Cachestore (ristretto, redis, etc.)
+		cluster               *clusterOptions       // Configuration options for the cluster coordinator
+		chainstate            *chainstateOptions    // Configuration options for Chainstate (broadcast, sync, etc.)
+		dataStore             *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
+		debug                 bool                  // If the client is in debug mode
+		encryptionKey         string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
+		httpClient            HTTPInterface         // HTTP interface to use
+		importBlockHeadersURL string                // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
+		itc                   bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
+		iuc                   bool                  // (Input UTXO Check) True will check input utxos when saving transactions
+		logger                *zerolog.Logger       // Internal logging
+		models                *modelOptions         // Configuration options for the loaded models
+		newRelic              *newRelicOptions      // Configuration options for NewRelic
+		notifications         *notificationsOptions // Configuration options for Notifications
+		paymail               *paymailOptions       // Paymail options & client
+		taskManager           *taskManagerOptions   // Configuration options for the TaskManager (TaskQ, etc.)
+		userAgent             string                // User agent for all outgoing requests
 	}
 
 	// chainstateOptions holds the chainstate configuration and client
@@ -137,7 +138,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 
 	// Set the logger (if no custom logger was detected)
 	if client.options.logger == nil {
-		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
+		client.options.logger = logging.GetDefaultLogger()
 	}
 
 	// Load the Cachestore client
@@ -426,7 +427,7 @@ func (c *Client) IsMigrationEnabled() bool {
 }
 
 // Logger will return the Logger if it exists
-func (c *Client) Logger() zLogger.GormLoggerInterface {
+func (c *Client) Logger() *zerolog.Logger {
 	return c.options.logger
 }
 

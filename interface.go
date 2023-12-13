@@ -12,7 +12,7 @@ import (
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 // AccessKeyService is the access key actions
@@ -63,7 +63,7 @@ type ClientService interface {
 	Chainstate() chainstate.ClientInterface
 	Datastore() datastore.ClientInterface
 	HTTPClient() HTTPInterface
-	Logger() zLogger.GormLoggerInterface
+	Logger() *zerolog.Logger
 	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface
 	Taskmanager() taskmanager.ClientInterface

@@ -6,9 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tonicpow/go-minercraft/v2"
-
 	"github.com/BuxOrg/bux/utils"
+	"github.com/tonicpow/go-minercraft/v2"
 )
 
 // query will try ALL providers in order and return the first "valid" response based on requirements

@@ -195,22 +195,30 @@ func getBlockHeaderByHeight(ctx context.Context, height uint32, opts ...ModelOps
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *BlockHeader) BeforeCreating(_ context.Context) error {
 
-	m.DebugLog("starting: " + m.Name() + " BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Test for required field(s)
 	if len(m.ID) == 0 {
 		return ErrMissingFieldHash
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created in the Datastore
 func (m *BlockHeader) AfterCreated(_ context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("starting: %s AfterCreated hook", m.Name())
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook")
+	m.Client().Logger().Debug().
+		Str("blockHeaderID", m.ID).
+		Msgf("end: AfterCreated %d hook", m.Height)
 	return nil
 }
 
@@ -234,14 +242,14 @@ func (m *BlockHeader) Migrate(client datastore.ClientInterface) error {
 		}
 		if blockHeader0 == nil {
 			// import block headers in the background
-			m.Client().Logger().Info(ctx, "Importing block headers into database")
+			m.Client().Logger().Info().Msg("Importing block headers into database")
 			err = m.importBlockHeaders(ctx, client, blockHeadersFile)
 			if err != nil {
 				// stop execution if block headers import is not successful
 				// the block headers state can be messed up if they are not imported, or half imported
 				panic(err.Error())
 			}
-			m.Client().Logger().Info(ctx, "Successfully imported all block headers into database")
+			m.Client().Logger().Info().Msg("Successfully imported all block headers into database")
 		}
 	}
 
@@ -258,7 +266,7 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 	}
 	defer func() {
 		if err = os.Remove(file.Name()); err != nil {
-			m.Client().Logger().Error(ctx, err.Error())
+			m.Client().Logger().Error().Msg(err.Error())
 		}
 	}()
 
@@ -310,7 +318,7 @@ func (m *BlockHeader) importBlockHeaders(ctx context.Context, client datastore.C
 }
 
 // importCSVFile will import the block headers from a given CSV file
-func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string,
+func (m *BlockHeader) importCSVFile(_ context.Context, blockFile string,
 	readModel func(model *BlockHeader) error) error {
 
 	CSVFile, err := os.Open(blockFile) //nolint:gosec // file only added by administrator via config
@@ -319,7 +327,7 @@ func (m *BlockHeader) importCSVFile(ctx context.Context, blockFile string,
 	}
 	defer func() {
 		if err = CSVFile.Close(); err != nil {
-			m.Client().Logger().Error(ctx, err.Error())
+			m.Client().Logger().Error().Msg(err.Error())
 		}
 	}()
 

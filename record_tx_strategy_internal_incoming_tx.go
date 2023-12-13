@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 type internalIncomingTx struct {
@@ -14,15 +14,17 @@ type internalIncomingTx struct {
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 }
 
-func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
+func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
-	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID))
+	logger.Info().
+		Str("txID", strategy.Tx.ID).
+		Msg("start recording transaction")
 
 	// process
 	transaction := strategy.Tx
 	syncTx, err := GetSyncTransactionByID(ctx, transaction.ID, transaction.GetOptions(false)...)
 	if err != nil || syncTx == nil {
-		return nil, fmt.Errorf("InternalIncomingTx.Execute(): getting syncTx failed. Reason: %w", err)
+		return nil, fmt.Errorf("getting syncTx failed. Reason: %w", err)
 	}
 
 	if strategy.broadcastNow || syncTx.BroadcastStatus == SyncStatusReady {
@@ -31,20 +33,23 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 
 		err := _internalIncomingBroadcast(ctx, logger, transaction, strategy.allowBroadcastErrors)
 		if err != nil {
-			logger.
-				Error(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID))
+			logger.Error().
+				Str("txID", transaction.ID).
+				Msgf("broadcasting failed, transaction rejected! Reason: %s", err)
 
-			return nil, fmt.Errorf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
+			return nil, fmt.Errorf("broadcasting failed, transaction rejected! Reason: %w", err)
 		}
 	}
 
-	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID))
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msg("complete")
 	return transaction, nil
 }
 
 func (strategy *internalIncomingTx) Validate() error {
 	if strategy.Tx == nil {
-		return errors.New("Tx cannot be nil")
+		return errors.New("tx cannot be nil")
 	}
 
 	return nil // is valid
@@ -66,22 +71,26 @@ func (strategy *internalIncomingTx) FailOnBroadcastError(forceFail bool) {
 	strategy.allowBroadcastErrors = !forceFail
 }
 
-func _internalIncomingBroadcast(ctx context.Context, logger zLogger.GormLoggerInterface, transaction *Transaction, allowErrors bool) error {
-	logger.Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID))
+func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, transaction *Transaction, allowErrors bool) error {
+	logger.Info().
+		Str("txID", transaction.ID).
+		Msg("start broadcast")
 
 	syncTx := transaction.syncTransaction
 	err := broadcastSyncTransaction(ctx, syncTx)
 
 	if err == nil {
-		logger.
-			Info(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID))
+		logger.Info().
+			Str("txID", transaction.ID).
+			Msg("broadcast complete")
 
 		return nil
 	}
 
 	if allowErrors {
-		logger.
-			Warn(ctx, fmt.Sprintf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID))
+		logger.Warn().
+			Str("txID", transaction.ID).
+			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 
 		// ignore broadcast error - will be repeted by task manager
 		return nil

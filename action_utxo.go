@@ -97,7 +97,7 @@ func (c *Client) GetUtxo(ctx context.Context, xPubKey, txID string, outputIndex 
 	var tx *Transaction
 	tx, err = getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
 	if err != nil {
-		c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
+		c.Logger().Error().Str("utxoID", utxo.ID).Msg("failed finding transaction related to utxo")
 	} else {
 		utxo.Transaction = tx
 	}
@@ -123,7 +123,7 @@ func (c *Client) GetUtxoByTransactionID(ctx context.Context, txID string, output
 	var tx *Transaction
 	tx, err = getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
 	if err != nil {
-		c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
+		c.Logger().Error().Str("utxoID", utxo.ID).Msg("failed finding transaction related to utxo")
 	} else {
 		utxo.Transaction = tx
 	}
@@ -144,7 +144,7 @@ func (c *Client) enrichUtxoTransactions(ctx context.Context, utxos []*Utxo) {
 	for index, utxo := range utxos {
 		tx, err := getTransactionByID(ctx, "", utxo.TransactionID, c.DefaultModelOptions()...)
 		if err != nil {
-			c.Logger().Error(ctx, "failed finding transaction related to utxo: "+utxo.ID)
+			c.Logger().Error().Str("utxoID", utxo.ID).Msg("failed finding transaction related to utxo")
 		} else {
 			utxos[index].Transaction = tx
 		}

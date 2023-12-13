@@ -30,11 +30,13 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tonicpow/go-minercraft/v2 v2.0.8
 	github.com/tryvium-travels/memongo v0.10.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
+	go.elastic.co/ecszerolog v0.2.0
 	go.mongodb.org/mongo-driver v1.13.0
 	gorm.io/gorm v1.25.5
 )
@@ -84,6 +86,8 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/libsv/go-p2p v0.1.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.18 // indirect
 	github.com/miekg/dns v1.1.57 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect

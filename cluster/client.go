@@ -3,8 +3,9 @@ package cluster
 import (
 	"context"
 
+	"github.com/BuxOrg/bux/logging"
 	"github.com/go-redis/redis/v8"
-	zLogger "github.com/mrz1836/go-logger"
+	"github.com/rs/zerolog"
 )
 
 type (
@@ -17,11 +18,11 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		coordinator     Coordinator                 // which coordinator to use, either 'memory' or 'redis'
-		debug           bool                        // For extra logs and additional debug information
-		logger          zLogger.GormLoggerInterface // Internal logger interface
-		newRelicEnabled bool                        // Whether to use New Relic
-		prefix          string                      // the cluster key prefix to use before all keys
+		coordinator     Coordinator     // which coordinator to use, either 'memory' or 'redis'
+		debug           bool            // For extra logs and additional debug information
+		logger          *zerolog.Logger // Internal logger interface
+		newRelicEnabled bool            // Whether to use New Relic
+		prefix          string          // the cluster key prefix to use before all keys
 		redisOptions    *redis.Options
 	}
 )
@@ -41,7 +42,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (*Client, error) {
 
 	// Set logger if not set
 	if client.options.logger == nil {
-		client.options.logger = zLogger.NewGormLogger(client.IsDebug(), 4)
+		client.options.logger = logging.GetDefaultLogger()
 	}
 
 	if client.options.coordinator == CoordinatorRedis {

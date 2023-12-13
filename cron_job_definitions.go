@@ -10,7 +10,7 @@ import (
 
 // taskCleanupDraftTransactions will clean up all old expired draft transactions
 func taskCleanupDraftTransactions(ctx context.Context, client *Client) error {
-	client.Logger().Info(ctx, "running cleanup draft transactions task...")
+	client.Logger().Info().Msg("running cleanup draft transactions task...")
 
 	// Construct an empty model
 	var models []DraftTransaction
@@ -55,7 +55,7 @@ func taskCleanupDraftTransactions(ctx context.Context, client *Client) error {
 
 // taskProcessIncomingTransactions will process any incoming transactions found
 func taskProcessIncomingTransactions(ctx context.Context, client *Client) error {
-	client.Logger().Info(ctx, "running process incoming transaction(s) task...")
+	client.Logger().Info().Msg("running process incoming transaction(s) task...")
 
 	err := processIncomingTransactions(ctx, client.Logger(), 10, WithClient(client))
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
@@ -66,7 +66,7 @@ func taskProcessIncomingTransactions(ctx context.Context, client *Client) error 
 
 // taskBroadcastTransactions will broadcast any transactions
 func taskBroadcastTransactions(ctx context.Context, client *Client) error {
-	client.Logger().Info(ctx, "running broadcast transaction(s) task...")
+	client.Logger().Info().Msg("running broadcast transaction(s) task...")
 
 	err := processBroadcastTransactions(ctx, 1000, WithClient(client))
 	if err == nil || errors.Is(err, datastore.ErrNoResults) {
@@ -78,7 +78,7 @@ func taskBroadcastTransactions(ctx context.Context, client *Client) error {
 // taskSyncTransactions will sync any transactions
 func taskSyncTransactions(ctx context.Context, client *Client) error {
 	logClient := client.Logger()
-	logClient.Info(ctx, "running sync transaction(s) task...")
+	logClient.Info().Msg("running sync transaction(s) task...")
 
 	// Prevent concurrent running
 	unlock, err := newWriteLock(
@@ -86,8 +86,8 @@ func taskSyncTransactions(ctx context.Context, client *Client) error {
 	)
 	defer unlock()
 	if err != nil {
-		logClient.Warn(ctx, "cannot run sync transaction(s) task,  previous run is not complete yet...")
-		return nil
+		logClient.Warn().Msg("cannot run sync transaction(s) task,  previous run is not complete yet...")
+		return nil //nolint:nilerr // previous run is not complete yet
 	}
 
 	err = processSyncTransactions(ctx, 100, WithClient(client))

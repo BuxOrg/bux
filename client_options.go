@@ -10,6 +10,7 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
+	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
@@ -21,8 +22,8 @@ import (
 	"github.com/mrz1836/go-cache"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
 	taskq "github.com/vmihailenco/taskq/v3"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -35,6 +36,8 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
+	defaultLogger := logging.GetDefaultLogger()
+	datastoreLogger := logging.CreateGormLoggerAdapter(defaultLogger, "datastore")
 	// Set the default options
 	return &clientOptions{
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
@@ -66,7 +69,7 @@ func defaultClientOptions() *clientOptions {
 		// Blank Datastore config
 		dataStore: &dataStoreOptions{
 			ClientInterface: nil,
-			options:         []datastore.ClientOps{datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: zLogger.NewGormLogger(false, 4)})},
+			options:         []datastore.ClientOps{datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger})},
 		},
 
 		// Default http client
@@ -269,17 +272,24 @@ func WithHTTPClient(httpClient HTTPInterface) ClientOps {
 }
 
 // WithLogger will set the custom logger interface
-func WithLogger(customLogger zLogger.GormLoggerInterface) ClientOps {
+func WithLogger(customLogger *zerolog.Logger) ClientOps {
 	return func(c *clientOptions) {
 		if customLogger != nil {
 			c.logger = customLogger
 
-			// Enable the logger on all services
-			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(c.logger))
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(c.logger))
-			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: c.logger}))
-			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(c.logger))
-			c.notifications.options = append(c.notifications.options, notifications.WithLogger(c.logger))
+			// Enable the logger on all bux services
+			chainstateLogger := customLogger.With().Str("subservice", "chainstate").Logger()
+			taskManagerLogger := customLogger.With().Str("subservice", "taskManager").Logger()
+			notificationsLogger := customLogger.With().Str("subservice", "notifications").Logger()
+			c.chainstate.options = append(c.chainstate.options, chainstate.WithLogger(&chainstateLogger))
+			c.taskManager.options = append(c.taskManager.options, taskmanager.WithLogger(&taskManagerLogger))
+			c.notifications.options = append(c.notifications.options, notifications.WithLogger(&notificationsLogger))
+
+			// Enable the logger on all external services
+			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")
+			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
+			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger}))
+			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
 		}
 	}
 }

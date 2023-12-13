@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/BuxOrg/bux/chainstate"
 	"github.com/libsv/go-bt/v2"
 	"github.com/mrz1836/go-datastore"
-	zLogger "github.com/mrz1836/go-logger"
-
-	"github.com/BuxOrg/bux/chainstate"
+	"github.com/rs/zerolog"
 )
 
 // IncomingTransaction is an object representing the incoming (external) transaction (for pre-processing)
@@ -138,7 +137,7 @@ func (m *IncomingTransaction) toTransactionDto() *Transaction {
 	t.parsedTx = m.parsedTx
 	t.rawXpubKey = m.rawXpubKey
 	t.setXPubID()
-	t.setID()
+	t.setID() //nolint:errcheck,gosec // error is not needed
 
 	t.Metadata = m.Metadata
 	t.NumberOfOutputs = uint32(len(m.parsedTx.Outputs))
@@ -149,7 +148,9 @@ func (m *IncomingTransaction) toTransactionDto() *Transaction {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
-	m.DebugLog("starting: [" + m.name.String() + "] BeforeCreating hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("starting: %s BeforeCreating hook...", m.Name())
 
 	// Set status
 	m.Status = SyncStatusReady
@@ -177,22 +178,28 @@ func (m *IncomingTransaction) BeforeCreating(ctx context.Context) error {
 		return ErrNoMatchingOutputs
 	}
 
-	m.DebugLog("end: " + m.Name() + " BeforeCreating hook")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("end: %s BeforeCreating hook", m.Name())
 	return nil
 }
 
 // AfterCreated will fire after the model is created
-func (m *IncomingTransaction) AfterCreated(ctx context.Context) error {
-	m.DebugLog("starting: " + m.Name() + " AfterCreated hook...")
+func (m *IncomingTransaction) AfterCreated(_ context.Context) error {
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("starting: %s AfterCreated hook...", m.Name())
 
 	// todo: this should be refactored into a task
-	// go func(incomingTx *IncomingTransaction) {
 	if err := processIncomingTransaction(context.Background(), m.Client().Logger(), m); err != nil {
-		m.Client().Logger().Error(ctx, "error processing incoming transaction: "+err.Error())
+		m.Client().Logger().Error().
+			Str("txID", m.GetID()).
+			Msgf("error processing incoming transaction: %v", err.Error())
 	}
-	// }(m)
 
-	m.DebugLog("end: " + m.Name() + " AfterCreated hook...")
+	m.Client().Logger().Debug().
+		Str("txID", m.GetID()).
+		Msgf("end: %s AfterCreated hook", m.Name())
 	return nil
 }
 
@@ -202,9 +209,8 @@ func (m *IncomingTransaction) Migrate(client datastore.ClientInterface) error {
 }
 
 // processIncomingTransactions will process incoming transaction records
-func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLoggerInterface, maxTransactions int,
-	opts ...ModelOps,
-) error {
+func processIncomingTransactions(ctx context.Context, logClient *zerolog.Logger, maxTransactions int,
+	opts ...ModelOps) error {
 	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
 
 	// Get x records:
@@ -218,7 +224,7 @@ func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLogg
 	}
 
 	if logClient != nil {
-		logClient.Info(ctx, fmt.Sprintf("found %d incoming transactions to process", len(records)))
+		logClient.Info().Msgf("found %d incoming transactions to process", len(records))
 	}
 
 	// Process the incoming transaction
@@ -234,17 +240,17 @@ func processIncomingTransactions(ctx context.Context, logClient zLogger.GormLogg
 }
 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
-func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLoggerInterface,
-	incomingTx *IncomingTransaction,
-) error {
+func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
+	incomingTx *IncomingTransaction) error {
+
 	if logClient == nil {
 		logClient = incomingTx.client.Logger()
 	}
 
-	logClient.Info(ctx, fmt.Sprintf("processIncomingTransaction(): transaction: %v", incomingTx))
+	logClient.Info().Str("txID", incomingTx.GetID()).Msgf("processIncomingTransaction(): transaction: %v", incomingTx)
 
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(ctx, incomingTx.client.Logger())
+	defer recoverAndLog(incomingTx.client.Logger())
 
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
@@ -261,7 +267,9 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 		ctx, incomingTx.ID, chainstate.RequiredInMempool, defaultQueryTxTimeout,
 	); err != nil {
 
-		logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): error finding transaction %s on chain. Reason: %s", incomingTx.ID, err))
+		logClient.Error().
+			Str("txID", incomingTx.GetID()).
+			Msgf("error finding transaction %s on chain. Reason: %s", incomingTx.ID, err)
 
 		// TX might not have been broadcast yet? (race condition, or it was never broadcast...)
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {
@@ -276,7 +284,9 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 			}
 
 			// Broadcast was successful, so the transaction was accepted by the network, continue processing like before
-			logClient.Info(ctx, fmt.Sprintf("processIncomingTransaction(): broadcast of transaction %s was successful using %s. Incoming tx will be processed again.", incomingTx.ID, provider))
+			logClient.Info().
+				Str("txID", incomingTx.GetID()).
+				Msgf("broadcast of transaction was successful using %s. Incoming tx will be processed again.", provider)
 
 			// allow propagation
 			time.Sleep(3 * time.Second)
@@ -288,18 +298,17 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 		return err
 	}
 
-	// validate txInfo
 	if !txInfo.Valid() {
-		logClient.Warn(ctx, fmt.Sprintf("processIncomingTransaction(): txInfo for %s is invalid, will try again later", incomingTx.ID))
+		logClient.Warn().Str("txID", incomingTx.ID).Msg("txInfo is invalid, will try again later")
 
 		if incomingTx.client.IsDebug() {
-			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr // error is not needed
-			incomingTx.DebugLog(string(txInfoJSON))
+			txInfoJSON, _ := json.Marshal(txInfo) //nolint:nolintlint,nilerr,govet,errchkjson // error is not needed
+			logClient.Debug().Str("txID", incomingTx.ID).Msg(string(txInfoJSON))
 		}
 		return nil
 	}
 
-	logClient.Info(ctx, fmt.Sprintf("found incoming transaction %s in %s", incomingTx.ID, txInfo.Provider))
+	logClient.Info().Str("txID", incomingTx.ID).Msgf("found incoming transaction in %s", txInfo.Provider)
 
 	// Check if we have transaction in DB already
 	transaction, _ := getTransactionByID(
@@ -309,12 +318,14 @@ func processIncomingTransaction(ctx context.Context, logClient zLogger.GormLogge
 	if transaction == nil {
 		// Create the new transaction model
 		if transaction, err = newTransactionFromIncomingTransaction(incomingTx); err != nil {
-			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): newTransactionFromIncomingTransaction() for %s failed. Reason: %s", incomingTx.ID, err))
+			logClient.Error().Str("txID", incomingTx.ID).Msgf("creating a new tx failed. Reason: %s", err)
 			return err
 		}
 
 		if err = transaction.processUtxos(ctx); err != nil {
-			logClient.Error(ctx, fmt.Sprintf("processIncomingTransaction(): processUtxos() for %s failed. Reason: %s", incomingTx.ID, err))
+			logClient.Error().
+				Str("txID", incomingTx.ID).
+				Msgf("processing utxos for tx failed. Reason: %s", err)
 			return err
 		}
 	}

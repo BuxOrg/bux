@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/rs/zerolog"
 	boom "github.com/tylertreat/BoomFilters"
 )
 
@@ -17,7 +18,7 @@ type BloomProcessor struct {
 	debug             bool
 	falsePositiveRate float64
 	filters           map[string]*BloomProcessorFilter
-	logger            Logger
+	logger            *zerolog.Logger
 	maxCells          uint
 }
 
@@ -47,12 +48,12 @@ func (p *BloomProcessor) IsDebug() bool {
 }
 
 // SetLogger set the logger
-func (p *BloomProcessor) SetLogger(logger Logger) {
+func (p *BloomProcessor) SetLogger(logger *zerolog.Logger) {
 	p.logger = logger
 }
 
 // Logger return the logger
-func (p *BloomProcessor) Logger() Logger {
+func (p *BloomProcessor) Logger() *zerolog.Logger {
 	return p.logger
 }
 
@@ -176,7 +177,7 @@ func (p *BloomProcessor) FilterTransaction(txHex string) (string, error) {
 type RegexProcessor struct {
 	debug  bool
 	filter []string
-	logger Logger
+	logger *zerolog.Logger
 }
 
 // NewRegexProcessor initialize a new regex processor
@@ -197,12 +198,12 @@ func (p *RegexProcessor) IsDebug() bool {
 }
 
 // SetLogger set the logger
-func (p *RegexProcessor) SetLogger(logger Logger) {
+func (p *RegexProcessor) SetLogger(logger *zerolog.Logger) {
 	p.logger = logger
 }
 
 // Logger return the logger
-func (p *RegexProcessor) Logger() Logger {
+func (p *RegexProcessor) Logger() *zerolog.Logger {
 	return p.logger
 }
 

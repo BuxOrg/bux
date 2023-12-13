@@ -50,7 +50,7 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 
 	logger.Info().
 		Str("txID", transaction.ID).
-		Msgf("External incoming tx execute complete")
+		Msg("External incoming tx execute complete")
 	return transaction, nil
 }
 

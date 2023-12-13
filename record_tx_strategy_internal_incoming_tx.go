@@ -18,7 +18,7 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 	logger := c.Logger()
 	logger.Info().
 		Str("txID", strategy.Tx.ID).
-		Msgf("InternalIncomingTx.Execute(): start, TxID: %s", strategy.Tx.ID)
+		Msg("start recording transaction")
 
 	// process
 	transaction := strategy.Tx
@@ -35,21 +35,21 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		if err != nil {
 			logger.Error().
 				Str("txID", transaction.ID).
-				Msgf("broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
+				Msgf("broadcasting failed, transaction rejected! Reason: %s", err)
 
-			return nil, fmt.Errorf("broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
+			return nil, fmt.Errorf("broadcasting failed, transaction rejected! Reason: %w", err)
 		}
 	}
 
 	logger.Info().
 		Str("txID", transaction.ID).
-		Msgf("InternalIncomingTx.Execute(): complete, TxID: %s", transaction.ID)
+		Msg("complete")
 	return transaction, nil
 }
 
 func (strategy *internalIncomingTx) Validate() error {
 	if strategy.Tx == nil {
-		return errors.New("Tx cannot be nil")
+		return errors.New("tx cannot be nil")
 	}
 
 	return nil // is valid
@@ -74,7 +74,7 @@ func (strategy *internalIncomingTx) FailOnBroadcastError(forceFail bool) {
 func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, transaction *Transaction, allowErrors bool) error {
 	logger.Info().
 		Str("txID", transaction.ID).
-		Msgf("start broadcast, TxID: %s", transaction.ID)
+		Msg("start broadcast")
 
 	syncTx := transaction.syncTransaction
 	err := broadcastSyncTransaction(ctx, syncTx)
@@ -82,7 +82,7 @@ func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tra
 	if err == nil {
 		logger.Info().
 			Str("txID", transaction.ID).
-			Msgf("broadcast complete, TxID: %s", transaction.ID)
+			Msg("broadcast complete")
 
 		return nil
 	}
@@ -90,7 +90,7 @@ func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tra
 	if allowErrors {
 		logger.Warn().
 			Str("txID", transaction.ID).
-			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID)
+			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 
 		// ignore broadcast error - will be repeted by task manager
 		return nil

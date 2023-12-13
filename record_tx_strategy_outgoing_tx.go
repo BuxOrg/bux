@@ -19,7 +19,7 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 	logger := c.Logger()
 	logger.Info().
 		Str("txID", strategy.TxID()).
-		Msgf("OutgoingTx.Execute(): start, TxID: %s", strategy.TxID())
+		Msg("start recording transaction")
 
 	// create
 	transaction, err := _createOutgoingTxToRecord(ctx, strategy, c, opts)
@@ -190,35 +190,35 @@ func _getP2pSyncStatus(tx *Transaction) SyncStatus {
 func _outgoingNotifyP2p(ctx context.Context, logger *zerolog.Logger, tx *Transaction) error {
 	logger.Info().
 		Str("txID", tx.ID).
-		Msgf("start p2p, TxID: %s", tx.ID)
+		Msg("start p2p")
 
 	if err := processP2PTransaction(ctx, tx.syncTransaction, tx); err != nil {
 		logger.Error().
 			Str("txID", tx.ID).
-			Msgf("processP2PTransaction failed. Reason: %s, TxID: %s", err, tx.ID)
+			Msgf("processP2PTransaction failed. Reason: %s", err)
 
 		return err
 	}
 
 	logger.Info().
 		Str("txID", tx.ID).
-		Msgf("p2p complete, TxID: %s", tx.ID)
+		Msg("p2p complete")
 	return nil
 }
 
 func _outgoingBroadcast(ctx context.Context, logger *zerolog.Logger, tx *Transaction) {
 	logger.Info().
 		Str("txID", tx.ID).
-		Msgf("OutgoingTx.Execute(): start broadcast, TxID: %s", tx.ID)
+		Msg("start broadcast")
 
 	if err := broadcastSyncTransaction(ctx, tx.syncTransaction); err != nil {
 		// ignore error, transaction will be broadcasted by cron task
 		logger.Warn().
 			Str("txID", tx.ID).
-			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, tx.ID)
+			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 	} else {
 		logger.Info().
 			Str("txID", tx.ID).
-			Msgf("broadcast complete, TxID: %s", tx.ID)
+			Msg("broadcast complete")
 	}
 }

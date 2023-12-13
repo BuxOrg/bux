@@ -218,7 +218,12 @@ func TestTransaction_BeforeCreating(t *testing.T) {
 
 	t.Run("no transaction hex", func(t *testing.T) {
 		transaction := emptyTx()
-		err := transaction.BeforeCreating(context.Background())
+
+		opts := DefaultClientOpts(false, false)
+		client, err := NewClient(context.Background(), opts...)
+		transaction.client = client
+
+		err = transaction.BeforeCreating(context.Background())
 		assert.Error(t, err)
 		assert.ErrorIs(t, ErrMissingFieldHex, err)
 	})

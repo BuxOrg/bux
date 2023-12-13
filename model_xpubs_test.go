@@ -186,7 +186,11 @@ func TestXpub_BeforeCreating(t *testing.T) {
 		xPub := newXpub(testXPub, New())
 		require.NotNil(t, xPub)
 
-		err := xPub.BeforeCreating(context.Background())
+		opts := DefaultClientOpts(false, false)
+		client, err := NewClient(context.Background(), opts...)
+		xPub.client = client
+
+		err = xPub.BeforeCreating(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, xPub)
 	})
@@ -195,10 +199,7 @@ func TestXpub_BeforeCreating(t *testing.T) {
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
 		defer deferMe()
 
-		_, _, rawKey := CreateNewXPub(ctx, t, client)
-
-		xPub := newXpub(rawKey, New())
-		require.NotNil(t, xPub)
+		_, xPub, _ := CreateNewXPub(ctx, t, client)
 
 		err := xPub.BeforeCreating(ctx)
 		require.NoError(t, err)
@@ -209,7 +210,11 @@ func TestXpub_BeforeCreating(t *testing.T) {
 		xPub := newXpub("test", New())
 		require.NotNil(t, xPub)
 
-		err := xPub.BeforeCreating(context.Background())
+		opts := DefaultClientOpts(false, false)
+		client, err := NewClient(context.Background(), opts...)
+		xPub.client = client
+
+		err = xPub.BeforeCreating(context.Background())
 		assert.Error(t, err)
 		assert.EqualError(t, err, "xpub is an invalid length")
 	})
@@ -223,7 +228,11 @@ func TestXpub_AfterCreated(t *testing.T) {
 		xPub := newXpub(testXPub, New())
 		require.NotNil(t, xPub)
 
-		err := xPub.BeforeCreating(context.Background())
+		opts := DefaultClientOpts(false, false)
+		client, err := NewClient(context.Background(), opts...)
+		xPub.client = client
+
+		err = xPub.BeforeCreating(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, xPub)
 
@@ -240,7 +249,11 @@ func TestXpub_AfterUpdated(t *testing.T) {
 		xPub := newXpub(testXPub, New())
 		require.NotNil(t, xPub)
 
-		err := xPub.BeforeUpdating(context.Background())
+		opts := DefaultClientOpts(false, false)
+		client, err := NewClient(context.Background(), opts...)
+		xPub.client = client
+
+		err = xPub.BeforeUpdating(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, xPub)
 

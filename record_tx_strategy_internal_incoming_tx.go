@@ -24,7 +24,7 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 	transaction := strategy.Tx
 	syncTx, err := GetSyncTransactionByID(ctx, transaction.ID, transaction.GetOptions(false)...)
 	if err != nil || syncTx == nil {
-		return nil, fmt.Errorf("InternalIncomingTx.Execute(): getting syncTx failed. Reason: %w", err)
+		return nil, fmt.Errorf("getting syncTx failed. Reason: %w", err)
 	}
 
 	if strategy.broadcastNow || syncTx.BroadcastStatus == SyncStatusReady {
@@ -35,9 +35,9 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		if err != nil {
 			logger.Error().
 				Str("txID", transaction.ID).
-				Msgf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
+				Msgf("broadcasting failed, transaction rejected! Reason: %s, TxID: %s", err, transaction.ID)
 
-			return nil, fmt.Errorf("InternalIncomingTx.Execute(): broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
+			return nil, fmt.Errorf("broadcasting failed, transaction rejected! Reason: %w, TxID: %s", err, transaction.ID)
 		}
 	}
 
@@ -74,7 +74,7 @@ func (strategy *internalIncomingTx) FailOnBroadcastError(forceFail bool) {
 func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, transaction *Transaction, allowErrors bool) error {
 	logger.Info().
 		Str("txID", transaction.ID).
-		Msgf("InternalIncomingTx.Execute(): start broadcast, TxID: %s", transaction.ID)
+		Msgf("start broadcast, TxID: %s", transaction.ID)
 
 	syncTx := transaction.syncTransaction
 	err := broadcastSyncTransaction(ctx, syncTx)
@@ -82,7 +82,7 @@ func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tra
 	if err == nil {
 		logger.Info().
 			Str("txID", transaction.ID).
-			Msgf("InternalIncomingTx.Execute(): broadcast complete, TxID: %s", transaction.ID)
+			Msgf("broadcast complete, TxID: %s", transaction.ID)
 
 		return nil
 	}
@@ -90,7 +90,7 @@ func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tra
 	if allowErrors {
 		logger.Warn().
 			Str("txID", transaction.ID).
-			Msgf("InternalIncomingTx.Execute(): broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID)
+			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s, TxID: %s", err, transaction.ID)
 
 		// ignore broadcast error - will be repeted by task manager
 		return nil

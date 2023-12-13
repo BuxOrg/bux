@@ -269,7 +269,7 @@ func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
 
 		logClient.Error().
 			Str("txID", incomingTx.GetID()).
-			Msgf("processIncomingTransaction(): error finding transaction %s on chain. Reason: %s", incomingTx.ID, err)
+			Msgf("error finding transaction %s on chain. Reason: %s", incomingTx.ID, err)
 
 		// TX might not have been broadcast yet? (race condition, or it was never broadcast...)
 		if errors.Is(err, chainstate.ErrTransactionNotFound) {

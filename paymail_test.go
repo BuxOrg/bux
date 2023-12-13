@@ -14,6 +14,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/mrz1836/go-cache"
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -214,6 +215,7 @@ func Test_getCapabilities(t *testing.T) {
 			testMaxActiveConnections,
 			testMaxIdleConnections,
 		)
+		logger := zerolog.Nop()
 
 		tc, err := NewClient(context.Background(),
 			WithRedisConnection(redisClient),
@@ -222,6 +224,7 @@ func Test_getCapabilities(t *testing.T) {
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
+			WithLogger(&logger),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -254,6 +257,7 @@ func Test_getCapabilities(t *testing.T) {
 			testMaxActiveConnections,
 			testMaxIdleConnections,
 		)
+		logger := zerolog.Nop()
 
 		tc, err := NewClient(context.Background(),
 			WithRedisConnection(redisClient),
@@ -262,6 +266,7 @@ func Test_getCapabilities(t *testing.T) {
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
+			WithLogger(&logger),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -286,9 +291,13 @@ func Test_getCapabilities(t *testing.T) {
 	t.Run("valid response - no cache found", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -311,9 +320,13 @@ func Test_getCapabilities(t *testing.T) {
 	t.Run("multiple requests for same capabilities", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -357,6 +370,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			testMaxActiveConnections,
 			testMaxIdleConnections,
 		)
+		logger := zerolog.Nop()
 
 		tc, err := NewClient(context.Background(),
 			WithRedisConnection(redisClient),
@@ -365,6 +379,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
+			WithLogger(&logger),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -408,9 +423,13 @@ func Test_resolvePaymailAddress(t *testing.T) {
 	t.Run("valid response - no cache found", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -446,9 +465,13 @@ func Test_resolvePaymailAddress(t *testing.T) {
 	t.Run("multiple requests for same address resolution", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)

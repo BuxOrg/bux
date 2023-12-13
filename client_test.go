@@ -8,6 +8,7 @@ import (
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -254,13 +255,15 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 	})
 
 	t.Run("valid server config", func(t *testing.T) {
+		logger := zerolog.Nop()
 		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithPaymailSupport(
 			[]string{testDomain},
 			defaultSenderPaymail,
 			defaultAddressResolutionPurpose,
 			false, false,
-		))
+		),
+			WithLogger(&logger))
 
 		tc, err := NewClient(context.Background(), opts...)
 		require.NoError(t, err)

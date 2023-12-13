@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BuxOrg/bux/logging"
 	broadcast_client_mock "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client-mock"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -305,10 +305,10 @@ func TestWithLogger(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		customLogger := logging.GetDefaultLogger()
-		opt := WithLogger(customLogger)
+		customLogger := zerolog.Nop()
+		opt := WithLogger(&customLogger)
 		opt(options)
-		assert.Equal(t, customLogger, options.logger)
+		assert.Equal(t, &customLogger, options.logger)
 	})
 }
 

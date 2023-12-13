@@ -18,6 +18,7 @@ import (
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -70,8 +71,9 @@ func Test_newRelicOptions_getOrStartTxn(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, app)
 
+		logger := zerolog.Nop()
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithNewRelic(app))
+		opts = append(opts, WithNewRelic(app), WithLogger(&logger))
 
 		var tc ClientInterface
 		tc, err = NewClient(
@@ -90,8 +92,9 @@ func Test_newRelicOptions_getOrStartTxn(t *testing.T) {
 	})
 
 	t.Run("invalid ctx and txn", func(t *testing.T) {
+		logger := zerolog.Nop()
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithNewRelic(nil))
+		opts = append(opts, WithNewRelic(nil), WithLogger(&logger))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
 		require.NoError(t, err)
@@ -148,8 +151,9 @@ func TestWithUserAgent(t *testing.T) {
 	})
 
 	t.Run("empty user agent", func(t *testing.T) {
+		logger := zerolog.Nop()
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithUserAgent(""))
+		opts = append(opts, WithUserAgent(""), WithLogger(&logger))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
 		require.NoError(t, err)
@@ -163,8 +167,9 @@ func TestWithUserAgent(t *testing.T) {
 	t.Run("custom user agent", func(t *testing.T) {
 		customAgent := "custom-user-agent"
 
+		logger := zerolog.Nop()
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithUserAgent(customAgent))
+		opts = append(opts, WithUserAgent(customAgent), WithLogger(&logger))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
 		require.NoError(t, err)
@@ -382,12 +387,16 @@ func TestWithFreeCacheConnection(t *testing.T) {
 	})
 
 	t.Run("using a nil client", func(t *testing.T) {
+		logger := zerolog.Nop()
+
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(nil),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
-			WithMinercraft(&chainstate.MinerCraftBase{}))
+			WithMinercraft(&chainstate.MinerCraftBase{}),
+			WithLogger(&logger),
+		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 
@@ -400,13 +409,15 @@ func TestWithFreeCacheConnection(t *testing.T) {
 
 	t.Run("using an existing connection", func(t *testing.T) {
 		fc := freecache.NewCache(cachestore.DefaultCacheSize)
-
+		logger := zerolog.Nop()
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(fc),
 			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
-			WithMinercraft(&chainstate.MinerCraftBase{}))
+			WithMinercraft(&chainstate.MinerCraftBase{}),
+			WithLogger(&logger),
+		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
@@ -459,9 +470,14 @@ func TestWithTaskQ(t *testing.T) {
 	// todo: test cases where config is nil, or cannot load TaskQ
 
 	t.Run("using taskq using memory", func(t *testing.T) {
+
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			DefaultClientOpts(false, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -478,6 +494,8 @@ func TestWithTaskQ(t *testing.T) {
 			t.Skip("skipping live local redis tests")
 		}
 
+		logger := zerolog.Nop()
+
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithTaskQUsingRedis(
@@ -491,6 +509,7 @@ func TestWithTaskQ(t *testing.T) {
 			}),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
+			WithLogger(&logger),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -522,19 +541,20 @@ func TestWithLogger(t *testing.T) {
 		defer CloseClient(context.Background(), t, tc)
 
 		assert.NotNil(t, tc.Logger())
+		assert.Equal(t, logging.GetDefaultLogger(), tc.Logger())
 	})
 
 	t.Run("test applying option", func(t *testing.T) {
-		customLogger := logging.GetDefaultLogger()
+		customLogger := zerolog.Nop()
 		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithLogger(customLogger))
+		opts = append(opts, WithLogger(&customLogger))
 
 		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
 		defer CloseClient(context.Background(), t, tc)
 
-		assert.Equal(t, customLogger, tc.Logger())
+		assert.Equal(t, &customLogger, tc.Logger())
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	magic "github.com/bitcoinschema/go-map"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -193,9 +194,13 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 	t.Run("basic paymail address resolution - valid response", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -232,9 +237,13 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		client := newTestPaymailClient(t, []string{testDomain, handleDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -271,9 +280,13 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		client := newTestPaymailClient(t, []string{testDomain, handleDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)
@@ -307,9 +320,13 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 	t.Run("p2p paymail address resolution - valid response", func(t *testing.T) {
 		client := newTestPaymailClient(t, []string{testDomain})
 
+		logger := zerolog.Nop()
+		tcOpts := DefaultClientOpts(true, true)
+		tcOpts = append(tcOpts, WithLogger(&logger))
+
 		tc, err := NewClient(
 			context.Background(),
-			DefaultClientOpts(true, true)...,
+			tcOpts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, tc)

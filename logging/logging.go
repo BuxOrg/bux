@@ -9,7 +9,7 @@ import (
 
 // GetDefaultLogger generates and returns a default logger instance.
 func GetDefaultLogger() *zerolog.Logger {
-	logger := ecszerolog.New(os.Stdout, ecszerolog.Level(zerolog.DebugLevel)).
+	logger := ecszerolog.New(os.Stdout, ecszerolog.Level(zerolog.InfoLevel)).
 		With().
 		Timestamp().
 		Caller().

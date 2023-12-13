@@ -19,6 +19,7 @@ import (
 	"github.com/mrz1836/go-cache"
 	"github.com/mrz1836/go-datastore"
 	"github.com/rafaeljusto/redigomock"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,9 +84,12 @@ func DefaultClientOpts(debug, shared bool) []ClientOps {
 func CreateTestSQLiteClient(t *testing.T, debug, shared bool, clientOpts ...ClientOps) (context.Context, ClientInterface, func()) {
 	ctx := tester.GetNewRelicCtx(t, "app-test", "test-transaction")
 
+	logger := zerolog.Nop()
+
 	// Set the default options, add migrate models
 	opts := DefaultClientOpts(debug, shared)
 	opts = append(opts, WithAutoMigrate(BaseModels...))
+	opts = append(opts, WithLogger(&logger))
 	opts = append(opts, clientOpts...)
 
 	// Create the client
@@ -106,9 +110,12 @@ func CreateTestSQLiteClient(t *testing.T, debug, shared bool, clientOpts ...Clie
 func CreateBenchmarkSQLiteClient(b *testing.B, debug, shared bool, clientOpts ...ClientOps) (context.Context, ClientInterface, func()) {
 	ctx := context.Background()
 
+	logger := zerolog.Nop()
+
 	// Set the default options, add migrate models
 	opts := DefaultClientOpts(debug, shared)
 	opts = append(opts, WithAutoMigrate(BaseModels...))
+	opts = append(opts, WithLogger(&logger))
 	opts = append(opts, clientOpts...)
 
 	// Create the client

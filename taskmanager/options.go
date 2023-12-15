@@ -10,14 +10,14 @@ import (
 
 // ClientOps allow functional options to be supplied
 // that overwrite default client options.
-type ClientOps func(c *clientOptions)
+type ClientOps func(c *options)
 
 // defaultClientOptions will return an clientOptions struct with the default settings
 //
 // Useful for starting with the default and then modifying as needed
-func defaultClientOptions() *clientOptions {
+func defaultClientOptions() *options {
 	// Set the default options
-	return &clientOptions{
+	return &options{
 		debug:           false,
 		newRelicEnabled: false,
 		taskq: &taskqOptions{
@@ -28,7 +28,7 @@ func defaultClientOptions() *clientOptions {
 }
 
 // GetTxnCtx will check for an existing transaction
-func (c *Client) GetTxnCtx(ctx context.Context) context.Context {
+func (c *TaskManager) GetTxnCtx(ctx context.Context) context.Context {
 	if c.options.newRelicEnabled {
 		txn := newrelic.FromContext(ctx)
 		if txn != nil {
@@ -40,21 +40,21 @@ func (c *Client) GetTxnCtx(ctx context.Context) context.Context {
 
 // WithNewRelic will enable the NewRelic wrapper
 func WithNewRelic() ClientOps {
-	return func(c *clientOptions) {
+	return func(c *options) {
 		c.newRelicEnabled = true
 	}
 }
 
 // WithDebugging will enable debugging mode
 func WithDebugging() ClientOps {
-	return func(c *clientOptions) {
+	return func(c *options) {
 		c.debug = true
 	}
 }
 
 // WithTaskqConfig will set the taskq custom config
 func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
-	return func(c *clientOptions) {
+	return func(c *options) {
 		if config != nil {
 			c.taskq.config = config
 		}
@@ -63,7 +63,7 @@ func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
 
 // WithLogger will set the custom logger interface
 func WithLogger(customLogger *zerolog.Logger) ClientOps {
-	return func(c *clientOptions) {
+	return func(c *options) {
 		if customLogger != nil {
 			c.logger = customLogger
 		}

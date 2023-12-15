@@ -9,11 +9,11 @@ import (
 )
 
 func TestCronTasks(t *testing.T) {
-	makeClient := func() *Client {
-		client, _ := NewClient(
+	makeClient := func() *TaskManager {
+		client, _ := NewTaskManager(
 			context.Background(),
 		)
-		return client.(*Client)
+		return client.(*TaskManager)
 	}
 
 	t.Run("register one cron job", func(t *testing.T) {

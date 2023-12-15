@@ -17,19 +17,18 @@ import (
 var mutex sync.Mutex
 
 // TasqOps allow functional options to be supplied
-type TasqOps func(options *taskq.QueueOptions)
+type TasqOps func(*taskq.QueueOptions)
 
 // WithRedis will set the redis client for the TaskQ engine
 func WithRedis(addr string) TasqOps {
-	return func(options *taskq.QueueOptions) {
-		options.Redis = redis.NewClient(&redis.Options{
+	return func(queueOptions *taskq.QueueOptions) {
+		queueOptions.Redis = redis.NewClient(&redis.Options{
 			Addr: strings.Replace(addr, "redis://", "", -1),
 		})
 	}
 }
 
-// DefaultTaskQConfig will return a default configuration that can be modified
-// If redisOptions is nil, it will use the memory queue
+// DefaultTaskQConfig will return a QueueOptions with specified name and functional options applied
 func DefaultTaskQConfig(name string, opts ...TasqOps) *taskq.QueueOptions {
 	queueOptions := &taskq.QueueOptions{
 		BufferSize:           10,                      // Size of the buffer where reserved messages are stored.
@@ -60,15 +59,15 @@ func DefaultTaskQConfig(name string, opts ...TasqOps) *taskq.QueueOptions {
 
 // TaskRunOptions are the options for running a task
 type TaskRunOptions struct {
-	Arguments      []interface{} `json:"arguments"`        // Arguments for the task
-	Delay          time.Duration `json:"delay"`            // Run after X delay
-	OnceInPeriod   time.Duration `json:"once_in_period"`   // Run once in X period
-	RunEveryPeriod time.Duration `json:"run_every_period"` // Cron job!
-	TaskName       string        `json:"task_name"`        // Name of the task
+	Arguments      []interface{} // Arguments for the task
+	Delay          time.Duration // Run after X delay
+	OnceInPeriod   time.Duration // Run once in X period
+	RunEveryPeriod time.Duration // Cron job!
+	TaskName       string        // Name of the task
 }
 
 // loadTaskQ will load TaskQ based on the Factory Type and configuration set by the client loading
-func (c *Client) loadTaskQ() error {
+func (c *TaskManager) loadTaskQ() error {
 	// Check for a valid config (set on client creation)
 	factoryType := c.Factory()
 	if factoryType == FactoryEmpty {
@@ -93,7 +92,7 @@ func (c *Client) loadTaskQ() error {
 }
 
 // RegisterTask will register a new task using the TaskQ engine
-func (c *Client) RegisterTask(name string, handler interface{}) (err error) {
+func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error) {
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			err = fmt.Errorf(fmt.Sprintf("registering task panic: %v", panicErr))
@@ -121,7 +120,7 @@ func (c *Client) RegisterTask(name string, handler interface{}) (err error) {
 }
 
 // RunTask will run a task using TaskQ
-func (c *Client) RunTask(ctx context.Context, options *TaskRunOptions) error {
+func (c *TaskManager) RunTask(ctx context.Context, options *TaskRunOptions) error {
 	// Starting the execution of the task
 	c.DebugLog(fmt.Sprintf(
 		"executing task: %s... delay: %s arguments: %s",

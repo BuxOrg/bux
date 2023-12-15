@@ -18,7 +18,7 @@ type CronJob struct {
 type CronJobs map[string]CronJob
 
 // CronJobsInit registers and runs the cron jobs
-func (tm *Client) CronJobsInit(cronJobsMap CronJobs) (err error) {
+func (tm *TaskManager) CronJobsInit(cronJobsMap CronJobs) (err error) {
 	tm.ResetCron()
 	defer func() {
 		// stop other, already registered tasks if the func fails

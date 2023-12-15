@@ -14,13 +14,13 @@ import (
 
 type (
 
-	// Client is the taskmanager client (configuration)
-	Client struct {
-		options *clientOptions
+	// TaskManager implements the Tasker interface
+	TaskManager struct {
+		options *options
 	}
 
-	// clientOptions holds all the configuration for the client
-	clientOptions struct {
+	// options holds all the configuration for the client
+	options struct {
 		cronService     *cronLocal      // Internal cron job client
 		debug           bool            // For extra logs and additional debug information
 		logger          *zerolog.Logger // Internal logging
@@ -36,29 +36,29 @@ type (
 	}
 )
 
-// NewClient creates a new client for all TaskManager functionality
+// NewTaskManager creates a new client for all TaskManager functionality
 //
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
-func NewClient(_ context.Context, opts ...ClientOps) (Tasker, error) {
-	// Create a new client with defaults
-	client := &Client{options: defaultClientOptions()}
+func NewTaskManager(_ context.Context, opts ...ClientOps) (Tasker, error) {
+	// Create a new tm with defaults
+	tm := &TaskManager{options: defaultClientOptions()}
 
 	// Overwrite defaults with any set by user
 	for _, opt := range opts {
-		opt(client.options)
+		opt(tm.options)
 	}
 
 	// Set logger if not set
-	if client.options.logger == nil {
-		client.options.logger = logging.GetDefaultLogger()
+	if tm.options.logger == nil {
+		tm.options.logger = logging.GetDefaultLogger()
 	}
 
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	// ctx = client.options.getTxnCtx(ctx)
 
 	// Load the TaskQ engine
-	if err := client.loadTaskQ(); err != nil {
+	if err := tm.loadTaskQ(); err != nil {
 		return nil, err
 	}
 
@@ -66,77 +66,77 @@ func NewClient(_ context.Context, opts ...ClientOps) (Tasker, error) {
 	cr := &cronLocal{}
 	cr.New()
 	cr.Start()
-	client.options.cronService = cr
+	tm.options.cronService = cr
 
 	// Return the client
-	return client, nil
+	return tm, nil
 }
 
 // Close will close client and any open connections
-func (c *Client) Close(ctx context.Context) error {
+func (tm *TaskManager) Close(ctx context.Context) error {
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("close_taskmanager").End()
 	}
-	if c != nil && c.options != nil {
+	if tm != nil && tm.options != nil {
 
 		// Stop the cron scheduler
-		if c.options.cronService != nil {
-			c.options.cronService.Stop()
-			c.options.cronService = nil
+		if tm.options.cronService != nil {
+			tm.options.cronService.Stop()
+			tm.options.cronService = nil
 		}
 
 		// Close the taskq queue
-		if err := c.options.taskq.queue.Close(); err != nil {
+		if err := tm.options.taskq.queue.Close(); err != nil {
 			return err
 		}
 
 		// Empty all values and reset
-		c.options.taskq.config = nil
-		c.options.taskq.queue = nil
+		tm.options.taskq.config = nil
+		tm.options.taskq.queue = nil
 	}
 
 	return nil
 }
 
 // ResetCron will reset the cron scheduler and all loaded tasks
-func (c *Client) ResetCron() {
-	c.options.cronService.New()
-	c.options.cronService.Start()
+func (tm *TaskManager) ResetCron() {
+	tm.options.cronService.New()
+	tm.options.cronService.Start()
 }
 
 // Debug will set the debug flag
-func (c *Client) Debug(on bool) {
-	c.options.debug = on
+func (tm *TaskManager) Debug(on bool) {
+	tm.options.debug = on
 }
 
 // IsDebug will return if debugging is enabled
-func (c *Client) IsDebug() bool {
-	return c.options.debug
+func (tm *TaskManager) IsDebug() bool {
+	return tm.options.debug
 }
 
 // DebugLog will display verbose logs
-func (c *Client) DebugLog(text string) {
-	if c.IsDebug() {
-		c.options.logger.Info().Msg(text)
+func (tm *TaskManager) DebugLog(text string) {
+	if tm.IsDebug() {
+		tm.options.logger.Info().Msg(text)
 	}
 }
 
 // IsNewRelicEnabled will return if new relic is enabled
-func (c *Client) IsNewRelicEnabled() bool {
-	return c.options.newRelicEnabled
+func (tm *TaskManager) IsNewRelicEnabled() bool {
+	return tm.options.newRelicEnabled
 }
 
 // Tasks will return the list of tasks
-func (c *Client) Tasks() map[string]*taskq.Task {
-	return c.options.taskq.tasks
+func (tm *TaskManager) Tasks() map[string]*taskq.Task {
+	return tm.options.taskq.tasks
 }
 
 // Factory will return the factory that is set
-func (c *Client) Factory() Factory {
-	if c.options == nil || c.options.taskq == nil {
+func (tm *TaskManager) Factory() Factory {
+	if tm.options == nil || tm.options.taskq == nil {
 		return FactoryEmpty
 	}
-	if c.options.taskq.config.Redis != nil {
+	if tm.options.taskq.config.Redis != nil {
 		return FactoryRedis
 	}
 	return FactoryMemory

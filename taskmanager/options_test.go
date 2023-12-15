@@ -15,7 +15,7 @@ func TestWithNewRelic(t *testing.T) {
 	})
 
 	t.Run("test applying", func(t *testing.T) {
-		options := &clientOptions{}
+		options := &options{}
 		opt := WithNewRelic()
 		opt(options)
 		assert.Equal(t, true, options.newRelicEnabled)
@@ -30,7 +30,7 @@ func TestWithDebugging(t *testing.T) {
 	})
 
 	t.Run("test applying", func(t *testing.T) {
-		options := &clientOptions{}
+		options := &options{}
 		opt := WithDebugging()
 		opt(options)
 		assert.Equal(t, true, options.debug)
@@ -45,7 +45,7 @@ func TestWithTaskQ(t *testing.T) {
 	})
 
 	t.Run("test applying nil config", func(t *testing.T) {
-		options := &clientOptions{
+		options := &options{
 			taskq: &taskqOptions{
 				config: nil,
 				queue:  nil,
@@ -58,7 +58,7 @@ func TestWithTaskQ(t *testing.T) {
 	})
 
 	t.Run("test applying valid config", func(t *testing.T) {
-		options := &clientOptions{
+		options := &options{
 			taskq: &taskqOptions{},
 		}
 		opt := WithTaskqConfig(DefaultTaskQConfig(testQueueName))
@@ -77,14 +77,14 @@ func TestWithLogger(t *testing.T) {
 	})
 
 	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{}
+		options := &options{}
 		opt := WithLogger(nil)
 		opt(options)
 		assert.Nil(t, options.logger)
 	})
 
 	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{}
+		options := &options{}
 		customLogger := zerolog.Nop()
 		opt := WithLogger(&customLogger)
 		opt(options)

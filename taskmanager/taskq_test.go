@@ -17,7 +17,7 @@ const (
 // NOTE: these are just tests to get the library built ;)
 
 func TestNewClient(t *testing.T) {
-	c, err := NewClient(
+	c, err := NewTaskManager(
 		context.Background(),
 		WithTaskqConfig(DefaultTaskQConfig(testQueueName)),
 	)

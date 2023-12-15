@@ -9,21 +9,6 @@ import (
 // that overwrite default client options.
 type ClientOps func(c *options)
 
-// defaultClientOptions will return an clientOptions struct with the default settings
-//
-// Useful for starting with the default and then modifying as needed
-func defaultClientOptions() *options {
-	// Set the default options
-	return &options{
-		debug:           false,
-		newRelicEnabled: false,
-		taskq: &taskqOptions{
-			tasks:  make(map[string]*taskq.Task),
-			config: DefaultTaskQConfig("taskq"),
-		},
-	}
-}
-
 // WithNewRelic will enable the NewRelic wrapper
 func WithNewRelic() ClientOps {
 	return func(c *options) {

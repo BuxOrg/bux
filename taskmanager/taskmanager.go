@@ -38,12 +38,18 @@ type (
 )
 
 // NewTaskManager creates a new client for all TaskManager functionality
-//
-// If no options are given, it will use the defaultClientOptions()
+// If no options are given, it will use local memory for the queue.
 // ctx may contain a NewRelic txn (or one will be created)
 func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
 	// Create a new tm with defaults
-	tm := &TaskManager{options: defaultClientOptions()}
+	tm := &TaskManager{options: &options{
+		debug:           false,
+		newRelicEnabled: false,
+		taskq: &taskqOptions{
+			tasks:  make(map[string]*taskq.Task),
+			config: DefaultTaskQConfig("taskq"),
+		},
+	}}
 
 	// Overwrite defaults with any set by user
 	for _, opt := range opts {

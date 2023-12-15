@@ -28,7 +28,6 @@ type ClientInterface interface {
 	TaskService
 	Close(ctx context.Context) error
 	Debug(on bool)
-	Engine() Engine
 	Factory() Factory
 	GetTxnCtx(ctx context.Context) context.Context
 	IsDebug() bool

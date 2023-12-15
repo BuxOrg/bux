@@ -9,7 +9,6 @@ import (
 
 // TestWithNewRelic will test the method WithNewRelic()
 func TestWithNewRelic(t *testing.T) {
-
 	t.Run("check type", func(t *testing.T) {
 		opt := WithNewRelic()
 		assert.IsType(t, *new(ClientOps), opt)
@@ -25,7 +24,6 @@ func TestWithNewRelic(t *testing.T) {
 
 // TestWithDebugging will test the method WithDebugging()
 func TestWithDebugging(t *testing.T) {
-
 	t.Run("check type", func(t *testing.T) {
 		opt := WithDebugging()
 		assert.IsType(t, *new(ClientOps), opt)
@@ -70,7 +68,6 @@ func TestWithTaskQ(t *testing.T) {
 		opt(options)
 		assert.Equal(t, FactoryMemory, options.taskq.factoryType)
 		assert.NotNil(t, options.taskq.config)
-		assert.Equal(t, TaskQ, options.engine)
 	})
 }
 

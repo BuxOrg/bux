@@ -16,11 +16,9 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
-
 	// Set the default options
 	return &clientOptions{
 		debug:           false,
-		engine:          Empty,
 		newRelicEnabled: false,
 		taskq: &taskqOptions{
 			tasks: make(map[string]*taskq.Task),
@@ -57,7 +55,6 @@ func WithDebugging() ClientOps {
 func WithTaskQ(config *taskq.QueueOptions, factory Factory) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil && !factory.IsEmpty() {
-			c.engine = TaskQ
 			c.taskq.config = config
 			c.taskq.factoryType = factory
 		}

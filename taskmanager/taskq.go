@@ -12,9 +12,7 @@ import (
 	"github.com/vmihailenco/taskq/v3/redisq"
 )
 
-var (
-	mutex sync.Mutex
-)
+var mutex sync.Mutex
 
 // DefaultTaskQConfig will return a default configuration that can be modified
 func DefaultTaskQConfig(name string) *taskq.QueueOptions {
@@ -53,7 +51,6 @@ func convertTaskToTaskQ(task *Task) *taskq.TaskOptions {
 
 // loadTaskQ will load TaskQ based on the Factory Type and configuration set by the client loading
 func (c *Client) loadTaskQ() error {
-
 	// Check for a valid config (set on client creation)
 	if c.options.taskq.config == nil {
 		return ErrMissingTaskQConfig
@@ -61,10 +58,8 @@ func (c *Client) loadTaskQ() error {
 
 	// Load using in-memory vs Redis
 	if c.options.taskq.factoryType == FactoryMemory {
-
 		// Create the factory
 		c.options.taskq.factory = memqueue.NewFactory()
-
 	} else if c.options.taskq.factoryType == FactoryRedis {
 
 		// Check for a redis connection (given on taskq configuration)
@@ -89,43 +84,32 @@ func (c *Client) loadTaskQ() error {
 	return nil
 }
 
-// registerTaskUsingTaskQ will register a new task using the TaskQ engine
-func (c *Client) registerTaskUsingTaskQ(task *Task) {
-
+// RegisterTask will register a new task using the TaskQ engine
+func (c *Client) RegisterTask(task *Task) (err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			c.DebugLog(fmt.Sprintf("registering task panic: %v", err))
+		if panicErr := recover(); panicErr != nil {
+			err = fmt.Errorf(fmt.Sprintf("registering task panic: %v", panicErr))
 		}
 	}()
 
 	mutex.Lock()
+	defer mutex.Unlock()
 
-	// Check if task is already registered
 	if t := taskq.Tasks.Get(task.Name); t != nil {
-
-		// Register the task locally
+		// if already registered - register the task locally
 		c.options.taskq.tasks[task.Name] = t
-
-		// Task already exists!
-		// c.DebugLog(fmt.Sprintf("registering task: %s... task already exists!", task.Name))
-
-		mutex.Unlock()
-
-		return
+	} else {
+		// Register and store the task
+		c.options.taskq.tasks[task.Name] = taskq.RegisterTask(convertTaskToTaskQ(task))
 	}
-
-	// Register and store the task
-	c.options.taskq.tasks[task.Name] = taskq.RegisterTask(convertTaskToTaskQ(task))
-
-	mutex.Unlock()
 
 	// Debugging
 	c.DebugLog(fmt.Sprintf("registering task: %s...", c.options.taskq.tasks[task.Name].Name()))
+	return nil
 }
 
-// runTaskUsingTaskQ will run a task using TaskQ
-func (c *Client) runTaskUsingTaskQ(ctx context.Context, options *TaskOptions) error {
-
+// RunTask will run a task using TaskQ
+func (c *Client) RunTask(ctx context.Context, options *TaskOptions) error {
 	// Starting the execution of the task
 	c.DebugLog(fmt.Sprintf(
 		"executing task: %s... delay: %s arguments: %s",

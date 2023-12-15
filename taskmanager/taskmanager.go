@@ -2,7 +2,6 @@ package taskmanager
 
 import (
 	"context"
-	"errors"
 
 	"github.com/BuxOrg/bux/logging"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -21,7 +20,6 @@ type (
 	clientOptions struct {
 		cronService     CronService     // Internal cron job client
 		debug           bool            // For extra logs and additional debug information
-		engine          Engine          // Taskmanager engine (taskq or machinery)
 		logger          *zerolog.Logger // Internal logging
 		newRelicEnabled bool            // If NewRelic is enabled (parent application)
 		taskq           *taskqOptions   // All configuration and options for using TaskQ
@@ -55,21 +53,11 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 		client.options.logger = logging.GetDefaultLogger()
 	}
 
-	// EMPTY! Engine was NOT set
-	if client.Engine().IsEmpty() {
-		return nil, ErrNoEngine
-	}
-
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	// ctx = client.options.getTxnCtx(ctx)
 
-	// Load based on engine
-	if client.Engine() == Machinery {
-		return nil, errors.New("machinery is not implemented (yet)")
-	} else if client.Engine() == TaskQ {
-		if err := client.loadTaskQ(); err != nil {
-			return nil, err
-		}
+	if err := client.loadTaskQ(); err != nil {
+		return nil, err
 	}
 
 	// Detect if a cron service provider was set
@@ -94,24 +82,16 @@ func (c *Client) Close(ctx context.Context) error {
 			c.options.cronService = nil
 		}
 
-		if c.options.engine == TaskQ {
-
-			// Close the queue
-			if err := c.options.taskq.queue.Close(); err != nil {
-				return err
-			}
-
-			// Empty all values and reset
-			c.options.taskq.factoryType = FactoryEmpty
-			c.options.taskq.config = nil
-			c.options.taskq.factory = nil
-			c.options.taskq.queue = nil
-		} else if c.options.engine == Machinery {
-			c.DebugLog("not implemented yet")
+		// Close the taskq queue
+		if err := c.options.taskq.queue.Close(); err != nil {
+			return err
 		}
 
-		// Empty the engine
-		c.options.engine = Empty
+		// Empty all values and reset
+		c.options.taskq.factoryType = FactoryEmpty
+		c.options.taskq.config = nil
+		c.options.taskq.factory = nil
+		c.options.taskq.queue = nil
 	}
 
 	return nil
@@ -145,11 +125,6 @@ func (c *Client) IsNewRelicEnabled() bool {
 	return c.options.newRelicEnabled
 }
 
-// Engine will return the engine that is set
-func (c *Client) Engine() Engine {
-	return c.options.engine
-}
-
 // Tasks will return the list of tasks
 func (c *Client) Tasks() map[string]*taskq.Task {
 	return c.options.taskq.tasks
@@ -157,10 +132,5 @@ func (c *Client) Tasks() map[string]*taskq.Task {
 
 // Factory will return the factory that is set
 func (c *Client) Factory() Factory {
-	if c.Engine() == TaskQ {
-		return c.options.taskq.factoryType
-	} else if c.Engine() == Machinery {
-		return FactoryRedis
-	}
-	return FactoryEmpty
+	return c.options.taskq.factoryType
 }

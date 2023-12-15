@@ -1,7 +1,6 @@
 package taskmanager
 
 import (
-	"context"
 	"time"
 )
 
@@ -50,26 +49,3 @@ OnceInPeriod(period time.Duration, args ...interface{})
 OnceWithDelay(delay time.Duration)
 OnceWithSchedule(tm time.Time)
 */
-
-// RegisterTask is a universal method to register a task
-func (c *Client) RegisterTask(task *Task) error {
-
-	// Register using TaskQ
-	if c.Engine() == TaskQ {
-		c.registerTaskUsingTaskQ(task)
-		return nil
-	}
-
-	return ErrEngineNotSupported
-}
-
-// RunTask is a universal method to run a task
-func (c *Client) RunTask(ctx context.Context, options *TaskOptions) error {
-
-	// Run using TaskQ
-	if c.Engine() == TaskQ {
-		return c.runTaskUsingTaskQ(ctx, options)
-	}
-
-	return ErrEngineNotSupported
-}

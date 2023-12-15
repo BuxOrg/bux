@@ -532,34 +532,13 @@ func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, d
 // TASK MANAGER
 // -----------------------------------------------------------------
 
-// WithTaskQ will set the task manager to use TaskQ & in-memory
-func WithTaskQ(config *taskq.QueueOptions, factory taskmanager.Factory) ClientOps {
+// WithTaskqConfig will set the task manager to use TaskQ & in-memory
+func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil {
 			c.taskManager.options = append(
 				c.taskManager.options,
-				taskmanager.WithTaskQ(config, factory),
-			)
-		}
-	}
-}
-
-// WithTaskQUsingRedis will set the task manager to use TaskQ & Redis
-func WithTaskQUsingRedis(config *taskq.QueueOptions, redisOptions *redis.Options) ClientOps {
-	return func(c *clientOptions) {
-		if config != nil {
-
-			// Create a new redis client
-			if config.Redis == nil {
-
-				// Remove prefix if found
-				redisOptions.Addr = strings.Replace(redisOptions.Addr, cachestore.RedisPrefix, "", -1)
-				config.Redis = redis.NewClient(redisOptions)
-			}
-
-			c.taskManager.options = append(
-				c.taskManager.options,
-				taskmanager.WithTaskQ(config, taskmanager.FactoryRedis),
+				taskmanager.WithTaskqConfig(config),
 			)
 		}
 	}

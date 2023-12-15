@@ -326,7 +326,7 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 		WithAutoMigrate(&PaymailAddress{}),
 	)
 	if taskManagerEnabled {
-		opts = append(opts, WithTaskQ(taskmanager.DefaultTaskQConfig(prefix+"_queue"), taskmanager.FactoryMemory))
+		opts = append(opts, WithTaskqConfig(taskmanager.DefaultTaskQConfig(prefix+"_queue", nil)))
 	} else {
 		opts = append(opts, withTaskManagerMockup())
 	}

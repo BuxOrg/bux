@@ -10,7 +10,6 @@ import (
 
 	"github.com/BuxOrg/bux"
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
 )
 
 func main() {
@@ -38,7 +37,7 @@ func main() {
 			ProcessorType:               chainstate.FilterRegex,
 			SaveTransactionDestinations: false,
 		}),
-		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
+
 		bux.WithDebugging(), // Enable debugging (verbose logs)
 		bux.WithChainstateOptions(true, true, true, true), // Broadcasting enabled by default
 		bux.WithAutoMigrate(bux.BaseModels...),

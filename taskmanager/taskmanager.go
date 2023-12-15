@@ -30,11 +30,9 @@ type (
 
 	// taskqOptions holds all the configuration for the TaskQ engine
 	taskqOptions struct {
-		config      *taskq.QueueOptions    // Configuration for the TaskQ engine
-		factory     taskq.Factory          // Factory for TaskQ (in-memory or Redis)
-		factoryType Factory                // Type of factory to use (in-memory or Redis)
-		queue       taskq.Queue            // Queue for TaskQ
-		tasks       map[string]*taskq.Task // Registered tasks
+		config *taskq.QueueOptions    // Configuration for the TaskQ engine
+		queue  taskq.Queue            // Queue for TaskQ
+		tasks  map[string]*taskq.Task // Registered tasks
 	}
 )
 
@@ -93,9 +91,7 @@ func (c *Client) Close(ctx context.Context) error {
 		}
 
 		// Empty all values and reset
-		c.options.taskq.factoryType = FactoryEmpty
 		c.options.taskq.config = nil
-		c.options.taskq.factory = nil
 		c.options.taskq.queue = nil
 	}
 
@@ -137,5 +133,11 @@ func (c *Client) Tasks() map[string]*taskq.Task {
 
 // Factory will return the factory that is set
 func (c *Client) Factory() Factory {
-	return c.options.taskq.factoryType
+	if c.options == nil || c.options.taskq == nil {
+		return FactoryEmpty
+	}
+	if c.options.taskq.config.Redis != nil {
+		return FactoryRedis
+	}
+	return FactoryMemory
 }

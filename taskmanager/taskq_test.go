@@ -19,7 +19,7 @@ const (
 func TestNewClient(t *testing.T) {
 	c, err := NewClient(
 		context.Background(),
-		WithTaskQ(DefaultTaskQConfig(testQueueName), FactoryMemory),
+		WithTaskqConfig(DefaultTaskQConfig(testQueueName, nil)),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, c)

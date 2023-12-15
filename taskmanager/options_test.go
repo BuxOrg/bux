@@ -40,23 +40,20 @@ func TestWithDebugging(t *testing.T) {
 // TestWithTaskQ will test the method WithTaskQ()
 func TestWithTaskQ(t *testing.T) {
 	t.Run("check type", func(t *testing.T) {
-		opt := WithTaskQ(nil, FactoryEmpty)
+		opt := WithTaskqConfig(nil)
 		assert.IsType(t, *new(ClientOps), opt)
 	})
 
 	t.Run("test applying nil config", func(t *testing.T) {
 		options := &clientOptions{
 			taskq: &taskqOptions{
-				config:      nil,
-				factory:     nil,
-				factoryType: "",
-				queue:       nil,
-				tasks:       nil,
+				config: nil,
+				queue:  nil,
+				tasks:  nil,
 			},
 		}
-		opt := WithTaskQ(nil, FactoryEmpty)
+		opt := WithTaskqConfig(nil)
 		opt(options)
-		assert.Equal(t, Factory(""), options.taskq.factoryType)
 		assert.Nil(t, options.taskq.config)
 	})
 
@@ -64,9 +61,8 @@ func TestWithTaskQ(t *testing.T) {
 		options := &clientOptions{
 			taskq: &taskqOptions{},
 		}
-		opt := WithTaskQ(DefaultTaskQConfig(testQueueName), FactoryMemory)
+		opt := WithTaskqConfig(DefaultTaskQConfig(testQueueName, nil))
 		opt(options)
-		assert.Equal(t, FactoryMemory, options.taskq.factoryType)
 		assert.NotNil(t, options.taskq.config)
 	})
 }

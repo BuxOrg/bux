@@ -12,7 +12,6 @@ func TestCronTasks(t *testing.T) {
 	makeClient := func() *Client {
 		client, _ := NewClient(
 			context.Background(),
-			WithTaskQ(DefaultTaskQConfig(testQueueName), FactoryMemory),
 		)
 		return client.(*Client)
 	}

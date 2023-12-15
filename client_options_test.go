@@ -14,7 +14,6 @@ import (
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/coocood/freecache"
-	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -265,7 +264,7 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
@@ -288,7 +287,7 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
 			WithRedis(&cachestore.RedisConfig{
 				URL: "localhost:6379",
 			}),
@@ -315,7 +314,7 @@ func TestWithRedisConnection(t *testing.T) {
 	t.Run("using a nil connection", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
 			WithRedisConnection(nil),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -336,7 +335,7 @@ func TestWithRedisConnection(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
 			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -364,7 +363,7 @@ func TestWithFreeCache(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCache(),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}))
 		require.NoError(t, err)
@@ -392,7 +391,7 @@ func TestWithFreeCacheConnection(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(nil),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&logger),
@@ -413,7 +412,7 @@ func TestWithFreeCacheConnection(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(fc),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&logger),
@@ -497,11 +496,10 @@ func TestWithTaskQ(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQUsingRedis(
-				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()),
-				&redis.Options{
+			WithTaskqConfig(
+				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), &taskmanager.SimplifiedRedisOptions{
 					Addr: "localhost:6379",
-				},
+				}),
 			),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",

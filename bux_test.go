@@ -59,14 +59,14 @@ func (tc *TestingClient) Close(ctx context.Context) {
 
 // DefaultClientOpts will return a default set of client options required to load the new client
 func DefaultClientOpts(debug, shared bool) []ClientOps {
-	tqc := taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())
+	tqc := taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)
 	tqc.MaxNumWorker = 2
 	tqc.MaxNumFetcher = 2
 
 	opts := make([]ClientOps, 0)
 	opts = append(
 		opts,
-		WithTaskQ(tqc, taskmanager.FactoryMemory),
+		WithTaskqConfig(tqc),
 		WithSQLite(tester.SQLiteTestConfig(debug, shared)),
 		WithChainstateOptions(false, false, false, false),
 		WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -150,8 +150,8 @@ func (a *account) Unlocker(context.Context, *bscript.Script) (bt.Unlocker, error
 
 // CreateFakeFundingTransaction will create a valid (fake) transaction for funding
 func CreateFakeFundingTransaction(t *testing.T, masterKey *bip32.ExtendedKey,
-	destinations []*Destination, satoshis uint64) string {
-
+	destinations []*Destination, satoshis uint64,
+) string {
 	// Create new tx
 	rawTx := bt.NewTx()
 	txErr := rawTx.From(testTxScriptSigID, 0, testTxScriptSigOut, satoshis+354)
@@ -185,8 +185,8 @@ func CreateFakeFundingTransaction(t *testing.T, masterKey *bip32.ExtendedKey,
 
 // CreateNewXPub will create a new xPub and return all the information to use the xPub
 func CreateNewXPub(ctx context.Context, t *testing.T, buxClient ClientInterface,
-	opts ...ModelOps) (*bip32.ExtendedKey, *Xpub, string) {
-
+	opts ...ModelOps,
+) (*bip32.ExtendedKey, *Xpub, string) {
 	// Generate a key pair
 	masterKey, err := bitcoin.GenerateHDKey(bitcoin.SecureSeedLength)
 	require.NoError(t, err)

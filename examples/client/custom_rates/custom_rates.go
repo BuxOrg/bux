@@ -8,12 +8,10 @@ import (
 
 	"github.com/BuxOrg/bux"
 	"github.com/BuxOrg/bux/chainstate"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
 func main() {
-
 	const testXPub = "xpub661MyMwAqRbcFrBJbKwBGCB7d3fr2SaAuXGM95BA62X41m6eW2ehRQGW4xLi9wkEXUGnQZYxVVj4PxXnyrLk7jdqvBAs1Qq9gf6ykMvjR7J"
 
 	// Create a custom miner (using your api key for custom rates)
@@ -25,8 +23,8 @@ func main() {
 			APIs: []minercraft.API{
 				{
 					Token: os.Getenv("BUX_TAAL_API_KEY"),
-					URL: "https://tapi.taal.com/arc",
-					Type: minercraft.Arc,
+					URL:   "https://tapi.taal.com/arc",
+					Type:  minercraft.Arc,
 				},
 			},
 		},
@@ -34,10 +32,9 @@ func main() {
 
 	// Create the client
 	client, err := bux.NewClient(
-		context.Background(),                   // Set context
-		bux.WithAutoMigrate(bux.BaseModels...), // All models
-		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
-		bux.WithBroadcastMiners([]*chainstate.Miner{{Miner: minerTaal}}),                       // This will auto-fetch a policy using the token (api key)
+		context.Background(),                                             // Set context
+		bux.WithAutoMigrate(bux.BaseModels...),                           // All models
+		bux.WithBroadcastMiners([]*chainstate.Miner{{Miner: minerTaal}}), // This will auto-fetch a policy using the token (api key)
 		bux.WithMinercraftAPIs(minerCraftApis),
 		bux.WithArc(),
 	)

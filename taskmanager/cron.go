@@ -2,14 +2,6 @@ package taskmanager
 
 import "github.com/robfig/cron/v3"
 
-// localCron will load a local version of cron if it was not provided by the user
-func (c *Client) localCron() {
-	cr := &cronLocal{}
-	cr.New()
-	cr.Start()
-	c.options.cronService = cr
-}
-
 // cronLocal is the interface for the "local cron" service
 type cronLocal struct {
 	cronService *cron.Cron

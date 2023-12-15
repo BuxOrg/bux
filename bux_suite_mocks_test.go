@@ -32,10 +32,6 @@ func (tm *taskManagerMockBase) Close(context.Context) error {
 
 func (tm *taskManagerMockBase) Debug(bool) {}
 
-func (tm *taskManagerMockBase) Engine() taskmanager.Engine {
-	return taskmanager.Empty
-}
-
 func (tm *taskManagerMockBase) Factory() taskmanager.Factory {
 	return taskmanager.FactoryEmpty
 }

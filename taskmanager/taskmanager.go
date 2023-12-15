@@ -18,7 +18,7 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cronService     CronService     // Internal cron job client
+		cronService     *cronLocal      // Internal cron job client
 		debug           bool            // For extra logs and additional debug information
 		logger          *zerolog.Logger // Internal logging
 		newRelicEnabled bool            // If NewRelic is enabled (parent application)
@@ -56,14 +56,16 @@ func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	// ctx = client.options.getTxnCtx(ctx)
 
+	// Load the TaskQ engine
 	if err := client.loadTaskQ(); err != nil {
 		return nil, err
 	}
 
-	// Detect if a cron service provider was set
-	if client.options.cronService == nil { // Use a local cron
-		client.localCron()
-	}
+	// Create the cron scheduler
+	cr := &cronLocal{}
+	cr.New()
+	cr.Start()
+	client.options.cronService = cr
 
 	// Return the client
 	return client, nil

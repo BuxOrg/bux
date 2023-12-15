@@ -485,7 +485,6 @@ func TestWithTaskQ(t *testing.T) {
 
 		tm := tc.Taskmanager()
 		require.NotNil(t, tm)
-		assert.Equal(t, taskmanager.TaskQ, tm.Engine())
 		assert.Equal(t, taskmanager.FactoryMemory, tm.Factory())
 	})
 
@@ -517,7 +516,6 @@ func TestWithTaskQ(t *testing.T) {
 
 		tm := tc.Taskmanager()
 		require.NotNil(t, tm)
-		assert.Equal(t, taskmanager.TaskQ, tm.Engine())
 		assert.Equal(t, taskmanager.FactoryRedis, tm.Factory())
 	})
 }

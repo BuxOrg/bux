@@ -69,12 +69,3 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 		}
 	}
 }
-
-// WithCronService will set the cron service
-func WithCronService(cronService CronService) ClientOps {
-	return func(c *clientOptions) {
-		if cronService != nil {
-			c.cronService = cronService
-		}
-	}
-}

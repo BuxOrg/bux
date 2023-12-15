@@ -318,8 +318,8 @@ github.com/mrz1836/go-datastore v0.5.8 h1:OYbnoWZ5pZ5/zBgYOB8Aem1urAfMOs5UZvUomM
 github.com/mrz1836/go-datastore v0.5.8/go.mod h1:VvFsy+22wBpR/+tBn+rz0AKPt12xvPalV47KeranfEk=
 github.com/mrz1836/go-logger v0.3.2 h1:bjd23NwVaLWncXgXAyxAwWLQ02of0Ci3iJIZZEakkFU=
 github.com/mrz1836/go-logger v0.3.2/go.mod h1:8gWPdqxOAFNJOHDXS2ducgsokUOf0wWtAAM3LXPrhYo=
-github.com/newrelic/go-agent/v3 v3.28.1 h1:jJfangbTvuLsP+zWZo2EafACbZ9xvZfdDM8Ly15cPpo=
-github.com/newrelic/go-agent/v3 v3.28.1/go.mod h1:9utrgxlSryNqRrTvII2XBL+0lpofXbqXApvVWPpbzUg=
+github.com/newrelic/go-agent/v3 v3.29.0 h1:Bc1D3DoOkpJs6aIzhOjUp+yIKJ2RfZ+LMQemZOs9t9k=
+github.com/newrelic/go-agent/v3 v3.29.0/go.mod h1:9utrgxlSryNqRrTvII2XBL+0lpofXbqXApvVWPpbzUg=
 github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.2 h1:Y+bKuryqCg+TAvBkBaEKwak+Boy5OdosQNdDGFwyDLo=
 github.com/newrelic/go-agent/v3/integrations/nrhttprouter v1.0.2/go.mod h1:lhRXsOMo2UYHbtvb2xdtbTdBaL4ovLAdhW8ky3NNyAQ=
 github.com/newrelic/go-agent/v3/integrations/nrmongo v1.1.2 h1:GimXwAt30uLRg0jBQ+LQALcbboHOPnNfouO0L2cON8s=

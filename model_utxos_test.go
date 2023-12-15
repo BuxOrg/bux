@@ -90,7 +90,7 @@ func TestUtxo_getUtxo(t *testing.T) {
 	// t.Parallel()
 
 	t.Run("getUtxo empty", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		utxo, err := getUtxo(ctx, testTxID, 12, client.DefaultModelOptions()...)
 		assert.NoError(t, err)
@@ -98,7 +98,7 @@ func TestUtxo_getUtxo(t *testing.T) {
 	})
 
 	t.Run("getUtxo", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		_utxo := newUtxo(testXPubID, testTxID, testLockingScript, 12, 1225, append(client.DefaultModelOptions(), New())...)
 		_ = _utxo.Save(ctx)
@@ -112,7 +112,7 @@ func TestUtxo_getUtxo(t *testing.T) {
 // TestUtxo_getUtxosByXpubID will test the method getUtxosByXpubID()
 func TestUtxo_getUtxosByXpubID(t *testing.T) {
 	t.Run("getUtxos empty", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		utxos, err := getUtxosByXpubID(
@@ -127,7 +127,7 @@ func TestUtxo_getUtxosByXpubID(t *testing.T) {
 	})
 
 	t.Run("getUtxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestUtxo_GetModelName(t *testing.T) {
 // TestUtxo_UnReserveUtxos un-reserve utxos
 func TestUtxo_UnReserveUtxos(t *testing.T) {
 	t.Run("un-reserve 2000", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		err := createTestUtxos(ctx, client)
@@ -188,7 +188,7 @@ func TestUtxo_UnReserveUtxos(t *testing.T) {
 // TestUtxo_ReserveUtxos reserve utxos
 func TestUtxo_ReserveUtxos(t *testing.T) {
 	t.Run("reserve 1000", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -202,7 +202,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("reserve 2000", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -218,7 +218,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("reserve 20000", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -228,7 +228,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("reserve fromUtxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -249,7 +249,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("reserve fromUtxos 2", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -277,7 +277,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("reserve fromUtxos err", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -291,7 +291,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("reserve utxos paginated", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -303,7 +303,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 	})
 
 	t.Run("duplicate inputs", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		opts := append(client.DefaultModelOptions(), New())
@@ -327,7 +327,7 @@ func TestUtxo_ReserveUtxos(t *testing.T) {
 // TestUtxo_GetSpendableUtxos get spendable utxos
 func TestUtxo_GetSpendableUtxos(t *testing.T) {
 	t.Run("spendable", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -362,7 +362,7 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 	})
 
 	t.Run("paginated spendable", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		err := createTestUtxos(ctx, client)
 		require.NoError(t, err)
@@ -398,7 +398,7 @@ func TestUtxo_Save(t *testing.T) {
 	// t.Parallel()
 
 	t.Run("Save empty", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		_utxo := newUtxo("", "", "", 0, 0, append(client.DefaultModelOptions(), New())...)
 		err := _utxo.Save(ctx)
@@ -406,7 +406,7 @@ func TestUtxo_Save(t *testing.T) {
 	})
 
 	t.Run("Save", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		index := uint32(12)
 		satoshis := uint64(1225)

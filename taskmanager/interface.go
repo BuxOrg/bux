@@ -6,8 +6,8 @@ import (
 	taskq "github.com/vmihailenco/taskq/v3"
 )
 
-// ClientInterface is the taskmanager client interface
-type ClientInterface interface {
+// TaskManagerInterface is the taskmanager client interface
+type TaskManagerInterface interface {
 	RegisterTask(task *Task) error
 	ResetCron()
 	RunTask(ctx context.Context, options *TaskOptions) error

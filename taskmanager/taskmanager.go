@@ -1,3 +1,6 @@
+/*
+Package taskmanager is the task/job management service layer for concurrent and asynchronous tasks with cron scheduling.
+*/
 package taskmanager
 
 import (
@@ -39,7 +42,7 @@ type (
 //
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
-func NewClient(_ context.Context, opts ...ClientOps) (ClientInterface, error) {
+func NewClient(_ context.Context, opts ...ClientOps) (TaskManagerInterface, error) {
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 

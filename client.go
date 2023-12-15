@@ -113,10 +113,10 @@ type (
 
 	// taskManagerOptions holds the configuration for taskmanager
 	taskManagerOptions struct {
-		taskmanager.ClientInterface                          // Client for TaskManager
-		cronJobs                    taskmanager.CronJobs     // List of cron jobs
-		options                     []taskmanager.ClientOps  // List of options
-		cronCustomPeriods           map[string]time.Duration // will override the default period of cronJob
+		taskmanager.TaskManagerInterface                          // Client for TaskManager
+		cronJobs                         taskmanager.CronJobs     // List of cron jobs
+		options                          []taskmanager.ClientOps  // List of options
+		cronCustomPeriods                map[string]time.Duration // will override the default period of cronJob
 	}
 )
 
@@ -303,7 +303,7 @@ func (c *Client) Close(ctx context.Context) error {
 		if err := tm.Close(ctx); err != nil {
 			return err
 		}
-		c.options.taskManager.ClientInterface = nil
+		c.options.taskManager.TaskManagerInterface = nil
 	}
 	return nil
 }
@@ -445,9 +445,9 @@ func (c *Client) SetNotificationsClient(client notifications.ClientInterface) {
 }
 
 // Taskmanager will return the Taskmanager if it exists
-func (c *Client) Taskmanager() taskmanager.ClientInterface {
-	if c.options.taskManager != nil && c.options.taskManager.ClientInterface != nil {
-		return c.options.taskManager.ClientInterface
+func (c *Client) Taskmanager() taskmanager.TaskManagerInterface {
+	if c.options.taskManager != nil && c.options.taskManager.TaskManagerInterface != nil {
+		return c.options.taskManager.TaskManagerInterface
 	}
 	return nil
 }

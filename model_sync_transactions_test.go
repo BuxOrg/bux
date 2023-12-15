@@ -25,7 +25,7 @@ func TestSyncTransaction_GetModelName(t *testing.T) {
 }
 
 func Test_areParentsBroadcast(t *testing.T) {
-	ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+	ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 	defer deferMe()
 
 	opts := []ModelOps{WithClient(client)}
@@ -113,7 +113,7 @@ func TestSyncTransaction_SaveHook(t *testing.T) {
 
 	t.Run("trim Results to last 20 messages", func(t *testing.T) {
 		// Given
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 
 		opts := []ModelOps{WithClient(client), New()}
@@ -133,5 +133,4 @@ func TestSyncTransaction_SaveHook(t *testing.T) {
 		resultsLen := len(syncTx.Results.Results)
 		require.Equal(t, 20, resultsLen)
 	})
-
 }

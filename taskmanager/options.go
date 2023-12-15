@@ -21,7 +21,9 @@ func defaultClientOptions() *clientOptions {
 		debug:           false,
 		newRelicEnabled: false,
 		taskq: &taskqOptions{
-			tasks: make(map[string]*taskq.Task),
+			tasks:       make(map[string]*taskq.Task),
+			factoryType: FactoryMemory,
+			config:      DefaultTaskQConfig("taskq"),
 		},
 	}
 }
@@ -51,7 +53,7 @@ func WithDebugging() ClientOps {
 	}
 }
 
-// WithTaskQ will use the TaskQ engine
+// WithTaskQ will override the default TaskQ configuration
 func WithTaskQ(config *taskq.QueueOptions, factory Factory) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil && !factory.IsEmpty() {

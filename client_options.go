@@ -105,8 +105,8 @@ func defaultClientOptions() *clientOptions {
 
 		// Blank TaskManager config
 		taskManager: &taskManagerOptions{
-			ClientInterface:   nil,
-			cronCustomPeriods: map[string]time.Duration{},
+			TaskManagerInterface: nil,
+			cronCustomPeriods:    map[string]time.Duration{},
 		},
 
 		// Default user agent
@@ -531,15 +531,6 @@ func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, d
 // -----------------------------------------------------------------
 // TASK MANAGER
 // -----------------------------------------------------------------
-
-// WithCustomTaskManager will set the taskmanager
-func WithCustomTaskManager(taskManager taskmanager.ClientInterface) ClientOps {
-	return func(c *clientOptions) {
-		if taskManager != nil {
-			c.taskManager.ClientInterface = taskManager
-		}
-	}
-}
 
 // WithTaskQ will set the task manager to use TaskQ & in-memory
 func WithTaskQ(config *taskq.QueueOptions, factory taskmanager.Factory) ClientOps {

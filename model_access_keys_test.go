@@ -30,7 +30,7 @@ func Test_newAccessKey(t *testing.T) {
 	})
 
 	t.Run("save", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		key := newAccessKey(testXPubID, append(
@@ -56,7 +56,7 @@ func Test_newAccessKey(t *testing.T) {
 	})
 
 	t.Run("revoke", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		key := newAccessKey(testXPubID, append(client.DefaultModelOptions(), New())...)
@@ -88,7 +88,7 @@ func Test_newAccessKey(t *testing.T) {
 // TestAccessKey_GetAccessKey will test the method getAccessKey()
 func TestAccessKey_GetAccessKey(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		accessKey, err := getAccessKey(ctx, testXPubID, client.DefaultModelOptions()...)
 		require.NoError(t, err)
@@ -116,7 +116,7 @@ func TestAccessKey_GetAccessKey(t *testing.T) {
 // TestAccessKey_GetAccessKeys will test the method getAccessKeysByXPubID()
 func TestAccessKey_GetAccessKeys(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		accessKey, err := getAccessKeysByXPubID(ctx, testXPubID, nil, nil, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)

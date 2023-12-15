@@ -51,3 +51,10 @@ func (tm *taskManagerMockBase) IsNewRelicEnabled() bool {
 func (tm *taskManagerMockBase) CronJobsInit(cronJobsMap taskmanager.CronJobs) error {
 	return nil
 }
+
+// Sets custom task manager only for testing
+func withTaskManagerMockup() ClientOps {
+	return func(c *clientOptions) {
+		c.taskManager.TaskManagerInterface = &taskManagerMockBase{}
+	}
+}

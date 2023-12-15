@@ -105,7 +105,7 @@ func TestTransaction_newTransactionWithDraftID(t *testing.T) {
 // TestTransaction_getTransactionByID will test the method getTransactionByID()
 func TestTransaction_getTransactionByID(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		transaction, err := getTransactionByID(ctx, testXPubID, testTxID, client.DefaultModelOptions()...)
 		require.NoError(t, err)
@@ -135,7 +135,7 @@ func TestTransaction_getTransactionByID(t *testing.T) {
 // TestTransaction_getTransactionsByXpubID will test the method getTransactionsByXpubID()
 func TestTransaction_getTransactionsByXpubID(t *testing.T) {
 	t.Run("tx not found", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		transactions, err := getTransactionsByXpubID(ctx, testXPub, nil, nil, nil, client.DefaultModelOptions()...)
 		require.NoError(t, err)
@@ -517,7 +517,7 @@ func TestTransaction_processInputs(t *testing.T) {
 	})
 
 	t.Run("inputUtxoChecksOff", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}), WithIUCDisabled())
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup(), WithIUCDisabled())
 		defer deferMe()
 
 		transaction, err := txFromHex(testTxHex, append(client.DefaultModelOptions(), New())...)

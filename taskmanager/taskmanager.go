@@ -8,6 +8,7 @@ import (
 
 	"github.com/BuxOrg/bux/logging"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	taskq "github.com/vmihailenco/taskq/v3"
 )
@@ -21,7 +22,7 @@ type (
 
 	// options holds all the configuration for the client
 	options struct {
-		cronService     *cronLocal      // Internal cron job client
+		cronService     *cron.Cron      // Internal cron job client
 		debug           bool            // For extra logs and additional debug information
 		logger          *zerolog.Logger // Internal logging
 		newRelicEnabled bool            // If NewRelic is enabled (parent application)
@@ -63,10 +64,7 @@ func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
 	}
 
 	// Create the cron scheduler
-	cr := &cronLocal{}
-	cr.New()
-	cr.Start()
-	tm.options.cronService = cr
+	tm.ResetCron()
 
 	// Return the client
 	return tm, nil
@@ -100,7 +98,10 @@ func (tm *TaskManager) Close(ctx context.Context) error {
 
 // ResetCron will reset the cron scheduler and all loaded tasks
 func (tm *TaskManager) ResetCron() {
-	tm.options.cronService.New()
+	if tm.options.cronService != nil {
+		tm.options.cronService.Stop()
+	}
+	tm.options.cronService = cron.New()
 	tm.options.cronService.Start()
 }
 

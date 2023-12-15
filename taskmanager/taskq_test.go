@@ -102,7 +102,7 @@ func TestNewTaskManager_RegisterTwice(t *testing.T) {
 		resultChan <- 2
 		return nil
 	})
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	err = c.RunTask(ctx, &TaskRunOptions{
 		Arguments: []interface{}{task1Arg},

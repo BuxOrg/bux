@@ -60,8 +60,6 @@ func DefaultTaskQConfig(name string, opts ...TasqOps) *taskq.QueueOptions {
 // TaskRunOptions are the options for running a task
 type TaskRunOptions struct {
 	Arguments      []interface{} // Arguments for the task
-	Delay          time.Duration // Run after X delay
-	OnceInPeriod   time.Duration // Run once in X period
 	RunEveryPeriod time.Duration // Cron job!
 	TaskName       string        // Name of the task
 }
@@ -109,7 +107,8 @@ func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error)
 	defer mutex.Unlock()
 
 	if t := taskq.Tasks.Get(name); t != nil {
-		return fmt.Errorf("task %s already registered", name)
+		// if already registered - register the task locally
+		c.options.taskq.tasks[name] = t
 	} else {
 		// Register and store the task
 		c.options.taskq.tasks[name] = taskq.RegisterTask(&taskq.TaskOptions{
@@ -119,46 +118,65 @@ func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error)
 		})
 	}
 
-	// Debugging
 	c.DebugLog(fmt.Sprintf("registering task: %s...", c.options.taskq.tasks[name].Name()))
 	return nil
 }
 
 // RunTask will run a task using TaskQ
 func (c *TaskManager) RunTask(ctx context.Context, options *TaskRunOptions) error {
-	// Starting the execution of the task
-	c.DebugLog(fmt.Sprintf(
-		"executing task: %s... delay: %s arguments: %s",
-		options.TaskName,
-		options.Delay.String(),
-		fmt.Sprintf("%+v", options.Arguments),
-	))
+	c.options.logger.Info().Msgf("executing task: %s", options.TaskName)
 
 	// Try to get the task
-	if _, ok := c.options.taskq.tasks[options.TaskName]; !ok {
+	task, ok := c.options.taskq.tasks[options.TaskName]
+	if !ok {
 		return fmt.Errorf("task %s not registered", options.TaskName)
 	}
 
-	// Add arguments, and delay if set
-	msg := c.options.taskq.tasks[options.TaskName].WithArgs(ctx, options.Arguments...)
-	if options.OnceInPeriod > 0 {
-		msg.OnceInPeriod(options.OnceInPeriod, options.Arguments...)
-	} else if options.Delay > 0 {
-		msg.SetDelay(options.Delay)
+	// Task message will be used to add to the queue
+	taskMessage := task.WithArgs(ctx, options.Arguments...)
+
+	// There are two ways to run a task:
+	// Option 1: Run the task immediately
+	if options.RunEveryPeriod == 0 {
+		return c.options.taskq.queue.Add(taskMessage)
 	}
 
-	// This is the "cron" aspect of the task
-	if options.RunEveryPeriod > 0 {
-		_, err := c.options.cronService.AddFunc(
-			fmt.Sprintf("@every %ds", int(options.RunEveryPeriod.Seconds())),
-			func() {
-				// todo: log the error if it occurs? Cannot pass the error back up
-				_ = c.options.taskq.queue.Add(msg)
-			},
-		)
-		return err
+	// Option 2: Run the task periodically using cron
+	// Note: The first run will be after the period has passed
+	return c.scheduleTaskWithCron(ctx, task, taskMessage, options.RunEveryPeriod)
+}
+
+func (c *TaskManager) scheduleTaskWithCron(ctx context.Context, task *taskq.Task, taskMessage *taskq.Message, runEveryPeriod time.Duration) error {
+	// When using Redis, we need to use a distributed timed lock to prevent the addition of the same task to the queue by multiple instances.
+	// With this approach, only one instance will add the task to the queue within a given period.
+	var tryLock func() bool
+	if c.Factory() == FactoryRedis {
+		key := fmt.Sprintf("taskq_cronlock_%s", task.Name())
+
+		// The runEveryPeriod should be greater than 1 second
+		if runEveryPeriod < 1*time.Second {
+			runEveryPeriod = 1 * time.Second
+		}
+
+		// Lock time is the period minus 500ms to allow for some clock drift
+		lockTime := runEveryPeriod - 500*time.Millisecond
+
+		tryLock = func() bool {
+			boolCmd := c.options.taskq.config.Redis.SetNX(ctx, key, "1", lockTime)
+			return boolCmd.Val()
+		}
 	}
 
-	// Add to the queue
-	return c.options.taskq.queue.Add(msg)
+	// handler will be called by cron every runEveryPeriod seconds
+	handler := func() {
+		if tryLock != nil && !tryLock() {
+			return
+		}
+		_ = c.options.taskq.queue.Add(taskMessage)
+	}
+	_, err := c.options.cronService.AddFunc(
+		fmt.Sprintf("@every %ds", int(runEveryPeriod.Seconds())),
+		handler,
+	)
+	return err
 }

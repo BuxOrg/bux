@@ -2,70 +2,184 @@ package taskmanager
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	testQueueName = "test_queue"
-)
-
-// todo: finish unit tests!
-// NOTE: these are just tests to get the library built ;)
-
-func TestNewClient(t *testing.T) {
-	c, err := NewTaskManager(
-		context.Background(),
-		WithTaskqConfig(DefaultTaskQConfig(testQueueName)),
-	)
+// NOTE: because of the taskq package has global state, the names of tasks must be unique
+func TestNewTaskManager_Single(t *testing.T) {
+	c, err := NewTaskManager(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, c)
-	defer func() {
-		_ = c.Close(context.Background())
-	}()
 
 	ctx := c.GetTxnCtx(context.Background())
 
-	err = c.RegisterTask("task-1", func(name string) error {
-		fmt.Println("TSK1 ran: " + name)
+	task1Chan := make(chan string, 1)
+	task1Arg := "task a"
+
+	err = c.RegisterTask(task1Arg, func(name string) error {
+		task1Chan <- name
 		return nil
 	})
 	require.NoError(t, err)
 
-	err = c.RegisterTask("task-2", func(name string) error {
-		fmt.Println("TSK2 ran: " + name)
+	require.Equal(t, 1, len(c.Tasks()))
+
+	// Run single task
+	err = c.RunTask(ctx, &TaskRunOptions{
+		Arguments: []interface{}{task1Arg},
+		TaskName:  task1Arg,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, task1Arg, <-task1Chan)
+
+	// Close the client
+	err = c.Close(context.Background())
+	require.NoError(t, err)
+}
+
+func TestNewTaskManager_Multiple(t *testing.T) {
+	ctx := context.Background()
+	c, _ := NewTaskManager(ctx)
+
+	task1Chan := make(chan string, 1)
+	task2Chan := make(chan string, 1)
+
+	task1Arg := "task b"
+	task2Arg := "task c"
+
+	err := c.RegisterTask(task1Arg, func(name string) error {
+		task1Chan <- name
 		return nil
 	})
 	require.NoError(t, err)
 
-	t.Log("tasks: ", len(c.Tasks()))
-
-	time.Sleep(2 * time.Second)
+	err = c.RegisterTask(task2Arg, func(name string) error {
+		task2Chan <- name
+		return nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, 2, len(c.Tasks()))
 
 	// Run tasks
 	err = c.RunTask(ctx, &TaskRunOptions{
-		Arguments: []interface{}{"task #1"},
-		TaskName:  "task-1",
+		Arguments: []interface{}{task1Arg},
+		TaskName:  task1Arg,
 	})
 	require.NoError(t, err)
 
 	err = c.RunTask(ctx, &TaskRunOptions{
-		Arguments: []interface{}{"task #2"},
-		TaskName:  "task-2",
+		Arguments: []interface{}{task2Arg},
+		TaskName:  task2Arg,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, task1Arg, <-task1Chan)
+	require.Equal(t, task2Arg, <-task2Chan)
+
+	// Close the client
+	err = c.Close(context.Background())
+	require.NoError(t, err)
+}
+
+func TestNewTaskManager_RegisterTwice(t *testing.T) {
+	ctx := context.Background()
+	c, _ := NewTaskManager(ctx)
+
+	task1Arg := "task d"
+	resultChan := make(chan int, 1)
+
+	err := c.RegisterTask(task1Arg, func(name string) error {
+		resultChan <- 1
+		return nil
+	})
+	require.NoError(t, err)
+
+	err = c.RegisterTask(task1Arg, func(name string) error {
+		resultChan <- 2
+		return nil
+	})
+	require.Error(t, err)
+
+	err = c.RunTask(ctx, &TaskRunOptions{
+		Arguments: []interface{}{task1Arg},
+		TaskName:  task1Arg,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, <-resultChan)
+}
+
+func TestNewTaskManager_RunTwice(t *testing.T) {
+	ctx := context.Background()
+	c, _ := NewTaskManager(ctx)
+
+	task1Arg := "task e"
+
+	err := c.RegisterTask(task1Arg, func(name string) error {
+		return nil
 	})
 	require.NoError(t, err)
 
 	err = c.RunTask(ctx, &TaskRunOptions{
-		Arguments: []interface{}{"task #2 with delay"},
-		Delay:     time.Second,
-		TaskName:  "task-2",
+		TaskName: task1Arg,
 	})
 	require.NoError(t, err)
 
-	t.Log("ran all tasks...")
+	err = c.RunTask(ctx, &TaskRunOptions{
+		TaskName: task1Arg,
+	})
+	require.NoError(t, err)
+}
 
-	t.Log("closing...")
+func TestNewTaskManager_NotRegistered(t *testing.T) {
+	ctx := context.Background()
+	c, _ := NewTaskManager(ctx)
+
+	task1Arg := "task f"
+
+	err := c.RunTask(ctx, &TaskRunOptions{
+		TaskName: task1Arg,
+	})
+	require.Error(t, err)
+}
+
+func TestNewTaskManager_WithRedis(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping live local redis tests")
+	}
+
+	queueName, _ := utils.RandomHex(8)
+	c, err := NewTaskManager(context.Background(), WithTaskqConfig(DefaultTaskQConfig(queueName, WithRedis("redis://localhost:6379"))))
+	require.NoError(t, err)
+	require.NotNil(t, c)
+
+	ctx := c.GetTxnCtx(context.Background())
+
+	task1Chan := make(chan string, 1)
+	task1Arg := "task redis"
+
+	err = c.RegisterTask(task1Arg, func(name string) error {
+		task1Chan <- name
+		return nil
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(c.Tasks()))
+
+	// Run single task
+	err = c.RunTask(ctx, &TaskRunOptions{
+		Arguments: []interface{}{task1Arg},
+		TaskName:  task1Arg,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, task1Arg, <-task1Chan)
+
+	// Close the client
+	err = c.Close(context.Background())
+	require.NoError(t, err)
 }

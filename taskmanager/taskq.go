@@ -67,7 +67,7 @@ type TaskRunOptions struct {
 }
 
 // loadTaskQ will load TaskQ based on the Factory Type and configuration set by the client loading
-func (c *TaskManager) loadTaskQ() error {
+func (c *TaskManager) loadTaskQ(ctx context.Context) error {
 	// Check for a valid config (set on client creation)
 	factoryType := c.Factory()
 	if factoryType == FactoryEmpty {
@@ -82,7 +82,13 @@ func (c *TaskManager) loadTaskQ() error {
 	}
 
 	// Set the queue
-	c.options.taskq.queue = factory.RegisterQueue(c.options.taskq.config)
+	q := factory.RegisterQueue(c.options.taskq.config)
+	c.options.taskq.queue = q
+	if factoryType == FactoryRedis {
+		if err := q.Consumer().Start(ctx); err != nil {
+			return err
+		}
+	}
 
 	// turn off logger for now
 	// NOTE: having issues with logger with system resources
@@ -103,8 +109,7 @@ func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error)
 	defer mutex.Unlock()
 
 	if t := taskq.Tasks.Get(name); t != nil {
-		// if already registered - register the task locally
-		c.options.taskq.tasks[name] = t
+		return fmt.Errorf("task %s already registered", name)
 	} else {
 		// Register and store the task
 		c.options.taskq.tasks[name] = taskq.RegisterTask(&taskq.TaskOptions{

@@ -40,7 +40,7 @@ type (
 //
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
-func NewTaskManager(_ context.Context, opts ...ClientOps) (Tasker, error) {
+func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
 	// Create a new tm with defaults
 	tm := &TaskManager{options: defaultClientOptions()}
 
@@ -55,10 +55,10 @@ func NewTaskManager(_ context.Context, opts ...ClientOps) (Tasker, error) {
 	}
 
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
-	// ctx = client.options.getTxnCtx(ctx)
+	// ctx = tm.options.getTxnCtx(ctx)
 
 	// Load the TaskQ engine
-	if err := tm.loadTaskQ(); err != nil {
+	if err := tm.loadTaskQ(ctx); err != nil {
 		return nil, err
 	}
 
@@ -140,4 +140,15 @@ func (tm *TaskManager) Factory() Factory {
 		return FactoryRedis
 	}
 	return FactoryMemory
+}
+
+// GetTxnCtx will check for an existing transaction
+func (tm *TaskManager) GetTxnCtx(ctx context.Context) context.Context {
+	if tm.options.newRelicEnabled {
+		txn := newrelic.FromContext(ctx)
+		if txn != nil {
+			ctx = newrelic.NewContext(ctx, txn)
+		}
+	}
+	return ctx
 }

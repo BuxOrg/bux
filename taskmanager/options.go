@@ -1,9 +1,6 @@
 package taskmanager
 
 import (
-	"context"
-
-	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
 	taskq "github.com/vmihailenco/taskq/v3"
 )
@@ -25,17 +22,6 @@ func defaultClientOptions() *options {
 			config: DefaultTaskQConfig("taskq"),
 		},
 	}
-}
-
-// GetTxnCtx will check for an existing transaction
-func (c *TaskManager) GetTxnCtx(ctx context.Context) context.Context {
-	if c.options.newRelicEnabled {
-		txn := newrelic.FromContext(ctx)
-		if txn != nil {
-			ctx = newrelic.NewContext(ctx, txn)
-		}
-	}
-	return ctx
 }
 
 // WithNewRelic will enable the NewRelic wrapper

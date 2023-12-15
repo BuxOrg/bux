@@ -6,11 +6,11 @@ import (
 	taskq "github.com/vmihailenco/taskq/v3"
 )
 
-// TaskManagerInterface is the taskmanager client interface
-type TaskManagerInterface interface {
-	RegisterTask(task *Task) error
+// Tasker is the taskmanager client interface
+type Tasker interface {
+	RegisterTask(name string, handler interface{}) error
 	ResetCron()
-	RunTask(ctx context.Context, options *TaskOptions) error
+	RunTask(ctx context.Context, options *TaskRunOptions) error
 	Tasks() map[string]*taskq.Task
 	CronJobsInit(cronJobsMap CronJobs) error
 	Close(ctx context.Context) error

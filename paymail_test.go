@@ -219,7 +219,7 @@ func Test_getCapabilities(t *testing.T) {
 
 		tc, err := NewClient(context.Background(),
 			WithRedisConnection(redisClient),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
@@ -261,7 +261,7 @@ func Test_getCapabilities(t *testing.T) {
 
 		tc, err := NewClient(context.Background(),
 			WithRedisConnection(redisClient),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),
@@ -374,7 +374,7 @@ func Test_resolvePaymailAddress(t *testing.T) {
 
 		tc, err := NewClient(context.Background(),
 			WithRedisConnection(redisClient),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithChainstateOptions(false, false, false, false),
 			WithDebugging(),

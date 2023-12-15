@@ -59,7 +59,7 @@ func (tc *TestingClient) Close(ctx context.Context) {
 
 // DefaultClientOpts will return a default set of client options required to load the new client
 func DefaultClientOpts(debug, shared bool) []ClientOps {
-	tqc := taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)
+	tqc := taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())
 	tqc.MaxNumWorker = 2
 	tqc.MaxNumFetcher = 2
 

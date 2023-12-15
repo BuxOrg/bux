@@ -264,7 +264,7 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
@@ -287,7 +287,7 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedis(&cachestore.RedisConfig{
 				URL: "localhost:6379",
 			}),
@@ -314,7 +314,7 @@ func TestWithRedisConnection(t *testing.T) {
 	t.Run("using a nil connection", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedisConnection(nil),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -335,7 +335,7 @@ func TestWithRedisConnection(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -363,7 +363,7 @@ func TestWithFreeCache(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCache(),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}))
 		require.NoError(t, err)
@@ -391,7 +391,7 @@ func TestWithFreeCacheConnection(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(nil),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&logger),
@@ -412,7 +412,7 @@ func TestWithFreeCacheConnection(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(fc),
-			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName, nil)),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&logger),
@@ -497,9 +497,7 @@ func TestWithTaskQ(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithTaskqConfig(
-				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), &taskmanager.SimplifiedRedisOptions{
-					Addr: "localhost:6379",
-				}),
+				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), taskmanager.WithRedis("localhost:6379")),
 			),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",

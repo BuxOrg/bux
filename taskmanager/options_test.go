@@ -61,7 +61,7 @@ func TestWithTaskQ(t *testing.T) {
 		options := &clientOptions{
 			taskq: &taskqOptions{},
 		}
-		opt := WithTaskqConfig(DefaultTaskQConfig(testQueueName, nil))
+		opt := WithTaskqConfig(DefaultTaskQConfig(testQueueName))
 		opt(options)
 		assert.NotNil(t, options.taskq.config)
 	})

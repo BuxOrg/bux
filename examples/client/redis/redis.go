@@ -15,9 +15,8 @@ func main() {
 		context.Background(), // Set context
 		bux.WithRedis(&cachestore.RedisConfig{URL: redisURL}), // Cache
 		bux.WithTaskqConfig( // Tasks
-			taskmanager.DefaultTaskQConfig("example_queue", &taskmanager.SimplifiedRedisOptions{
-				Addr: redisURL,
-			})),
+			taskmanager.DefaultTaskQConfig("example_queue", taskmanager.WithRedis(redisURL)),
+		),
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

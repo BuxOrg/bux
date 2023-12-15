@@ -16,54 +16,55 @@ import (
 
 var mutex sync.Mutex
 
-type SimplifiedRedisOptions struct {
-	Addr string
-}
+// TasqOps allow functional options to be supplied
+type TasqOps func(options *taskq.QueueOptions)
 
-// redisClientIfSet creates a redis client if the options are set otherwise nil which will use the memory queue
-func (s *SimplifiedRedisOptions) redisClientIfSet() taskq.Redis {
-	if s == nil {
-		return nil
+// WithRedis will set the redis client for the TaskQ engine
+func WithRedis(addr string) TasqOps {
+	return func(options *taskq.QueueOptions) {
+		options.Redis = redis.NewClient(&redis.Options{
+			Addr: strings.Replace(addr, "redis://", "", -1),
+		})
 	}
-	return redis.NewClient(&redis.Options{
-		Addr: strings.Replace(s.Addr, "redis://", "", -1),
-	})
 }
 
 // DefaultTaskQConfig will return a default configuration that can be modified
 // If redisOptions is nil, it will use the memory queue
-func DefaultTaskQConfig(name string, redisOptions *SimplifiedRedisOptions) *taskq.QueueOptions {
-	return &taskq.QueueOptions{
-		BufferSize:           10,                              // Size of the buffer where reserved messages are stored.
-		ConsumerIdleTimeout:  6 * time.Hour,                   // ConsumerIdleTimeout Time after which the consumer need to be deleted.
-		Handler:              nil,                             // Optional message handler. The default is the global Tasks registry.
-		MaxNumFetcher:        0,                               // Maximum number of goroutines fetching messages.
-		MaxNumWorker:         10,                              // Maximum number of goroutines processing messages.
-		MinNumWorker:         1,                               // Minimum number of goroutines processing messages.
-		Name:                 name,                            // Queue name.
-		PauseErrorsThreshold: 100,                             // Number of consecutive failures after which queue processing is paused.
-		RateLimit:            redis_rate.Limit{},              // Processing rate limit.
-		RateLimiter:          nil,                             // Optional rate limiter. The default is to use Redis.
-		Redis:                redisOptions.redisClientIfSet(), // Redis client that is used for storing metadata.
-		ReservationSize:      10,                              // Number of messages reserved by a fetcher in the queue in one request.
-		ReservationTimeout:   60 * time.Second,                // Time after which the reserved message is returned to the queue.
-		Storage:              taskq.NewLocalStorage(),         // Optional storage interface. The default is to use Redis.
-		WaitTimeout:          3 * time.Second,                 // Time that a long polling receive call waits for a message to become available before returning an empty response.
-		WorkerLimit:          0,                               // Global limit of concurrently running workers across all servers. Overrides MaxNumWorker.
+func DefaultTaskQConfig(name string, opts ...TasqOps) *taskq.QueueOptions {
+	queueOptions := &taskq.QueueOptions{
+		BufferSize:           10,                      // Size of the buffer where reserved messages are stored.
+		ConsumerIdleTimeout:  6 * time.Hour,           // ConsumerIdleTimeout Time after which the consumer need to be deleted.
+		Handler:              nil,                     // Optional message handler. The default is the global Tasks registry.
+		MaxNumFetcher:        0,                       // Maximum number of goroutines fetching messages.
+		MaxNumWorker:         10,                      // Maximum number of goroutines processing messages.
+		MinNumWorker:         1,                       // Minimum number of goroutines processing messages.
+		Name:                 name,                    // Queue name.
+		PauseErrorsThreshold: 100,                     // Number of consecutive failures after which queue processing is paused.
+		RateLimit:            redis_rate.Limit{},      // Processing rate limit.
+		RateLimiter:          nil,                     // Optional rate limiter. The default is to use Redis.
+		Redis:                nil,                     // Redis client that is used for storing metadata.
+		ReservationSize:      10,                      // Number of messages reserved by a fetcher in the queue in one request.
+		ReservationTimeout:   60 * time.Second,        // Time after which the reserved message is returned to the queue.
+		Storage:              taskq.NewLocalStorage(), // Optional storage interface. The default is to use Redis.
+		WaitTimeout:          3 * time.Second,         // Time that a long polling receive call waits for a message to become available before returning an empty response.
+		WorkerLimit:          0,                       // Global limit of concurrently running workers across all servers. Overrides MaxNumWorker.
 	}
+
+	// Overwrite defaults with any set by user
+	for _, opt := range opts {
+		opt(queueOptions)
+	}
+
+	return queueOptions
 }
 
-// convertTaskToTaskQ will convert our internal task to a TaskQ struct
-func convertTaskToTaskQ(task *Task) *taskq.TaskOptions {
-	return &taskq.TaskOptions{
-		Name:            task.Name,
-		Handler:         task.Handler,
-		FallbackHandler: task.FallbackHandler,
-		DeferFunc:       task.DeferFunc,
-		RetryLimit:      task.RetryLimit,
-		MinBackoff:      task.MinBackoff,
-		MaxBackoff:      task.MaxBackoff,
-	}
+// TaskRunOptions are the options for running a task
+type TaskRunOptions struct {
+	Arguments      []interface{} `json:"arguments"`        // Arguments for the task
+	Delay          time.Duration `json:"delay"`            // Run after X delay
+	OnceInPeriod   time.Duration `json:"once_in_period"`   // Run once in X period
+	RunEveryPeriod time.Duration `json:"run_every_period"` // Cron job!
+	TaskName       string        `json:"task_name"`        // Name of the task
 }
 
 // loadTaskQ will load TaskQ based on the Factory Type and configuration set by the client loading
@@ -71,7 +72,7 @@ func (c *Client) loadTaskQ() error {
 	// Check for a valid config (set on client creation)
 	factoryType := c.Factory()
 	if factoryType == FactoryEmpty {
-		return ErrMissingFactory
+		return fmt.Errorf("missing factory type to load taskq")
 	}
 
 	var factory taskq.Factory
@@ -92,7 +93,7 @@ func (c *Client) loadTaskQ() error {
 }
 
 // RegisterTask will register a new task using the TaskQ engine
-func (c *Client) RegisterTask(task *Task) (err error) {
+func (c *Client) RegisterTask(name string, handler interface{}) (err error) {
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			err = fmt.Errorf(fmt.Sprintf("registering task panic: %v", panicErr))
@@ -102,21 +103,25 @@ func (c *Client) RegisterTask(task *Task) (err error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if t := taskq.Tasks.Get(task.Name); t != nil {
+	if t := taskq.Tasks.Get(name); t != nil {
 		// if already registered - register the task locally
-		c.options.taskq.tasks[task.Name] = t
+		c.options.taskq.tasks[name] = t
 	} else {
 		// Register and store the task
-		c.options.taskq.tasks[task.Name] = taskq.RegisterTask(convertTaskToTaskQ(task))
+		c.options.taskq.tasks[name] = taskq.RegisterTask(&taskq.TaskOptions{
+			Name:       name,
+			Handler:    handler,
+			RetryLimit: 1,
+		})
 	}
 
 	// Debugging
-	c.DebugLog(fmt.Sprintf("registering task: %s...", c.options.taskq.tasks[task.Name].Name()))
+	c.DebugLog(fmt.Sprintf("registering task: %s...", c.options.taskq.tasks[name].Name()))
 	return nil
 }
 
 // RunTask will run a task using TaskQ
-func (c *Client) RunTask(ctx context.Context, options *TaskOptions) error {
+func (c *Client) RunTask(ctx context.Context, options *TaskRunOptions) error {
 	// Starting the execution of the task
 	c.DebugLog(fmt.Sprintf(
 		"executing task: %s... delay: %s arguments: %s",
@@ -127,7 +132,7 @@ func (c *Client) RunTask(ctx context.Context, options *TaskOptions) error {
 
 	// Try to get the task
 	if _, ok := c.options.taskq.tasks[options.TaskName]; !ok {
-		return ErrTaskNotFound
+		return fmt.Errorf("task %s not registered", options.TaskName)
 	}
 
 	// Add arguments, and delay if set

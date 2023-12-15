@@ -40,7 +40,7 @@ type (
 //
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
-func NewClient(_ context.Context, opts ...ClientOps) (TaskManagerInterface, error) {
+func NewClient(_ context.Context, opts ...ClientOps) (Tasker, error) {
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 

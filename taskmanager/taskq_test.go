@@ -19,7 +19,7 @@ const (
 func TestNewClient(t *testing.T) {
 	c, err := NewClient(
 		context.Background(),
-		WithTaskqConfig(DefaultTaskQConfig(testQueueName, nil)),
+		WithTaskqConfig(DefaultTaskQConfig(testQueueName)),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, c)
@@ -29,21 +29,15 @@ func TestNewClient(t *testing.T) {
 
 	ctx := c.GetTxnCtx(context.Background())
 
-	err = c.RegisterTask(&Task{
-		Name: "task-1",
-		Handler: func(name string) error {
-			fmt.Println("TSK1 ran: " + name)
-			return nil
-		},
+	err = c.RegisterTask("task-1", func(name string) error {
+		fmt.Println("TSK1 ran: " + name)
+		return nil
 	})
 	require.NoError(t, err)
 
-	err = c.RegisterTask(&Task{
-		Name: "task-2",
-		Handler: func(name string) error {
-			fmt.Println("TSK2 ran: " + name)
-			return nil
-		},
+	err = c.RegisterTask("task-2", func(name string) error {
+		fmt.Println("TSK2 ran: " + name)
+		return nil
 	})
 	require.NoError(t, err)
 
@@ -52,19 +46,19 @@ func TestNewClient(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Run tasks
-	err = c.RunTask(ctx, &TaskOptions{
+	err = c.RunTask(ctx, &TaskRunOptions{
 		Arguments: []interface{}{"task #1"},
 		TaskName:  "task-1",
 	})
 	require.NoError(t, err)
 
-	err = c.RunTask(ctx, &TaskOptions{
+	err = c.RunTask(ctx, &TaskRunOptions{
 		Arguments: []interface{}{"task #2"},
 		TaskName:  "task-2",
 	})
 	require.NoError(t, err)
 
-	err = c.RunTask(ctx, &TaskOptions{
+	err = c.RunTask(ctx, &TaskRunOptions{
 		Arguments: []interface{}{"task #2 with delay"},
 		Delay:     time.Second,
 		TaskName:  "task-2",

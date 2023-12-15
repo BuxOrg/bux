@@ -22,7 +22,7 @@ func defaultClientOptions() *clientOptions {
 		newRelicEnabled: false,
 		taskq: &taskqOptions{
 			tasks:  make(map[string]*taskq.Task),
-			config: DefaultTaskQConfig("taskq", nil),
+			config: DefaultTaskQConfig("taskq"),
 		},
 	}
 }
@@ -52,6 +52,7 @@ func WithDebugging() ClientOps {
 	}
 }
 
+// WithTaskqConfig will set the taskq custom config
 func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil {

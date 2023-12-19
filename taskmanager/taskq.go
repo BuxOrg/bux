@@ -20,6 +20,7 @@ var mutex sync.Mutex
 type TasqOps func(*taskq.QueueOptions)
 
 // WithRedis will set the redis client for the TaskQ engine
+// Note: Because we use redis/v8, we need to use Redis lower than 7.2.0
 func WithRedis(addr string) TasqOps {
 	return func(queueOptions *taskq.QueueOptions) {
 		queueOptions.Redis = redis.NewClient(&redis.Options{

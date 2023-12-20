@@ -96,7 +96,7 @@ func (c *TaskManager) loadTaskQ(ctx context.Context) error {
 	return nil
 }
 
-// RegisterTask will register a new task using the TaskQ engine
+// RegisterTask will register a new task to handle asynchronously
 func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error) {
 	defer func() {
 		if panicErr := recover(); panicErr != nil {

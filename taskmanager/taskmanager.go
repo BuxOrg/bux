@@ -22,7 +22,6 @@ type (
 
 	options struct {
 		cronService     *cron.Cron      // Internal cron job client
-		debug           bool            // For extra logs and additional debug information
 		logger          *zerolog.Logger // Internal logging
 		newRelicEnabled bool            // If NewRelic is enabled (parent application)
 		taskq           *taskqOptions   // All configuration and options for using TaskQ
@@ -39,10 +38,9 @@ type (
 // NewTaskManager creates a new client for all TaskManager functionality
 // If no options are given, it will use local memory for the queue.
 // ctx may contain a NewRelic txn (or one will be created)
-func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
+func NewTaskManager(ctx context.Context, opts ...TaskManagerOptions) (Tasker, error) {
 	// Create a new tm with defaults
 	tm := &TaskManager{options: &options{
-		debug:           false,
 		newRelicEnabled: false,
 		taskq: &taskqOptions{
 			tasks:  make(map[string]*taskq.Task),
@@ -104,23 +102,6 @@ func (tm *TaskManager) ResetCron() {
 	}
 	tm.options.cronService = cron.New()
 	tm.options.cronService.Start()
-}
-
-// Debug will set the debug flag
-func (tm *TaskManager) Debug(on bool) {
-	tm.options.debug = on
-}
-
-// IsDebug will return if debugging is enabled
-func (tm *TaskManager) IsDebug() bool {
-	return tm.options.debug
-}
-
-// DebugLog will display verbose logs
-func (tm *TaskManager) DebugLog(text string) {
-	if tm.IsDebug() {
-		tm.options.logger.Info().Msg(text)
-	}
 }
 
 // IsNewRelicEnabled will return if new relic is enabled

@@ -123,7 +123,7 @@ func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error)
 		})
 	}
 
-	c.DebugLog(fmt.Sprintf("registering task: %s...", c.options.taskq.tasks[name].Name()))
+	c.options.logger.Debug().Msgf("registering task: %s...", c.options.taskq.tasks[name].Name())
 	return nil
 }
 

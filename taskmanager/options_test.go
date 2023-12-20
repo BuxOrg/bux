@@ -11,7 +11,7 @@ import (
 func TestWithNewRelic(t *testing.T) {
 	t.Run("check type", func(t *testing.T) {
 		opt := WithNewRelic()
-		assert.IsType(t, *new(ClientOps), opt)
+		assert.IsType(t, *new(TaskManagerOptions), opt)
 	})
 
 	t.Run("test applying", func(t *testing.T) {
@@ -22,26 +22,11 @@ func TestWithNewRelic(t *testing.T) {
 	})
 }
 
-// TestWithDebugging will test the method WithDebugging()
-func TestWithDebugging(t *testing.T) {
-	t.Run("check type", func(t *testing.T) {
-		opt := WithDebugging()
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying", func(t *testing.T) {
-		options := &options{}
-		opt := WithDebugging()
-		opt(options)
-		assert.Equal(t, true, options.debug)
-	})
-}
-
 // TestWithTaskQ will test the method WithTaskQ()
 func TestWithTaskQ(t *testing.T) {
 	t.Run("check type", func(t *testing.T) {
 		opt := WithTaskqConfig(nil)
-		assert.IsType(t, *new(ClientOps), opt)
+		assert.IsType(t, *new(TaskManagerOptions), opt)
 	})
 
 	t.Run("test applying nil config", func(t *testing.T) {
@@ -73,7 +58,7 @@ func TestWithLogger(t *testing.T) {
 
 	t.Run("check type", func(t *testing.T) {
 		opt := WithLogger(nil)
-		assert.IsType(t, *new(ClientOps), opt)
+		assert.IsType(t, *new(TaskManagerOptions), opt)
 	})
 
 	t.Run("test applying nil", func(t *testing.T) {

@@ -215,7 +215,6 @@ func WithDebugging() ClientOps {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithDebugging())
 		c.dataStore.options = append(c.dataStore.options, datastore.WithDebugging())
 		c.notifications.options = append(c.notifications.options, notifications.WithDebugging())
-		c.taskManager.options = append(c.taskManager.options, taskmanager.WithDebugging())
 	}
 }
 

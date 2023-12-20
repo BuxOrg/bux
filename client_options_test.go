@@ -211,7 +211,6 @@ func TestWithDebugging(t *testing.T) {
 		assert.Equal(t, true, tc.IsDebug())
 		assert.Equal(t, true, tc.Cachestore().IsDebug())
 		assert.Equal(t, true, tc.Datastore().IsDebug())
-		assert.Equal(t, true, tc.Taskmanager().IsDebug())
 	})
 }
 
@@ -469,7 +468,6 @@ func TestWithTaskQ(t *testing.T) {
 	// todo: test cases where config is nil, or cannot load TaskQ
 
 	t.Run("using taskq using memory", func(t *testing.T) {
-
 		logger := zerolog.Nop()
 		tcOpts := DefaultClientOpts(true, true)
 		tcOpts = append(tcOpts, WithLogger(&logger))

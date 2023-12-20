@@ -14,9 +14,7 @@ type Tasker interface {
 	Tasks() map[string]*taskq.Task
 	CronJobsInit(cronJobsMap CronJobs) error
 	Close(ctx context.Context) error
-	Debug(on bool)
 	Factory() Factory
 	GetTxnCtx(ctx context.Context) context.Context
-	IsDebug() bool
 	IsNewRelicEnabled() bool
 }

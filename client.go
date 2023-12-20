@@ -113,10 +113,10 @@ type (
 
 	// taskManagerOptions holds the configuration for taskmanager
 	taskManagerOptions struct {
-		taskmanager.Tasker                          // Client for TaskManager
-		cronJobs           taskmanager.CronJobs     // List of cron jobs
-		options            []taskmanager.ClientOps  // List of options
-		cronCustomPeriods  map[string]time.Duration // will override the default period of cronJob
+		taskmanager.Tasker                                  // Client for TaskManager
+		cronJobs           taskmanager.CronJobs             // List of cron jobs
+		options            []taskmanager.TaskManagerOptions // List of options
+		cronCustomPeriods  map[string]time.Duration         // will override the default period of cronJob
 	}
 )
 
@@ -339,11 +339,6 @@ func (c *Client) Debug(on bool) {
 	// Set debugging on the Notifications
 	if n := c.Notifications(); n != nil {
 		n.Debug(on)
-	}
-
-	// Set debugging on the Taskmanager
-	if tm := c.Taskmanager(); tm != nil {
-		tm.Debug(on)
 	}
 }
 

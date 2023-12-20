@@ -153,5 +153,3 @@ replace github.com/centrifugal/protocol => github.com/centrifugal/protocol v0.9.
 // Issue: go.mongodb.org/mongo-driver/x/bsonx: cannot find module providing package go.mongodb.org/mongo-driver/x/bsonx
 // Need to convert bsonx to bsoncore
 replace go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.11.7
-
-//replace github.com/bitcoin-sv/go-paymail => ../../bitcoin-sv/go-paymail

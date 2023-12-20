@@ -76,7 +76,7 @@ func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
 	return tm, nil
 }
 
-// Close will close client and any open connections
+// Close the client and any open connections
 func (tm *TaskManager) Close(ctx context.Context) error {
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("close_taskmanager").End()

@@ -66,7 +66,7 @@ type ClientService interface {
 	Logger() *zerolog.Logger
 	Notifications() notifications.ClientInterface
 	PaymailClient() paymail.ClientInterface
-	Taskmanager() taskmanager.Tasker
+	Taskmanager() taskmanager.TaskEngine
 }
 
 // DestinationService is the destination actions

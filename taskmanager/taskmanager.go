@@ -15,7 +15,7 @@ import (
 
 type (
 
-	// TaskManager implements the Tasker interface
+	// TaskManager implements the TaskEngine interface
 	TaskManager struct {
 		options *options
 	}
@@ -38,7 +38,7 @@ type (
 // NewTaskManager creates a new client for all TaskManager functionality
 // If no options are given, it will use local memory for the queue.
 // ctx may contain a NewRelic txn (or one will be created)
-func NewTaskManager(ctx context.Context, opts ...TaskManagerOptions) (Tasker, error) {
+func NewTaskManager(ctx context.Context, opts ...TaskManagerOptions) (TaskEngine, error) {
 	// Create a new tm with defaults
 	tm := &TaskManager{options: &options{
 		newRelicEnabled: false,

@@ -55,6 +55,6 @@ func (tm *taskManagerMockBase) CronJobsInit(cronJobsMap taskmanager.CronJobs) er
 // Sets custom task manager only for testing
 func withTaskManagerMockup() ClientOps {
 	return func(c *clientOptions) {
-		c.taskManager.Tasker = &taskManagerMockBase{}
+		c.taskManager.TaskEngine = &taskManagerMockBase{}
 	}
 }

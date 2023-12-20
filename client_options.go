@@ -105,7 +105,7 @@ func defaultClientOptions() *clientOptions {
 
 		// Blank TaskManager config
 		taskManager: &taskManagerOptions{
-			Tasker:            nil,
+			TaskEngine:        nil,
 			cronCustomPeriods: map[string]time.Duration{},
 		},
 

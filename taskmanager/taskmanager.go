@@ -20,7 +20,6 @@ type (
 		options *options
 	}
 
-	// options holds all the configuration for the client
 	options struct {
 		cronService     *cron.Cron      // Internal cron job client
 		debug           bool            // For extra logs and additional debug information
@@ -56,7 +55,6 @@ func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
 		opt(tm.options)
 	}
 
-	// Set logger if not set
 	if tm.options.logger == nil {
 		tm.options.logger = logging.GetDefaultLogger()
 	}
@@ -64,15 +62,12 @@ func NewTaskManager(ctx context.Context, opts ...ClientOps) (Tasker, error) {
 	// Use NewRelic if it's enabled (use existing txn if found on ctx)
 	// ctx = tm.options.getTxnCtx(ctx)
 
-	// Load the TaskQ engine
 	if err := tm.loadTaskQ(ctx); err != nil {
 		return nil, err
 	}
 
-	// Create the cron scheduler
 	tm.ResetCron()
 
-	// Return the client
 	return tm, nil
 }
 

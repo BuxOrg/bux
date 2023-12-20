@@ -50,7 +50,6 @@ func DefaultTaskQConfig(name string, opts ...TasqOps) *taskq.QueueOptions {
 		WorkerLimit:          0,                       // Global limit of concurrently running workers across all servers. Overrides MaxNumWorker.
 	}
 
-	// Overwrite defaults with any set by user
 	for _, opt := range opts {
 		opt(queueOptions)
 	}
@@ -101,6 +100,7 @@ func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error)
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			err = fmt.Errorf(fmt.Sprintf("registering task panic: %v", panicErr))
+			c.options.logger.Error().Msg(err.Error())
 		}
 	}()
 

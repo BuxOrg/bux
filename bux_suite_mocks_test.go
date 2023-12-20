@@ -12,13 +12,13 @@ type taskManagerMockBase struct{}
 
 func (tm *taskManagerMockBase) Info(context.Context, string, ...interface{}) {}
 
-func (tm *taskManagerMockBase) RegisterTask(*taskmanager.Task) error {
+func (tm *taskManagerMockBase) RegisterTask(string, interface{}) error {
 	return nil
 }
 
 func (tm *taskManagerMockBase) ResetCron() {}
 
-func (tm *taskManagerMockBase) RunTask(context.Context, *taskmanager.TaskOptions) error {
+func (tm *taskManagerMockBase) RunTask(context.Context, *taskmanager.TaskRunOptions) error {
 	return nil
 }
 
@@ -31,10 +31,6 @@ func (tm *taskManagerMockBase) Close(context.Context) error {
 }
 
 func (tm *taskManagerMockBase) Debug(bool) {}
-
-func (tm *taskManagerMockBase) Engine() taskmanager.Engine {
-	return taskmanager.Empty
-}
 
 func (tm *taskManagerMockBase) Factory() taskmanager.Factory {
 	return taskmanager.FactoryEmpty
@@ -54,4 +50,11 @@ func (tm *taskManagerMockBase) IsNewRelicEnabled() bool {
 
 func (tm *taskManagerMockBase) CronJobsInit(cronJobsMap taskmanager.CronJobs) error {
 	return nil
+}
+
+// Sets custom task manager only for testing
+func withTaskManagerMockup() ClientOps {
+	return func(c *clientOptions) {
+		c.taskManager.TaskEngine = &taskManagerMockBase{}
+	}
 }

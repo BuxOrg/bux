@@ -144,7 +144,7 @@ func TestDraftTransaction_getOutputSatoshis(t *testing.T) {
 // TestDraftTransaction_setChangeDestinations sets the given of change destinations on the draft transaction
 func TestDraftTransaction_setChangeDestinations(t *testing.T) {
 	t.Run("1 change destination", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -163,7 +163,7 @@ func TestDraftTransaction_setChangeDestinations(t *testing.T) {
 	})
 
 	t.Run("5 change destinations", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -185,7 +185,7 @@ func TestDraftTransaction_setChangeDestinations(t *testing.T) {
 // TestDraftTransaction_getDraftTransactionID tests getting the draft transaction by draft id
 func TestDraftTransaction_getDraftTransactionID(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		draftTx, err := getDraftTransactionID(ctx, testXPubID, testDraftID, client.DefaultModelOptions()...)
 		require.NoError(t, err)
@@ -193,7 +193,7 @@ func TestDraftTransaction_getDraftTransactionID(t *testing.T) {
 	})
 
 	t.Run("found by draft id", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{}, client.DefaultModelOptions()...)
 		err := draftTransaction.Save(ctx)
@@ -210,7 +210,7 @@ func TestDraftTransaction_getDraftTransactionID(t *testing.T) {
 // TestDraftTransaction_createTransaction create a transaction hex
 func TestDraftTransaction_createTransaction(t *testing.T) {
 	t.Run("empty transaction", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{}, append(client.DefaultModelOptions(), New())...)
 
@@ -219,7 +219,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("transaction with no utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		draftTransaction := newDraftTransaction(testXPub, &TransactionConfig{
 			Outputs: []*TransactionOutput{{
@@ -233,7 +233,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("transaction with utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -307,7 +307,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("send to all", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -349,7 +349,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("fee calculation - MAP", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -405,7 +405,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("fee calculation - MAP 2", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -469,7 +469,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("fee calculation - tonicpow", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -526,7 +526,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("send to all - multiple utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -576,7 +576,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("send to all - selected utxos", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -633,7 +633,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	})
 
 	t.Run("include utxos - tokens", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -804,7 +804,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 	t.Run("SendAllTo + 2 utxos", func(t *testing.T) {
 		p := newTestPaymailClient(t, []string{"handcash.io"})
 		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true,
-			WithCustomTaskManager(&taskManagerMockBase{}),
+			withTaskManagerMockup(),
 			WithPaymailClient(p),
 		)
 		defer deferMe()
@@ -911,7 +911,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 // TestDraftTransaction_setChangeDestination setting the change destination
 func TestDraftTransaction_setChangeDestination(t *testing.T) {
 	t.Run("missing xpub", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		draftTransaction := &DraftTransaction{
 			Model: *NewBaseModel(
@@ -932,7 +932,7 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 	})
 
 	t.Run("set valid destination", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		xPub.NextExternalNum = 121
@@ -967,7 +967,7 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 	})
 
 	t.Run("use existing output", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -1001,7 +1001,7 @@ func TestDraftTransaction_setChangeDestination(t *testing.T) {
 	})
 
 	t.Run("use existing outputs", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 		err := xPub.Save(ctx)
@@ -1544,7 +1544,7 @@ func TestDraftTransaction_SignInputs(t *testing.T) {
 }
 
 func initSimpleTestCase(t *testing.T) (context.Context, ClientInterface, func()) {
-	ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+	ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 
 	xPub := newXpub(testXPub, append(client.DefaultModelOptions(), New())...)
 	xPub.CurrentBalance = 100000

@@ -5,13 +5,11 @@ import (
 	"log"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/tester"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 func main() {
-
 	// EXAMPLE: new relic application
 	// replace this with your ALREADY EXISTING new relic application
 	app, err := tester.GetNewRelicApp("test-app")
@@ -21,8 +19,7 @@ func main() {
 
 	var client bux.ClientInterface
 	client, err = bux.NewClient(
-		newrelic.NewContext(context.Background(), app.StartTransaction("test-txn")),            // Set context
-		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
+		newrelic.NewContext(context.Background(), app.StartTransaction("test-txn")), // Set context
 		bux.WithNewRelic(app), // New relic application (from your own application or server)
 	)
 	if err != nil {

@@ -86,7 +86,6 @@ func (ts *EmbeddedDBTestSuite) serveMySQL() {
 
 // SetupSuite runs at the start of the suite
 func (ts *EmbeddedDBTestSuite) SetupSuite() {
-
 	var err error
 
 	// Create the MySQL server
@@ -120,7 +119,6 @@ func (ts *EmbeddedDBTestSuite) SetupSuite() {
 
 // TearDownSuite runs after the suite finishes
 func (ts *EmbeddedDBTestSuite) TearDownSuite() {
-
 	// Stop the Mongo server
 	if ts.MongoServer != nil {
 		ts.MongoServer.Stop()
@@ -157,8 +155,8 @@ func (ts *EmbeddedDBTestSuite) TearDownTest() {
 //
 // NOTE: you need to close the client: ts.Close()
 func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database datastore.Engine,
-	tablePrefix string, mockDB, mockRedis bool, opts ...ClientOps) (*TestingClient, error) {
-
+	tablePrefix string, mockDB, mockRedis bool, opts ...ClientOps,
+) (*TestingClient, error) {
 	var err error
 
 	// Start the suite
@@ -201,7 +199,6 @@ func (ts *EmbeddedDBTestSuite) createTestClient(ctx context.Context, database da
 		}
 
 	} else {
-
 		// Load the in-memory version of the database
 		if database == datastore.SQLite {
 			opts = append(opts, WithSQLite(&datastore.SQLiteConfig{
@@ -329,9 +326,9 @@ func (ts *EmbeddedDBTestSuite) genericDBClient(t *testing.T, database datastore.
 		WithAutoMigrate(&PaymailAddress{}),
 	)
 	if taskManagerEnabled {
-		opts = append(opts, WithTaskQ(taskmanager.DefaultTaskQConfig(prefix+"_queue"), taskmanager.FactoryMemory))
+		opts = append(opts, WithTaskqConfig(taskmanager.DefaultTaskQConfig(prefix+"_queue")))
 	} else {
-		opts = append(opts, WithCustomTaskManager(&taskManagerMockBase{}))
+		opts = append(opts, withTaskManagerMockup())
 	}
 
 	tc, err := ts.createTestClient(
@@ -358,7 +355,7 @@ func (ts *EmbeddedDBTestSuite) genericMockedDBClient(t *testing.T, database data
 		),
 		database, prefix,
 		true, true, WithDebugging(),
-		WithCustomTaskManager(&taskManagerMockBase{}),
+		withTaskManagerMockup(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tc)

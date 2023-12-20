@@ -6,31 +6,15 @@ import (
 	taskq "github.com/vmihailenco/taskq/v3"
 )
 
-// TaskService is the task related methods
-type TaskService interface {
-	RegisterTask(task *Task) error
+// TaskEngine is the taskmanager client interface
+type TaskEngine interface {
+	RegisterTask(name string, handler interface{}) error
 	ResetCron()
-	RunTask(ctx context.Context, options *TaskOptions) error
+	RunTask(ctx context.Context, options *TaskRunOptions) error
 	Tasks() map[string]*taskq.Task
 	CronJobsInit(cronJobsMap CronJobs) error
-}
-
-// CronService is the cron service provider
-type CronService interface {
-	AddFunc(spec string, cmd func()) (int, error)
-	New()
-	Start()
-	Stop()
-}
-
-// ClientInterface is the taskmanager client interface
-type ClientInterface interface {
-	TaskService
 	Close(ctx context.Context) error
-	Debug(on bool)
-	Engine() Engine
 	Factory() Factory
 	GetTxnCtx(ctx context.Context) context.Context
-	IsDebug() bool
 	IsNewRelicEnabled() bool
 }

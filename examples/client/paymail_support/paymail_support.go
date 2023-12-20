@@ -5,13 +5,11 @@ import (
 	"log"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/taskmanager"
 )
 
 func main() {
 	client, err := bux.NewClient(
 		context.Background(), // Set context
-		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithPaymailSupport(
 			[]string{"test.com"},
 			"from@test.com",

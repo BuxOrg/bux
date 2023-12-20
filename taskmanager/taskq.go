@@ -3,22 +3,35 @@ package taskmanager
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/go-redis/redis_rate/v9"
 	taskq "github.com/vmihailenco/taskq/v3"
 	"github.com/vmihailenco/taskq/v3/memqueue"
 	"github.com/vmihailenco/taskq/v3/redisq"
 )
 
-var (
-	mutex sync.Mutex
-)
+var mutex sync.Mutex
 
-// DefaultTaskQConfig will return a default configuration that can be modified
-func DefaultTaskQConfig(name string) *taskq.QueueOptions {
-	return &taskq.QueueOptions{
+// TasqOps allow functional options to be supplied
+type TasqOps func(*taskq.QueueOptions)
+
+// WithRedis will set the redis client for the TaskQ engine
+// Note: Because we use redis/v8, we need to use Redis lower than 7.2.0
+func WithRedis(addr string) TasqOps {
+	return func(queueOptions *taskq.QueueOptions) {
+		queueOptions.Redis = redis.NewClient(&redis.Options{
+			Addr: strings.Replace(addr, "redis://", "", -1),
+		})
+	}
+}
+
+// DefaultTaskQConfig will return a QueueOptions with specified name and functional options applied
+func DefaultTaskQConfig(name string, opts ...TasqOps) *taskq.QueueOptions {
+	queueOptions := &taskq.QueueOptions{
 		BufferSize:           10,                      // Size of the buffer where reserved messages are stored.
 		ConsumerIdleTimeout:  6 * time.Hour,           // ConsumerIdleTimeout Time after which the consumer need to be deleted.
 		Handler:              nil,                     // Optional message handler. The default is the global Tasks registry.
@@ -36,51 +49,48 @@ func DefaultTaskQConfig(name string) *taskq.QueueOptions {
 		WaitTimeout:          3 * time.Second,         // Time that a long polling receive call waits for a message to become available before returning an empty response.
 		WorkerLimit:          0,                       // Global limit of concurrently running workers across all servers. Overrides MaxNumWorker.
 	}
+
+	for _, opt := range opts {
+		opt(queueOptions)
+	}
+
+	return queueOptions
 }
 
-// convertTaskToTaskQ will convert our internal task to a TaskQ struct
-func convertTaskToTaskQ(task *Task) *taskq.TaskOptions {
-	return &taskq.TaskOptions{
-		Name:            task.Name,
-		Handler:         task.Handler,
-		FallbackHandler: task.FallbackHandler,
-		DeferFunc:       task.DeferFunc,
-		RetryLimit:      task.RetryLimit,
-		MinBackoff:      task.MinBackoff,
-		MaxBackoff:      task.MaxBackoff,
-	}
+// TaskRunOptions are the options for running a task
+type TaskRunOptions struct {
+	Arguments      []interface{} // Arguments for the task
+	RunEveryPeriod time.Duration // Cron job!
+	TaskName       string        // Name of the task
+}
+
+func (runOptions *TaskRunOptions) runImmediately() bool {
+	return runOptions.RunEveryPeriod == 0
 }
 
 // loadTaskQ will load TaskQ based on the Factory Type and configuration set by the client loading
-func (c *Client) loadTaskQ() error {
-
+func (c *TaskManager) loadTaskQ(ctx context.Context) error {
 	// Check for a valid config (set on client creation)
-	if c.options.taskq.config == nil {
-		return ErrMissingTaskQConfig
+	factoryType := c.Factory()
+	if factoryType == FactoryEmpty {
+		return fmt.Errorf("missing factory type to load taskq")
 	}
 
-	// Load using in-memory vs Redis
-	if c.options.taskq.factoryType == FactoryMemory {
-
-		// Create the factory
-		c.options.taskq.factory = memqueue.NewFactory()
-
-	} else if c.options.taskq.factoryType == FactoryRedis {
-
-		// Check for a redis connection (given on taskq configuration)
-		if c.options.taskq.config.Redis == nil {
-			return ErrMissingRedis
-		}
-
-		// Create the factory
-		c.options.taskq.factory = redisq.NewFactory()
-
-	} else {
-		return ErrMissingFactory
+	var factory taskq.Factory
+	if factoryType == FactoryMemory {
+		factory = memqueue.NewFactory()
+	} else if factoryType == FactoryRedis {
+		factory = redisq.NewFactory()
 	}
 
 	// Set the queue
-	c.options.taskq.queue = c.options.taskq.factory.RegisterQueue(c.options.taskq.config)
+	q := factory.RegisterQueue(c.options.taskq.config)
+	c.options.taskq.queue = q
+	if factoryType == FactoryRedis {
+		if err := q.Consumer().Start(ctx); err != nil {
+			return err
+		}
+	}
 
 	// turn off logger for now
 	// NOTE: having issues with logger with system resources
@@ -89,76 +99,85 @@ func (c *Client) loadTaskQ() error {
 	return nil
 }
 
-// registerTaskUsingTaskQ will register a new task using the TaskQ engine
-func (c *Client) registerTaskUsingTaskQ(task *Task) {
-
+// RegisterTask will register a new task to handle asynchronously
+func (c *TaskManager) RegisterTask(name string, handler interface{}) (err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			c.DebugLog(fmt.Sprintf("registering task panic: %v", err))
+		if panicErr := recover(); panicErr != nil {
+			err = fmt.Errorf(fmt.Sprintf("registering task panic: %v", panicErr))
+			c.options.logger.Error().Msg(err.Error())
 		}
 	}()
 
 	mutex.Lock()
+	defer mutex.Unlock()
 
-	// Check if task is already registered
-	if t := taskq.Tasks.Get(task.Name); t != nil {
-
-		// Register the task locally
-		c.options.taskq.tasks[task.Name] = t
-
-		// Task already exists!
-		// c.DebugLog(fmt.Sprintf("registering task: %s... task already exists!", task.Name))
-
-		mutex.Unlock()
-
-		return
+	if t := taskq.Tasks.Get(name); t != nil {
+		// if already registered - register the task locally
+		c.options.taskq.tasks[name] = t
+	} else {
+		// Register and store the task
+		c.options.taskq.tasks[name] = taskq.RegisterTask(&taskq.TaskOptions{
+			Name:       name,
+			Handler:    handler,
+			RetryLimit: 1,
+		})
 	}
 
-	// Register and store the task
-	c.options.taskq.tasks[task.Name] = taskq.RegisterTask(convertTaskToTaskQ(task))
-
-	mutex.Unlock()
-
-	// Debugging
-	c.DebugLog(fmt.Sprintf("registering task: %s...", c.options.taskq.tasks[task.Name].Name()))
+	c.options.logger.Debug().Msgf("registering task: %s...", c.options.taskq.tasks[name].Name())
+	return nil
 }
 
-// runTaskUsingTaskQ will run a task using TaskQ
-func (c *Client) runTaskUsingTaskQ(ctx context.Context, options *TaskOptions) error {
-
-	// Starting the execution of the task
-	c.DebugLog(fmt.Sprintf(
-		"executing task: %s... delay: %s arguments: %s",
-		options.TaskName,
-		options.Delay.String(),
-		fmt.Sprintf("%+v", options.Arguments),
-	))
+// RunTask will run a task using TaskQ
+func (c *TaskManager) RunTask(ctx context.Context, options *TaskRunOptions) error {
+	c.options.logger.Info().Msgf("executing task: %s", options.TaskName)
 
 	// Try to get the task
-	if _, ok := c.options.taskq.tasks[options.TaskName]; !ok {
-		return ErrTaskNotFound
+	task, ok := c.options.taskq.tasks[options.TaskName]
+	if !ok {
+		return fmt.Errorf("task %s not registered", options.TaskName)
 	}
 
-	// Add arguments, and delay if set
-	msg := c.options.taskq.tasks[options.TaskName].WithArgs(ctx, options.Arguments...)
-	if options.OnceInPeriod > 0 {
-		msg.OnceInPeriod(options.OnceInPeriod, options.Arguments...)
-	} else if options.Delay > 0 {
-		msg.SetDelay(options.Delay)
+	// Task message will be used to add to the queue
+	taskMessage := task.WithArgs(ctx, options.Arguments...)
+
+	if options.runImmediately() {
+		return c.options.taskq.queue.Add(taskMessage)
+	}
+	// Note: The first scheduled run will be after the period has passed
+	return c.scheduleTaskWithCron(ctx, task, taskMessage, options.RunEveryPeriod)
+}
+
+func (c *TaskManager) scheduleTaskWithCron(ctx context.Context, task *taskq.Task, taskMessage *taskq.Message, runEveryPeriod time.Duration) error {
+	// When using Redis, we need to use a distributed timed lock to prevent the addition of the same task to the queue by multiple instances.
+	// With this approach, only one instance will add the task to the queue within a given period.
+	var tryLock func() bool
+	if c.Factory() == FactoryRedis {
+		key := fmt.Sprintf("taskq_cronlock_%s", task.Name())
+
+		// The runEveryPeriod should be greater than 1 second
+		if runEveryPeriod < 1*time.Second {
+			return fmt.Errorf("runEveryPeriod should be greater than 1 second")
+		}
+
+		// Lock time is the period minus 500ms to allow for some clock drift
+		lockTime := runEveryPeriod - 500*time.Millisecond
+
+		tryLock = func() bool {
+			boolCmd := c.options.taskq.config.Redis.SetNX(ctx, key, "1", lockTime)
+			return boolCmd.Val()
+		}
 	}
 
-	// This is the "cron" aspect of the task
-	if options.RunEveryPeriod > 0 {
-		_, err := c.options.cronService.AddFunc(
-			fmt.Sprintf("@every %ds", int(options.RunEveryPeriod.Seconds())),
-			func() {
-				// todo: log the error if it occurs? Cannot pass the error back up
-				_ = c.options.taskq.queue.Add(msg)
-			},
-		)
-		return err
+	// handler will be called by cron every runEveryPeriod seconds
+	handler := func() {
+		if tryLock != nil && !tryLock() {
+			return
+		}
+		_ = c.options.taskq.queue.Add(taskMessage)
 	}
-
-	// Add to the queue
-	return c.options.taskq.queue.Add(msg)
+	_, err := c.options.cronService.AddFunc(
+		fmt.Sprintf("@every %ds", int(runEveryPeriod.Seconds())),
+		handler,
+	)
+	return err
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/mrz1836/go-datastore"
 )
 
@@ -35,7 +34,6 @@ func main() {
 			User:      os.Getenv("DB_USER"),
 		}),
 		bux.WithPaymailSupport([]string{"test.com"}, "example@test.com", "Example note", false, false),
-		bux.WithTaskQ(taskmanager.DefaultTaskQConfig("test_queue"), taskmanager.FactoryMemory), // Tasks
 		bux.WithAutoMigrate(bux.BaseModels...),
 	)
 	if err != nil {

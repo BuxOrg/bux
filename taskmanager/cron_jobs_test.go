@@ -9,16 +9,15 @@ import (
 )
 
 func TestCronTasks(t *testing.T) {
-	makeClient := func() *Client {
-		client, _ := NewClient(
+	makeTaskManager := func() *TaskManager {
+		client, _ := NewTaskManager(
 			context.Background(),
-			WithTaskQ(DefaultTaskQConfig(testQueueName), FactoryMemory),
 		)
-		return client.(*Client)
+		return client.(*TaskManager)
 	}
 
 	t.Run("register one cron job", func(t *testing.T) {
-		client := makeClient()
+		tm := makeTaskManager()
 
 		desiredExecutions := 2
 
@@ -27,9 +26,9 @@ func TestCronTasks(t *testing.T) {
 		}
 		target := &mockTarget{make(chan bool, desiredExecutions)}
 
-		err := client.CronJobsInit(CronJobs{
+		err := tm.CronJobsInit(CronJobs{
 			"test": {
-				Period: 100 * time.Millisecond,
+				Period: 1 * time.Second,
 				Handler: func(ctx context.Context) error {
 					target.times <- true
 					return nil
@@ -51,7 +50,7 @@ func TestCronTasks(t *testing.T) {
 	})
 
 	t.Run("register two cron jobs", func(t *testing.T) {
-		client := makeClient()
+		tm := makeTaskManager()
 
 		desiredExecutions := 6
 
@@ -60,16 +59,16 @@ func TestCronTasks(t *testing.T) {
 		}
 		target := &mockTarget{make(chan int, desiredExecutions)}
 
-		err := client.CronJobsInit(CronJobs{
+		err := tm.CronJobsInit(CronJobs{
 			"test1": {
-				Period: 100 * time.Millisecond,
+				Period: 1 * time.Second,
 				Handler: func(ctx context.Context) error {
 					target.times <- 1
 					return nil
 				},
 			},
 			"test2": {
-				Period: 100 * time.Millisecond,
+				Period: 1 * time.Second,
 				Handler: func(ctx context.Context) error {
 					target.times <- 2
 					return nil

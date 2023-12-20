@@ -14,7 +14,6 @@ import (
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/coocood/freecache"
-	"github.com/go-redis/redis/v8"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -212,7 +211,6 @@ func TestWithDebugging(t *testing.T) {
 		assert.Equal(t, true, tc.IsDebug())
 		assert.Equal(t, true, tc.Cachestore().IsDebug())
 		assert.Equal(t, true, tc.Datastore().IsDebug())
-		assert.Equal(t, true, tc.Taskmanager().IsDebug())
 	})
 }
 
@@ -265,7 +263,7 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
@@ -288,7 +286,7 @@ func TestWithRedis(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedis(&cachestore.RedisConfig{
 				URL: "localhost:6379",
 			}),
@@ -315,7 +313,7 @@ func TestWithRedisConnection(t *testing.T) {
 	t.Run("using a nil connection", func(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedisConnection(nil),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -336,7 +334,7 @@ func TestWithRedisConnection(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix())),
 			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
@@ -364,7 +362,7 @@ func TestWithFreeCache(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCache(),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}))
 		require.NoError(t, err)
@@ -392,7 +390,7 @@ func TestWithFreeCacheConnection(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(nil),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&logger),
@@ -413,7 +411,7 @@ func TestWithFreeCacheConnection(t *testing.T) {
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithFreeCacheConnection(fc),
-			WithTaskQ(taskmanager.DefaultTaskQConfig(testQueueName), taskmanager.FactoryMemory),
+			WithTaskqConfig(taskmanager.DefaultTaskQConfig(testQueueName)),
 			WithSQLite(&datastore.SQLiteConfig{Shared: true}),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&logger),
@@ -470,7 +468,6 @@ func TestWithTaskQ(t *testing.T) {
 	// todo: test cases where config is nil, or cannot load TaskQ
 
 	t.Run("using taskq using memory", func(t *testing.T) {
-
 		logger := zerolog.Nop()
 		tcOpts := DefaultClientOpts(true, true)
 		tcOpts = append(tcOpts, WithLogger(&logger))
@@ -485,7 +482,6 @@ func TestWithTaskQ(t *testing.T) {
 
 		tm := tc.Taskmanager()
 		require.NotNil(t, tm)
-		assert.Equal(t, taskmanager.TaskQ, tm.Engine())
 		assert.Equal(t, taskmanager.FactoryMemory, tm.Factory())
 	})
 
@@ -498,11 +494,8 @@ func TestWithTaskQ(t *testing.T) {
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
-			WithTaskQUsingRedis(
-				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix()),
-				&redis.Options{
-					Addr: "localhost:6379",
-				},
+			WithTaskqConfig(
+				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), taskmanager.WithRedis("localhost:6379")),
 			),
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
@@ -517,7 +510,6 @@ func TestWithTaskQ(t *testing.T) {
 
 		tm := tc.Taskmanager()
 		require.NotNil(t, tm)
-		assert.Equal(t, taskmanager.TaskQ, tm.Engine())
 		assert.Equal(t, taskmanager.FactoryRedis, tm.Factory())
 	})
 }

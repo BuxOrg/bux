@@ -38,9 +38,8 @@ func TestXpub_newXpub(t *testing.T) {
 
 // TestXpub_getXpub will test the method getXpub()
 func TestXpub_getXpub(t *testing.T) {
-
 	t.Run("get xpub - does not exist", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		xPub, err := getXpub(ctx, testXPub, client.DefaultModelOptions()...)
@@ -49,7 +48,7 @@ func TestXpub_getXpub(t *testing.T) {
 	})
 
 	t.Run("get xpub", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
@@ -80,9 +79,8 @@ func TestXpub_GetID(t *testing.T) {
 
 // TestXpub_getNewDestination will test the method GetNewDestination()
 func TestXpub_getNewDestination(t *testing.T) {
-
 	t.Run("err destination", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub("test", client.DefaultModelOptions()...)
 		err := xPub.Save(ctx)
@@ -96,7 +94,7 @@ func TestXpub_getNewDestination(t *testing.T) {
 	})
 
 	t.Run("new internal destination", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
 		err := xPub.Save(ctx)
@@ -119,7 +117,7 @@ func TestXpub_getNewDestination(t *testing.T) {
 	})
 
 	t.Run("new external destination", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
 		err := xPub.Save(ctx)
@@ -145,7 +143,7 @@ func TestXpub_getNewDestination(t *testing.T) {
 // TestXpub_childModels will test the method ChildModels()
 func TestXpub_childModels(t *testing.T) {
 	t.Run("with 1 child model", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
 		err := xPub.Save(ctx)
@@ -160,7 +158,7 @@ func TestXpub_childModels(t *testing.T) {
 	})
 
 	t.Run("with 2 child model", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
 		defer deferMe()
 		xPub := newXpub(testXPub, client.DefaultModelOptions()...)
 		err := xPub.Save(ctx)
@@ -196,7 +194,7 @@ func TestXpub_BeforeCreating(t *testing.T) {
 	})
 
 	t.Run("valid random xpub", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, WithCustomTaskManager(&taskManagerMockBase{}))
+		ctx, client, deferMe := CreateTestSQLiteClient(t, false, true, withTaskManagerMockup())
 		defer deferMe()
 
 		_, xPub, _ := CreateNewXPub(ctx, t, client)
@@ -251,6 +249,7 @@ func TestXpub_AfterUpdated(t *testing.T) {
 
 		opts := DefaultClientOpts(false, false)
 		client, err := NewClient(context.Background(), opts...)
+		require.NoError(t, err)
 		xPub.client = client
 
 		err = xPub.BeforeUpdating(context.Background())
@@ -264,7 +263,6 @@ func TestXpub_AfterUpdated(t *testing.T) {
 
 // TestXpub_RemovePrivateData will test the method RemovePrivateData()
 func TestXpub_RemovePrivateData(t *testing.T) {
-
 	t.Run("remove private data", func(t *testing.T) {
 		xPub := newXpub(testXPub, New())
 		require.NotNil(t, xPub)
@@ -289,7 +287,6 @@ func TestXpub_RemovePrivateData(t *testing.T) {
 
 // TestXpub_Save will test the method Save()
 func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
-
 	for _, testCase := range dbTestCases {
 		ts.T().Run(testCase.name+" - valid Save (basic)", func(t *testing.T) {
 			tc := ts.genericDBClient(t, testCase.database, false)

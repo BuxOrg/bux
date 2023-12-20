@@ -105,7 +105,7 @@ func defaultClientOptions() *clientOptions {
 
 		// Blank TaskManager config
 		taskManager: &taskManagerOptions{
-			ClientInterface:   nil,
+			TaskEngine:        nil,
 			cronCustomPeriods: map[string]time.Duration{},
 		},
 
@@ -215,7 +215,6 @@ func WithDebugging() ClientOps {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithDebugging())
 		c.dataStore.options = append(c.dataStore.options, datastore.WithDebugging())
 		c.notifications.options = append(c.notifications.options, notifications.WithDebugging())
-		c.taskManager.options = append(c.taskManager.options, taskmanager.WithDebugging())
 	}
 }
 
@@ -532,53 +531,14 @@ func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, d
 // TASK MANAGER
 // -----------------------------------------------------------------
 
-// WithCustomTaskManager will set the taskmanager
-func WithCustomTaskManager(taskManager taskmanager.ClientInterface) ClientOps {
-	return func(c *clientOptions) {
-		if taskManager != nil {
-			c.taskManager.ClientInterface = taskManager
-		}
-	}
-}
-
-// WithTaskQ will set the task manager to use TaskQ & in-memory
-func WithTaskQ(config *taskq.QueueOptions, factory taskmanager.Factory) ClientOps {
+// WithTaskqConfig will set the task manager to use TaskQ & in-memory
+func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil {
 			c.taskManager.options = append(
 				c.taskManager.options,
-				taskmanager.WithTaskQ(config, factory),
+				taskmanager.WithTaskqConfig(config),
 			)
-		}
-	}
-}
-
-// WithTaskQUsingRedis will set the task manager to use TaskQ & Redis
-func WithTaskQUsingRedis(config *taskq.QueueOptions, redisOptions *redis.Options) ClientOps {
-	return func(c *clientOptions) {
-		if config != nil {
-
-			// Create a new redis client
-			if config.Redis == nil {
-
-				// Remove prefix if found
-				redisOptions.Addr = strings.Replace(redisOptions.Addr, cachestore.RedisPrefix, "", -1)
-				config.Redis = redis.NewClient(redisOptions)
-			}
-
-			c.taskManager.options = append(
-				c.taskManager.options,
-				taskmanager.WithTaskQ(config, taskmanager.FactoryRedis),
-			)
-		}
-	}
-}
-
-// WithCronService will set the custom cron service provider
-func WithCronService(cronService taskmanager.CronService) ClientOps {
-	return func(c *clientOptions) {
-		if cronService != nil && c.taskManager != nil {
-			c.taskManager.options = append(c.taskManager.options, taskmanager.WithCronService(cronService))
 		}
 	}
 }

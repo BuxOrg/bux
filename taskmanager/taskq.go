@@ -64,6 +64,10 @@ type TaskRunOptions struct {
 	TaskName       string        // Name of the task
 }
 
+func (runOptions *TaskRunOptions) runImmediately() bool {
+	return runOptions.RunEveryPeriod == 0
+}
+
 // loadTaskQ will load TaskQ based on the Factory Type and configuration set by the client loading
 func (c *TaskManager) loadTaskQ(ctx context.Context) error {
 	// Check for a valid config (set on client creation)
@@ -136,14 +140,10 @@ func (c *TaskManager) RunTask(ctx context.Context, options *TaskRunOptions) erro
 	// Task message will be used to add to the queue
 	taskMessage := task.WithArgs(ctx, options.Arguments...)
 
-	// There are two ways to run a task:
-	// Option 1: Run the task immediately
-	if options.RunEveryPeriod == 0 {
+	if options.runImmediately() {
 		return c.options.taskq.queue.Add(taskMessage)
 	}
-
-	// Option 2: Run the task periodically using cron
-	// Note: The first run will be after the period has passed
+	// Note: The first scheduled run will be after the period has passed
 	return c.scheduleTaskWithCron(ctx, task, taskMessage, options.RunEveryPeriod)
 }
 
@@ -156,7 +156,7 @@ func (c *TaskManager) scheduleTaskWithCron(ctx context.Context, task *taskq.Task
 
 		// The runEveryPeriod should be greater than 1 second
 		if runEveryPeriod < 1*time.Second {
-			runEveryPeriod = 1 * time.Second
+			return fmt.Errorf("runEveryPeriod should be greater than 1 second")
 		}
 
 		// Lock time is the period minus 500ms to allow for some clock drift

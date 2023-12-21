@@ -231,6 +231,9 @@ func (c *Client) loadDefaultPaymailConfig() (err error) {
 		)
 	}
 
+	paymailLogger := c.Logger().With().Str("subservice", "go-paymail").Logger()
+	c.options.paymail.serverConfig.options = append(c.options.paymail.serverConfig.options, server.WithLogger(&paymailLogger))
+
 	// Create the paymail configuration using the client and default service provider
 	c.options.paymail.serverConfig.Configuration, err = server.NewConfig(
 		&PaymailDefaultServiceProvider{client: c},

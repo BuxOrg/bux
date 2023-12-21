@@ -28,7 +28,7 @@ func (c *Client) cronJobs() taskmanager.CronJobs {
 
 	return taskmanager.CronJobs{
 		CronJobNameDraftTransactionCleanUp: {
-			Period:  defaultMonitorHeartbeat * time.Second,
+			Period:  60 * time.Second,
 			Handler: handler(taskCleanupDraftTransactions),
 		},
 		CronJobNameIncomingTransaction: {

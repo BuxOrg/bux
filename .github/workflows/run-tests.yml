@@ -27,6 +27,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      # GH Actions runner uses go1.20 by default, so we need to install our own version.
+      # https://github.com/github/codeql-action/issues/1842#issuecomment-1704398087
+      - name: Install Go from go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Write go list
         run: go list -json -m all > go.list
       - name: Ask Nancy

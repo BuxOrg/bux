@@ -14,7 +14,6 @@ const (
 	defaultDatabaseReadTimeout     = 20 * time.Second // For all "GET" or "SELECT" methods
 	defaultDraftTxExpiresIn        = 20 * time.Second // Default TTL for draft transactions
 	defaultHTTPTimeout             = 20 * time.Second // Default timeout for HTTP requests
-	defaultMonitorHeartbeat        = 60               // in Seconds (heartbeat for active monitor)
 	defaultMonitorSleep            = 2 * time.Second
 	defaultMonitorLockTTL          = 10                // in seconds - should be larger than defaultMonitorSleep
 	defaultOverheadSize            = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime

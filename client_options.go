@@ -1,7 +1,6 @@
 package bux
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
 	"net/url"
@@ -629,24 +628,6 @@ func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {
 		if len(providers) > 0 {
 			c.chainstate.options = append(c.chainstate.options, chainstate.WithExcludedProviders(providers))
-		}
-	}
-}
-
-// WithMonitoring will create a new monitorConfig interface with the given options
-func WithMonitoring(ctx context.Context, monitorOptions *chainstate.MonitorOptions) ClientOps {
-	return func(c *clientOptions) {
-		if monitorOptions != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoring(ctx, monitorOptions))
-		}
-	}
-}
-
-// WithMonitoringInterface will set the interface to use for monitoring the blockchain
-func WithMonitoringInterface(monitor chainstate.MonitorService) ClientOps {
-	return func(c *clientOptions) {
-		if monitor != nil {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithMonitoringInterface(monitor))
 		}
 	}
 }

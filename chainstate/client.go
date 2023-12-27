@@ -8,7 +8,6 @@ import (
 	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/libsv/go-bt/v2"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
@@ -35,15 +34,14 @@ type (
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
-		excludedProviders     []string                   // List of provider names
-		httpClient            HTTPInterface              // Custom HTTP client (Minercraft, WOC)
-		minercraftConfig      *minercraftConfig          // minercraftConfig configuration
-		minercraft            minercraft.ClientInterface // Minercraft client
-		network               Network                    // Current network (mainnet, testnet, stn)
-		queryTimeout          time.Duration              // Timeout for transaction query
-		broadcastClient       broadcast.Client           // Broadcast client
-		broadcastClientConfig *broadcastClientConfig     // Broadcast client config
-		pulseClient           *PulseClient               // Pulse client
+		excludedProviders []string                   // List of provider names
+		httpClient        HTTPInterface              // Custom HTTP client (Minercraft, WOC)
+		minercraftConfig  *minercraftConfig          // minercraftConfig configuration
+		minercraft        minercraft.ClientInterface // Minercraft client
+		network           Network                    // Current network (mainnet, testnet, stn)
+		queryTimeout      time.Duration              // Timeout for transaction query
+		broadcastClient   broadcast.Client           // Broadcast client
+		pulseClient       *PulseClient               // Pulse client
 	}
 
 	// minercraftConfig is specific for minercraft configuration
@@ -68,11 +66,6 @@ type (
 		url       string
 		authToken string
 	}
-
-	// broadcastClientConfig is specific for broadcast client configuration
-	broadcastClientConfig struct {
-		BroadcastClientApis []broadcastClient.ArcClientConfig `json:"broadcast_client_apis"` // List of broadcast client apis
-	}
 )
 
 // NewClient creates a new client for all on-chain functionality
@@ -80,7 +73,6 @@ type (
 // If no options are given, it will use the defaultClientOptions()
 // ctx may contain a NewRelic txn (or one will be created)
 func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) {
-
 	// Create a new client with defaults
 	client := &Client{options: defaultClientOptions()}
 

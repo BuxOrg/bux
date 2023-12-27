@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	broadcastClient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -19,7 +18,6 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
-
 	// Create the default miners
 	bm, qm := defaultMiners()
 	apis, _ := minercraft.DefaultMinersAPIs()
@@ -39,9 +37,6 @@ func defaultClientOptions() *clientOptions {
 			network:         MainNet,
 			queryTimeout:    defaultQueryTimeOut,
 			broadcastClient: nil,
-			broadcastClientConfig: &broadcastClientConfig{
-				BroadcastClientApis: nil,
-			},
 		},
 		debug:           false,
 		newRelicEnabled: false,
@@ -232,13 +227,6 @@ func WithMinercraftAPIs(apis []*minercraft.MinerAPIs) ClientOps {
 func WithBroadcastClient(client broadcast.Client) ClientOps {
 	return func(c *clientOptions) {
 		c.config.broadcastClient = client
-	}
-}
-
-// WithBroadcastClientAPIs will set broadcast client APIs
-func WithBroadcastClientAPIs(apis []broadcastClient.ArcClientConfig) ClientOps {
-	return func(c *clientOptions) {
-		c.config.broadcastClientConfig.BroadcastClientApis = apis
 	}
 }
 

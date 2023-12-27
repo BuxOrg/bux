@@ -13,7 +13,6 @@ import (
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	broadcastclient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/coocood/freecache"
@@ -695,12 +694,5 @@ func WithMinercraftAPIs(miners []*minercraft.MinerAPIs) ClientOps {
 func WithBroadcastClient(broadcastClient broadcast.Client) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClient(broadcastClient))
-	}
-}
-
-// WithBroadcastClientAPIs will set broadcast client APIs
-func WithBroadcastClientAPIs(apis []broadcastclient.ArcClientConfig) ClientOps {
-	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClientAPIs(apis))
 	}
 }

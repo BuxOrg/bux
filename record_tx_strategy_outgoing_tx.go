@@ -192,7 +192,7 @@ func _outgoingNotifyP2p(ctx context.Context, logger *zerolog.Logger, tx *Transac
 		Str("txID", tx.ID).
 		Msg("start p2p")
 
-	if err := processP2PTransaction(ctx, tx.syncTransaction, tx); err != nil {
+	if err := processP2PTransaction(ctx, tx); err != nil {
 		logger.Error().
 			Str("txID", tx.ID).
 			Msgf("processP2PTransaction failed. Reason: %s", err)

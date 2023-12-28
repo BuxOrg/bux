@@ -273,10 +273,11 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 }
 
 // processP2PTransaction will process the sync transaction record, or save the failure
-func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transaction *Transaction) error {
+func processP2PTransaction(ctx context.Context, tx *Transaction) error {
 	// Successfully capture any panics, convert to readable string and log the error
-	defer recoverAndLog(syncTx.Client().Logger())
+	defer recoverAndLog(tx.Client().Logger())
 
+	syncTx := tx.syncTransaction
 	// Create the lock and set the release for after the function completes
 	unlock, err := newWriteLock(
 		ctx, fmt.Sprintf(lockKeyProcessP2PTx, syncTx.GetID()), syncTx.Client().Cachestore(),
@@ -286,17 +287,8 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 		return err
 	}
 
-	// Get the transaction
-	if transaction == nil {
-		if transaction, err = getTransactionByID(
-			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
-		); err != nil {
-			return err
-		}
-	}
-
 	// No draft?
-	if len(transaction.DraftID) == 0 {
+	if len(tx.DraftID) == 0 {
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusComplete, syncActionP2P, "all", "no draft found, cannot complete p2p",
 		)
@@ -305,7 +297,7 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 
 	// Notify any P2P paymail providers associated to the transaction
 	var results []*SyncResult
-	if results, err = _notifyPaymailProviders(ctx, transaction); err != nil {
+	if results, err = _notifyPaymailProviders(ctx, tx); err != nil {
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusReady, syncActionP2P, "", err.Error(),
 		)
@@ -339,45 +331,46 @@ func processP2PTransaction(ctx context.Context, syncTx *SyncTransaction, transac
 
 // _notifyPaymailProviders will notify any associated Paymail providers
 func _notifyPaymailProviders(ctx context.Context, transaction *Transaction) ([]*SyncResult, error) {
-	// First get the draft tx
-	draftTx, err := getDraftTransactionID(
-		ctx,
-		transaction.XPubID,
-		transaction.DraftID,
-		transaction.GetOptions(false)...,
-	)
-	if err != nil {
-		return nil, err
-	} else if draftTx == nil {
-		return nil, errors.New("draft not found: " + transaction.DraftID)
-	}
-
-	// Loop each output looking for paymail outputs
-	var attempts []*SyncResult
 	pm := transaction.Client().PaymailClient()
+	outputs := transaction.draftTransaction.Configuration.Outputs
+
+	notifiedReceivers := make([]string, 0)
+	results := make([]*SyncResult, len(outputs))
+
 	var payload *paymail.P2PTransactionPayload
+	var err error
 
-	for _, out := range draftTx.Configuration.Outputs {
-		if out.PaymailP4 != nil && out.PaymailP4.ResolutionType == ResolutionTypeP2P {
+	for _, out := range outputs {
+		p4 := out.PaymailP4
 
-			// Notify each provider with the transaction
-			if payload, err = finalizeP2PTransaction(
-				ctx,
-				pm,
-				out.PaymailP4,
-				transaction,
-			); err != nil {
-				return nil, err
-			}
-			attempts = append(attempts, &SyncResult{
-				Action:        syncActionP2P,
-				ExecutedAt:    time.Now().UTC(),
-				Provider:      out.PaymailP4.ReceiveEndpoint,
-				StatusMessage: "success: " + payload.TxID,
-			})
+		if p4 == nil || p4.ResolutionType != ResolutionTypeP2P {
+			continue
 		}
+
+		receiver := fmt.Sprintf("%s@%s", p4.Alias, p4.Domain)
+		if contains(notifiedReceivers, func(x string) bool { return x == receiver }) {
+			continue // no need to send the same transaction to the same receiver second time
+		}
+
+		if payload, err = finalizeP2PTransaction(
+			ctx,
+			pm,
+			p4,
+			transaction,
+		); err != nil {
+			return nil, err
+		}
+
+		notifiedReceivers = append(notifiedReceivers, receiver)
+		results = append(results, &SyncResult{
+			Action:        syncActionP2P,
+			ExecutedAt:    time.Now().UTC(),
+			Provider:      p4.ReceiveEndpoint,
+			StatusMessage: "success: " + payload.TxID,
+		})
+
 	}
-	return attempts, nil
+	return results, nil
 }
 
 // utils

@@ -45,10 +45,9 @@ const (
 // List of providers
 const (
 	ProviderAll             = "all"             // All providers (used for errors etc)
-	ProviderMAPI            = "mapi"            // Query & broadcast provider for mAPI (using given miners)
-	ProviderWhatsOnChain    = "whatsonchain"    // Query & broadcast provider for WhatsOnChain
+	ProviderMinercraft      = "minercraft"      // Query & broadcast provider for mAPI (using given miners)
 	ProviderBroadcastClient = "broadcastclient" // Query & broadcast provider for configured miners
-	ProviderPulse           = "pulse"           // MerkleProof provider
+	ProviderNone            = "none"            // No providers (used to indicate no providers)
 )
 
 // DefaultFee is used when a fee has not been set by the user

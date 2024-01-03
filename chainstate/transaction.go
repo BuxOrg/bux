@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -125,13 +126,22 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 		client.DebugLog("error executing request using " + ProviderBroadcastClient + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
+		var mp *bc.MerklePath
+		if resp.BaseTxResponse.MerklePath != "" {
+			mp, err = bc.NewMerklePathFromStr(resp.BaseTxResponse.MerklePath)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return &TransactionInfo{
-			BlockHash:     resp.BlockHash,
-			BlockHeight:   resp.BlockHeight,
-			ID:            resp.TxID,
-			Provider:      resp.Miner,
-			TxStatus:      resp.TxStatus,
-			Confirmations: -1, // it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
+			BlockHash:   resp.BlockHash,
+			BlockHeight: resp.BlockHeight,
+			ID:          resp.TxID,
+			Provider:    resp.Miner,
+			TxStatus:    resp.TxStatus,
+			MerklePath:  mp,
+			// it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
+			Confirmations: -1,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

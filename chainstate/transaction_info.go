@@ -13,7 +13,8 @@ type TransactionInfo struct {
 	ID            string             `json:"id"`                      // Transaction ID (Hex)
 	MinerID       string             `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
 	Provider      string             `json:"provider,omitempty"`      // Provider is our internal source
-	MerkleProof   *bc.MerkleProof    `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY. Should be also supported by Arc in future
+	MerkleProof   *bc.MerkleProof    `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY
+	MerklePath    *bc.MerklePath     `json:"merkle_path,omitempty"`   // Arc ONLY
 	TxStatus      broadcast.TxStatus `json:"tx_status,omitempty"`     // Arc ONLY
 }
 

@@ -23,7 +23,7 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 			if c.options.config.minercraftConfig.queryMiners[index] != nil {
 				if res, err := queryMinercraft(
 					ctxWithCancel, c, c.options.config.minercraftConfig.queryMiners[index].Miner, id,
-				); err == nil && checkRequirement(requiredIn, id, res) {
+				); err == nil && checkRequirementMapi(requiredIn, id, res) {
 					return res
 				}
 			}
@@ -32,7 +32,7 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 		resp, err := queryBroadcastClient(
 			ctxWithCancel, c, id,
 		)
-		if err == nil && checkRequirement(requiredIn, id, resp) {
+		if err == nil && checkRequirementArc(requiredIn, id, resp) {
 			return resp
 		}
 	default:
@@ -70,7 +70,7 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 				defer wg.Done()
 				if res, err := queryMinercraft(
 					ctx, client, miner, id,
-				); err == nil && checkRequirement(requiredIn, id, res) {
+				); err == nil && checkRequirementMapi(requiredIn, id, res) {
 					resultsChannel <- res
 				}
 			}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.queryMiners[index].Miner, id, requiredIn)
@@ -81,7 +81,7 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 			defer wg.Done()
 			if resp, err := queryBroadcastClient(
 				ctx, client, id,
-			); err == nil && checkRequirement(requiredIn, id, resp) {
+			); err == nil && checkRequirementArc(requiredIn, id, resp) {
 				resultsChannel <- resp
 			}
 		}(ctxWithCancel, c, id, requiredIn)
@@ -126,10 +126,12 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 		return nil, err
 	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
 		return &TransactionInfo{
-			BlockHash:   resp.BlockHash,
-			BlockHeight: resp.BlockHeight,
-			ID:          resp.TxID,
-			Provider:    resp.Miner,
+			BlockHash:     resp.BlockHash,
+			BlockHeight:   resp.BlockHeight,
+			ID:            resp.TxID,
+			Provider:      resp.Miner,
+			TxStatus:      resp.TxStatus,
+			Confirmations: -1, // it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

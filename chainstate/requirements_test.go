@@ -10,7 +10,7 @@ func Test_checkRequirement(t *testing.T) {
 	t.Parallel()
 
 	t.Run("found in mempool - mAPI", func(t *testing.T) {
-		success := checkRequirement(requiredInMempool, onChainExample1TxID, &TransactionInfo{
+		success := checkRequirementMapi(requiredInMempool, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     "",
 			BlockHeight:   0,
 			Confirmations: 0,
@@ -22,7 +22,7 @@ func Test_checkRequirement(t *testing.T) {
 	})
 
 	t.Run("found in mempool - on-chain - mAPI", func(t *testing.T) {
-		success := checkRequirement(requiredInMempool, onChainExample1TxID, &TransactionInfo{
+		success := checkRequirementMapi(requiredInMempool, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     onChainExample1BlockHash,
 			BlockHeight:   onChainExample1BlockHeight,
 			Confirmations: 1,
@@ -34,7 +34,7 @@ func Test_checkRequirement(t *testing.T) {
 	})
 
 	t.Run("found in mempool - whatsonchain", func(t *testing.T) {
-		success := checkRequirement(requiredInMempool, onChainExample1TxID, &TransactionInfo{
+		success := checkRequirementMapi(requiredInMempool, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     "",
 			BlockHeight:   0,
 			Confirmations: 0,
@@ -46,7 +46,7 @@ func Test_checkRequirement(t *testing.T) {
 	})
 
 	t.Run("not in mempool - mAPI", func(t *testing.T) {
-		success := checkRequirement(requiredInMempool, onChainExample1TxID, &TransactionInfo{
+		success := checkRequirementMapi(requiredInMempool, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     "",
 			BlockHeight:   0,
 			Confirmations: 0,
@@ -58,7 +58,7 @@ func Test_checkRequirement(t *testing.T) {
 	})
 
 	t.Run("found on chain - mAPI", func(t *testing.T) {
-		success := checkRequirement(requiredOnChain, onChainExample1TxID, &TransactionInfo{
+		success := checkRequirementMapi(requiredOnChain, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     onChainExample1BlockHash,
 			BlockHeight:   onChainExample1BlockHeight,
 			Confirmations: 1,
@@ -70,7 +70,7 @@ func Test_checkRequirement(t *testing.T) {
 	})
 
 	t.Run("not on chain - mAPI", func(t *testing.T) {
-		success := checkRequirement(requiredOnChain, onChainExample1TxID, &TransactionInfo{
+		success := checkRequirementMapi(requiredOnChain, onChainExample1TxID, &TransactionInfo{
 			BlockHash:     "",
 			BlockHeight:   0,
 			Confirmations: 0,

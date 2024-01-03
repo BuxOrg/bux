@@ -283,9 +283,11 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 			c.notifications.options = append(c.notifications.options, notifications.WithLogger(&notificationsLogger))
 
 			// Enable the logger on all external services
-			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")
-			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
+			warnLvlLogger := customLogger.Level(zerolog.WarnLevel)
+			datastoreLogger := logging.CreateGormLoggerAdapter(&warnLvlLogger, "datastore")
 			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger}))
+
+			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
 			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
 		}
 	}

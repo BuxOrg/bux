@@ -32,7 +32,7 @@ type ClientOps func(c *clientOptions)
 
 // defaultClientOptions will return an clientOptions struct with the default settings
 //
-// Useful for starting with the default and then modifying as neededs
+// Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
 	defaultLogger := logging.GetDefaultLogger()
 

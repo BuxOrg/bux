@@ -35,7 +35,9 @@ type ClientOps func(c *clientOptions)
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
 	defaultLogger := logging.GetDefaultLogger()
-	datastoreLogger := logging.CreateGormLoggerAdapter(defaultLogger, "datastore")
+
+	dWarnLogger := defaultLogger.Level(zerolog.WarnLevel)
+	datastoreLogger := logging.CreateGormLoggerAdapter(&dWarnLogger, "datastore")
 	// Set the default options
 	return &clientOptions{
 		// Incoming Transaction Checker (lookup external tx via miner for validity)
@@ -283,9 +285,17 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 			c.notifications.options = append(c.notifications.options, notifications.WithLogger(&notificationsLogger))
 
 			// Enable the logger on all external services
-			datastoreLogger := logging.CreateGormLoggerAdapter(customLogger, "datastore")
-			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
+			var datastoreLogger *logging.GormLoggerAdapter
+			if customLogger.GetLevel() == zerolog.InfoLevel {
+				warnLvlLogger := customLogger.Level(zerolog.WarnLevel)
+				datastoreLogger = logging.CreateGormLoggerAdapter(&warnLvlLogger, "datastore")
+
+			} else {
+				datastoreLogger = logging.CreateGormLoggerAdapter(customLogger, "datastore")
+			}
 			c.dataStore.options = append(c.dataStore.options, datastore.WithLogger(&datastore.DatabaseLogWrapper{GormLoggerInterface: datastoreLogger}))
+
+			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
 			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
 		}
 	}

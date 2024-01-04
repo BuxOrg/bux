@@ -252,6 +252,24 @@ Read more about this Go project's [code standards](.github/CODE_STANDARDS.md).
 <br/>
 
 ## Usage
+
+```
+func main() {
+	client, err := bux.NewClient(
+		context.Background(), // Set context
+	)
+	if err != nil {
+		log.Fatalln("error: " + err.Error())
+	}
+
+	defer func() {
+		_ = client.Close(context.Background())
+	}()
+
+	log.Println("client loaded!", client.UserAgent())
+}
+```
+
 Checkout all the [examples](examples)!
 
 <br/>

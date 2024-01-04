@@ -7,9 +7,9 @@ import (
 
 // TransactionInfo is the universal information about the transaction found from a chain provider
 type TransactionInfo struct {
-	BlockHash     string             `json:"block_hash,omitempty"`    // mAPI, WOC
-	BlockHeight   int64              `json:"block_height"`            // mAPI, WOC
-	Confirmations int64              `json:"confirmations,omitempty"` // mAPI, WOC
+	BlockHash     string             `json:"block_hash,omitempty"`    // mAPI
+	BlockHeight   int64              `json:"block_height"`            // mAPI
+	Confirmations int64              `json:"confirmations,omitempty"` // mAPI
 	ID            string             `json:"id"`                      // Transaction ID (Hex)
 	MinerID       string             `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
 	Provider      string             `json:"provider,omitempty"`      // Provider is our internal source

@@ -14,12 +14,15 @@ type TransactionInfo struct {
 	MinerID       string             `json:"miner_id,omitempty"`      // mAPI ONLY - miner_id found
 	Provider      string             `json:"provider,omitempty"`      // Provider is our internal source
 	MerkleProof   *bc.MerkleProof    `json:"merkle_proof,omitempty"`  // mAPI 1.5 ONLY
-	MerklePath    *bc.MerklePath     `json:"merkle_path,omitempty"`   // Arc ONLY
+	BUMP          *bc.BUMP           `json:"bump,omitempty"`          // Arc
 	TxStatus      broadcast.TxStatus `json:"tx_status,omitempty"`     // Arc ONLY
 }
 
 // Valid validates TransactionInfo by checking if it contains
-// BlockHash and MerkleProof (from mAPI) or MerklePath (from Arc)
+// BlockHash and MerkleProof (from mAPI) or BUMP (from Arc)
 func (t *TransactionInfo) Valid() bool {
-	return !(t.BlockHash == "" || t.MerkleProof == nil || t.MerkleProof.TxOrID == "" || len(t.MerkleProof.Nodes) == 0)
+	arcInvalid := t.BUMP == nil
+	mApiInvalid := t.MerkleProof == nil || t.MerkleProof.TxOrID == "" || len(t.MerkleProof.Nodes) == 0
+	invalid := t.BlockHash == "" || (arcInvalid && mApiInvalid)
+	return !invalid
 }

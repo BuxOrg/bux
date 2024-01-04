@@ -246,9 +246,16 @@ func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {
 	m.setBUMP(txInfo)
 }
 
+// Converts from bc.BUMP to our BUMP struct in Transaction model
 func (m *Transaction) setBUMP(txInfo *chainstate.TransactionInfo) {
-	bump := MerkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
-	m.BUMP = bump
+	switch {
+	case txInfo.MerkleProof != nil:
+		m.BUMP = merkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
+	case txInfo.BUMP != nil:
+		m.BUMP = bcBumpToBUMP(txInfo.BUMP)
+	default:
+		m.client.Logger().Error().Msg("No BUMP or MerkleProof found")
+	}
 }
 
 func (m *Transaction) isMined() bool {

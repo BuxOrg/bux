@@ -126,12 +126,9 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 		client.DebugLog("error executing request using " + ProviderBroadcastClient + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
-		var mp *bc.MerklePath
-		if resp.BaseTxResponse.MerklePath != "" {
-			mp, err = bc.NewMerklePathFromStr(resp.BaseTxResponse.MerklePath)
-			if err != nil {
-				return nil, err
-			}
+		bump, err := bc.NewBUMPFromStr(resp.BaseTxResponse.MerklePath)
+		if err != nil {
+			return nil, err
 		}
 		return &TransactionInfo{
 			BlockHash:   resp.BlockHash,
@@ -139,7 +136,7 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 			ID:          resp.TxID,
 			Provider:    resp.Miner,
 			TxStatus:    resp.TxStatus,
-			MerklePath:  mp,
+			BUMP:        bump,
 			// it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
 			Confirmations: -1,
 		}, nil

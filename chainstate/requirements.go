@@ -16,14 +16,23 @@ func (c *Client) validRequirement(requirement RequiredIn) bool {
 	return requirement == RequiredOnChain || requirement == RequiredInMempool
 }
 
-// checkRequirement will check to see if the requirement has been met
-func checkRequirement(requirement RequiredIn, id string, txInfo *TransactionInfo) bool {
-	if requirement == RequiredInMempool { // Good response, and only has TX
+func checkRequirement(requirement RequiredIn, id string, txInfo *TransactionInfo, onChainCondition bool) bool {
+	switch requirement {
+	case RequiredInMempool:
 		return txInfo.ID == id
-	} else if requirement == RequiredOnChain { // Good response, found block hash
-		if len(txInfo.BlockHash) > 0 && txInfo.Confirmations > 0 {
-			return true
-		}
+	case RequiredOnChain:
+		return onChainCondition
+	default:
+		return false
 	}
-	return false
+}
+
+func checkRequirementArc(requirement RequiredIn, id string, txInfo *TransactionInfo) bool {
+	isConfirmedOnChain := len(txInfo.BlockHash) > 0 && txInfo.TxStatus != ""
+	return checkRequirement(requirement, id, txInfo, isConfirmedOnChain)
+}
+
+func checkRequirementMapi(requirement RequiredIn, id string, txInfo *TransactionInfo) bool {
+	isConfirmedOnChain := len(txInfo.BlockHash) > 0 && txInfo.Confirmations > 0
+	return checkRequirement(requirement, id, txInfo, isConfirmedOnChain)
 }

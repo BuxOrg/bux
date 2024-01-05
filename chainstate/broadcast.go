@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/BuxOrg/bux/utils"
 )
 
 var (
@@ -90,7 +88,8 @@ func (c *Client) broadcast(ctx context.Context, id, hex string, timeout time.Dur
 func createActiveProviders(c *Client, txID, txHex string) []txBroadcastProvider {
 	providers := make([]txBroadcastProvider, 0, 10)
 
-	if shouldBroadcastWithMAPI(c) {
+	switch c.ActiveProvider() {
+	case ProviderMinercraft:
 		for _, miner := range c.options.config.minercraftConfig.broadcastMiners {
 			if miner == nil {
 				continue
@@ -99,24 +98,14 @@ func createActiveProviders(c *Client, txID, txHex string) []txBroadcastProvider 
 			pvdr := mapiBroadcastProvider{miner: miner, txID: txID, txHex: txHex}
 			providers = append(providers, &pvdr)
 		}
-	}
-
-	if shouldBroadcastWithBroadcastClient(c) {
+	case ProviderBroadcastClient:
 		pvdr := broadcastClientProvider{txID: txID, txHex: txHex}
 		providers = append(providers, &pvdr)
+	default:
+		c.options.logger.Warn().Msg("no active provider for broadcast")
 	}
 
 	return providers
-}
-
-func shouldBroadcastWithMAPI(c *Client) bool {
-	return !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) &&
-		(c.Network() == MainNet || c.Network() == TestNet) // Only supported on main and test right now
-}
-
-func shouldBroadcastWithBroadcastClient(c *Client) bool {
-	return !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) &&
-		c.BroadcastClient() != nil
 }
 
 func broadcastToProvider(ctx, fallbackCtx context.Context, provider txBroadcastProvider, txID string,

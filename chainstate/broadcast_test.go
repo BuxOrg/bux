@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"time"
 
 	broadcast_client_mock "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client-mock"
 	"github.com/stretchr/testify/assert"
@@ -124,120 +123,6 @@ func TestClient_Broadcast_BroadcastClient(t *testing.T) {
 			miners,
 			ProviderBroadcastClient,
 		))
-	})
-}
-
-// TestClient_Broadcast_MultipleClients will test the method Broadcast() with multiple clients
-func TestClient_Broadcast_MultipleClients(t *testing.T) {
-	t.Parallel()
-
-	t.Run("broadcast - success from multiple clients", func(t *testing.T) {
-		// given
-		bc := broadcast_client_mock.Builder().
-			WithMockArc(broadcast_client_mock.MockSuccess).
-			Build()
-		c := NewTestClient(
-			context.Background(), t,
-			WithMinercraft(&minerCraftBroadcastSuccess{}),
-			WithBroadcastClient(bc),
-		)
-
-		// when
-		providers, err := c.Broadcast(
-			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
-		)
-
-		// then
-		require.NoError(t, err)
-		miners := strings.Split(providers, ",")
-		assert.GreaterOrEqual(t, len(miners), 1)
-		assert.True(t, containsAtLeastOneElement(miners,
-			ProviderBroadcastClient,
-			minercraft.MinerTaal,
-			minercraft.MinerMatterpool,
-			minercraft.MinerGorillaPool,
-			minercraft.MinerMempool,
-		))
-	})
-
-	t.Run("broadcast - success from broadcastClient (mAPI timeouts)", func(t *testing.T) {
-		// given
-		bc := broadcast_client_mock.Builder().
-			WithMockArc(broadcast_client_mock.MockSuccess).
-			Build()
-		c := NewTestClient(
-			context.Background(), t,
-			WithMinercraft(&minerCraftBroadcastTimeout{}), // Timeout
-			WithBroadcastClient(bc),                       // Success
-		)
-
-		// when
-		providers, err := c.Broadcast(
-			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
-		)
-
-		// then
-		require.NoError(t, err)
-		miners := strings.Split(providers, ",")
-		assert.GreaterOrEqual(t, len(miners), 1)
-		assert.True(t, containsAtLeastOneElement(miners, ProviderBroadcastClient))
-		assert.NotContains(t, miners, minercraft.MinerTaal)
-		assert.NotContains(t, miners, minercraft.MinerMempool)
-		assert.NotContains(t, miners, minercraft.MinerGorillaPool)
-		assert.NotContains(t, miners, minercraft.MinerMatterpool)
-	})
-
-	t.Run("broadcast - success from mAPI (broadcastClient timeouts)", func(t *testing.T) {
-		// given
-		bc := broadcast_client_mock.Builder().
-			WithMockArc(broadcast_client_mock.MockTimeout).
-			Build()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-		c := NewTestClient(
-			ctx, t,
-			WithBroadcastClient(bc),                       // Timeout
-			WithMinercraft(&minerCraftBroadcastSuccess{}), // Success
-		)
-
-		// when
-		providers, err := c.Broadcast(
-			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
-		)
-
-		// then
-		require.NoError(t, err)
-		miners := strings.Split(providers, ",")
-		assert.GreaterOrEqual(t, len(miners), 1)
-		assert.True(t, containsAtLeastOneElement(
-			miners,
-			minercraft.MinerTaal,
-			minercraft.MinerMempool,
-			minercraft.MinerGorillaPool,
-			minercraft.MinerMatterpool,
-		))
-		assert.NotContains(t, miners, ProviderBroadcastClient)
-	})
-
-	t.Run("broadcast - all providers fail", func(t *testing.T) {
-		// given
-		bc := broadcast_client_mock.Builder().
-			WithMockArc(broadcast_client_mock.MockFailure).
-			Build()
-		c := NewTestClient(
-			context.Background(), t,
-			WithMinercraft(&minerCraftTxNotFound{}),
-			WithBroadcastClient(bc),
-		)
-
-		// when
-		provider, err := c.Broadcast(
-			context.Background(), broadcastExample1TxID, broadcastExample1TxHex, defaultBroadcastTimeOut,
-		)
-
-		// then
-		require.Error(t, err)
-		assert.Equal(t, ProviderAll, provider)
 	})
 }
 

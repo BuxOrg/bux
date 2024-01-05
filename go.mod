@@ -60,7 +60,7 @@ require (
 	github.com/dolthub/jsonpath v0.0.2-0.20230525180605-8dc13778fd72 // indirect
 	github.com/dolthub/vitess v0.0.0-20230823204737-4a21a94e90c3 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
-	github.com/go-resty/resty/v2 v2.10.0 // indirect
+	github.com/go-resty/resty/v2 v2.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/gocraft/dbr/v2 v2.7.6 // indirect
 	github.com/gojektech/heimdall/v6 v6.1.0 // indirect

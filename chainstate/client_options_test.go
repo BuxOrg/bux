@@ -14,7 +14,6 @@ import (
 
 // TestWithNewRelic will test the method WithNewRelic()
 func TestWithNewRelic(t *testing.T) {
-
 	t.Run("get opts", func(t *testing.T) {
 		opt := WithNewRelic()
 		assert.IsType(t, *new(ClientOps), opt)
@@ -35,7 +34,6 @@ func TestWithNewRelic(t *testing.T) {
 
 // TestWithDebugging will test the method WithDebugging()
 func TestWithDebugging(t *testing.T) {
-
 	t.Run("get opts", func(t *testing.T) {
 		opt := WithDebugging()
 		assert.IsType(t, *new(ClientOps), opt)
@@ -334,9 +332,9 @@ func TestWithExcludedProviders(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		opt := WithExcludedProviders([]string{ProviderWhatsOnChain})
+		opt := WithExcludedProviders([]string{ProviderBroadcastClient})
 		opt(options)
 		assert.Equal(t, 1, len(options.config.excludedProviders))
-		assert.Equal(t, ProviderWhatsOnChain, options.config.excludedProviders[0])
+		assert.Equal(t, ProviderBroadcastClient, options.config.excludedProviders[0])
 	})
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	broadcast_client "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -47,7 +48,8 @@ func TestNewClient(t *testing.T) {
 			Token:  "",
 			APIUrl: "https://tapi.taal.com/arc",
 		}
-		customClient := broadcast_client.Builder().WithArc(arcConfig).Build()
+		logger := zerolog.Nop()
+		customClient := broadcast_client.Builder().WithArc(arcConfig, &logger).Build()
 		require.NotNil(t, customClient)
 		c, err := NewClient(
 			context.Background(),

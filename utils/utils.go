@@ -94,3 +94,10 @@ func LittleEndianBytes64(value uint64, resultLength uint32) []byte {
 
 	return buf
 }
+
+// SafeAssign - Assigns value (not pointer) the src to dest if src is not nil
+func SafeAssign[T any](dest *T, src *T) {
+	if src != nil {
+		*dest = *src
+	}
+}

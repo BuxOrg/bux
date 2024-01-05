@@ -798,7 +798,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 		// when
 		bumps := make([]BUMP, 0)
 		for _, mp := range merkleProof {
-			bumps = append(bumps, MerkleProofToBUMP(&mp, 0))
+			bumps = append(bumps, merkleProofToBUMP(&mp, 0))
 		}
 		bump, err := CalculateMergedBUMP(bumps)
 		actualHex := bump.Hex()
@@ -810,8 +810,8 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 	})
 }
 
-// TestBUMPModel_MerkleProofToBUMP will test the method MerkleProofToBUMP()
-func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
+// TestBUMPModel_merkleProofToBUMP will test the method merkleProofToBUMP()
+func TestBUMPModel_merkleProofToBUMP(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid Merkle Proof #1", func(t *testing.T) {
@@ -842,7 +842,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 		}
 
 		// when
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 
 		// then
 		assert.Equal(t, expectedBUMP, actualBUMP)
@@ -879,7 +879,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 		}
 
 		// when
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 
 		// then
 		assert.Equal(t, expectedBUMP, actualBUMP)
@@ -916,7 +916,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 		}
 
 		// when
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 
 		// then
 		assert.Equal(t, expectedBUMP, actualBUMP)
@@ -925,7 +925,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 	t.Run("Empty Merkle Proof", func(t *testing.T) {
 		blockHeight := uint64(0)
 		mp := bc.MerkleProof{}
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 		assert.Equal(t, BUMP{BlockHeight: blockHeight}, actualBUMP)
 	})
 }

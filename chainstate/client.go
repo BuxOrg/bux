@@ -89,9 +89,10 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		client.options.logger = logging.GetDefaultLogger()
 	}
 
-	// Start Minercraft
-	if err := client.startMinerCraft(ctx); err != nil {
-		return nil, err
+	if client.ActiveProvider() == ProviderMinercraft {
+		if err := client.startMinerCraft(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	// Return the client
@@ -274,4 +275,16 @@ func (c *Client) DeleteUnreacheableMiners() {
 		c.options.config.minercraftConfig.broadcastMiners[i] = nil
 	}
 	c.options.config.minercraftConfig.broadcastMiners = c.options.config.minercraftConfig.broadcastMiners[:validMinerIndex]
+}
+
+// ActiveProvider returns a name of a provider based on config.
+func (c *Client) ActiveProvider() string {
+	excluded := c.options.config.excludedProviders
+	if !utils.StringInSlice(ProviderBroadcastClient, excluded) && c.BroadcastClient() != nil {
+		return ProviderBroadcastClient
+	}
+	if !utils.StringInSlice(ProviderMinercraft, excluded) && (c.Network() == MainNet || c.Network() == TestNet) {
+		return ProviderMinercraft
+	}
+	return ProviderNone
 }

@@ -115,14 +115,14 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 
 		// when
 		info, err := c.QueryTransaction(
-			context.Background(), onChainExample1TxID,
+			context.Background(), onChainExampleArcTxID,
 			RequiredInMempool, defaultQueryTimeOut,
 		)
 
 		// then
 		require.NoError(t, err)
 		require.NotNil(t, info)
-		assert.Equal(t, onChainExample1TxID, info.ID)
+		assert.Equal(t, onChainExampleArcTxID, info.ID)
 		assert.Equal(t, broadcast_fixtures.TxBlockHash, info.BlockHash)
 		assert.Equal(t, broadcast_fixtures.TxBlockHeight, info.BlockHeight)
 		assert.Equal(t, broadcast_fixtures.ProviderMain, info.Provider)
@@ -142,14 +142,14 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 
 		// when
 		info, err := c.QueryTransaction(
-			context.Background(), onChainExample1TxID,
+			context.Background(), onChainExampleArcTxID,
 			RequiredInMempool, defaultQueryTimeOut,
 		)
 
 		// then
 		require.NoError(t, err)
 		require.NotNil(t, info)
-		assert.Equal(t, onChainExample1TxID, info.ID)
+		assert.Equal(t, onChainExampleArcTxID, info.ID)
 		assert.Equal(t, broadcast_fixtures.TxBlockHash, info.BlockHash)
 		assert.Equal(t, broadcast_fixtures.TxBlockHeight, info.BlockHeight)
 		assert.Equal(t, broadcast_fixtures.ProviderMain, info.Provider)
@@ -169,14 +169,14 @@ func TestClient_Transaction_BroadcastClient(t *testing.T) {
 
 		// when
 		info, err := c.QueryTransaction(
-			context.Background(), onChainExample1TxID,
+			context.Background(), onChainExampleArcTxID,
 			RequiredInMempool, defaultQueryTimeOut,
 		)
 
 		// then
 		require.NoError(t, err)
 		require.NotNil(t, info)
-		assert.Equal(t, onChainExample1TxID, info.ID)
+		assert.Equal(t, onChainExampleArcTxID, info.ID)
 		assert.Equal(t, broadcast_fixtures.TxBlockHash, info.BlockHash)
 		assert.Equal(t, broadcast_fixtures.TxBlockHeight, info.BlockHeight)
 		assert.Equal(t, broadcast_fixtures.ProviderMain, info.Provider)

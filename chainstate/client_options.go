@@ -129,25 +129,6 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 	}
 }
 
-// WithMonitoring will create a new monitorConfig interface with the given options
-func WithMonitoring(ctx context.Context, monitorOptions *MonitorOptions) ClientOps {
-	return func(c *clientOptions) {
-		if monitorOptions != nil {
-			// Create the default Monitor for monitoring destinations
-			c.monitor = NewMonitor(ctx, monitorOptions)
-		}
-	}
-}
-
-// WithMonitoringInterface will set the interface to use for monitoring the blockchain
-func WithMonitoringInterface(monitor MonitorService) ClientOps {
-	return func(c *clientOptions) {
-		if monitor != nil {
-			c.monitor = monitor
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {

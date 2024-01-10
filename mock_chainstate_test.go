@@ -102,10 +102,6 @@ type chainStateEverythingOnChain struct {
 	chainStateEverythingInMempool
 }
 
-func (c *chainStateEverythingOnChain) Monitor() chainstate.MonitorService {
-	return nil
-}
-
 func (c *chainStateEverythingOnChain) BroadcastClient() broadcast.Client {
 	return nil
 }

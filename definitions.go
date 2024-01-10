@@ -6,16 +6,14 @@ import (
 
 // Defaults for engine functionality
 const (
-	changeOutputSize               = uint64(35)       // Average size in bytes of a change output
-	databaseLongReadTimeout        = 30 * time.Second // For all "GET" or "SELECT" methods
-	defaultBroadcastTimeout        = 25 * time.Second // Default timeout for broadcasting
-	defaultCacheLockTTL            = 20               // in Seconds
-	defaultCacheLockTTW            = 10               // in Seconds
-	defaultDatabaseReadTimeout     = 20 * time.Second // For all "GET" or "SELECT" methods
-	defaultDraftTxExpiresIn        = 20 * time.Second // Default TTL for draft transactions
-	defaultHTTPTimeout             = 20 * time.Second // Default timeout for HTTP requests
-	defaultMonitorSleep            = 2 * time.Second
-	defaultMonitorLockTTL          = 10                // in seconds - should be larger than defaultMonitorSleep
+	changeOutputSize               = uint64(35)        // Average size in bytes of a change output
+	databaseLongReadTimeout        = 30 * time.Second  // For all "GET" or "SELECT" methods
+	defaultBroadcastTimeout        = 25 * time.Second  // Default timeout for broadcasting
+	defaultCacheLockTTL            = 20                // in Seconds
+	defaultCacheLockTTW            = 10                // in Seconds
+	defaultDatabaseReadTimeout     = 20 * time.Second  // For all "GET" or "SELECT" methods
+	defaultDraftTxExpiresIn        = 20 * time.Second  // Default TTL for draft transactions
+	defaultHTTPTimeout             = 20 * time.Second  // Default timeout for HTTP requests
 	defaultOverheadSize            = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime
 	defaultQueryTxTimeout          = 10 * time.Second  // Default timeout for syncing on-chain information
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block

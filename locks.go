@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	lockKeyMonitorLockID      = "monitor-lock-id-%s"               // + Lock ID
 	lockKeyProcessBroadcastTx = "process-broadcast-transaction-%s" // + Tx ID
 	lockKeyProcessIncomingTx  = "process-incoming-transaction-%s"  // + Tx ID
 	lockKeyProcessP2PTx       = "process-p2p-transaction-%s"       // + Tx ID

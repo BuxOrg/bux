@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-// MonitorBlockHeaders will start up a block headers monitor
-func (c *Client) MonitorBlockHeaders(_ context.Context) error {
-	return nil
-}
-
 // Broadcast will attempt to broadcast a transaction using the given providers
 func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) (string, error) {
 	// Basic validation

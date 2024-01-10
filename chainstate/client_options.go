@@ -27,16 +27,16 @@ func defaultClientOptions() *clientOptions {
 		config: &syncConfig{
 			httpClient: nil,
 			minercraftConfig: &minercraftConfig{
-				broadcastMiners:     bm,
-				queryMiners:         qm,
-				minerAPIs:           apis,
-				minercraftFeeQuotes: true,
-				feeUnit:             DefaultFee,
+				broadcastMiners: bm,
+				queryMiners:     qm,
+				minerAPIs:       apis,
 			},
 			minercraft:      nil,
 			network:         MainNet,
 			queryTimeout:    defaultQueryTimeOut,
 			broadcastClient: nil,
+			feeQuotes:       true,
+			feeUnit:         DefaultFee(),
 		},
 		debug:           false,
 		newRelicEnabled: false,
@@ -52,7 +52,7 @@ func defaultMiners() (broadcastMiners []*Miner, queryMiners []*Miner) {
 	for index, miner := range miners {
 		broadcastMiners = append(broadcastMiners, &Miner{
 			FeeLastChecked: time.Now().UTC(),
-			FeeUnit:        DefaultFee,
+			FeeUnit:        DefaultFee(),
 			Miner:          miners[index],
 		})
 
@@ -209,10 +209,10 @@ func WithExcludedProviders(providers []string) ClientOps {
 	}
 }
 
-// WithMinercraftFeeQuotes will set minercraftFeeQuotes flag as true
-func WithMinercraftFeeQuotes() ClientOps {
+// WithFeeQuotes will set minercraftFeeQuotes flag as true
+func WithFeeQuotes() ClientOps {
 	return func(c *clientOptions) {
-		c.config.minercraftConfig.minercraftFeeQuotes = true
+		c.config.feeQuotes = true
 	}
 }
 

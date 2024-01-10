@@ -68,7 +68,7 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 		if c := draft.Client(); c != nil {
 			draft.Configuration.FeeUnit = c.Chainstate().FeeUnit()
 		} else {
-			draft.Configuration.FeeUnit = chainstate.DefaultFee
+			draft.Configuration.FeeUnit = chainstate.DefaultFee()
 		}
 	}
 	return draft

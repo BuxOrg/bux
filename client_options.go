@@ -664,9 +664,9 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 }
 
 // WithMinercraftFeeQuotes will set usage of minercraft's fee quotes instead of default fees
-func WithMinercraftFeeQuotes() ClientOps {
+func WithFeeQuotes() ClientOps {
 	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraftFeeQuotes())
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeQuotes())
 	}
 }
 

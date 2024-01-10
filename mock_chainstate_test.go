@@ -161,7 +161,7 @@ func (c *chainStateEverythingOnChain) QueryTransactionFastest(_ context.Context,
 }
 
 func (c *chainStateEverythingOnChain) FeeUnit() *utils.FeeUnit {
-	return chainstate.DefaultFee
+	return chainstate.DefaultFee()
 }
 
 func (c *chainStateEverythingOnChain) VerifyMerkleRoots(_ context.Context, _ []chainstate.MerkleRootConfirmationRequestItem) error {

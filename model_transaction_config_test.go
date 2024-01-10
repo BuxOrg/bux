@@ -47,7 +47,7 @@ var (
 		ChangeSatoshis: 124,
 		ExpiresIn:      defaultDraftTxExpiresIn,
 		Fee:            12,
-		FeeUnit:        chainstate.DefaultFee,
+		FeeUnit:        chainstate.DefaultFee(),
 		Inputs:         nil,
 		Outputs:        nil,
 	}

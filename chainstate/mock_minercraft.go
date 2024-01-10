@@ -128,7 +128,7 @@ func (m *MinerCraftBase) FeeQuote(context.Context, *minercraft.Miner) (*minercra
 			Fees: []*bt.Fee{
 				{
 					FeeType:   bt.FeeTypeData,
-					MiningFee: bt.FeeUnit(*DefaultFee),
+					MiningFee: bt.FeeUnit(*DefaultFee()),
 				},
 			},
 		},

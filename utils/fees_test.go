@@ -31,3 +31,58 @@ func TestGetOutputSizeForType(t *testing.T) {
 		assert.Equal(t, uint64(500), GetOutputSize(""))
 	})
 }
+
+func TestIsLowerThan(t *testing.T) {
+	one := FeeUnit{
+		Satoshis: 1,
+		Bytes:    20,
+	}
+	two := FeeUnit{
+		Satoshis: 2,
+		Bytes:    20,
+	}
+	assert.True(t, one.IsLowerThan(&two))
+	assert.False(t, two.IsLowerThan(&one))
+}
+
+func TestLowestFee(t *testing.T) {
+	initTest := func() (feeList []FeeUnit, defaultFee FeeUnit) {
+		feeList = []FeeUnit{
+			{
+				Satoshis: 1,
+				Bytes:    20,
+			},
+			{
+				Satoshis: 2,
+				Bytes:    20,
+			},
+			{
+				Satoshis: 3,
+				Bytes:    20,
+			},
+		}
+		defaultFee = FeeUnit{
+			Satoshis: 4,
+			Bytes:    20,
+		}
+		return
+	}
+
+	t.Run("lowest fee as default value", func(t *testing.T) {
+		feeList, defaultFee := initTest()
+		defaultFee.Satoshis = 1
+		defaultFee.Bytes = 50
+		assert.Equal(t, defaultFee, LowestFee(feeList, defaultFee))
+	})
+
+	t.Run("lowest fee as first value", func(t *testing.T) {
+		feeList, defaultFee := initTest()
+		assert.Equal(t, feeList[0], LowestFee(feeList, defaultFee))
+	})
+
+	t.Run("lowest fee as middle value", func(t *testing.T) {
+		feeList, defaultFee := initTest()
+		feeList[1].Bytes = 50
+		assert.Equal(t, feeList[1], LowestFee(feeList, defaultFee))
+	})
+}

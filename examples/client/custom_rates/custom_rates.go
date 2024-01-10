@@ -46,14 +46,6 @@ func main() {
 		_ = client.Close(context.Background())
 	}()
 
-	// Get the miners
-	broadcastMiners := client.Chainstate().BroadcastMiners()
-	for _, miner := range broadcastMiners {
-		log.Println("miner", miner.Miner)
-		log.Println("fee", miner.FeeUnit)
-		log.Println("last_checked", miner.FeeLastChecked.String())
-	}
-
 	// Create an xPub
 	var xpub *bux.Xpub
 	if xpub, err = client.NewXpub(

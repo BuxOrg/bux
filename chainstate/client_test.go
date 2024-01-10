@@ -46,7 +46,7 @@ func TestNewClient(t *testing.T) {
 	t.Run("custom broadcast client", func(t *testing.T) {
 		arcConfig := broadcast_client.ArcClientConfig{
 			Token:  "",
-			APIUrl: "https://tapi.taal.com/arc",
+			APIUrl: "https://arc.gorillapool.io",
 		}
 		logger := zerolog.Nop()
 		customClient := broadcast_client.Builder().WithArc(arcConfig, &logger).Build()
@@ -78,30 +78,6 @@ func TestNewClient(t *testing.T) {
 		require.NotNil(t, c)
 		assert.NotNil(t, c.Minercraft())
 		assert.Equal(t, customClient, c.Minercraft())
-	})
-
-	t.Run("custom list of broadcast miners", func(t *testing.T) {
-		miners, _ := defaultMiners()
-		c, err := NewClient(
-			context.Background(),
-			WithBroadcastMiners(miners),
-			WithMinercraft(&MinerCraftBase{}),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, miners, c.BroadcastMiners())
-	})
-
-	t.Run("custom list of query miners", func(t *testing.T) {
-		miners, _ := defaultMiners()
-		c, err := NewClient(
-			context.Background(),
-			WithQueryMiners(miners),
-			WithMinercraft(&MinerCraftBase{}),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, miners, c.QueryMiners())
 	})
 
 	t.Run("custom query timeout", func(t *testing.T) {

@@ -101,7 +101,7 @@ func broadcastWithBroadcastClient(ctx context.Context, client ClientInterface, t
 		Hex: hex,
 	}
 
-	result, err := client.BroadcastClient().SubmitTransaction(ctx, &tx)
+	result, err := client.BroadcastClient().SubmitTransaction(ctx, &tx, broadcast.WithRawFormat())
 	if err != nil {
 		debugLog(client, txID, "error broadcast request for "+ProviderBroadcastClient+" failed: "+err.Error())
 		return err

@@ -134,8 +134,6 @@ func TestClient_defaultModelOptions(t *testing.T) {
 
 		require.NotNil(t, dco.taskManager)
 
-		assert.Equal(t, true, dco.itc)
-
 		assert.Nil(t, dco.logger)
 	})
 }
@@ -596,39 +594,6 @@ func TestWithModels(t *testing.T) {
 	})
 }
 
-// TestWithITCDisabled will test the method WithITCDisabled()
-func TestWithITCDisabled(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithITCDisabled()
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("default options", func(t *testing.T) {
-		opts := DefaultClientOpts(false, true)
-
-		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		assert.Equal(t, true, tc.IsITCEnabled())
-	})
-
-	t.Run("itc disabled", func(t *testing.T) {
-		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithITCDisabled())
-
-		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		assert.Equal(t, false, tc.IsITCEnabled())
-	})
-}
-
 // TestWithIUCDisabled will test the method WithIUCDisabled()
 func TestWithIUCDisabled(t *testing.T) {
 	t.Parallel()
@@ -649,7 +614,7 @@ func TestWithIUCDisabled(t *testing.T) {
 		assert.Equal(t, true, tc.IsIUCEnabled())
 	})
 
-	t.Run("itc disabled", func(t *testing.T) {
+	t.Run("iuc disabled", func(t *testing.T) {
 		opts := DefaultClientOpts(false, true)
 		opts = append(opts, WithIUCDisabled())
 

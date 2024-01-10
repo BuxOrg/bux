@@ -195,7 +195,6 @@ type ClientInterface interface {
 	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsEncryptionKeySet() bool
-	IsITCEnabled() bool
 	IsIUCEnabled() bool
 	IsMigrationEnabled() bool
 	IsNewRelicEnabled() bool

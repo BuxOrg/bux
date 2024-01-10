@@ -34,7 +34,6 @@ type (
 		encryptionKey         string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
 		httpClient            HTTPInterface         // HTTP interface to use
 		importBlockHeadersURL string                // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
-		itc                   bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
 		iuc                   bool                  // (Input UTXO Check) True will check input utxos when saving transactions
 		logger                *zerolog.Logger       // Internal logging
 		models                *modelOptions         // Configuration options for the loaded models
@@ -373,11 +372,6 @@ func (c *Client) IsDebug() bool {
 // IsNewRelicEnabled will return the flag (bool)
 func (c *Client) IsNewRelicEnabled() bool {
 	return c.options.newRelic.enabled
-}
-
-// IsITCEnabled will return the flag (bool)
-func (c *Client) IsITCEnabled() bool {
-	return c.options.itc
 }
 
 // IsIUCEnabled will return the flag (bool)

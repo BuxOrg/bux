@@ -272,7 +272,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(98988), draftTransaction.Configuration.ChangeSatoshis)
 
 		assert.Equal(t, uint64(12), draftTransaction.Configuration.Fee)
-		assert.Equal(t, *chainstate.DefaultFee(), *draftTransaction.Configuration.FeeUnit)
+		assert.Equal(t, *chainstate.MockDefaultFee, *draftTransaction.Configuration.FeeUnit)
 
 		assert.Equal(t, 1, len(draftTransaction.Configuration.Inputs))
 		assert.Equal(t, testLockingScript, draftTransaction.Configuration.Inputs[0].ScriptPubKey)
@@ -1398,7 +1398,7 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 				b, _ := json.Marshal(in["feeUnit"])
 				_ = json.Unmarshal(b, &feeUnit)
 			} else {
-				feeUnit = chainstate.DefaultFee()
+				feeUnit = chainstate.MockDefaultFee
 			}
 			draftTransaction, tx, err2 := createDraftTransactionFromHex(in["hex"].(string), in["inputs"].([]interface{}), feeUnit)
 			require.NoError(t, err2)

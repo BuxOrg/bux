@@ -64,7 +64,7 @@ func TestNewClient(t *testing.T) {
 
 	t.Run("custom minercraft client", func(t *testing.T) {
 		customClient, err := minercraft.NewClient(
-			minercraft.DefaultClientOptions(), &http.Client{}, minercraft.Arc, nil, nil,
+			minercraft.DefaultClientOptions(), &http.Client{}, minercraft.MAPI, nil, nil,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, customClient)
@@ -108,6 +108,7 @@ func TestNewClient(t *testing.T) {
 			context.Background(),
 			WithNetwork(StressTestNet),
 			WithMinercraft(&MinerCraftBase{}),
+			WithFeeUnit(DefaultFee()),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, c)

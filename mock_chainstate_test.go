@@ -30,10 +30,6 @@ func (c *chainStateBase) QueryTransactionFastest(context.Context, string, chains
 	return nil, nil
 }
 
-func (c *chainStateBase) BroadcastMiners() []*chainstate.Miner {
-	return nil
-}
-
 func (c *chainStateBase) Close(context.Context) {}
 
 func (c *chainStateBase) Debug(bool) {}
@@ -56,16 +52,8 @@ func (c *chainStateBase) Minercraft() minercraft.ClientInterface {
 	return nil
 }
 
-func (c *chainStateBase) Miners() []*chainstate.Miner {
-	return nil
-}
-
 func (c *chainStateBase) Network() chainstate.Network {
 	return chainstate.MainNet
-}
-
-func (c *chainStateBase) QueryMiners() []*chainstate.Miner {
-	return nil
 }
 
 func (c *chainStateBase) QueryTimeout() time.Duration {

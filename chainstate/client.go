@@ -46,18 +46,11 @@ type (
 
 	// minercraftConfig is specific for minercraft configuration
 	minercraftConfig struct {
-		broadcastMiners []*Miner // List of loaded miners for broadcasting
-		queryMiners     []*Miner // List of loaded miners for querying transactions
+		broadcastMiners []*minercraft.Miner // List of loaded miners for broadcasting
+		queryMiners     []*minercraft.Miner // List of loaded miners for querying transactions
 
 		apiType   minercraft.APIType      // MinerCraft APIType(ARC/mAPI)
 		minerAPIs []*minercraft.MinerAPIs // List of miners APIs
-	}
-
-	// Miner is the internal chainstate miner (wraps Minercraft miner with more information)
-	Miner struct {
-		FeeLastChecked time.Time         `json:"fee_last_checked"` // Last time the fee was checked via mAPI
-		FeeUnit        *utils.FeeUnit    `json:"fee_unit"`         // The fee unit returned from Policy request
-		Miner          *minercraft.Miner `json:"miner"`            // The minercraft miner
 	}
 
 	// PulseClient is the internal chainstate pulse client

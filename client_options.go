@@ -615,24 +615,6 @@ func WithChainstateOptions(broadcasting, broadcastInstant, paymailP2P, syncOnCha
 	}
 }
 
-// WithBroadcastMiners will set a list of miners for broadcasting
-func WithBroadcastMiners(miners []*chainstate.Miner) ClientOps {
-	return func(c *clientOptions) {
-		if len(miners) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastMiners(miners))
-		}
-	}
-}
-
-// WithQueryMiners will set a list of miners for querying transactions
-func WithQueryMiners(miners []*chainstate.Miner) ClientOps {
-	return func(c *clientOptions) {
-		if len(miners) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithQueryMiners(miners))
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {

@@ -2,11 +2,11 @@ package chainstate
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/BuxOrg/bux/utils"
-	"github.com/libsv/go-bt/v2"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/tonicpow/go-minercraft/v2"
 	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
@@ -16,7 +16,7 @@ func (c *Client) minercraftInit(ctx context.Context) error {
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("start_minercraft").End()
 	}
-	mi := &minercraftInitializer{client: c, ctx: ctx}
+	mi := &minercraftInitializer{client: c, ctx: ctx, minersWithFee: make(minerToFeeMap)}
 
 	if err := mi.newClient(); err != nil {
 		return err
@@ -34,9 +34,16 @@ func (c *Client) minercraftInit(ctx context.Context) error {
 }
 
 type minercraftInitializer struct {
-	client *Client
-	ctx    context.Context
+	client        *Client
+	ctx           context.Context
+	minersWithFee minerToFeeMap
+	lock          sync.Mutex
 }
+
+type (
+	minerId       string
+	minerToFeeMap map[minerId]utils.FeeUnit
+)
 
 func (i *minercraftInitializer) defaultMinercraftOptions() (opts *minercraft.ClientOptions) {
 	c := i.client
@@ -56,17 +63,17 @@ func (i *minercraftInitializer) newClient() (err error) {
 
 		// Loop all broadcast miners and append to the list of miners
 		for i := range c.options.config.minercraftConfig.broadcastMiners {
-			if !utils.StringInSlice(c.options.config.minercraftConfig.broadcastMiners[i].Miner.MinerID, loadedMiners) {
-				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.broadcastMiners[i].Miner)
-				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.broadcastMiners[i].Miner.MinerID)
+			if !utils.StringInSlice(c.options.config.minercraftConfig.broadcastMiners[i].MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.broadcastMiners[i])
+				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.broadcastMiners[i].MinerID)
 			}
 		}
 
 		// Loop all query miners and append to the list of miners
 		for i := range c.options.config.minercraftConfig.queryMiners {
-			if !utils.StringInSlice(c.options.config.minercraftConfig.queryMiners[i].Miner.MinerID, loadedMiners) {
-				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.queryMiners[i].Miner)
-				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.queryMiners[i].Miner.MinerID)
+			if !utils.StringInSlice(c.options.config.minercraftConfig.queryMiners[i].MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.queryMiners[i])
+				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.queryMiners[i].MinerID)
 			}
 		}
 		c.options.config.minercraft, err = minercraft.NewClient(
@@ -90,51 +97,19 @@ func (i *minercraftInitializer) validateMiners() error {
 
 	c := i.client
 	var wg sync.WaitGroup
-	// Loop all broadcast miners
-	for index := range c.options.config.minercraftConfig.broadcastMiners {
+
+	for _, miner := range c.options.config.minercraftConfig.broadcastMiners {
 		wg.Add(1)
-		go func(
-			ctx context.Context, client *Client,
-			wg *sync.WaitGroup, miner *Miner,
-		) {
+		currentMiner := miner
+		go func() {
 			defer wg.Done()
-			// Get the fee quote using the miner
-			// Switched from policyQuote to feeQuote as gorillapool doesn't have such endpoint
-			var fee *bt.Fee
-			if c.Minercraft().APIType() == minercraft.MAPI {
-				quote, err := c.Minercraft().FeeQuote(ctx, miner.Miner)
-				if err != nil {
-					client.options.logger.Error().Msgf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err)
-					miner.FeeUnit = nil
-					return
-				}
-
-				fee = quote.Quote.GetFee(mapi.FeeTypeData)
-				if fee == nil {
-					client.options.logger.Error().Msgf("Fee is missing in %s's FeeQuote response", miner.Miner.Name)
-					return
-				}
-				// Arc doesn't support FeeQuote right now(2023.07.21), that's why PolicyQuote is used
-			} else if c.Minercraft().APIType() == minercraft.Arc {
-				quote, err := c.Minercraft().PolicyQuote(ctx, miner.Miner)
-				if err != nil {
-					client.options.logger.Error().Msgf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err)
-					miner.FeeUnit = nil
-					return
-				}
-
-				fee = quote.Quote.Fees[0]
+			feeUnit, err := i.getFeeQuote(ctxWithCancel, currentMiner)
+			if err != nil {
+				c.options.logger.Warn().Msgf("No FeeQuote response from miner %s. Reason: %s", currentMiner.Name, err)
+				return
 			}
-			feeUnit := &utils.FeeUnit{
-				Satoshis: fee.MiningFee.Satoshis,
-				Bytes:    fee.MiningFee.Bytes,
-			}
-			if c.isFeeQuotesEnabled() {
-				miner.FeeUnit = feeUnit
-				miner.FeeLastChecked = time.Now().UTC()
-			}
-			client.options.logger.Info().Msgf("Got FeeQuote response from miner %s. Fee: %s", miner.Miner.Name, feeUnit)
-		}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.broadcastMiners[index])
+			i.addToMinersWithFee(currentMiner, feeUnit)
+		}()
 	}
 	wg.Wait()
 
@@ -150,29 +125,56 @@ func (i *minercraftInitializer) validateMiners() error {
 	}
 }
 
+func (i *minercraftInitializer) getFeeQuote(ctx context.Context, miner *minercraft.Miner) (*utils.FeeUnit, error) {
+	c := i.client
+
+	apiType := c.Minercraft().APIType()
+
+	if apiType == minercraft.Arc {
+		return nil, fmt.Errorf("we no longer support ARC with Minercraft. (%s)", miner.Name)
+	}
+
+	quote, err := c.Minercraft().FeeQuote(ctx, miner)
+	if err != nil {
+		return nil, fmt.Errorf("no FeeQuote response from miner %s. Reason: %s", miner.Name, err)
+	}
+
+	btFee := quote.Quote.GetFee(mapi.FeeTypeData)
+	if btFee == nil {
+		return nil, fmt.Errorf("Fee is missing in %s's FeeQuote response", miner.Name)
+	}
+
+	feeUnit := &utils.FeeUnit{
+		Satoshis: btFee.MiningFee.Satoshis,
+		Bytes:    btFee.MiningFee.Bytes,
+	}
+	return feeUnit, nil
+}
+
+func (i *minercraftInitializer) addToMinersWithFee(miner *minercraft.Miner, feeUnit *utils.FeeUnit) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	i.minersWithFee[minerId(miner.MinerID)] = *feeUnit
+}
+
 // deleteUnreacheableMiners deletes miners which can't be reacheable from config
 func (i *minercraftInitializer) deleteUnreacheableMiners() {
 	c := i.client
-	validMinerIndex := 0
+	validMiners := []*minercraft.Miner{}
 	for _, miner := range c.options.config.minercraftConfig.broadcastMiners {
-		if miner.FeeUnit != nil {
-			c.options.config.minercraftConfig.broadcastMiners[validMinerIndex] = miner
-			validMinerIndex++
+		_, ok := i.minersWithFee[minerId(miner.MinerID)]
+		if ok {
+			validMiners = append(validMiners, miner)
 		}
 	}
-	// Prevent memory leak by erasing truncated miners
-	for i := validMinerIndex; i < len(c.options.config.minercraftConfig.broadcastMiners); i++ {
-		c.options.config.minercraftConfig.broadcastMiners[i] = nil
-	}
-	c.options.config.minercraftConfig.broadcastMiners = c.options.config.minercraftConfig.broadcastMiners[:validMinerIndex]
+	c.options.config.minercraftConfig.broadcastMiners = validMiners
 }
 
 // lowestFees takes the lowest fees among all miners and sets them as the feeUnit for future transactions
 func (i *minercraftInitializer) lowestFee() *utils.FeeUnit {
-	miners := i.client.options.config.minercraftConfig.broadcastMiners
-	fees := make([]utils.FeeUnit, len(miners))
-	for index, miner := range miners {
-		fees[index] = *miner.FeeUnit
+	fees := make([]utils.FeeUnit, 0)
+	for _, fee := range i.minersWithFee {
+		fees = append(fees, fee)
 	}
 	lowest := utils.LowestFee(fees, i.client.options.config.feeUnit)
 	return lowest

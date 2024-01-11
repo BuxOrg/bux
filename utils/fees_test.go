@@ -57,6 +57,19 @@ func TestIsLowerThan(t *testing.T) {
 		assert.True(t, one.IsLowerThan(&two))
 		assert.False(t, two.IsLowerThan(&one))
 	})
+
+	t.Run("zero as bytes in denominator", func(t *testing.T) {
+		one := FeeUnit{
+			Satoshis: 1,
+			Bytes:    0,
+		}
+		two := FeeUnit{
+			Satoshis: 2,
+			Bytes:    0,
+		}
+		assert.False(t, one.IsLowerThan(&two))
+		assert.False(t, two.IsLowerThan(&one))
+	})
 }
 
 func TestLowestFee(t *testing.T) {

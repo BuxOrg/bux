@@ -38,8 +38,7 @@ func (c *Client) broadcastClientInit(ctx context.Context) error {
 				Bytes:    int(fee.MiningFee.Bytes),
 			}
 		}
-		lowest := utils.LowestFee(fees, c.options.config.feeUnit)
-		c.options.config.feeUnit = lowest
+		c.options.config.feeUnit = utils.LowestFee(fees, c.options.config.feeUnit)
 	}
 
 	return nil

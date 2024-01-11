@@ -100,7 +100,7 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	case finalFeeUnit == nil:
 		return nil, errors.New("no fee unit found")
 	case finalFeeUnit.IsZero():
-		return nil, errors.New("fee unit suggests no fees (free)")
+		client.options.logger.Info().Msg("fee unit suggests no fees (free)")
 	default:
 		client.options.logger.Info().Msgf("using fee unit: %s", finalFeeUnit)
 	}

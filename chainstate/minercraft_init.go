@@ -12,27 +12,25 @@ import (
 	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
 )
 
-func (c *Client) minercraftInit(ctx context.Context) (feeUnit *utils.FeeUnit, err error) {
+func (c *Client) minercraftInit(ctx context.Context) error {
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("start_minercraft").End()
 	}
 	mi := &minercraftInitializer{client: c, ctx: ctx}
 
-	if err = mi.newClient(); err != nil {
-		return
+	if err := mi.newClient(); err != nil {
+		return err
 	}
 
-	if err = mi.validateMiners(); err != nil {
-		return
+	if err := mi.validateMiners(); err != nil {
+		return err
 	}
 
 	if c.isFeeQuotesEnabled() {
-		feeUnit = mi.lowestFee()
-	} else {
-		feeUnit = DefaultFee()
+		c.options.config.feeUnit = mi.lowestFee()
 	}
 
-	return
+	return nil
 }
 
 type minercraftInitializer struct {
@@ -127,13 +125,15 @@ func (i *minercraftInitializer) validateMiners() error {
 
 				fee = quote.Quote.Fees[0]
 			}
+			feeUnit := &utils.FeeUnit{
+				Satoshis: fee.MiningFee.Satoshis,
+				Bytes:    fee.MiningFee.Bytes,
+			}
 			if c.isFeeQuotesEnabled() {
-				miner.FeeUnit = &utils.FeeUnit{
-					Satoshis: fee.MiningFee.Satoshis,
-					Bytes:    fee.MiningFee.Bytes,
-				}
+				miner.FeeUnit = feeUnit
 				miner.FeeLastChecked = time.Now().UTC()
 			}
+			client.options.logger.Info().Msgf("Got FeeQuote response from miner %s. Fee: %s", miner.Miner.Name, feeUnit)
 		}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.broadcastMiners[index])
 	}
 	wg.Wait()
@@ -174,6 +174,6 @@ func (i *minercraftInitializer) lowestFee() *utils.FeeUnit {
 	for index, miner := range miners {
 		fees[index] = *miner.FeeUnit
 	}
-	lowest := utils.LowestFee(fees, *DefaultFee())
-	return &lowest
+	lowest := utils.LowestFee(fees, i.client.options.config.feeUnit)
+	return lowest
 }

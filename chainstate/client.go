@@ -2,6 +2,7 @@ package chainstate
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/BuxOrg/bux/logging"
@@ -88,27 +89,28 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 	}
 
 	// Init active provider
-	var feeUnit *utils.FeeUnit
 	var err error
 	switch client.ActiveProvider() {
 	case ProviderMinercraft:
-		feeUnit, err = client.minercraftInit(ctx)
+		err = client.minercraftInit(ctx)
 	case ProviderBroadcastClient:
-		feeUnit, err = client.broadcastClientInit(ctx)
+		err = client.broadcastClientInit(ctx)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	// Set fee unit
-	if feeUnit == nil {
-		feeUnit = DefaultFee()
-		client.options.logger.Info().Msgf("no fee unit found, using default: %s", feeUnit)
-	} else {
-		client.options.logger.Info().Msgf("using fee unit: %s", feeUnit)
+	// Check the fee unit
+	finalFeeUnit := client.options.config.feeUnit
+	switch {
+	case finalFeeUnit == nil:
+		return nil, errors.New("no fee unit found")
+	case finalFeeUnit.IsZero():
+		return nil, errors.New("fee unit suggests no fees (free)")
+	default:
+		client.options.logger.Info().Msgf("using fee unit: %s", finalFeeUnit)
 	}
-	client.options.config.feeUnit = feeUnit
 
 	// Return the client
 	return client, nil

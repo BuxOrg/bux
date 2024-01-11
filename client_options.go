@@ -12,6 +12,7 @@ import (
 	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
@@ -663,10 +664,17 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 	}
 }
 
-// WithMinercraftFeeQuotes will set usage of minercraft's fee quotes instead of default fees
-func WithFeeQuotes() ClientOps {
+// WithFeeQuotes will find the lowest fee instead of using the fee set by the WithFeeUnit function
+func WithFeeQuotes(enabled bool) ClientOps {
 	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeQuotes())
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeQuotes(enabled))
+	}
+}
+
+// WithFeeUnit will set the fee unit to use for broadcasting
+func WithFeeUnit(feeUnit *utils.FeeUnit) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeUnit(feeUnit))
 	}
 }
 

@@ -68,21 +68,27 @@ func TestLowestFee(t *testing.T) {
 		return
 	}
 
-	t.Run("lowest fee as default value", func(t *testing.T) {
+	t.Run("lowest fee among feeList elements, despite defaultValue", func(t *testing.T) {
 		feeList, defaultFee := initTest()
 		defaultFee.Satoshis = 1
 		defaultFee.Bytes = 50
-		assert.Equal(t, defaultFee, LowestFee(feeList, defaultFee))
+		assert.Equal(t, feeList[0], *LowestFee(feeList, &defaultFee))
 	})
 
 	t.Run("lowest fee as first value", func(t *testing.T) {
 		feeList, defaultFee := initTest()
-		assert.Equal(t, feeList[0], LowestFee(feeList, defaultFee))
+		assert.Equal(t, feeList[0], *LowestFee(feeList, &defaultFee))
 	})
 
 	t.Run("lowest fee as middle value", func(t *testing.T) {
 		feeList, defaultFee := initTest()
 		feeList[1].Bytes = 50
-		assert.Equal(t, feeList[1], LowestFee(feeList, defaultFee))
+		assert.Equal(t, feeList[1], *LowestFee(feeList, &defaultFee))
+	})
+
+	t.Run("lowest fee as defaultValue", func(t *testing.T) {
+		feeList, defaultFee := initTest()
+		feeList = []FeeUnit{}
+		assert.Equal(t, defaultFee, *LowestFee(feeList, &defaultFee))
 	})
 }

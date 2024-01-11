@@ -20,15 +20,23 @@ func (f *FeeUnit) String() string {
 	return fmt.Sprintf("FeeUnit(%d satoshis / %d bytes)", f.Satoshis, f.Bytes)
 }
 
-// LowestFee get the lowest fee from a list of fee units AND a default value
-func LowestFee(feeUnits []FeeUnit, defaultValue FeeUnit) FeeUnit {
-	minFee := defaultValue
-	for _, feeUnit := range feeUnits {
-		if feeUnit.IsLowerThan(&minFee) {
-			minFee = feeUnit
+// IsZero returns true if the fee unit suggets no fees (free)
+func (f *FeeUnit) IsZero() bool {
+	return f.Satoshis == 0
+}
+
+// LowestFee get the lowest fee from a list of fee units, if defaultValue exists and none is found, return defaultValue
+func LowestFee(feeUnits []FeeUnit, defaultValue *FeeUnit) *FeeUnit {
+	if len(feeUnits) == 0 {
+		return defaultValue
+	}
+	minFee := feeUnits[0]
+	for i := 1; i < len(feeUnits); i++ {
+		if feeUnits[i].IsLowerThan(&minFee) {
+			minFee = feeUnits[i]
 		}
 	}
-	return minFee
+	return &minFee
 }
 
 // GetInputSizeForType get an estimated size for the input based on the type

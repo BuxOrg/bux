@@ -9,28 +9,28 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func (c *Client) broadcastClientInit(ctx context.Context) (feeUnit *utils.FeeUnit, err error) {
+func (c *Client) broadcastClientInit(ctx context.Context) error {
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("start_broadcast_client").End()
 	}
 
 	bc := c.options.config.broadcastClient
 	if bc == nil {
-		err = errors.New("broadcast client is not configured")
-		return
+		err := errors.New("broadcast client is not configured")
+		return err
 	}
 
-	feeUnit = DefaultFee()
 	if c.isFeeQuotesEnabled() {
 		// get the lowest fee
 		var feeQuotes []*broadcast.FeeQuote
-		feeQuotes, err = bc.GetFeeQuote(ctx)
+		feeQuotes, err := bc.GetFeeQuote(ctx)
 		if err != nil {
-			return
+			return err
 		}
 		if len(feeQuotes) == 0 {
-			c.options.logger.Warn().Msg("no fee quotes returned from broadcast client")
+			return errors.New("no fee quotes returned from broadcast client")
 		}
+		c.options.logger.Info().Msgf("got %d fee quote(s) from broadcast client", len(feeQuotes))
 		fees := make([]utils.FeeUnit, len(feeQuotes))
 		for index, fee := range feeQuotes {
 			fees[index] = utils.FeeUnit{
@@ -38,9 +38,9 @@ func (c *Client) broadcastClientInit(ctx context.Context) (feeUnit *utils.FeeUni
 				Bytes:    int(fee.MiningFee.Bytes),
 			}
 		}
-		lowest := utils.LowestFee(fees, *DefaultFee())
-		feeUnit = &lowest
+		lowest := utils.LowestFee(fees, c.options.config.feeUnit)
+		c.options.config.feeUnit = lowest
 	}
 
-	return
+	return nil
 }

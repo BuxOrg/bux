@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
@@ -36,7 +37,7 @@ func defaultClientOptions() *clientOptions {
 			queryTimeout:    defaultQueryTimeOut,
 			broadcastClient: nil,
 			feeQuotes:       true,
-			feeUnit:         DefaultFee(),
+			feeUnit:         nil, // fee has to be set explicitly or via fee quotes
 		},
 		debug:           false,
 		newRelicEnabled: false,
@@ -210,9 +211,16 @@ func WithExcludedProviders(providers []string) ClientOps {
 }
 
 // WithFeeQuotes will set minercraftFeeQuotes flag as true
-func WithFeeQuotes() ClientOps {
+func WithFeeQuotes(enabled bool) ClientOps {
 	return func(c *clientOptions) {
-		c.config.feeQuotes = true
+		c.config.feeQuotes = enabled
+	}
+}
+
+// WithFeeUnit will set the fee unit
+func WithFeeUnit(feeUnit *utils.FeeUnit) ClientOps {
+	return func(c *clientOptions) {
+		c.config.feeUnit = feeUnit
 	}
 }
 

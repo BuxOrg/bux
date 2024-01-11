@@ -410,7 +410,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Create model
 		tc.MockSQLDB.ExpectExec("INSERT INTO `"+tc.tablePrefix+"_destinations` ("+
 			"`created_at`,`updated_at`,`metadata`,`deleted_at`,`id`,`xpub_id`,`locking_script`,"+
-			"`type`,`chain`,`num`,`address`,`draft_id`,`monitor`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
+			"`type`,`chain`,`num`,`address`,`draft_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -423,7 +423,6 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -457,7 +456,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Create model
 		tc.MockSQLDB.ExpectExec("INSERT INTO `"+tc.tablePrefix+"_destinations` ("+
 			"`created_at`,`updated_at`,`metadata`,`deleted_at`,`id`,`xpub_id`,`locking_script`,"+
-			"`type`,`chain`,`num`,`address`,`draft_id`,`monitor`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
+			"`type`,`chain`,`num`,`address`,`draft_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -470,7 +469,6 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -502,7 +500,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		tc.MockSQLDB.ExpectBegin()
 
 		// Create model
-		tc.MockSQLDB.ExpectExec(`INSERT INTO "`+tc.tablePrefix+`_destinations" ("created_at","updated_at","metadata","deleted_at","id","xpub_id","locking_script","type","chain","num","address","draft_id","monitor") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`).WithArgs(
+		tc.MockSQLDB.ExpectExec(`INSERT INTO "`+tc.tablePrefix+`_destinations" ("created_at","updated_at","metadata","deleted_at","id","xpub_id","locking_script","type","chain","num","address","draft_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -515,7 +513,6 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX

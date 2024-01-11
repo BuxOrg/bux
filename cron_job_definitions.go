@@ -53,17 +53,6 @@ func taskCleanupDraftTransactions(ctx context.Context, client *Client) error {
 	return nil
 }
 
-// taskProcessIncomingTransactions will process any incoming transactions found
-func taskProcessIncomingTransactions(ctx context.Context, client *Client) error {
-	client.Logger().Info().Msg("running process incoming transaction(s) task...")
-
-	err := processIncomingTransactions(ctx, client.Logger(), 10, WithClient(client))
-	if err == nil || errors.Is(err, datastore.ErrNoResults) {
-		return nil
-	}
-	return err
-}
-
 // taskBroadcastTransactions will broadcast any transactions
 func taskBroadcastTransactions(ctx context.Context, client *Client) error {
 	client.Logger().Info().Msg("running broadcast transaction(s) task...")

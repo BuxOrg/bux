@@ -853,7 +853,7 @@ func TestEndToEndTransaction(t *testing.T) {
 		var err error
 		destinations := make([]*Destination, 2)
 		destinations[0], err = client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
 			WithMetadatas(map[string]interface{}{
 				testMetadataKey: testMetadataValue,
 			}),
@@ -861,7 +861,7 @@ func TestEndToEndTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		destinations[1], err = client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
 			WithMetadatas(map[string]interface{}{
 				testMetadataKey + "_2": testMetadataValue + "_2",
 			}),
@@ -880,12 +880,7 @@ func TestEndToEndTransaction(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, transaction)
 		require.Equal(t, "", transaction.DraftID)
-		require.Equal(t, SyncStatusProcessing, transaction.Status)
-
-		// Get the transaction (now after processing)
-		transaction, err = client.GetTransaction(ctx, rawXPub, transaction.ID)
-		require.NoError(t, err)
-		require.NotNil(t, transaction)
+		require.Equal(t, SyncStatusComplete, transaction.Status)
 		require.Equal(t, SyncStatusComplete, transaction.Status)
 		assert.Equal(t, uint32(2), transaction.NumberOfOutputs)
 		require.Equal(t, uint64(20000), transaction.TotalValue, transaction.TotalValue)

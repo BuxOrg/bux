@@ -127,21 +127,6 @@ func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transa
 	return tx, nil
 }
 
-// newTransactionFromIncomingTransaction will start a new transaction model using an incomingTx
-func newTransactionFromIncomingTransaction(incomingTx *IncomingTransaction) (*Transaction, error) {
-	// Create the base
-	tx, err := baseTxFromHex(incomingTx.Hex, incomingTx.GetOptions(true)...)
-	if err != nil {
-		return nil, err
-	}
-
-	tx.rawXpubKey = incomingTx.rawXpubKey
-	tx.setXPubID()
-	tx.Metadata = incomingTx.Metadata
-
-	return tx, nil
-}
-
 // setXPubID will set the xPub ID on the model
 func (m *Transaction) setXPubID() {
 	if len(m.rawXpubKey) > 0 && len(m.XPubID) == 0 {

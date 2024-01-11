@@ -26,18 +26,17 @@ const (
 
 // All the base models
 const (
-	ModelAccessKey           ModelName = "access_key"
-	ModelBlockHeader         ModelName = "block_header"
-	ModelDestination         ModelName = "destination"
-	ModelDraftTransaction    ModelName = "draft_transaction"
-	ModelIncomingTransaction ModelName = "incoming_transaction"
-	ModelMetadata            ModelName = "metadata"
-	ModelNameEmpty           ModelName = "empty"
-	ModelPaymailAddress      ModelName = "paymail_address"
-	ModelSyncTransaction     ModelName = "sync_transaction"
-	ModelTransaction         ModelName = "transaction"
-	ModelUtxo                ModelName = "utxo"
-	ModelXPub                ModelName = "xpub"
+	ModelAccessKey        ModelName = "access_key"
+	ModelBlockHeader      ModelName = "block_header"
+	ModelDestination      ModelName = "destination"
+	ModelDraftTransaction ModelName = "draft_transaction"
+	ModelMetadata         ModelName = "metadata"
+	ModelNameEmpty        ModelName = "empty"
+	ModelPaymailAddress   ModelName = "paymail_address"
+	ModelSyncTransaction  ModelName = "sync_transaction"
+	ModelTransaction      ModelName = "transaction"
+	ModelUtxo             ModelName = "utxo"
+	ModelXPub             ModelName = "xpub"
 )
 
 // AllModelNames is a list of all models
@@ -45,7 +44,6 @@ var AllModelNames = []ModelName{
 	ModelAccessKey,
 	ModelBlockHeader,
 	ModelDestination,
-	ModelIncomingTransaction,
 	ModelMetadata,
 	ModelPaymailAddress,
 	ModelPaymailAddress,
@@ -57,16 +55,15 @@ var AllModelNames = []ModelName{
 
 // Internal table names
 const (
-	tableAccessKeys           = "access_keys"
-	tableBlockHeaders         = "block_headers"
-	tableDestinations         = "destinations"
-	tableDraftTransactions    = "draft_transactions"
-	tableIncomingTransactions = "incoming_transactions"
-	tablePaymailAddresses     = "paymail_addresses"
-	tableSyncTransactions     = "sync_transactions"
-	tableTransactions         = "transactions"
-	tableUTXOs                = "utxos"
-	tableXPubs                = "xpubs"
+	tableAccessKeys        = "access_keys"
+	tableBlockHeaders      = "block_headers"
+	tableDestinations      = "destinations"
+	tableDraftTransactions = "draft_transactions"
+	tablePaymailAddresses  = "paymail_addresses"
+	tableSyncTransactions  = "sync_transactions"
+	tableTransactions      = "transactions"
+	tableUTXOs             = "utxos"
+	tableXPubs             = "xpubs"
 )
 
 const (
@@ -149,11 +146,6 @@ var BaseModels = []interface{}{
 	// Draft transactions are created before the final transaction is completed
 	&DraftTransaction{
 		Model: *NewBaseModel(ModelDraftTransaction),
-	},
-
-	// Incoming transactions (external & unknown) (related to Transaction & Draft)
-	&IncomingTransaction{
-		Model: *NewBaseModel(ModelIncomingTransaction),
 	},
 
 	// Finalized transactions (related to Draft)

@@ -8,7 +8,6 @@ import (
 
 const (
 	lockKeyProcessBroadcastTx = "process-broadcast-transaction-%s" // + Tx ID
-	lockKeyProcessIncomingTx  = "process-incoming-transaction-%s"  // + Tx ID
 	lockKeyProcessP2PTx       = "process-p2p-transaction-%s"       // + Tx ID
 	lockKeyProcessSyncTx      = "process-sync-transaction-task"
 	lockKeyProcessXpub        = "action-xpub-id-%s"             // + Xpub ID

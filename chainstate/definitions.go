@@ -56,7 +56,7 @@ const (
 func DefaultFee() *utils.FeeUnit {
 	return &utils.FeeUnit{
 		Satoshis: 1,
-		Bytes:    20,
+		Bytes:    1000,
 	}
 }
 

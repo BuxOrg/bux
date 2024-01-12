@@ -9,11 +9,10 @@ func defaultMinecraftConfig() *minercraftConfig {
 	broadcastMiners := []*minercraft.Miner{}
 	queryMiners := []*minercraft.Miner{}
 	for _, miner := range miners {
-		currentMiner := *miner
-		broadcastMiners = append(broadcastMiners, &currentMiner)
+		broadcastMiners = append(broadcastMiners, miner)
 
-		if supportsQuerying(&currentMiner) {
-			queryMiners = append(queryMiners, &currentMiner)
+		if supportsQuerying(miner) {
+			queryMiners = append(queryMiners, miner)
 		}
 	}
 

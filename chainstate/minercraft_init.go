@@ -56,24 +56,24 @@ func (i *minercraftInitializer) defaultMinercraftOptions() (opts *minercraft.Cli
 
 func (i *minercraftInitializer) newClient() (err error) {
 	c := i.client
-	// No client?
+
 	if c.Minercraft() == nil {
 		var optionalMiners []*minercraft.Miner
 		var loadedMiners []string
 
 		// Loop all broadcast miners and append to the list of miners
-		for i := range c.options.config.minercraftConfig.broadcastMiners {
-			if !utils.StringInSlice(c.options.config.minercraftConfig.broadcastMiners[i].MinerID, loadedMiners) {
-				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.broadcastMiners[i])
-				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.broadcastMiners[i].MinerID)
+		for _, broadcastMiner := range c.options.config.minercraftConfig.broadcastMiners {
+			if !utils.StringInSlice(broadcastMiner.MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, broadcastMiner)
+				loadedMiners = append(loadedMiners, broadcastMiner.MinerID)
 			}
 		}
 
 		// Loop all query miners and append to the list of miners
-		for i := range c.options.config.minercraftConfig.queryMiners {
-			if !utils.StringInSlice(c.options.config.minercraftConfig.queryMiners[i].MinerID, loadedMiners) {
-				optionalMiners = append(optionalMiners, c.options.config.minercraftConfig.queryMiners[i])
-				loadedMiners = append(loadedMiners, c.options.config.minercraftConfig.queryMiners[i].MinerID)
+		for _, queryMiner := range c.options.config.minercraftConfig.queryMiners {
+			if !utils.StringInSlice(queryMiner.MinerID, loadedMiners) {
+				optionalMiners = append(optionalMiners, queryMiner)
+				loadedMiners = append(loadedMiners, queryMiner.MinerID)
 			}
 		}
 		c.options.config.minercraft, err = minercraft.NewClient(

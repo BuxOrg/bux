@@ -3,6 +3,7 @@ package chainstate
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/logging"
@@ -200,6 +201,8 @@ func (c *Client) checkFeeUnit() error {
 	switch {
 	case feeUnit == nil:
 		return errors.New("no fee unit found")
+	case !feeUnit.IsValid():
+		return fmt.Errorf("invalid fee unit found: %s", feeUnit)
 	case feeUnit.IsZero():
 		c.options.logger.Warn().Msg("fee unit suggests no fees (free)")
 	default:

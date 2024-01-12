@@ -25,15 +25,32 @@ func (f *FeeUnit) IsZero() bool {
 	return f.Satoshis == 0
 }
 
+// IsValid returns true if the Bytes in fee are greater than 0
+func (f *FeeUnit) IsValid() bool {
+	return f.Bytes > 0
+}
+
+// ValidFees filters out invalid fees from a list of fee units
+func ValidFees(feeUnits []FeeUnit) []FeeUnit {
+	validFees := []FeeUnit{}
+	for _, fee := range feeUnits {
+		if fee.IsValid() {
+			validFees = append(validFees, fee)
+		}
+	}
+	return validFees
+}
+
 // LowestFee get the lowest fee from a list of fee units, if defaultValue exists and none is found, return defaultValue
 func LowestFee(feeUnits []FeeUnit, defaultValue *FeeUnit) *FeeUnit {
-	if len(feeUnits) == 0 {
+	validFees := ValidFees(feeUnits)
+	if len(validFees) == 0 {
 		return defaultValue
 	}
-	minFee := feeUnits[0]
-	for i := 1; i < len(feeUnits); i++ {
-		if feeUnits[i].IsLowerThan(&minFee) {
-			minFee = feeUnits[i]
+	minFee := validFees[0]
+	for i := 1; i < len(validFees); i++ {
+		if validFees[i].IsLowerThan(&minFee) {
+			minFee = validFees[i]
 		}
 	}
 	return &minFee

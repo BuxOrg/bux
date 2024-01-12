@@ -2,8 +2,6 @@ package chainstate
 
 import (
 	"time"
-
-	"github.com/BuxOrg/bux/utils"
 )
 
 // Chainstate configuration defaults
@@ -49,14 +47,6 @@ const (
 	ProviderBroadcastClient = "broadcastclient" // Query & broadcast provider for configured miners
 	ProviderNone            = "none"            // No providers (used to indicate no providers)
 )
-
-// DefaultFee is used when a fee has not been set by the user
-// This default is currently accepted by all BitcoinSV miners (50/1000) (7.27.23)
-// Actual TAAL FeeUnit - 1/1000, GorillaPool - 50/1000 (7.27.23)
-var DefaultFee = &utils.FeeUnit{
-	Satoshis: 1,
-	Bytes:    20,
-}
 
 // BlockInfo is the response info about a returned block
 type BlockInfo struct {

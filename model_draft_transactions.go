@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
@@ -62,14 +61,8 @@ func newDraftTransaction(rawXpubKey string, config *TransactionConfig, opts ...M
 		),
 	}
 
-	// Set the fee (if not found) (if chainstate is loaded, use the first miner)
-	// todo: make this more intelligent or allow the config to dictate the miner selection
 	if config.FeeUnit == nil {
-		if c := draft.Client(); c != nil {
-			draft.Configuration.FeeUnit = c.Chainstate().FeeUnit()
-		} else {
-			draft.Configuration.FeeUnit = chainstate.DefaultFee
-		}
+		draft.Configuration.FeeUnit = draft.Client().Chainstate().FeeUnit()
 	}
 	return draft
 }

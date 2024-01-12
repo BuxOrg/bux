@@ -45,7 +45,9 @@ func TestDraftTransaction_newDraftTransaction(t *testing.T) {
 	t.Run("valid config", func(t *testing.T) {
 		expires := time.Now().UTC().Add(defaultDraftTxExpiresIn)
 		draftTx := newDraftTransaction(
-			testXPub, &TransactionConfig{}, New(),
+			testXPub, &TransactionConfig{
+				FeeUnit: chainstate.MockDefaultFee,
+			}, New(),
 		)
 		require.NotNil(t, draftTx)
 		assert.NotEqual(t, "", draftTx.ID)
@@ -53,7 +55,7 @@ func TestDraftTransaction_newDraftTransaction(t *testing.T) {
 		assert.WithinDurationf(t, expires, draftTx.ExpiresAt, 1*time.Second, "within 1 second")
 		assert.Equal(t, DraftStatusDraft, draftTx.Status)
 		assert.Equal(t, testXPubID, draftTx.XpubID)
-		assert.Equal(t, chainstate.DefaultFee, draftTx.Configuration.FeeUnit)
+		assert.Equal(t, *chainstate.MockDefaultFee, *draftTx.Configuration.FeeUnit)
 	})
 }
 
@@ -62,7 +64,9 @@ func TestDraftTransaction_GetModelName(t *testing.T) {
 	t.Parallel()
 
 	t.Run("model name", func(t *testing.T) {
-		draftTx := newDraftTransaction(testXPub, &TransactionConfig{}, New())
+		draftTx := newDraftTransaction(testXPub, &TransactionConfig{
+			FeeUnit: chainstate.MockDefaultFee,
+		}, New())
 		require.NotNil(t, draftTx)
 		assert.Equal(t, ModelDraftTransaction.String(), draftTx.GetModelName())
 	})
@@ -76,6 +80,7 @@ func TestDraftTransaction_getOutputSatoshis(t *testing.T) {
 				ChangeDestinations: []*Destination{{
 					LockingScript: testLockingScript,
 				}},
+				FeeUnit: chainstate.MockDefaultFee,
 			},
 		)
 		changSatoshis, err := draftTx.getChangeSatoshis(1000000)
@@ -91,6 +96,7 @@ func TestDraftTransaction_getOutputSatoshis(t *testing.T) {
 				ChangeDestinations: []*Destination{{
 					LockingScript: testLockingScript,
 				}},
+				FeeUnit: chainstate.MockDefaultFee,
 			},
 		)
 		changSatoshis, err := draftTx.getChangeSatoshis(1000000)
@@ -107,6 +113,7 @@ func TestDraftTransaction_getOutputSatoshis(t *testing.T) {
 				}, {
 					LockingScript: testTxInScriptPubKey,
 				}},
+				FeeUnit: chainstate.MockDefaultFee,
 			},
 		)
 		changSatoshis, err := draftTx.getChangeSatoshis(1000001)
@@ -127,6 +134,7 @@ func TestDraftTransaction_getOutputSatoshis(t *testing.T) {
 				}, {
 					LockingScript: testTxScriptPubKey1,
 				}},
+				FeeUnit: chainstate.MockDefaultFee,
 			},
 		)
 		satoshis := uint64(1000001)
@@ -272,7 +280,7 @@ func TestDraftTransaction_createTransaction(t *testing.T) {
 		assert.Equal(t, uint64(98988), draftTransaction.Configuration.ChangeSatoshis)
 
 		assert.Equal(t, uint64(12), draftTransaction.Configuration.Fee)
-		assert.Equal(t, chainstate.DefaultFee, draftTransaction.Configuration.FeeUnit)
+		assert.Equal(t, *chainstate.MockDefaultFee, *draftTransaction.Configuration.FeeUnit)
 
 		assert.Equal(t, 1, len(draftTransaction.Configuration.Inputs))
 		assert.Equal(t, testLockingScript, draftTransaction.Configuration.Inputs[0].ScriptPubKey)
@@ -1398,7 +1406,7 @@ func TestDraftTransaction_estimateFees(t *testing.T) {
 				b, _ := json.Marshal(in["feeUnit"])
 				_ = json.Unmarshal(b, &feeUnit)
 			} else {
-				feeUnit = chainstate.DefaultFee
+				feeUnit = chainstate.MockDefaultFee
 			}
 			draftTransaction, tx, err2 := createDraftTransactionFromHex(in["hex"].(string), in["inputs"].([]interface{}), feeUnit)
 			require.NoError(t, err2)

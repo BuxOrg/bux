@@ -18,16 +18,16 @@ type txBroadcastProvider interface {
 
 // mAPI provider
 type mapiBroadcastProvider struct {
-	miner       *Miner
+	miner       *minercraft.Miner
 	txID, txHex string
 }
 
 func (provider mapiBroadcastProvider) getName() string {
-	return provider.miner.Miner.Name
+	return provider.miner.Name
 }
 
 func (provider mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastMAPI(ctx, c, provider.miner.Miner, provider.txID, provider.txHex)
+	return broadcastMAPI(ctx, c, provider.miner, provider.txID, provider.txHex)
 }
 
 // broadcastMAPI will broadcast a transaction to a miner using mAPI

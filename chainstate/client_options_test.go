@@ -139,64 +139,6 @@ func TestWithBroadcastClient(t *testing.T) {
 	})
 }
 
-// TestWithBroadcastMiners will test the method WithBroadcastMiners()
-func TestWithBroadcastMiners(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithBroadcastMiners(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		opt := WithBroadcastMiners(nil)
-		opt(options)
-		assert.Nil(t, options.config.minercraftConfig.broadcastMiners)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		miners := []*Miner{{Miner: minerTaal}}
-		opt := WithBroadcastMiners(miners)
-		opt(options)
-		assert.Equal(t, miners, options.config.minercraftConfig.broadcastMiners)
-	})
-}
-
-// TestWithQueryMiners will test the method WithQueryMiners()
-func TestWithQueryMiners(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithQueryMiners(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		opt := WithQueryMiners(nil)
-		opt(options)
-		assert.Nil(t, options.config.minercraftConfig.queryMiners)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		miners := []*Miner{{Miner: minerTaal}}
-		opt := WithQueryMiners(miners)
-		opt(options)
-		assert.Equal(t, miners, options.config.minercraftConfig.queryMiners)
-	})
-}
-
 // TestWithQueryTimeout will test the method WithQueryTimeout()
 func TestWithQueryTimeout(t *testing.T) {
 	t.Parallel()

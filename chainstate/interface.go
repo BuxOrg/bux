@@ -35,14 +35,6 @@ type ProviderServices interface {
 	BroadcastClient() broadcast.Client
 }
 
-// MinercraftServices is the minercraft services interface
-type MinercraftServices interface {
-	BroadcastMiners() []*Miner
-	QueryMiners() []*Miner
-	ValidateMiners(ctx context.Context)
-	FeeUnit() *utils.FeeUnit
-}
-
 // HeaderService is header services interface
 type HeaderService interface {
 	VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRootConfirmationRequestItem) error
@@ -52,7 +44,6 @@ type HeaderService interface {
 type ClientInterface interface {
 	ChainService
 	ProviderServices
-	MinercraftServices
 	HeaderService
 	Close(ctx context.Context)
 	Debug(on bool)
@@ -63,6 +54,7 @@ type ClientInterface interface {
 	Monitor() MonitorService
 	Network() Network
 	QueryTimeout() time.Duration
+	FeeUnit() *utils.FeeUnit
 }
 
 // MonitorClient interface

@@ -46,13 +46,7 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 ) (*Transaction, error) {
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
-	allowUnknown := true
-	monitor := c.options.chainstate.Monitor()
-	if monitor != nil {
-		allowUnknown = monitor.AllowUnknownTransactions()
-	}
-
-	return saveRawTransaction(ctx, c, allowUnknown, txHex, opts...)
+	return saveRawTransaction(ctx, c, true, txHex, opts...)
 }
 
 // NewTransaction will create a new draft transaction and return it

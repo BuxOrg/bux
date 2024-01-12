@@ -26,7 +26,6 @@ type (
 		config          *syncConfig     // Configuration for broadcasting and other chain-state actions
 		debug           bool            // For extra logs and additional debug information
 		logger          *zerolog.Logger // Logger interface
-		monitor         MonitorService  // Monitor service
 		newRelicEnabled bool            // If NewRelic is enabled (parent application)
 		userAgent       string          // Custom user agent for outgoing HTTP Requests
 	}
@@ -100,11 +99,6 @@ func (c *Client) Close(ctx context.Context) {
 			c.options.config.minercraft = nil
 		}
 
-		// Stop the active Monitor (if not already stopped)
-		if c.options.monitor != nil {
-			_ = c.options.monitor.Stop(ctx)
-			c.options.monitor = nil
-		}
 	}
 }
 
@@ -141,11 +135,6 @@ func (c *Client) Network() Network {
 // Minercraft will return the Minercraft client
 func (c *Client) Minercraft() minercraft.ClientInterface {
 	return c.options.config.minercraft
-}
-
-// Monitor will return the Monitor client
-func (c *Client) Monitor() MonitorService {
-	return c.options.monitor
 }
 
 // BroadcastClient will return the BroadcastClient client

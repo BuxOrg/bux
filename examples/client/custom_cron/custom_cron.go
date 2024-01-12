@@ -11,8 +11,8 @@ import (
 func main() {
 	client, err := bux.NewClient(
 		context.Background(), // Set context
-		bux.WithCronCustomPeriod(bux.CronJobNameDraftTransactionCleanUp, 2*time.Second),
-		bux.WithCronCustomPeriod(bux.CronJobNameIncomingTransaction, 4*time.Second),
+		bux.WithCronCustmPeriod(bux.CronJobNameDraftTransactionCleanUp, 2*time.Second),
+		bux.WithCronCustmPeriod(bux.CronJobNameSyncTransactionSync, 4*time.Second),
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())

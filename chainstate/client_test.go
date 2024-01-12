@@ -103,16 +103,14 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, TestNet, c.Network())
 	})
 
-	t.Run("custom network - stn", func(t *testing.T) {
-		c, err := NewClient(
+	t.Run("no provider when using minercraft with customNet", func(t *testing.T) {
+		_, err := NewClient(
 			context.Background(),
 			WithNetwork(StressTestNet),
 			WithMinercraft(&MinerCraftBase{}),
-			WithFeeUnit(DefaultFee()),
+			WithFeeUnit(MockDefaultFee),
 		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, StressTestNet, c.Network())
+		require.Error(t, err)
 	})
 
 	t.Run("unreacheble miners", func(t *testing.T) {

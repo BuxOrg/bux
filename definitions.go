@@ -6,16 +6,14 @@ import (
 
 // Defaults for engine functionality
 const (
-	changeOutputSize               = uint64(35)       // Average size in bytes of a change output
-	databaseLongReadTimeout        = 30 * time.Second // For all "GET" or "SELECT" methods
-	defaultBroadcastTimeout        = 25 * time.Second // Default timeout for broadcasting
-	defaultCacheLockTTL            = 20               // in Seconds
-	defaultCacheLockTTW            = 10               // in Seconds
-	defaultDatabaseReadTimeout     = 20 * time.Second // For all "GET" or "SELECT" methods
-	defaultDraftTxExpiresIn        = 20 * time.Second // Default TTL for draft transactions
-	defaultHTTPTimeout             = 20 * time.Second // Default timeout for HTTP requests
-	defaultMonitorSleep            = 2 * time.Second
-	defaultMonitorLockTTL          = 10                // in seconds - should be larger than defaultMonitorSleep
+	changeOutputSize               = uint64(35)        // Average size in bytes of a change output
+	databaseLongReadTimeout        = 30 * time.Second  // For all "GET" or "SELECT" methods
+	defaultBroadcastTimeout        = 25 * time.Second  // Default timeout for broadcasting
+	defaultCacheLockTTL            = 20                // in Seconds
+	defaultCacheLockTTW            = 10                // in Seconds
+	defaultDatabaseReadTimeout     = 20 * time.Second  // For all "GET" or "SELECT" methods
+	defaultDraftTxExpiresIn        = 20 * time.Second  // Default TTL for draft transactions
+	defaultHTTPTimeout             = 20 * time.Second  // Default timeout for HTTP requests
 	defaultOverheadSize            = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime
 	defaultQueryTxTimeout          = 10 * time.Second  // Default timeout for syncing on-chain information
 	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
@@ -28,18 +26,17 @@ const (
 
 // All the base models
 const (
-	ModelAccessKey           ModelName = "access_key"
-	ModelBlockHeader         ModelName = "block_header"
-	ModelDestination         ModelName = "destination"
-	ModelDraftTransaction    ModelName = "draft_transaction"
-	ModelIncomingTransaction ModelName = "incoming_transaction"
-	ModelMetadata            ModelName = "metadata"
-	ModelNameEmpty           ModelName = "empty"
-	ModelPaymailAddress      ModelName = "paymail_address"
-	ModelSyncTransaction     ModelName = "sync_transaction"
-	ModelTransaction         ModelName = "transaction"
-	ModelUtxo                ModelName = "utxo"
-	ModelXPub                ModelName = "xpub"
+	ModelAccessKey        ModelName = "access_key"
+	ModelBlockHeader      ModelName = "block_header"
+	ModelDestination      ModelName = "destination"
+	ModelDraftTransaction ModelName = "draft_transaction"
+	ModelMetadata         ModelName = "metadata"
+	ModelNameEmpty        ModelName = "empty"
+	ModelPaymailAddress   ModelName = "paymail_address"
+	ModelSyncTransaction  ModelName = "sync_transaction"
+	ModelTransaction      ModelName = "transaction"
+	ModelUtxo             ModelName = "utxo"
+	ModelXPub             ModelName = "xpub"
 )
 
 // AllModelNames is a list of all models
@@ -47,7 +44,6 @@ var AllModelNames = []ModelName{
 	ModelAccessKey,
 	ModelBlockHeader,
 	ModelDestination,
-	ModelIncomingTransaction,
 	ModelMetadata,
 	ModelPaymailAddress,
 	ModelPaymailAddress,
@@ -59,16 +55,15 @@ var AllModelNames = []ModelName{
 
 // Internal table names
 const (
-	tableAccessKeys           = "access_keys"
-	tableBlockHeaders         = "block_headers"
-	tableDestinations         = "destinations"
-	tableDraftTransactions    = "draft_transactions"
-	tableIncomingTransactions = "incoming_transactions"
-	tablePaymailAddresses     = "paymail_addresses"
-	tableSyncTransactions     = "sync_transactions"
-	tableTransactions         = "transactions"
-	tableUTXOs                = "utxos"
-	tableXPubs                = "xpubs"
+	tableAccessKeys        = "access_keys"
+	tableBlockHeaders      = "block_headers"
+	tableDestinations      = "destinations"
+	tableDraftTransactions = "draft_transactions"
+	tablePaymailAddresses  = "paymail_addresses"
+	tableSyncTransactions  = "sync_transactions"
+	tableTransactions      = "transactions"
+	tableUTXOs             = "utxos"
+	tableXPubs             = "xpubs"
 )
 
 const (
@@ -151,11 +146,6 @@ var BaseModels = []interface{}{
 	// Draft transactions are created before the final transaction is completed
 	&DraftTransaction{
 		Model: *NewBaseModel(ModelDraftTransaction),
-	},
-
-	// Incoming transactions (external & unknown) (related to Transaction & Draft)
-	&IncomingTransaction{
-		Model: *NewBaseModel(ModelIncomingTransaction),
 	},
 
 	// Finalized transactions (related to Draft)

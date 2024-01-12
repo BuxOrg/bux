@@ -2,12 +2,8 @@ package bux
 
 import (
 	"context"
-	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"reflect"
-	"time"
-
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-paymail"
@@ -16,7 +12,7 @@ import (
 	"github.com/bitcoin-sv/go-paymail/spv"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
-	customTypes "github.com/mrz1836/go-datastore/custom_types"
+	"reflect"
 )
 
 // PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server
@@ -89,7 +85,7 @@ func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(
 		return nil, err
 	}
 	destination, err := createDestination(
-		ctx, paymailAddress, pubKey, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, paymailAddress, pubKey, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -127,7 +123,7 @@ func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(
 		return nil, err
 	}
 	destination, err = createDestination(
-		ctx, paymailAddress, pubKey, false, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, paymailAddress, pubKey, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -247,7 +243,7 @@ func getXpubForPaymail(ctx context.Context, client ClientInterface, paymailAddre
 	)
 }
 
-func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubKey *derivedPubKey, monitor bool, opts ...ModelOps) (destination *Destination, err error) {
+func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubKey *derivedPubKey, opts ...ModelOps) (destination *Destination, err error) {
 	lockingScript, err := createLockingScript(pubKey.ecPubKey)
 	if err != nil {
 		return nil, err
@@ -258,14 +254,6 @@ func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubK
 	destination = newDestination(paymailAddress.XpubID, lockingScript, append(opts, New())...)
 	destination.Chain = utils.ChainExternal
 	destination.Num = pubKey.chainNum
-
-	// Only on for basic address resolution, not enabled for p2p
-	if monitor {
-		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
-			Valid: true,
-			Time:  time.Now(),
-		}}
-	}
 
 	if err = destination.Save(ctx); err != nil {
 		return nil, err

@@ -10,7 +10,6 @@ import (
 // Cron job names to be used in WithCronCustomPeriod
 const (
 	CronJobNameDraftTransactionCleanUp  = "draft_transaction_clean_up"
-	CronJobNameIncomingTransaction      = "incoming_transaction_process"
 	CronJobNameSyncTransactionBroadcast = "sync_transaction_broadcast"
 	CronJobNameSyncTransactionSync      = "sync_transaction_sync"
 )
@@ -30,10 +29,6 @@ func (c *Client) cronJobs() taskmanager.CronJobs {
 		CronJobNameDraftTransactionCleanUp: {
 			Period:  60 * time.Second,
 			Handler: handler(taskCleanupDraftTransactions),
-		},
-		CronJobNameIncomingTransaction: {
-			Period:  2 * time.Minute,
-			Handler: handler(taskProcessIncomingTransactions),
 		},
 		CronJobNameSyncTransactionBroadcast: {
 			Period:  2 * time.Minute,

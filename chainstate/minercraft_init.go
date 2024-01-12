@@ -41,8 +41,8 @@ type minercraftInitializer struct {
 }
 
 type (
-	minerId       string
-	minerToFeeMap map[minerId]utils.FeeUnit
+	minerID       string
+	minerToFeeMap map[minerID]utils.FeeUnit
 )
 
 func (i *minercraftInitializer) defaultMinercraftOptions() (opts *minercraft.ClientOptions) {
@@ -154,7 +154,7 @@ func (i *minercraftInitializer) getFeeQuote(ctx context.Context, miner *minercra
 func (i *minercraftInitializer) addToMinersWithFee(miner *minercraft.Miner, feeUnit *utils.FeeUnit) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	i.minersWithFee[minerId(miner.MinerID)] = *feeUnit
+	i.minersWithFee[minerID(miner.MinerID)] = *feeUnit
 }
 
 // deleteUnreacheableMiners deletes miners which can't be reacheable from config
@@ -162,7 +162,7 @@ func (i *minercraftInitializer) deleteUnreacheableMiners() {
 	c := i.client
 	validMiners := []*minercraft.Miner{}
 	for _, miner := range c.options.config.minercraftConfig.broadcastMiners {
-		_, ok := i.minersWithFee[minerId(miner.MinerID)]
+		_, ok := i.minersWithFee[minerID(miner.MinerID)]
 		if ok {
 			validMiners = append(validMiners, miner)
 		}

@@ -81,28 +81,12 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		client.options.logger = logging.GetDefaultLogger()
 	}
 
-	// Init active provider
-	var err error
-	switch client.ActiveProvider() {
-	case ProviderMinercraft:
-		err = client.minercraftInit(ctx)
-	case ProviderBroadcastClient:
-		err = client.broadcastClientInit(ctx)
-	}
-
-	if err != nil {
+	if err := client.initActiveProvider(ctx); err != nil {
 		return nil, err
 	}
 
-	// Check the fee unit
-	finalFeeUnit := client.options.config.feeUnit
-	switch {
-	case finalFeeUnit == nil:
-		return nil, errors.New("no fee unit found")
-	case finalFeeUnit.IsZero():
-		client.options.logger.Info().Msg("fee unit suggests no fees (free)")
-	default:
-		client.options.logger.Info().Msgf("using fee unit: %s", finalFeeUnit)
+	if err := client.checkFeeUnit(); err != nil {
+		return nil, err
 	}
 
 	// Return the client
@@ -184,10 +168,6 @@ func (c *Client) FeeUnit() *utils.FeeUnit {
 	return c.options.config.feeUnit
 }
 
-func (c *Client) isFeeQuotesEnabled() bool {
-	return c.options.config.feeQuotes
-}
-
 // ActiveProvider returns a name of a provider based on config.
 func (c *Client) ActiveProvider() string {
 	excluded := c.options.config.excludedProviders
@@ -198,4 +178,38 @@ func (c *Client) ActiveProvider() string {
 		return ProviderMinercraft
 	}
 	return ProviderNone
+}
+
+func (c *Client) isFeeQuotesEnabled() bool {
+	return c.options.config.feeQuotes
+}
+
+func (c *Client) initActiveProvider(ctx context.Context) error {
+	switch c.ActiveProvider() {
+	case ProviderMinercraft:
+		return c.minercraftInit(ctx)
+	case ProviderBroadcastClient:
+		return c.broadcastClientInit(ctx)
+	default:
+		return errors.New("no active provider found")
+	}
+}
+
+func (c *Client) checkFeeUnit() error {
+	feeUnit := c.options.config.feeUnit
+	switch {
+	case feeUnit == nil:
+		return errors.New("no fee unit found")
+	case feeUnit.IsZero():
+		c.options.logger.Warn().Msg("fee unit suggests no fees (free)")
+	default:
+		var feeUnitSource string
+		if c.isFeeQuotesEnabled() {
+			feeUnitSource = "fee quotes"
+		} else {
+			feeUnitSource = "configured fee_unit"
+		}
+		c.options.logger.Info().Msgf("using fee unit: %s from %s", feeUnit, feeUnitSource)
+	}
+	return nil
 }

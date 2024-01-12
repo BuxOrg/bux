@@ -2,7 +2,6 @@ package bux
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
@@ -35,7 +34,6 @@ type (
 		encryptionKey         string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
 		httpClient            HTTPInterface         // HTTP interface to use
 		importBlockHeadersURL string                // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
-		itc                   bool                  // (Incoming Transactions Check) True will check incoming transactions via Miners (real-world)
 		iuc                   bool                  // (Input UTXO Check) True will check input utxos when saving transactions
 		logger                *zerolog.Logger       // Internal logging
 		models                *modelOptions         // Configuration options for the loaded models
@@ -189,13 +187,6 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	// Load the blockchain monitor
-	if client.options.chainstate.Monitor() != nil {
-		if err = client.loadMonitor(ctx); err != nil {
-			return nil, err
-		}
-	}
-
 	// Default paymail server config (generic capabilities and domain check disabled)
 	if client.options.paymail.serverConfig.Configuration == nil {
 		if err = client.loadDefaultPaymailConfig(); err != nil {
@@ -266,19 +257,6 @@ func (c *Client) Chainstate() chainstate.ClientInterface {
 func (c *Client) Close(ctx context.Context) error {
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("close_all").End()
-	}
-
-	// If we loaded a Monitor, remove the long-lasting lock-key before closing cachestore
-	cs := c.Cachestore()
-	m := c.Chainstate().Monitor()
-	if m != nil && cs != nil && len(m.GetLockID()) > 0 {
-		_ = cs.Delete(ctx, fmt.Sprintf(lockKeyMonitorLockID, m.GetLockID()))
-	}
-
-	// Close Cachestore
-	if cs != nil {
-		cs.Close(ctx)
-		c.options.cacheStore.ClientInterface = nil
 	}
 
 	// Close Chainstate
@@ -394,16 +372,6 @@ func (c *Client) IsDebug() bool {
 // IsNewRelicEnabled will return the flag (bool)
 func (c *Client) IsNewRelicEnabled() bool {
 	return c.options.newRelic.enabled
-}
-
-// IsMempoolMonitoringEnabled will return whether mempool monitoring is on
-func (c *Client) IsMempoolMonitoringEnabled() bool {
-	return c.options.chainstate.IsNewRelicEnabled()
-}
-
-// IsITCEnabled will return the flag (bool)
-func (c *Client) IsITCEnabled() bool {
-	return c.options.itc
 }
 
 // IsIUCEnabled will return the flag (bool)

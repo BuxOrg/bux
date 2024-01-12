@@ -82,9 +82,9 @@ type DestinationService interface {
 		queryParams *datastore.QueryParams) ([]*Destination, error)
 	GetDestinationsByXpubIDCount(ctx context.Context, xPubID string, usingMetadata *Metadata,
 		conditions *map[string]interface{}) (int64, error)
-	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string, monitor bool,
+	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string,
 		opts ...ModelOps) (*Destination, error)
-	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
+	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string,
 		opts ...ModelOps) (*Destination, error)
 	UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error)
 	UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID,
@@ -195,7 +195,6 @@ type ClientInterface interface {
 	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsEncryptionKeySet() bool
-	IsITCEnabled() bool
 	IsIUCEnabled() bool
 	IsMigrationEnabled() bool
 	IsNewRelicEnabled() bool

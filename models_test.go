@@ -23,7 +23,6 @@ func TestModelName_String(t *testing.T) {
 		assert.Equal(t, "block_header", ModelBlockHeader.String())
 		assert.Equal(t, "destination", ModelDestination.String())
 		assert.Equal(t, "empty", ModelNameEmpty.String())
-		assert.Equal(t, "incoming_transaction", ModelIncomingTransaction.String())
 		assert.Equal(t, "metadata", ModelMetadata.String())
 		assert.Equal(t, "paymail_address", ModelPaymailAddress.String())
 		assert.Equal(t, "paymail_address", ModelPaymailAddress.String())
@@ -31,7 +30,7 @@ func TestModelName_String(t *testing.T) {
 		assert.Equal(t, "transaction", ModelTransaction.String())
 		assert.Equal(t, "utxo", ModelUtxo.String())
 		assert.Equal(t, "xpub", ModelXPub.String())
-		assert.Len(t, AllModelNames, 11)
+		assert.Len(t, AllModelNames, 10)
 	})
 }
 
@@ -73,9 +72,6 @@ func TestModel_GetModelName(t *testing.T) {
 		draftTx := DraftTransaction{}
 		assert.Equal(t, ModelDraftTransaction.String(), *datastore.GetModelName(draftTx))
 
-		incomingTx := IncomingTransaction{}
-		assert.Equal(t, ModelIncomingTransaction.String(), *datastore.GetModelName(incomingTx))
-
 		paymailAddress := PaymailAddress{}
 		assert.Equal(t, ModelPaymailAddress.String(), *datastore.GetModelName(paymailAddress))
 
@@ -110,9 +106,6 @@ func TestModel_GetModelTableName(t *testing.T) {
 
 		draftTx := DraftTransaction{}
 		assert.Equal(t, tableDraftTransactions, *datastore.GetModelTableName(draftTx))
-
-		incomingTx := IncomingTransaction{}
-		assert.Equal(t, tableIncomingTransactions, *datastore.GetModelTableName(incomingTx))
 
 		paymailAddress := PaymailAddress{}
 		assert.Equal(t, tablePaymailAddresses, *datastore.GetModelTableName(paymailAddress))

@@ -41,9 +41,6 @@ func defaultClientOptions() *clientOptions {
 	datastoreLogger := logging.CreateGormLoggerAdapter(&dWarnLogger, "datastore")
 	// Set the default options
 	return &clientOptions{
-		// Incoming Transaction Checker (lookup external tx via miner for validity)
-		itc: true,
-
 		// By default check input utxos (unless disabled by the user)
 		iuc: true,
 
@@ -236,13 +233,6 @@ func WithModels(models ...interface{}) ClientOps {
 		if len(models) > 0 {
 			c.addModels(modelList, models...)
 		}
-	}
-}
-
-// WithITCDisabled will disable (ITC) incoming transaction checking
-func WithITCDisabled() ClientOps {
-	return func(c *clientOptions) {
-		c.itc = false
 	}
 }
 

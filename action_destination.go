@@ -2,18 +2,14 @@ package bux
 
 import (
 	"context"
-	"database/sql"
-	"time"
-
 	"github.com/mrz1836/go-datastore"
-	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 // NewDestination will get a new destination for an existing xPub
 //
 // xPubKey is the raw public xPub
 func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint32,
-	destinationType string, monitor bool, opts ...ModelOps) (*Destination, error) {
+	destinationType string, opts ...ModelOps) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination")
@@ -39,13 +35,6 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 		return nil, err
 	}
 
-	if monitor {
-		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
-			Valid: true,
-			Time:  time.Now(),
-		}}
-	}
-
 	// Save the destination
 	if err = destination.Save(ctx); err != nil {
 		return nil, err
@@ -57,7 +46,7 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 
 // NewDestinationForLockingScript will create a new destination based on a locking script
 func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string,
-	monitor bool, opts ...ModelOps) (*Destination, error) {
+	opts ...ModelOps) (*Destination, error) {
 
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination_for_locking_script")
@@ -77,6 +66,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 		return nil, ErrUnknownLockingScript
 	}
 
+<<<<<<< HEAD
 	// set the monitoring, passed down from the initiating function
 	// this will be set when calling NewDestination from http, but not for instance paymail
 	if monitor {
@@ -86,6 +76,8 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 		}}
 	}
 
+=======
+>>>>>>> 06feaba (feat(BUX-417): remove monitor, ITC flag and IncomingTransaction (#532))
 	// Save the destination
 	if err := destination.Save(ctx); err != nil {
 		return nil, err

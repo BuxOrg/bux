@@ -552,8 +552,8 @@ func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
 	}
 }
 
-// WithCronCustmPeriod will set the custom cron jobs period which will override the default
-func WithCronCustmPeriod(cronJobName string, period time.Duration) ClientOps {
+// WithCronCustomPeriod will set the custom cron jobs period which will override the default
+func WithCronCustomPeriod(cronJobName string, period time.Duration) ClientOps {
 	return func(c *clientOptions) {
 		if c.taskManager != nil {
 			c.taskManager.cronCustomPeriods[cronJobName] = period

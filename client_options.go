@@ -459,9 +459,7 @@ func WithPaymailClient(client paymail.ClientInterface) ClientOps {
 }
 
 // WithPaymailSupport will set the configuration for Paymail support (as a server)
-func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string,
-	domainValidation, senderValidation bool,
-) ClientOps {
+func WithPaymailSupport(domains []string, defaultFromPaymail string, domainValidation, senderValidation bool) ClientOps {
 	return func(c *clientOptions) {
 		// Add generic capabilities
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithP2PCapabilities())
@@ -485,9 +483,6 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 		if len(defaultFromPaymail) > 0 {
 			c.paymail.serverConfig.DefaultFromPaymail = defaultFromPaymail
 		}
-		if len(defaultNote) > 0 {
-			c.paymail.serverConfig.DefaultNote = defaultNote
-		}
 
 		// Add the paymail_address model in bux
 		c.addModels(migrateList, newPaymail(""))
@@ -509,16 +504,13 @@ func WithPaymailBeefSupport(pulseURL, pulseAuthToken string) ClientOps {
 // WithPaymailServerConfig will set the custom server configuration for Paymail
 //
 // This will allow overriding the Configuration.actions (paymail service provider)
-func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, defaultNote string) ClientOps {
+func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail string) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil {
 			c.paymail.serverConfig.Configuration = config
 		}
 		if len(defaultFromPaymail) > 0 {
 			c.paymail.serverConfig.DefaultFromPaymail = defaultFromPaymail
-		}
-		if len(defaultNote) > 0 {
-			c.paymail.serverConfig.DefaultNote = defaultNote
 		}
 
 		// Add the paymail_address model in bux

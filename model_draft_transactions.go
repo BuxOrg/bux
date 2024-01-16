@@ -173,7 +173,6 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 			ctx, c.Cachestore(),
 			c.PaymailClient(),
 			paymailFrom,
-			c.GetPaymailConfig().DefaultNote,
 			false,
 		); err != nil {
 			return err
@@ -186,7 +185,6 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 				ctx, c.Cachestore(),
 				c.PaymailClient(),
 				paymailFrom,
-				c.GetPaymailConfig().DefaultNote,
 				true,
 			); err != nil {
 				return err
@@ -207,7 +205,6 @@ func (m *DraftTransaction) processConfigOutputs(ctx context.Context) error {
 				ctx, c.Cachestore(),
 				c.PaymailClient(),
 				paymailFrom,
-				c.GetPaymailConfig().DefaultNote,
 				true,
 			); err != nil {
 				return err

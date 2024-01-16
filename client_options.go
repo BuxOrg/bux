@@ -660,13 +660,6 @@ func WithFeeUnit(feeUnit *utils.FeeUnit) ClientOps {
 	}
 }
 
-// WithArc will specify Arc as an API for minercraft client
-func WithArc() ClientOps {
-	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithArc())
-	}
-}
-
 // WithMAPI will specify Arc as an API for minercraft client
 func WithMAPI() ClientOps {
 	return func(c *clientOptions) {

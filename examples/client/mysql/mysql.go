@@ -33,7 +33,7 @@ func main() {
 			TxTimeout: defaultTimeouts,
 			User:      os.Getenv("DB_USER"),
 		}),
-		bux.WithPaymailSupport([]string{"test.com"}, "example@test.com", "Example note", false, false),
+		bux.WithPaymailSupport([]string{"test.com"}, "example@test.com", false, false),
 		bux.WithAutoMigrate(bux.BaseModels...),
 	)
 	if err != nil {

@@ -13,7 +13,6 @@ func main() {
 		bux.WithPaymailSupport(
 			[]string{"test.com"},
 			"from@test.com",
-			"some default note",
 			true, false,
 		),
 	)

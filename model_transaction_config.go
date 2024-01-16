@@ -163,7 +163,7 @@ func (t TransactionConfig) Value() (driver.Value, error) {
 
 // processOutput will inspect the output to determine how to process
 func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, defaultFromSender, defaultNote string, checkSatoshis bool,
+	paymailClient paymail.ClientInterface, defaultFromSender string, checkSatoshis bool,
 ) error {
 	// Convert known handle formats ($handcash or 1relayx)
 	if strings.Contains(t.To, handleHandcashPrefix) ||
@@ -180,7 +180,7 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 		if checkSatoshis && t.Satoshis <= 0 {
 			return ErrOutputValueTooLow
 		}
-		return t.processPaymailOutput(ctx, cacheStore, paymailClient, defaultFromSender, defaultNote)
+		return t.processPaymailOutput(ctx, cacheStore, paymailClient, defaultFromSender)
 	} else if len(t.To) > 0 { // Standard Bitcoin Address
 		if checkSatoshis && t.Satoshis <= 0 {
 			return ErrOutputValueTooLow
@@ -198,7 +198,7 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 
 // processPaymailOutput will detect how to process the Paymail output given
 func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, fromPaymail, defaultNote string,
+	paymailClient paymail.ClientInterface, fromPaymail string,
 ) error {
 	// Standardize the paymail address (break into parts)
 	alias, domain, paymailAddress := paymail.SanitizePaymail(t.To)
@@ -236,51 +236,7 @@ func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore
 		)
 	}
 
-	// Default is resolving using the deprecated address resolution method
-	return t.processPaymailViaAddressResolution(
-		ctx, cacheStore, paymailClient, capabilities,
-		fromPaymail, defaultNote,
-	)
-}
-
-// processPaymailViaAddressResolution will use a deprecated way to resolve a Paymail address
-func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, capabilities *paymail.CapabilitiesPayload, defaultFromSender, defaultNote string,
-) error {
-	// Requires a note value
-	if len(t.PaymailP4.Note) == 0 {
-		t.PaymailP4.Note = defaultNote
-	}
-	if len(t.PaymailP4.FromPaymail) == 0 {
-		t.PaymailP4.FromPaymail = defaultFromSender
-	}
-
-	// Resolve the address information
-	resolution, err := resolvePaymailAddress(
-		ctx, cacheStore, paymailClient, capabilities,
-		t.PaymailP4.Alias, t.PaymailP4.Domain,
-		t.PaymailP4.Note,
-		t.PaymailP4.FromPaymail,
-	)
-	if err != nil {
-		return err
-	} else if resolution == nil {
-		return ErrResolutionFailed
-	}
-
-	// Set the output data
-	t.Scripts = append(
-		t.Scripts,
-		&ScriptOutput{
-			Address:    resolution.Address,
-			Satoshis:   t.Satoshis,
-			Script:     resolution.Output,
-			ScriptType: utils.ScriptTypePubKeyHash,
-		},
-	)
-	t.PaymailP4.ResolutionType = ResolutionTypeBasic
-
-	return nil
+	return fmt.Errorf("paymail provider does not support P2P")
 }
 
 // processPaymailViaP2P will process the output for P2P Paymail resolution

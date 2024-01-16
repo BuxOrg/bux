@@ -58,8 +58,8 @@ func newUtxo(xPubID, txID, scriptPubKey string, index uint32, satoshis uint64, o
 
 // getSpendableUtxos get all spendable utxos by page / pageSize
 func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams *datastore.QueryParams, //nolint:nolintlint,unparam // this param will be used
-	fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
-
+	fromUtxos []*UtxoPointer, opts ...ModelOps,
+) ([]*Utxo, error) {
 	// Construct the conditions and results
 	var models []Utxo
 	conditions := map[string]interface{}{
@@ -145,8 +145,8 @@ func unReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOp
 
 // reserveUtxos reserve utxos for the given draft ID and amount
 func reserveUtxos(ctx context.Context, xPubID, draftID string,
-	satoshis uint64, feePerByte float64, fromUtxos []*UtxoPointer, opts ...ModelOps) ([]*Utxo, error) {
-
+	satoshis uint64, feePerByte float64, fromUtxos []*UtxoPointer, opts ...ModelOps,
+) ([]*Utxo, error) {
 	// Create base model
 	m := NewBaseModel(ModelNameEmpty, opts...)
 
@@ -166,7 +166,7 @@ func reserveUtxos(ctx context.Context, xPubID, draftID string,
 
 	queryParams := &datastore.QueryParams{}
 	if fromUtxos == nil {
-		// if we are not getting all utxos, paginate the retreival
+		// if we are not getting all utxos, paginate the retrieval
 		queryParams.Page = 1
 		queryParams.PageSize = m.pageSize
 		if queryParams.PageSize == 0 {
@@ -258,8 +258,8 @@ func newUtxoFromTxID(txID string, index uint32, opts ...ModelOps) *Utxo {
 
 // getUtxos will get all the utxos with the given conditions
 func getUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Utxo, error) {
 	modelItems := make([]*Utxo, 0)
 	if err := getModelsByConditions(ctx, ModelUtxo, &modelItems, metadata, conditions, queryParams, opts...); err != nil {
 		return nil, err
@@ -270,14 +270,15 @@ func getUtxos(ctx context.Context, metadata *Metadata, conditions *map[string]in
 
 // getAccessKeysCount will get a count of all the utxos with the given conditions
 func getUtxosCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	opts ...ModelOps) (int64, error) {
+	opts ...ModelOps,
+) (int64, error) {
 	return getModelCountByConditions(ctx, ModelUtxo, Utxo{}, metadata, conditions, opts...)
 }
 
 // getTransactionsAggregate will get a count of all transactions per aggregate column with the given conditions
 func getUtxosAggregate(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-	aggregateColumn string, opts ...ModelOps) (map[string]interface{}, error) {
-
+	aggregateColumn string, opts ...ModelOps,
+) (map[string]interface{}, error) {
 	modelItems := make([]*Utxo, 0)
 	results, err := getModelsAggregateByConditions(
 		ctx, ModelUtxo, &modelItems, metadata, conditions, aggregateColumn, opts...,
@@ -291,9 +292,9 @@ func getUtxosAggregate(ctx context.Context, metadata *Metadata, conditions *map[
 
 // getUtxosByXpubID will return utxos by a given xPub ID
 func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
-
-	var dbConditions = map[string]interface{}{}
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Utxo, error) {
+	dbConditions := map[string]interface{}{}
 	if conditions != nil {
 		dbConditions = *conditions
 	}
@@ -308,8 +309,8 @@ func getUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, co
 
 // getUtxosByDraftID will return the utxos by a given draft id
 func getUtxosByDraftID(ctx context.Context, draftID string,
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Utxo, error) {
 	conditions := map[string]interface{}{
 		draftIDField: draftID,
 	}
@@ -318,8 +319,8 @@ func getUtxosByDraftID(ctx context.Context, draftID string,
 
 // getUtxosByConditions will get utxos by given conditions
 func getUtxosByConditions(ctx context.Context, conditions map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Utxo, error) {
-
+	queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Utxo, error) {
 	var models []Utxo
 	if err := getModels(
 		ctx, NewBaseModel(
@@ -343,7 +344,6 @@ func getUtxosByConditions(ctx context.Context, conditions map[string]interface{}
 
 // getUtxo will get the utxo with the given conditions
 func getUtxo(ctx context.Context, txID string, index uint32, opts ...ModelOps) (*Utxo, error) {
-
 	// Start the new model
 	utxo := newUtxoFromTxID(txID, index, opts...)
 
@@ -389,7 +389,6 @@ func (m *Utxo) GetID() string {
 
 // BeforeCreating will fire before the model is being inserted into the Datastore
 func (m *Utxo) BeforeCreating(_ context.Context) error {
-
 	m.Client().Logger().Debug().
 		Str("utxoID", m.ID).
 		Msgf("starting: %s BeforeCreate hook...", m.Name())
@@ -447,7 +446,6 @@ func (m *Utxo) GenerateID() string {
 
 // Migrate model specific migration on startup
 func (m *Utxo) Migrate(client datastore.ClientInterface) error {
-
 	tableName := client.GetTableName(tableUTXOs)
 	if client.Engine() == datastore.MySQL {
 		if err := m.migrateMySQL(client, tableName); err != nil {

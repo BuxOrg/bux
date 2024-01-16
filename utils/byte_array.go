@@ -14,6 +14,7 @@ func ToByteArray(value interface{}) ([]byte, error) {
 	}
 }
 
+// StrOrBytesToString converts string or []byte to string or returns an error
 func StrOrBytesToString(value interface{}) (string, error) {
 	switch typedValue := value.(type) {
 	case []byte:

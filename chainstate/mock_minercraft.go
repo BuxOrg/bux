@@ -524,11 +524,11 @@ func (m *minerCraftBroadcastSuccess) SubmitTransaction(_ context.Context, miner 
 	return nil, errors.New("missing miner response")
 }
 
-type minerCraftUnreachble struct {
+type minerCraftUnreachable struct {
 	MinerCraftBase
 }
 
 // FeeQuote returns an error.
-func (m *minerCraftUnreachble) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
+func (m *minerCraftUnreachable) FeeQuote(context.Context, *minercraft.Miner) (*minercraft.FeeQuoteResponse, error) {
 	return nil, errors.New("minercraft is unreachable")
 }

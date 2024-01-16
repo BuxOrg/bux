@@ -87,9 +87,9 @@ func (i *minercraftInitializer) newClient() (err error) {
 	return
 }
 
-// validateMiners will check if miner is reacheble by requesting its FeeQuote
+// validateMiners will check if miner is reachable by requesting its FeeQuote
 // If there was on error on FeeQuote(), the miner will be deleted from miners list
-// If usage of MapiFeeQuotes is enabled and miner is reacheble, miner's fee unit will be upadeted with MAPI fee quotes
+// If usage of MapiFeeQuotes is enabled and miner is reachable, miner's fee unit will be updated with MAPI fee quotes
 // If FeeQuote returns some quote, but fee is not presented in it, it means that miner is valid but we can't use it's feequote
 func (i *minercraftInitializer) validateMiners() error {
 	ctxWithCancel, cancel := context.WithTimeout(i.ctx, 5*time.Second)
@@ -113,7 +113,7 @@ func (i *minercraftInitializer) validateMiners() error {
 	}
 	wg.Wait()
 
-	i.deleteUnreacheableMiners()
+	i.deleteUnreachableMiners()
 
 	switch {
 	case len(c.options.config.minercraftConfig.broadcastMiners) == 0:
@@ -157,8 +157,8 @@ func (i *minercraftInitializer) addToMinersWithFee(miner *minercraft.Miner, feeU
 	i.minersWithFee[minerID(miner.MinerID)] = *feeUnit
 }
 
-// deleteUnreacheableMiners deletes miners which can't be reacheable from config
-func (i *minercraftInitializer) deleteUnreacheableMiners() {
+// deleteUnreachableMiners deletes miners which can't be reachable from config
+func (i *minercraftInitializer) deleteUnreachableMiners() {
 	c := i.client
 	validMiners := []*minercraft.Miner{}
 	for _, miner := range c.options.config.minercraftConfig.broadcastMiners {

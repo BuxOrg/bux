@@ -117,7 +117,7 @@ func (c *Client) GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*T
 	ctx = c.GetOrStartTxn(ctx, "get_transactions_by_ids")
 
 	// Create the conditions
-	conditions := generateTxIdFilterConditions(txIDs)
+	conditions := generateTxIDFilterConditions(txIDs)
 
 	// Get the transactions by it's IDs
 	transactions, err := getTransactions(
@@ -387,7 +387,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	return err
 }
 
-func generateTxIdFilterConditions(txIDs []string) *map[string]interface{} {
+func generateTxIDFilterConditions(txIDs []string) *map[string]interface{} {
 	orConditions := make([]map[string]interface{}, len(txIDs))
 
 	for i, txID := range txIDs {

@@ -30,10 +30,18 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 		// Fire the before hooks (parent model)
 		if model.IsNew() {
 			if err = model.BeforeCreating(ctx); err != nil {
+				rollbackErr := tx.Rollback()
+				if rollbackErr != nil {
+					err = errors.Wrap(err, rollbackErr.Error())
+				}
 				return
 			}
 		} else {
 			if err = model.BeforeUpdating(ctx); err != nil {
+				rollbackErr := tx.Rollback()
+				if rollbackErr != nil {
+					err = errors.Wrap(err, rollbackErr.Error())
+				}
 				return
 			}
 		}
@@ -49,10 +57,18 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 			for _, child := range children {
 				if child.IsNew() {
 					if err = child.BeforeCreating(ctx); err != nil {
+						rollbackErr := tx.Rollback()
+						if rollbackErr != nil {
+							err = errors.Wrap(err, rollbackErr.Error())
+						}
 						return
 					}
 				} else {
 					if err = child.BeforeUpdating(ctx); err != nil {
+						rollbackErr := tx.Rollback()
+						if rollbackErr != nil {
+							err = errors.Wrap(err, rollbackErr.Error())
+						}
 						return
 					}
 				}
@@ -76,6 +92,10 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 			if err = modelsToSave[index].Client().Datastore().SaveModel(
 				ctx, modelsToSave[index], tx, modelsToSave[index].IsNew(), false,
 			); err != nil {
+				rollbackErr := tx.Rollback()
+				if rollbackErr != nil {
+					err = errors.Wrap(err, rollbackErr.Error())
+				}
 				return
 			}
 		}
@@ -104,7 +124,6 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 					err = errors.Wrap(err, afterErr.Error())
 				}
 			}
-			// modelToSave.NotNew() // NOTE: moved to above from here
 		}
 
 		return

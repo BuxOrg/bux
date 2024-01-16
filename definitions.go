@@ -106,16 +106,15 @@ const (
 	statusSkipped    = "skipped"
 
 	// Paymail / Handles
-	cacheKeyAddressResolution       = "paymail-address-resolution-"
-	cacheKeyCapabilities            = "paymail-capabilities-"
-	cacheTTLAddressResolution       = 2 * time.Minute
-	cacheTTLCapabilities            = 60 * time.Minute
-	defaultAddressResolutionPurpose = "Created with BUX: getbux.io"
-	defaultSenderPaymail            = "buxorg@moneybutton.com"
-	handleHandcashPrefix            = "$"
-	handleMaxLength                 = 25
-	handleRelayPrefix               = "1"
-	p2pMetadataField                = "p2p_tx_metadata"
+	cacheKeyAddressResolution = "paymail-address-resolution-"
+	cacheKeyCapabilities      = "paymail-capabilities-"
+	cacheTTLAddressResolution = 2 * time.Minute
+	cacheTTLCapabilities      = 60 * time.Minute
+	defaultSenderPaymail      = "buxorg@bux.com"
+	handleHandcashPrefix      = "$"
+	handleMaxLength           = 25
+	handleRelayPrefix         = "1"
+	p2pMetadataField          = "p2p_tx_metadata"
 
 	// Misc
 	gormTypeText = "text"

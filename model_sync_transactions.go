@@ -67,13 +67,6 @@ func (m *SyncTransaction) GetID() string {
 	return m.ID
 }
 
-// isSkipped will return true if Broadcasting, P2P and SyncOnChain are all skipped
-func (m *SyncTransaction) isSkipped() bool {
-	return m.BroadcastStatus == SyncStatusSkipped &&
-		m.SyncStatus == SyncStatusSkipped &&
-		m.P2PStatus == SyncStatusSkipped
-}
-
 // GetModelName will get the name of the current model
 func (m *SyncTransaction) GetModelName() string {
 	return ModelSyncTransaction.String()

@@ -734,10 +734,10 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 			"0e" + // 13 - tree height
 			"02" + // nLeafs at this level
 			"fd8004" + // offset - 1152
-			"00" + // flags - data follows, not a cilent txid
+			"00" + // flags - data follows, not a client txid
 			"a35764daec4a1cdec33d1108619109b00b9e37c04e9492a9bb875cc31dde4b4d" + // hash
 			"fd8104" + // offset - 1153
-			"02" + // flags - data follows, cilent txid
+			"02" + // flags - data follows, client txid
 			"da148e7fde1906808a92e8d542cfc6591f697895fe3701a35613fecb3db63021" + // hash
 			// ----------------------
 			// implied end of leaves at this height

@@ -92,7 +92,7 @@ func _internalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tra
 			Str("txID", transaction.ID).
 			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 
-		// ignore broadcast error - will be repeted by task manager
+		// ignore broadcast error - will be repeated by task manager
 		return nil
 	}
 

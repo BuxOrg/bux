@@ -100,24 +100,6 @@ func getTransactionsToSync(ctx context.Context, queryParams *datastore.QueryPara
 	return txs, nil
 }
 
-// getTransactionsToNotifyP2P will get the sync transactions to notify p2p paymail providers
-func getTransactionsToNotifyP2P(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps,
-) ([]*SyncTransaction, error) {
-	// Get the records by status
-	txs, err := _getSyncTransactionsByConditions(
-		ctx,
-		map[string]interface{}{
-			p2pStatusField: SyncStatusReady.String(),
-		},
-		queryParams, opts...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return txs, nil
-}
-
 /*** /public unexported funcs ***/
 
 // getTransactionsToSync will get the sync transactions to sync

@@ -199,63 +199,6 @@ func getTransactionsCountInternal(ctx context.Context, conditions map[string]int
 	return count, nil
 }
 
-// getTransactionsByConditions will get the sync transactions to migrate
-func getTransactionsByConditions(ctx context.Context, conditions map[string]interface{},
-	queryParams *datastore.QueryParams, opts ...ModelOps,
-) ([]*Transaction, error) {
-	if queryParams == nil {
-		queryParams = &datastore.QueryParams{
-			OrderByField:  createdAtField,
-			SortDirection: datastore.SortAsc,
-		}
-	} else if queryParams.OrderByField == "" || queryParams.SortDirection == "" {
-		queryParams.OrderByField = createdAtField
-		queryParams.SortDirection = datastore.SortAsc
-	}
-
-	// Get the records
-	var models []Transaction
-	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, queryParams, defaultDatabaseReadTimeout,
-	); err != nil {
-		if errors.Is(err, datastore.ErrNoResults) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	// Loop and enrich
-	txs := make([]*Transaction, 0)
-	for index := range models {
-		models[index].enrich(ModelTransaction, opts...)
-		txs = append(txs, &models[index])
-	}
-
-	return txs, nil
-}
-
-// getTransactionsToMigrateMerklePath will get the transactions where bump should be calculated
-func getTransactionsToCalculateBUMP(ctx context.Context, queryParams *datastore.QueryParams,
-	opts ...ModelOps,
-) ([]*Transaction, error) {
-	// Get the records by status
-	txs, err := getTransactionsByConditions(
-		ctx,
-		map[string]interface{}{
-			bumpField: nil,
-			merkleProofField: map[string]interface{}{
-				"$exists": true,
-			},
-		},
-		queryParams, opts...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return txs, nil
-}
-
 func getTransactionByHex(ctx context.Context, hex string, opts ...ModelOps) (*Transaction, error) {
 	btTx, err := bt.NewTxFromString(hex)
 	if err != nil {

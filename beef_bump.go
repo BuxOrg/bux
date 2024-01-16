@@ -62,7 +62,7 @@ func prepareBEEFFactors(ctx context.Context, tx *Transaction, store TransactionG
 		return nil, nil, err
 	}
 
-	var txIDs []string
+	txIDs := make([]string, 0, len(tx.draftTransaction.Configuration.Inputs))
 	for _, input := range tx.draftTransaction.Configuration.Inputs {
 		txIDs = append(txIDs, input.UtxoPointer.TransactionID)
 	}
@@ -96,7 +96,7 @@ func prepareBEEFFactors(ctx context.Context, tx *Transaction, store TransactionG
 }
 
 func checkParentTransactions(ctx context.Context, store TransactionGetter, btTx *bt.Tx) ([]*bt.Tx, []*Transaction, error) {
-	var parentTxIDs []string
+	parentTxIDs := make([]string, 0, len(btTx.Inputs))
 	for _, txIn := range btTx.Inputs {
 		parentTxIDs = append(parentTxIDs, txIn.PreviousTxIDStr())
 	}
@@ -106,8 +106,8 @@ func checkParentTransactions(ctx context.Context, store TransactionGetter, btTx 
 		return nil, nil, err
 	}
 
-	var validTxs []*Transaction
-	var validBtTxs []*bt.Tx
+	validTxs := make([]*Transaction, 0, len(parentTxs))
+	validBtTxs := make([]*bt.Tx, 0, len(parentTxs))
 	for _, parentTx := range parentTxs {
 		parentBtTx, err := bt.NewTxFromString(parentTx.Hex)
 		if err != nil {

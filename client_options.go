@@ -12,6 +12,7 @@ import (
 	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/go-paymail/server"
@@ -614,24 +615,6 @@ func WithChainstateOptions(broadcasting, broadcastInstant, paymailP2P, syncOnCha
 	}
 }
 
-// WithBroadcastMiners will set a list of miners for broadcasting
-func WithBroadcastMiners(miners []*chainstate.Miner) ClientOps {
-	return func(c *clientOptions) {
-		if len(miners) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastMiners(miners))
-		}
-	}
-}
-
-// WithQueryMiners will set a list of miners for querying transactions
-func WithQueryMiners(miners []*chainstate.Miner) ClientOps {
-	return func(c *clientOptions) {
-		if len(miners) > 0 {
-			c.chainstate.options = append(c.chainstate.options, chainstate.WithQueryMiners(miners))
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {
@@ -663,10 +646,17 @@ func WithCustomNotifications(customNotifications notifications.ClientInterface) 
 	}
 }
 
-// WithMinercraftFeeQuotes will set usage of minercraft's fee quotes instead of default fees
-func WithMinercraftFeeQuotes() ClientOps {
+// WithFeeQuotes will find the lowest fee instead of using the fee set by the WithFeeUnit function
+func WithFeeQuotes(enabled bool) ClientOps {
 	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithMinercraftFeeQuotes())
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeQuotes(enabled))
+	}
+}
+
+// WithFeeUnit will set the fee unit to use for broadcasting
+func WithFeeUnit(feeUnit *utils.FeeUnit) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeUnit(feeUnit))
 	}
 }
 

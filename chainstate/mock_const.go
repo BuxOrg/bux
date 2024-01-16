@@ -1,5 +1,7 @@
 package chainstate
 
+import "github.com/BuxOrg/bux/utils"
+
 const (
 	// Dummy transaction data
 	broadcastExample1TxID        = "15d31d00ed7533a83d7ab206115d7642812ec04a2cbae4248365febb82576ff3"
@@ -23,3 +25,9 @@ const (
 	utf8Type            = "UTF-8"
 	applicationJSONType = "application/json"
 )
+
+// MockDefaultFee is a mock default fee used for assertions
+var MockDefaultFee = &utils.FeeUnit{
+	Satoshis: 1,
+	Bytes:    20,
+}

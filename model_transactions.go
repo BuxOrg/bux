@@ -71,6 +71,7 @@ type Transaction struct {
 	beforeCreateCalled bool                 `gorm:"-" bson:"-"` // Private information that the transaction lifecycle method BeforeCreate was already called
 }
 
+// TransactionGetter interface for getting transactions by their IDs
 type TransactionGetter interface {
 	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
 }
@@ -233,10 +234,6 @@ func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
 	}
 
 	return
-}
-
-func (m *Transaction) isExternal() bool {
-	return m.draftTransaction == nil
 }
 
 func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {

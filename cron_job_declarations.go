@@ -7,7 +7,7 @@ import (
 	"github.com/BuxOrg/bux/taskmanager"
 )
 
-// Cron job names; defined as public constants to be used in WithCronCustmPeriod
+// Cron job names to be used in WithCronCustomPeriod
 const (
 	CronJobNameDraftTransactionCleanUp  = "draft_transaction_clean_up"
 	CronJobNameIncomingTransaction      = "incoming_transaction_process"

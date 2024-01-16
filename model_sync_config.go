@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
+
+	"github.com/BuxOrg/bux/utils"
 )
 
 // SyncConfig is the configuration used for syncing a transaction (on-chain)
@@ -28,14 +29,8 @@ func (t *SyncConfig) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 

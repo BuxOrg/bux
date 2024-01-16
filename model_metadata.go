@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
@@ -38,14 +38,8 @@ func (m *Metadata) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 
@@ -79,14 +73,8 @@ func (x *XpubMetadata) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 

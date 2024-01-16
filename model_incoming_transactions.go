@@ -53,23 +53,6 @@ func newIncomingTransaction(hex string, opts ...ModelOps) (*IncomingTransaction,
 	return tx, nil
 }
 
-// getIncomingTransactionByID will get the incoming transactions to process
-func getIncomingTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*IncomingTransaction, error) {
-	// Construct an empty tx
-	tx := emptyIncomingTx(opts...)
-	tx.ID = id
-
-	// Get the record
-	if err := Get(ctx, tx, nil, false, defaultDatabaseReadTimeout, false); err != nil {
-		if errors.Is(err, datastore.ErrNoResults) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return tx, nil
-}
-
 // getIncomingTransactionsToProcess will get the incoming transactions to process
 func getIncomingTransactionsToProcess(ctx context.Context, queryParams *datastore.QueryParams,
 	opts ...ModelOps,
@@ -210,7 +193,8 @@ func (m *IncomingTransaction) Migrate(client datastore.ClientInterface) error {
 
 // processIncomingTransactions will process incoming transaction records
 func processIncomingTransactions(ctx context.Context, logClient *zerolog.Logger, maxTransactions int,
-	opts ...ModelOps) error {
+	opts ...ModelOps,
+) error {
 	queryParams := &datastore.QueryParams{Page: 1, PageSize: maxTransactions}
 
 	// Get x records:
@@ -241,8 +225,8 @@ func processIncomingTransactions(ctx context.Context, logClient *zerolog.Logger,
 
 // processIncomingTransaction will process the incoming transaction record into a transaction, or save the failure
 func processIncomingTransaction(ctx context.Context, logClient *zerolog.Logger,
-	incomingTx *IncomingTransaction) error {
-
+	incomingTx *IncomingTransaction,
+) error {
 	if logClient == nil {
 		logClient = incomingTx.client.Logger()
 	}

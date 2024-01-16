@@ -113,10 +113,10 @@ func TestNewClient(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("unreacheble miners", func(t *testing.T) {
+	t.Run("unreachable miners", func(t *testing.T) {
 		_, err := NewClient(
 			context.Background(),
-			WithMinercraft(&minerCraftUnreachble{}),
+			WithMinercraft(&minerCraftUnreachable{}),
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrMissingBroadcastMiners)

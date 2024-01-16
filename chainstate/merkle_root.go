@@ -8,6 +8,10 @@ import (
 
 // VerifyMerkleRoots will try to verify merkle roots with all available providers
 func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRootConfirmationRequestItem) error {
+	if c.options.config.pulseClient == nil {
+		c.options.logger.Warn().Msg("VerifyMerkleRoots is called even though no pulse client is configured; this likely indicates that the paymail capabilities have been cached.")
+		return errors.New("no pulse client found")
+	}
 	pulseProvider := createPulseProvider(c)
 	merkleRootsRes, err := pulseProvider.verifyMerkleRoots(ctx, c, merkleRoots)
 	if err != nil {

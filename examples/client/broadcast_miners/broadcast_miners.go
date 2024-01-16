@@ -6,42 +6,36 @@ import (
 	"os"
 
 	"github.com/BuxOrg/bux"
-	"github.com/BuxOrg/bux/chainstate"
-	"github.com/tonicpow/go-minercraft/v2"
+	"github.com/BuxOrg/bux/logging"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	broadcastclient "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
 )
 
-func main() {
-	// Create a custom miner (using your api key for custom rates)
-	miners, _ := minercraft.DefaultMiners()
-	minerTaal := minercraft.MinerByName(miners, minercraft.MinerTaal)
-	minerCraftApis := []*minercraft.MinerAPIs{
-		{
-			MinerID: minerTaal.MinerID,
-			APIs: []minercraft.API{
-				{
-					Token: os.Getenv("BUX_TAAL_API_KEY"),
-					URL:   "https://tapi.taal.com/arc",
-					Type:  minercraft.Arc,
-				},
-			},
+func buildBroadcastClient() broadcast.Client {
+	logger := logging.GetDefaultLogger()
+	builder := broadcastclient.Builder().WithArc(
+		broadcastclient.ArcClientConfig{
+			APIUrl: "https://tapi.taal.com/arc",
+			Token:  os.Getenv("BUX_TAAL_API_KEY"),
 		},
-	}
+		logger,
+	)
 
-	// Create the client
+	return builder.Build()
+}
+
+func main() {
+	ctx := context.Background()
+
 	client, err := bux.NewClient(
-		context.Background(), // Set context
-		bux.WithBroadcastMiners([]*chainstate.Miner{{Miner: minerTaal}}), // This will auto-fetch a policy using the token (api key)
-		bux.WithQueryMiners([]*chainstate.Miner{{Miner: minerTaal}}),     // This will only use this as a query provider
-		bux.WithMinercraftAPIs(minerCraftApis),
-		bux.WithArc(),
+		ctx,
+		bux.WithBroadcastClient(buildBroadcastClient()),
 	)
 	if err != nil {
 		log.Fatalln("error: " + err.Error())
 	}
 
-	defer func() {
-		_ = client.Close(context.Background())
-	}()
+	defer client.Close(ctx)
 
 	log.Println("client loaded!", client.UserAgent())
 }

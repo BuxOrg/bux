@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -20,14 +20,8 @@ func (x *XpubOutputValue) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 

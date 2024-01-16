@@ -92,10 +92,7 @@ func (c *Client) NewTransaction(ctx context.Context, rawXpubKey string, config *
 	return draftTransaction, nil
 }
 
-// GetTransaction will get a transaction from the Datastore
-//
-// ctx is the context
-// testTxID is the transaction ID
+// GetTransaction will get a transaction by its ID from the Datastore
 func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transaction")
@@ -114,12 +111,7 @@ func (c *Client) GetTransaction(ctx context.Context, xPubID, txID string) (*Tran
 	return transaction, nil
 }
 
-// GetTransactionByID will get a transaction from the Datastore by tx ID
-// uses GetTransaction
-func (c *Client) GetTransactionByID(ctx context.Context, txID string) (*Transaction, error) {
-	return c.GetTransaction(ctx, "", txID)
-}
-
+// GetTransactionsByIDs returns array of transactions by their IDs from the Datastore
 func (c *Client) GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_transactions_by_ids")
@@ -167,25 +159,6 @@ func (c *Client) GetTransactions(ctx context.Context, metadataConditions *Metada
 	}
 
 	return transactions, nil
-}
-
-// GetTransactionsAggregate will get a count of all transactions per aggregate column from the Datastore
-func (c *Client) GetTransactionsAggregate(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, aggregateColumn string, opts ...ModelOps,
-) (map[string]interface{}, error) {
-	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "get_transactions")
-
-	// Get the transactionAggregate
-	transactionAggregate, err := getTransactionsAggregate(
-		ctx, metadataConditions, conditions, aggregateColumn,
-		c.DefaultModelOptions(opts...)...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return transactionAggregate, nil
 }
 
 // GetTransactionsCount will get a count of all the transactions from the Datastore

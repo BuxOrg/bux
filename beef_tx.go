@@ -28,6 +28,9 @@ func ToBeef(ctx context.Context, tx *Transaction, store TransactionGetter) (stri
 	}
 
 	bumps, err := calculateMergedBUMP(bumpFactors)
+	if err != nil {
+		return "", err
+	}
 	sortedTxs := kahnTopologicalSortTransactions(bumpBtFactors)
 	beefHex, err := toBeefHex(ctx, bumps, sortedTxs)
 	if err != nil {

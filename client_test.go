@@ -165,7 +165,6 @@ func TestClient_GetPaymailConfig(t *testing.T) {
 		opts = append(opts, WithPaymailSupport(
 			[]string{testDomain},
 			defaultSenderPaymail,
-			defaultAddressResolutionPurpose,
 			false, false,
 		))
 
@@ -223,27 +222,6 @@ func TestPaymailOptions_FromSender(t *testing.T) {
 	})
 }
 
-// TestPaymailOptions_Note will test the method Note()
-func TestPaymailOptions_Note(t *testing.T) {
-	t.Parallel()
-
-	t.Run("no note, use default", func(t *testing.T) {
-		p := &paymailOptions{
-			serverConfig: &PaymailServerOptions{},
-		}
-		assert.Equal(t, defaultAddressResolutionPurpose, p.Note())
-	})
-
-	t.Run("custom note set", func(t *testing.T) {
-		p := &paymailOptions{
-			serverConfig: &PaymailServerOptions{
-				DefaultNote: "from this person",
-			},
-		}
-		assert.Equal(t, "from this person", p.Note())
-	})
-}
-
 // TestPaymailOptions_ServerConfig will test the method ServerConfig()
 func TestPaymailOptions_ServerConfig(t *testing.T) {
 	// t.Parallel()
@@ -259,7 +237,6 @@ func TestPaymailOptions_ServerConfig(t *testing.T) {
 		opts = append(opts, WithPaymailSupport(
 			[]string{testDomain},
 			defaultSenderPaymail,
-			defaultAddressResolutionPurpose,
 			false, false,
 		),
 			WithLogger(&logger))

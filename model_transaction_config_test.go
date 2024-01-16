@@ -167,8 +167,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err := out.processOutput(
 			context.Background(), nil, client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrOutputValueNotRecognized)
@@ -184,8 +183,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err := out.processOutput(
 			context.Background(), nil, client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrPaymailAddressIsInvalid)
@@ -216,19 +214,9 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
-		require.NoError(t, err)
-		assert.Equal(t, satoshis, out.Satoshis)
-		assert.Equal(t, testAlias+"@"+testDomain, out.To)
-		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
-		assert.Equal(t, testAlias, out.PaymailP4.Alias)
-		assert.Equal(t, testDomain, out.PaymailP4.Domain)
-		assert.Equal(t, defaultAddressResolutionPurpose, out.PaymailP4.Note)
-		assert.Equal(t, ResolutionTypeBasic, out.PaymailP4.ResolutionType)
-		assert.Equal(t, "", out.PaymailP4.ReferenceID)
-		assert.Equal(t, "", out.PaymailP4.ReceiveEndpoint)
+		assert.Equal(t, err.Error(), "paymail provider does not support P2P")
 	})
 
 	t.Run("basic $handle -> paymail address resolution - valid response", func(t *testing.T) {
@@ -259,19 +247,9 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
-		require.NoError(t, err)
-		assert.Equal(t, satoshis, out.Satoshis)
-		assert.Equal(t, testAlias+"@"+handleDomain, out.To)
-		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
-		assert.Equal(t, testAlias, out.PaymailP4.Alias)
-		assert.Equal(t, handleDomain, out.PaymailP4.Domain)
-		assert.Equal(t, defaultAddressResolutionPurpose, out.PaymailP4.Note)
-		assert.Equal(t, ResolutionTypeBasic, out.PaymailP4.ResolutionType)
-		assert.Equal(t, "", out.PaymailP4.ReferenceID)
-		assert.Equal(t, "", out.PaymailP4.ReceiveEndpoint)
+		assert.Equal(t, err.Error(), "paymail provider does not support P2P")
 	})
 
 	t.Run("basic 1handle -> paymail address resolution - valid response", func(t *testing.T) {
@@ -302,19 +280,9 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
-		require.NoError(t, err)
-		assert.Equal(t, satoshis, out.Satoshis)
-		assert.Equal(t, testAlias+"@"+handleDomain, out.To)
-		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
-		assert.Equal(t, testAlias, out.PaymailP4.Alias)
-		assert.Equal(t, handleDomain, out.PaymailP4.Domain)
-		assert.Equal(t, defaultAddressResolutionPurpose, out.PaymailP4.Note)
-		assert.Equal(t, ResolutionTypeBasic, out.PaymailP4.ResolutionType)
-		assert.Equal(t, "", out.PaymailP4.ReferenceID)
-		assert.Equal(t, "", out.PaymailP4.ReceiveEndpoint)
+		assert.Equal(t, err.Error(), "paymail provider does not support P2P")
 	})
 
 	t.Run("p2p paymail address resolution - valid response", func(t *testing.T) {
@@ -342,8 +310,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
 		require.NoError(t, err)
 		assert.Equal(t, satoshis, out.Satoshis)

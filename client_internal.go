@@ -161,11 +161,6 @@ func (c *Client) loadDefaultPaymailConfig() (err error) {
 		c.options.paymail.serverConfig.DefaultFromPaymail = defaultSenderPaymail
 	}
 
-	// Default note for address resolution
-	if len(c.options.paymail.serverConfig.DefaultNote) == 0 {
-		c.options.paymail.serverConfig.DefaultNote = defaultAddressResolutionPurpose
-	}
-
 	// Set default options if none are found
 	if len(c.options.paymail.serverConfig.options) == 0 {
 		c.options.paymail.serverConfig.options = append(c.options.paymail.serverConfig.options,

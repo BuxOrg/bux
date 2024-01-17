@@ -150,8 +150,8 @@ func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(
 // RecordTransaction will record the transaction
 // TODO: rename to HandleReceivedP2pTransaction
 func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
-	p2pTx *paymail.P2PTransaction, requestMetadata *server.RequestMetadata) (*paymail.P2PTransactionPayload, error) {
-
+	p2pTx *paymail.P2PTransaction, requestMetadata *server.RequestMetadata,
+) (*paymail.P2PTransactionPayload, error) {
 	// Create the metadata
 	metadata := p.createMetadata(requestMetadata, "HandleReceivedP2pTransaction")
 	metadata[p2pMetadataField] = p2pTx.MetaData
@@ -338,7 +338,7 @@ func saveBEEFTxInputs(ctx context.Context, c ClientInterface, dBeef *beef.Decode
 }
 
 func getInputsWhichAreNotInDb(c ClientInterface, dBeef *beef.DecodedBEEF) ([]*beef.TxData, error) {
-	var txIDs []string
+	txIDs := make([]string, 0, len(dBeef.Transactions))
 	for _, tx := range dBeef.Transactions {
 		txIDs = append(txIDs, tx.GetTxID())
 	}
@@ -369,12 +369,12 @@ func getInputsWhichAreNotInDb(c ClientInterface, dBeef *beef.DecodedBEEF) ([]*be
 	return txs, nil
 }
 
-func getBump(bumpIndx int, bumps beef.BUMPs) (*BUMP, error) {
-	if bumpIndx > len(bumps) {
+func getBump(bumpIndex int, bumps beef.BUMPs) (*BUMP, error) {
+	if bumpIndex > len(bumps) {
 		return nil, fmt.Errorf("error in getBump: bump index exceeds bumps length")
 	}
 
-	bump := bumps[bumpIndx]
+	bump := bumps[bumpIndex]
 	paths := make([][]BUMPLeaf, 0)
 
 	for _, path := range bump.Path {

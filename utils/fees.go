@@ -20,7 +20,7 @@ func (f *FeeUnit) String() string {
 	return fmt.Sprintf("FeeUnit(%d satoshis / %d bytes)", f.Satoshis, f.Bytes)
 }
 
-// IsZero returns true if the fee unit suggets no fees (free)
+// IsZero returns true if the fee unit suggest no fees (free)
 func (f *FeeUnit) IsZero() bool {
 	return f.Satoshis == 0
 }

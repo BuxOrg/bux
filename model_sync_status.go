@@ -2,7 +2,8 @@ package bux
 
 import (
 	"database/sql/driver"
-	"fmt"
+
+	"github.com/BuxOrg/bux/utils"
 )
 
 // SyncStatus sync status
@@ -33,12 +34,9 @@ const (
 
 // Scan will scan the value into Struct, implements sql.Scanner interface
 func (t *SyncStatus) Scan(value interface{}) error {
-	xType := fmt.Sprintf("%T", value)
-	var stringValue string
-	if xType == ValueTypeString {
-		stringValue = value.(string)
-	} else {
-		stringValue = string(value.([]byte))
+	stringValue, err := utils.StrOrBytesToString(value)
+	if err != nil {
+		return nil
 	}
 
 	switch stringValue {

@@ -112,9 +112,6 @@ var ErrUtxoAlreadySpent = errors.New("utxo has already been spent")
 // ErrDraftNotFound is when the requested draft transaction was not found
 var ErrDraftNotFound = errors.New("corresponding draft transaction not found")
 
-// ErrTaskManagerNotLoaded is when the taskmanager was not loaded
-var ErrTaskManagerNotLoaded = errors.New("taskmanager must be loaded")
-
 // ErrTransactionNotParsed is when the transaction is not parsed but was expected
 var ErrTransactionNotParsed = errors.New("transaction is not parsed")
 

@@ -220,10 +220,10 @@ func TestTransaction_BeforeCreating(t *testing.T) {
 		transaction := emptyTx()
 
 		opts := DefaultClientOpts(false, false)
-		client, err := NewClient(context.Background(), opts...)
+		client, _ := NewClient(context.Background(), opts...)
 		transaction.client = client
 
-		err = transaction.BeforeCreating(context.Background())
+		err := transaction.BeforeCreating(context.Background())
 		assert.Error(t, err)
 		assert.ErrorIs(t, ErrMissingFieldHex, err)
 	})

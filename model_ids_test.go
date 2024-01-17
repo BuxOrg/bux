@@ -1,10 +1,8 @@
 package bux
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -75,33 +73,6 @@ func TestIDs_Value(t *testing.T) {
 		value, err := i.Value()
 		require.NoError(t, err)
 		assert.Equal(t, "[\"test1\"]", value)
-	})
-}
-
-// TestMarshalIDs will test the method MarshalIDs()
-func TestMarshalIDs(t *testing.T) {
-	t.Parallel()
-
-	t.Run("nil", func(t *testing.T) {
-		writer := MarshalIDs(nil)
-		require.NotNil(t, writer)
-		assert.IsType(t, graphql.Null, writer)
-	})
-
-	t.Run("empty object", func(t *testing.T) {
-		writer := MarshalIDs(IDs{})
-		require.NotNil(t, writer)
-		b := bytes.NewBufferString("")
-		writer.MarshalGQL(b)
-		assert.Equal(t, "[]\n", b.String())
-	})
-
-	t.Run("map present", func(t *testing.T) {
-		writer := MarshalIDs(IDs{"test1"})
-		require.NotNil(t, writer)
-		b := bytes.NewBufferString("")
-		writer.MarshalGQL(b)
-		assert.Equal(t, "[\"test1\"]\n", b.String())
 	})
 }
 

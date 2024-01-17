@@ -86,13 +86,6 @@ func WithMAPI() ClientOps {
 	}
 }
 
-// WithArc will specify Arc as an API for minercraft client
-func WithArc() ClientOps {
-	return func(c *clientOptions) {
-		c.config.minercraftConfig.apiType = minercraft.Arc
-	}
-}
-
 // WithQueryTimeout will set a different timeout for transaction querying
 func WithQueryTimeout(timeout time.Duration) ClientOps {
 	return func(c *clientOptions) {

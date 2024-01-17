@@ -552,8 +552,8 @@ func WithTaskqConfig(config *taskq.QueueOptions) ClientOps {
 	}
 }
 
-// WithCronCustmPeriod will set the custom cron jobs period which will override the default
-func WithCronCustmPeriod(cronJobName string, period time.Duration) ClientOps {
+// WithCronCustomPeriod will set the custom cron jobs period which will override the default
+func WithCronCustomPeriod(cronJobName string, period time.Duration) ClientOps {
 	return func(c *clientOptions) {
 		if c.taskManager != nil {
 			c.taskManager.cronCustomPeriods[cronJobName] = period
@@ -657,13 +657,6 @@ func WithFeeQuotes(enabled bool) ClientOps {
 func WithFeeUnit(feeUnit *utils.FeeUnit) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithFeeUnit(feeUnit))
-	}
-}
-
-// WithArc will specify Arc as an API for minercraft client
-func WithArc() ClientOps {
-	return func(c *clientOptions) {
-		c.chainstate.options = append(c.chainstate.options, chainstate.WithArc())
 	}
 }
 

@@ -3,16 +3,13 @@ package bux
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
-
-// ValueTypeString is the value type "string"
-const ValueTypeString = "string"
 
 // IDs are string ids saved as an array
 type IDs []string
@@ -28,12 +25,9 @@ func (i *IDs) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil {
+		return nil
 	}
 
 	return json.Unmarshal(byteValue, &i)
@@ -50,14 +44,6 @@ func (i IDs) Value() (driver.Value, error) {
 	}
 
 	return string(marshal), nil
-}
-
-// MarshalIDs will unmarshal the custom type
-func MarshalIDs(i IDs) graphql.Marshaler {
-	if i == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalAny(i)
 }
 
 // GormDBDataType the gorm data type for metadata

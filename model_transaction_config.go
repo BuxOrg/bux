@@ -143,14 +143,8 @@ func (t *TransactionConfig) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 
@@ -169,8 +163,8 @@ func (t TransactionConfig) Value() (driver.Value, error) {
 
 // processOutput will inspect the output to determine how to process
 func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, defaultFromSender, defaultNote string, checkSatoshis bool) error {
-
+	paymailClient paymail.ClientInterface, defaultFromSender, defaultNote string, checkSatoshis bool,
+) error {
 	// Convert known handle formats ($handcash or 1relayx)
 	if strings.Contains(t.To, handleHandcashPrefix) ||
 		(len(t.To) < handleMaxLength && len(t.To) > 1 && t.To[:1] == handleRelayPrefix) {
@@ -204,8 +198,8 @@ func (t *TransactionOutput) processOutput(ctx context.Context, cacheStore caches
 
 // processPaymailOutput will detect how to process the Paymail output given
 func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, fromPaymail, defaultNote string) error {
-
+	paymailClient paymail.ClientInterface, fromPaymail, defaultNote string,
+) error {
 	// Standardize the paymail address (break into parts)
 	alias, domain, paymailAddress := paymail.SanitizePaymail(t.To)
 	if len(paymailAddress) == 0 {
@@ -251,8 +245,8 @@ func (t *TransactionOutput) processPaymailOutput(ctx context.Context, cacheStore
 
 // processPaymailViaAddressResolution will use a deprecated way to resolve a Paymail address
 func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Context, cacheStore cachestore.ClientInterface,
-	paymailClient paymail.ClientInterface, capabilities *paymail.CapabilitiesPayload, defaultFromSender, defaultNote string) error {
-
+	paymailClient paymail.ClientInterface, capabilities *paymail.CapabilitiesPayload, defaultFromSender, defaultNote string,
+) error {
 	// Requires a note value
 	if len(t.PaymailP4.Note) == 0 {
 		t.PaymailP4.Note = defaultNote
@@ -291,7 +285,6 @@ func (t *TransactionOutput) processPaymailViaAddressResolution(ctx context.Conte
 
 // processPaymailViaP2P will process the output for P2P Paymail resolution
 func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface, p2pDestinationURL, p2pSubmitTxURL string, fromPaymail string, format PaymailPayloadFormat) error {
-
 	// todo: this is a hack since paymail providers will complain if satoshis are empty (SendToAll has 0 satoshi)
 	satoshis := t.Satoshis
 	if satoshis <= 0 {
@@ -338,7 +331,6 @@ func (t *TransactionOutput) processPaymailViaP2P(client paymail.ClientInterface,
 
 // processAddressOutput will process an output for a standard Bitcoin Address Transaction
 func (t *TransactionOutput) processAddressOutput() (err error) {
-
 	// Create the script from the Bitcoin address
 	var s *bscript.Script
 	if s, err = bscript.NewP2PKHFromAddress(t.To); err != nil {
@@ -384,7 +376,6 @@ func (t *TransactionOutput) processScriptOutput() (err error) {
 
 // processOpReturnOutput will process an op_return output
 func (t *TransactionOutput) processOpReturnOutput() (err error) {
-
 	// Create the script from the Bitcoin address
 	var script string
 	if len(t.OpReturn.Hex) > 0 {

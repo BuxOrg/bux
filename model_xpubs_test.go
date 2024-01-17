@@ -185,10 +185,10 @@ func TestXpub_BeforeCreating(t *testing.T) {
 		require.NotNil(t, xPub)
 
 		opts := DefaultClientOpts(false, false)
-		client, err := NewClient(context.Background(), opts...)
+		client, _ := NewClient(context.Background(), opts...)
 		xPub.client = client
 
-		err = xPub.BeforeCreating(context.Background())
+		err := xPub.BeforeCreating(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, xPub)
 	})
@@ -209,10 +209,10 @@ func TestXpub_BeforeCreating(t *testing.T) {
 		require.NotNil(t, xPub)
 
 		opts := DefaultClientOpts(false, false)
-		client, err := NewClient(context.Background(), opts...)
+		client, _ := NewClient(context.Background(), opts...)
 		xPub.client = client
 
-		err = xPub.BeforeCreating(context.Background())
+		err := xPub.BeforeCreating(context.Background())
 		assert.Error(t, err)
 		assert.EqualError(t, err, "xpub is an invalid length")
 	})
@@ -227,10 +227,10 @@ func TestXpub_AfterCreated(t *testing.T) {
 		require.NotNil(t, xPub)
 
 		opts := DefaultClientOpts(false, false)
-		client, err := NewClient(context.Background(), opts...)
+		client, _ := NewClient(context.Background(), opts...)
 		xPub.client = client
 
-		err = xPub.BeforeCreating(context.Background())
+		err := xPub.BeforeCreating(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, xPub)
 

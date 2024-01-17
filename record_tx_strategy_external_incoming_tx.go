@@ -92,7 +92,7 @@ func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterfac
 		Msg("start ITC")
 
 	if err = incomingTx.Save(ctx); err != nil {
-		return nil, fmt.Errorf("addind new IncomingTx to check queue failed. Reason: %w", err)
+		return nil, fmt.Errorf("adding new IncomingTx to check queue failed. Reason: %w", err)
 	}
 
 	result := incomingTx.toTransactionDto()
@@ -161,7 +161,7 @@ func _externalIncomingBroadcast(ctx context.Context, logger *zerolog.Logger, tx 
 			Str("txID", tx.ID).
 			Msgf("broadcasting failed, next try will be handled by task manager. Reason: %s", err)
 
-		// ignore error, transaction will be broadcaset in a cron task
+		// ignore error, transaction will be broadcasted in a cron task
 		return nil
 	}
 

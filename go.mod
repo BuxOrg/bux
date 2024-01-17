@@ -5,7 +5,7 @@ go 1.21.5
 require (
 	github.com/99designs/gqlgen v0.17.42
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/bitcoin-sv/go-broadcast-client v0.15.0
+	github.com/bitcoin-sv/go-broadcast-client v0.16.0
 	github.com/bitcoin-sv/go-paymail v0.12.0
 	github.com/bitcoinschema/go-bitcoin/v2 v2.0.5
 	github.com/bitcoinschema/go-map v0.1.0
@@ -33,7 +33,7 @@ require (
 	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tonicpow/go-minercraft/v2 v2.0.8
-	github.com/tryvium-travels/memongo v0.10.0
+	github.com/tryvium-travels/memongo v0.11.0
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/vmihailenco/taskq/v3 v3.2.9
 	go.elastic.co/ecszerolog v0.2.0

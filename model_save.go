@@ -10,7 +10,6 @@ import (
 
 // Save will save the model(s) into the Datastore
 func Save(ctx context.Context, model ModelInterface) (err error) {
-
 	// Check for a client
 	c := model.Client()
 	if c == nil {
@@ -26,16 +25,9 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 	// @siggi: we need this to be in a callback context for Mongo
 	// NOTE: a DB error is not being returned from here
 	return ds.NewTx(ctx, func(tx *datastore.Transaction) (err error) {
-
-		// Fire the before hooks (parent model)
-		if model.IsNew() {
-			if err = model.BeforeCreating(ctx); err != nil {
-				return
-			}
-		} else {
-			if err = model.BeforeUpdating(ctx); err != nil {
-				return
-			}
+		parentBeforeHook := _beforeHook(model)
+		if err = parentBeforeHook(ctx); err != nil {
+			return _closeTxWithError(tx, err)
 		}
 
 		// Set the record's timestamps
@@ -47,16 +39,11 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 		// Add any child models (fire before hooks)
 		if children := model.ChildModels(); len(children) > 0 {
 			for _, child := range children {
-				if child.IsNew() {
-					if err = child.BeforeCreating(ctx); err != nil {
-						return
-					}
-				} else {
-					if err = child.BeforeUpdating(ctx); err != nil {
-						return
-					}
-				}
 
+				childBeforeHook := _beforeHook(child)
+				if err = childBeforeHook(ctx); err != nil {
+					return _closeTxWithError(tx, err)
+				}
 				// Set the record's timestamps
 				child.SetRecordTime(child.IsNew())
 			}
@@ -76,7 +63,7 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 			if err = modelsToSave[index].Client().Datastore().SaveModel(
 				ctx, modelsToSave[index], tx, modelsToSave[index].IsNew(), false,
 			); err != nil {
-				return
+				return _closeTxWithError(tx, err)
 			}
 		}
 
@@ -104,7 +91,6 @@ func Save(ctx context.Context, model ModelInterface) (err error) {
 					err = errors.Wrap(err, afterErr.Error())
 				}
 			}
-			// modelToSave.NotNew() // NOTE: moved to above from here
 		}
 
 		return
@@ -128,4 +114,32 @@ func saveToCache(ctx context.Context, keys []string, model ModelInterface, ttl t
 			Msg("ignoring saveToCache: client or cachestore is missing")
 	}
 	return nil
+}
+
+// _closeTxWithError will close the transaction with the given error
+// It's crucial to run this rollback to prevent hanging db connections.
+func _closeTxWithError(tx *datastore.Transaction, baseError error) error {
+	if tx == nil {
+		if baseError != nil {
+			return baseError
+		}
+		return errors.New("transaction is nil during rollback")
+	}
+	if err := tx.Rollback(); err != nil {
+		if baseError != nil {
+			return errors.Wrap(baseError, err.Error())
+		}
+		return err
+	}
+	if baseError != nil {
+		return baseError
+	}
+	return errors.New("closing transaction with error")
+}
+
+func _beforeHook(model ModelInterface) func(context.Context) error {
+	if model.IsNew() {
+		return model.BeforeCreating
+	}
+	return model.BeforeUpdating
 }

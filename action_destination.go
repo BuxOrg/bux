@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+
 	"github.com/mrz1836/go-datastore"
 )
 
@@ -9,8 +10,8 @@ import (
 //
 // xPubKey is the raw public xPub
 func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint32,
-	destinationType string, opts ...ModelOps) (*Destination, error) {
-
+	destinationType string, opts ...ModelOps,
+) (*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination")
 
@@ -46,8 +47,8 @@ func (c *Client) NewDestination(ctx context.Context, xPubKey string, chain uint3
 
 // NewDestinationForLockingScript will create a new destination based on a locking script
 func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string,
-	opts ...ModelOps) (*Destination, error) {
-
+	opts ...ModelOps,
+) (*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "new_destination_for_locking_script")
 
@@ -66,18 +67,6 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 		return nil, ErrUnknownLockingScript
 	}
 
-<<<<<<< HEAD
-	// set the monitoring, passed down from the initiating function
-	// this will be set when calling NewDestination from http, but not for instance paymail
-	if monitor {
-		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
-			Valid: true,
-			Time:  time.Now(),
-		}}
-	}
-
-=======
->>>>>>> 06feaba (feat(BUX-417): remove monitor, ITC flag and IncomingTransaction (#532))
 	// Save the destination
 	if err := destination.Save(ctx); err != nil {
 		return nil, err
@@ -89,8 +78,8 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 
 // GetDestinations will get all the destinations from the Datastore
 func (c *Client) GetDestinations(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Destination, error) {
-
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps,
+) ([]*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
@@ -108,8 +97,8 @@ func (c *Client) GetDestinations(ctx context.Context, metadataConditions *Metada
 
 // GetDestinationsCount will get a count of all the destinations from the Datastore
 func (c *Client) GetDestinationsCount(ctx context.Context, metadataConditions *Metadata,
-	conditions *map[string]interface{}, opts ...ModelOps) (int64, error) {
-
+	conditions *map[string]interface{}, opts ...ModelOps,
+) (int64, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations_count")
 
@@ -129,8 +118,8 @@ func (c *Client) GetDestinationsCount(ctx context.Context, metadataConditions *M
 //
 // metadataConditions are the search criteria used to find destinations
 func (c *Client) GetDestinationsByXpubID(ctx context.Context, xPubID string, metadataConditions *Metadata,
-	conditions *map[string]interface{}, queryParams *datastore.QueryParams) ([]*Destination, error) {
-
+	conditions *map[string]interface{}, queryParams *datastore.QueryParams,
+) ([]*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
@@ -147,8 +136,8 @@ func (c *Client) GetDestinationsByXpubID(ctx context.Context, xPubID string, met
 
 // GetDestinationsByXpubIDCount will get a count of all destinations based on an xPub
 func (c *Client) GetDestinationsByXpubIDCount(ctx context.Context, xPubID string, metadataConditions *Metadata,
-	conditions *map[string]interface{}) (int64, error) {
-
+	conditions *map[string]interface{},
+) (int64, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destinations")
 
@@ -165,7 +154,6 @@ func (c *Client) GetDestinationsByXpubIDCount(ctx context.Context, xPubID string
 
 // GetDestinationByID will get a destination by id
 func (c *Client) GetDestinationByID(ctx context.Context, xPubID, id string) (*Destination, error) {
-
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_id")
 
@@ -187,7 +175,6 @@ func (c *Client) GetDestinationByID(ctx context.Context, xPubID, id string) (*De
 
 // GetDestinationByLockingScript will get a destination for a locking script
 func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubID, lockingScript string) (*Destination, error) {
-
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_locking_script")
 
@@ -209,7 +196,6 @@ func (c *Client) GetDestinationByLockingScript(ctx context.Context, xPubID, lock
 
 // GetDestinationByAddress will get a destination for an address
 func (c *Client) GetDestinationByAddress(ctx context.Context, xPubID, address string) (*Destination, error) {
-
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "get_destination_by_address")
 
@@ -231,8 +217,8 @@ func (c *Client) GetDestinationByAddress(ctx context.Context, xPubID, address st
 
 // UpdateDestinationMetadataByID will update the metadata in an existing destination by id
 func (c *Client) UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string,
-	metadata Metadata) (*Destination, error) {
-
+	metadata Metadata,
+) (*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_destination_by_id")
 
@@ -253,8 +239,8 @@ func (c *Client) UpdateDestinationMetadataByID(ctx context.Context, xPubID, id s
 
 // UpdateDestinationMetadataByLockingScript will update the metadata in an existing destination by locking script
 func (c *Client) UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID,
-	lockingScript string, metadata Metadata) (*Destination, error) {
-
+	lockingScript string, metadata Metadata,
+) (*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_destination_by_locking_script")
 
@@ -275,8 +261,8 @@ func (c *Client) UpdateDestinationMetadataByLockingScript(ctx context.Context, x
 
 // UpdateDestinationMetadataByAddress will update the metadata in an existing destination by address
 func (c *Client) UpdateDestinationMetadataByAddress(ctx context.Context, xPubID, address string,
-	metadata Metadata) (*Destination, error) {
-
+	metadata Metadata,
+) (*Destination, error) {
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "update_destination_by_address")
 

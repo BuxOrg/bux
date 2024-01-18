@@ -9,7 +9,6 @@ import (
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-paymail"
-	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	"github.com/rs/zerolog"
@@ -41,19 +40,6 @@ type AdminService interface {
 		conditions *map[string]interface{}, queryParams *datastore.QueryParams, opts ...ModelOps) ([]*Xpub, error)
 	GetXPubsCount(ctx context.Context, metadataConditions *Metadata,
 		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
-}
-
-// BlockHeaderService is the block header actions
-type BlockHeaderService interface {
-	GetBlockHeaderByHeight(ctx context.Context, height uint32) (*BlockHeader, error)
-	GetBlockHeaders(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*BlockHeader, error)
-	GetBlockHeadersCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-		opts ...ModelOps) (int64, error)
-	GetLastBlockHeader(ctx context.Context) (*BlockHeader, error)
-	GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error)
-	RecordBlockHeader(ctx context.Context, hash string, height uint32, bh bc.BlockHeader,
-		opts ...ModelOps) (*BlockHeader, error)
 }
 
 // ClientService is the client related services
@@ -175,7 +161,6 @@ type XPubService interface {
 type ClientInterface interface {
 	AccessKeyService
 	AdminService
-	BlockHeaderService
 	ClientService
 	DestinationService
 	DraftTransactionService
@@ -191,7 +176,6 @@ type ClientInterface interface {
 	DefaultSyncConfig() *SyncConfig
 	EnableNewRelic()
 	GetOrStartTxn(ctx context.Context, name string) context.Context
-	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsEncryptionKeySet() bool
 	IsIUCEnabled() bool

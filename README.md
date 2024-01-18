@@ -22,10 +22,10 @@
 - [About](#about)
 - [Installation](#installation)
 - [Documentation](#documentation)
-- [Examples & Tests](#examples--tests)
-- [Benchmarks](#benchmarks)
-- [Code Standards](#code-standards)
 - [Usage](#usage)
+  - [Examples & Tests](#examples--tests)
+  - [Benchmarks](#benchmarks)
+- [Code Standards](#code-standards)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -213,7 +213,12 @@ vet                           Run the Go vet application
 
 <br/>
 
-## Examples & Tests
+## Usage
+
+### Examples & Tests
+
+Checkout all the [examples](examples)!
+
 All unit tests and [examples](examples) run via [GitHub Actions](https://github.com/BuxOrg/bux/actions) and
 uses [Go version 1.19.x](https://golang.org/doc/go1.19). View the [configuration file](.github/workflows/run-tests.yml).
 
@@ -240,7 +245,7 @@ make test-short
 
 <br/>
 
-## Benchmarks
+### Benchmarks
 Run the Go benchmarks:
 ```shell script
 make bench
@@ -253,14 +258,7 @@ Read more about this Go project's [code standards](.github/CODE_STANDARDS.md).
 
 <br/>
 
-## Usage
-Checkout all the [examples](examples)!
-
-<br/>
-
 ## Contributing
-View the [contributing guidelines](.github/CONTRIBUTING.md) and follow the [code of conduct](.github/CODE_OF_CONDUCT.md).
-
 <br/>
 
 ### How can I help?

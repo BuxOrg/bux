@@ -243,15 +243,6 @@ func WithIUCDisabled() ClientOps {
 	}
 }
 
-// WithImportBlockHeaders will import block headers on startup
-func WithImportBlockHeaders(importBlockHeadersURL string) ClientOps {
-	return func(c *clientOptions) {
-		if len(importBlockHeadersURL) > 0 {
-			c.importBlockHeadersURL = importBlockHeadersURL
-		}
-	}
-}
-
 // WithHTTPClient will set the custom http interface
 func WithHTTPClient(httpClient HTTPInterface) ClientOps {
 	return func(c *clientOptions) {

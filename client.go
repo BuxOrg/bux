@@ -26,22 +26,21 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		cacheStore            *cacheStoreOptions    // Configuration options for Cachestore (ristretto, redis, etc.)
-		cluster               *clusterOptions       // Configuration options for the cluster coordinator
-		chainstate            *chainstateOptions    // Configuration options for Chainstate (broadcast, sync, etc.)
-		dataStore             *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
-		debug                 bool                  // If the client is in debug mode
-		encryptionKey         string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
-		httpClient            HTTPInterface         // HTTP interface to use
-		importBlockHeadersURL string                // The URL of the block headers zip file to import old block headers on startup. if block 0 is found in the DB, block headers will mpt be downloaded
-		iuc                   bool                  // (Input UTXO Check) True will check input utxos when saving transactions
-		logger                *zerolog.Logger       // Internal logging
-		models                *modelOptions         // Configuration options for the loaded models
-		newRelic              *newRelicOptions      // Configuration options for NewRelic
-		notifications         *notificationsOptions // Configuration options for Notifications
-		paymail               *paymailOptions       // Paymail options & client
-		taskManager           *taskManagerOptions   // Configuration options for the TaskManager (TaskQ, etc.)
-		userAgent             string                // User agent for all outgoing requests
+		cacheStore    *cacheStoreOptions    // Configuration options for Cachestore (ristretto, redis, etc.)
+		cluster       *clusterOptions       // Configuration options for the cluster coordinator
+		chainstate    *chainstateOptions    // Configuration options for Chainstate (broadcast, sync, etc.)
+		dataStore     *dataStoreOptions     // Configuration options for the DataStore (MySQL, etc.)
+		debug         bool                  // If the client is in debug mode
+		encryptionKey string                // Encryption key for encrypting sensitive information (IE: paymail xPub) (hex encoded key)
+		httpClient    HTTPInterface         // HTTP interface to use
+		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
+		logger        *zerolog.Logger       // Internal logging
+		models        *modelOptions         // Configuration options for the loaded models
+		newRelic      *newRelicOptions      // Configuration options for NewRelic
+		notifications *notificationsOptions // Configuration options for Notifications
+		paymail       *paymailOptions       // Paymail options & client
+		taskManager   *taskManagerOptions   // Configuration options for the TaskManager (TaskQ, etc.)
+		userAgent     string                // User agent for all outgoing requests
 	}
 
 	// chainstateOptions holds the chainstate configuration and client
@@ -355,11 +354,6 @@ func (c *Client) GetModelNames() []string {
 // HTTPClient will return the http interface to use in the client
 func (c *Client) HTTPClient() HTTPInterface {
 	return c.options.httpClient
-}
-
-// ImportBlockHeadersFromURL will the URL where to import block headers from
-func (c *Client) ImportBlockHeadersFromURL() string {
-	return c.options.importBlockHeadersURL
 }
 
 // IsDebug will return the debug flag (bool)

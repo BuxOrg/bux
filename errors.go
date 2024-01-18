@@ -106,9 +106,6 @@ var ErrDraftIDMismatch = errors.New("transaction draft id does not match utxo dr
 // ErrMissingTxHex is when the hex is missing or invalid and creates an empty id
 var ErrMissingTxHex = errors.New("transaction hex is empty or id is missing")
 
-// ErrMissingBlockHeaderHash is when the hash is missing or invalid and creates an empty id
-var ErrMissingBlockHeaderHash = errors.New("block header hash is empty or id is missing")
-
 // ErrUtxoAlreadySpent is when the utxo is already spent, but is trying to be used
 var ErrUtxoAlreadySpent = errors.New("utxo has already been spent")
 

@@ -187,7 +187,8 @@ Conventional Commits follow a structured format: `type(scope): description`, whe
 - `scope`: Denotes the relevant module or issue.
 - `description`: Provides a brief explanation of the change.
 
-When introducing breaking changes, an `!` should be appended after the `type/scope`: `feat(#123)!: introduce a breaking change`.
+When introducing breaking changes, an `!` should be appended after the `type/scope`:<br/>
+`feat(#123)!: introduce a breaking change`.
 
 #### Types
 
@@ -209,14 +210,14 @@ In our repositories, we use Conventional Commits to automatically generate the v
 
 It works like this:
 
-`fix: which represents bug fixes, and correlates to a SemVer patch.`
-`feat: which represents a new feature, and correlates to a SemVer minor.`
+`fix: which represents bug fixes, and correlates to a SemVer patch.`<br/>
+`feat: which represents a new feature, and correlates to a SemVer minor.`<br/>
 `feat!:, or fix!:, refactor!:, etc., which represent a breaking change (indicated by the !) and will result in a SemVer major.`
 
 Real life example:
 
-`feat(#123)!: introduce breaking change - 1.0.0 -> 2.0.0`
-`feat(#124): introduce new feature - 2.0.0 -> 2.1.0`
+`feat(#123)!: introduce breaking change - 1.0.0 -> 2.0.0`<br/>
+`feat(#124): introduce new feature - 2.0.0 -> 2.1.0`<br/>
 `fix(#125): fix a bug - 2.1.0 -> 2.1.1`
 
 Given a version number MAJOR.MINOR.PATCH, increment the:
@@ -272,11 +273,13 @@ debugo feature - checkpoint full work
 #### Descriptiveness
 
 - Branch names should be descriptive and represent the task/feature at hand.
-- Use hyphens to separate words for readability, e.g., `feature/add-login-button`.
+- Use hyphens to separate words for readability, e.g.,<br/>
+ `feature/add-login-button`.
 
 #### Include Issue Number
 
-- If applicable, include the issue number in the branch name for easy tracking, e.g., `feature/123-add-login-button`.
+- If applicable, include the issue number in the branch name for easy tracking, e.g.,<br/>
+`feature/123-add-login-button`.
 
 #### Deleting Branches After Merging
 
@@ -287,7 +290,8 @@ debugo feature - checkpoint full work
 
 #### Recommendation: Clean Local Branches
 
-- Regularly prune local branches that have been deleted remotely with `git fetch -p && git branch -vv | grep 'origin/.*: gone]' | awk '{print $1}' | xargs git branch -d`.
+- Regularly prune local branches that have been deleted remotely with <br/>
+`git fetch -p && git branch -vv | grep 'origin/.*: gone]' | awk '{print $1}' | xargs git branch -d`.
 
 ## 4 Documentation Code Standards
 

@@ -58,7 +58,7 @@
 ### 1.1 In GO applications or libraries, we follow the official guidelines
 
 - [Effective Go](https://go.dev/doc/effective_go) - official Go guidelines
-- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) - official Go code review comments
+- [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments) - official Go code review comments
 - [Go Examples](https://pkg.go.dev/testing#hdr-Examples) - official Go examples - used in libraries to explain how to use their exposed features
 - [Go Test](https://pkg.go.dev/testing) - official Go testing package & recommendations
 - [Go Linter](https://golangci-lint.run/) - golangci-lint - only codestyle checks
@@ -69,7 +69,7 @@
 
 - [Go Styles by Google](https://google.github.io/styleguide/go/) - Google's Go Style Guide
 - [Uber Go Style Guide](https://github.com/uber-go/guide/blob/master/style.md) - Uber's Go Style Guide
-- [Go Common Mistakes](https://github.com/golang/go/wiki/CommonMistakes) - Common Mistakes in Go
+- [Go Common Mistakes](https://go.dev/wiki/CommonMistakes) - Common Mistakes in Go
 
 ## 2 Code Rules
 
@@ -323,7 +323,7 @@ For projects exposing external features:
 
 We should write documentation in Markdown format. It allows us to write documentation in a simple and readable way. It's also easy to convert Markdown to HTML or PDF or create a website from it.
 
-[Markdown Guide](markdownguide.org) - Comprehensive guide to Markdown syntax.
+[Markdown Guide](https://markdownguide.org) - Comprehensive guide to Markdown syntax.
 
 ### 4.6 Conclusion
 

@@ -583,8 +583,7 @@ func TestWithModels(t *testing.T) {
 
 		assert.Equal(t, []string{
 			ModelXPub.String(), ModelAccessKey.String(),
-			ModelDraftTransaction.String(),
-			ModelTransaction.String(), ModelBlockHeader.String(),
+			ModelDraftTransaction.String(), ModelTransaction.String(),
 			ModelSyncTransaction.String(), ModelDestination.String(),
 			ModelUtxo.String(),
 		}, tc.GetModelNames())
@@ -602,8 +601,7 @@ func TestWithModels(t *testing.T) {
 
 		assert.Equal(t, []string{
 			ModelXPub.String(), ModelAccessKey.String(),
-			ModelDraftTransaction.String(),
-			ModelTransaction.String(), ModelBlockHeader.String(),
+			ModelDraftTransaction.String(), ModelTransaction.String(),
 			ModelSyncTransaction.String(), ModelDestination.String(),
 			ModelUtxo.String(), ModelPaymailAddress.String(),
 		}, tc.GetModelNames())
@@ -643,45 +641,6 @@ func TestWithIUCDisabled(t *testing.T) {
 		defer CloseClient(context.Background(), t, tc)
 
 		assert.Equal(t, false, tc.IsIUCEnabled())
-	})
-}
-
-// TestWithImportBlockHeaders will test the method WithImportBlockHeaders()
-func TestWithImportBlockHeaders(t *testing.T) {
-	t.Parallel()
-	testLogger := zerolog.Nop()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithImportBlockHeaders("")
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("empty url", func(t *testing.T) {
-		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithImportBlockHeaders(""))
-		opts = append(opts, WithLogger(&testLogger))
-
-		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		assert.Equal(t, "", tc.ImportBlockHeadersFromURL())
-	})
-
-	t.Run("custom import url", func(t *testing.T) {
-		customURL := "https://domain.com/import.txt"
-
-		opts := DefaultClientOpts(false, true)
-		opts = append(opts, WithImportBlockHeaders(customURL))
-		opts = append(opts, WithLogger(&testLogger))
-
-		tc, err := NewClient(tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx), opts...)
-		require.NoError(t, err)
-		require.NotNil(t, tc)
-		defer CloseClient(context.Background(), t, tc)
-
-		assert.Equal(t, customURL, tc.ImportBlockHeadersFromURL())
 	})
 }
 
@@ -835,7 +794,6 @@ func TestWithAutoMigrate(t *testing.T) {
 			ModelAccessKey.String(),
 			ModelDraftTransaction.String(),
 			ModelTransaction.String(),
-			ModelBlockHeader.String(),
 			ModelSyncTransaction.String(),
 			ModelDestination.String(),
 			ModelUtxo.String(),
@@ -857,7 +815,6 @@ func TestWithAutoMigrate(t *testing.T) {
 			ModelAccessKey.String(),
 			ModelDraftTransaction.String(),
 			ModelTransaction.String(),
-			ModelBlockHeader.String(),
 			ModelSyncTransaction.String(),
 			ModelDestination.String(),
 			ModelUtxo.String(),

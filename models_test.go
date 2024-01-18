@@ -20,7 +20,6 @@ func TestModelName_String(t *testing.T) {
 	t.Parallel()
 
 	t.Run("all model names", func(t *testing.T) {
-		assert.Equal(t, "block_header", ModelBlockHeader.String())
 		assert.Equal(t, "destination", ModelDestination.String())
 		assert.Equal(t, "empty", ModelNameEmpty.String())
 		assert.Equal(t, "metadata", ModelMetadata.String())
@@ -30,7 +29,7 @@ func TestModelName_String(t *testing.T) {
 		assert.Equal(t, "transaction", ModelTransaction.String())
 		assert.Equal(t, "utxo", ModelUtxo.String())
 		assert.Equal(t, "xpub", ModelXPub.String())
-		assert.Len(t, AllModelNames, 10)
+		assert.Len(t, AllModelNames, 9)
 	})
 }
 

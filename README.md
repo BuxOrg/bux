@@ -259,39 +259,11 @@ Read more about this Go project's [code standards](.github/CODE_STANDARDS.md).
 <br/>
 
 ## Contributing
+All kinds of contributions are welcome!
 <br/>
-
-### How can I help?
-All kinds of contributions are welcome :raised_hands:!
-The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon:.
-You can also support this project by [becoming a sponsor on GitHub](https://github.com/sponsors/mrz1836) :clap:
-or by making a [**bitcoin donation**](https://gobitcoinsv.com/#sponsor?utm_source=github&utm_medium=sponsor-link&utm_campaign=bux&utm_term=bux&utm_content=bux) to ensure this journey continues indefinitely! :rocket:
-
-[![Stars](https://img.shields.io/github/stars/BuxOrg/bux?label=Please%20like%20us&style=social&v=2)](https://github.com/BuxOrg/bux/stargazers)
-
+To get started, take a look at [code standards](.github/CODE_STANDARDS.md).
 <br/>
-
-### Contributors ✨
-Thank you to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tr>
-    <td align="center"><a href="https://mrz1818.com"><img src="https://avatars.githubusercontent.com/u/3743002?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mr. Z</b></sub></a><br /><a href="#infra-mrz1836" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/BuxOrg/bux/commits?author=mrz1836" title="Code">💻</a> <a href="#maintenance-mrz1836" title="Maintenance">🚧</a> <a href="#business-mrz1836" title="Business development">💼</a></td>
-    <td align="center"><a href="https://github.com/icellan"><img src="https://avatars.githubusercontent.com/u/4411176?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Siggi</b></sub></a><br /><a href="#infra-icellan" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/BuxOrg/bux/commits?author=icellan" title="Code">💻</a> <a href="#security-icellan" title="Security">🛡️</a></td>
-    <td align="center"><a href="https://github.com/galt-tr"><img src="https://avatars.githubusercontent.com/u/64976002?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dylan</b></sub></a><br /><a href="#infra-galt-tr" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/BuxOrg/bux/commits?author=galt-tr" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/rohenaz"><img src="https://avatars.githubusercontent.com/u/456719?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Satchmo</b></sub></a><br /><a href="#blog-rohenaz" title="Blogposts">📝</a> <a href="#content-rohenaz" title="Content">🖋</a> <a href="#design-rohenaz" title="Design">🎨</a></td>
-  </tr>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-> This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.
+View the [contributing guidelines](.github/CODE_STANDARDS.md#3-contributing) and follow the [code of conduct](.github/CODE_OF_CONDUCT.md).
 
 <br/>
 

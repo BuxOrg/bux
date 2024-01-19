@@ -734,10 +734,10 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 			"0e" + // 13 - tree height
 			"02" + // nLeafs at this level
 			"fd8004" + // offset - 1152
-			"00" + // flags - data follows, not a cilent txid
+			"00" + // flags - data follows, not a client txid
 			"a35764daec4a1cdec33d1108619109b00b9e37c04e9492a9bb875cc31dde4b4d" + // hash
 			"fd8104" + // offset - 1153
-			"02" + // flags - data follows, cilent txid
+			"02" + // flags - data follows, client txid
 			"da148e7fde1906808a92e8d542cfc6591f697895fe3701a35613fecb3db63021" + // hash
 			// ----------------------
 			// implied end of leaves at this height
@@ -798,7 +798,7 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 		// when
 		bumps := make([]BUMP, 0)
 		for _, mp := range merkleProof {
-			bumps = append(bumps, MerkleProofToBUMP(&mp, 0))
+			bumps = append(bumps, merkleProofToBUMP(&mp, 0))
 		}
 		bump, err := CalculateMergedBUMP(bumps)
 		actualHex := bump.Hex()
@@ -810,8 +810,8 @@ func TestBUMPModel_CalculateMergedBUMPAndHex(t *testing.T) {
 	})
 }
 
-// TestBUMPModel_MerkleProofToBUMP will test the method MerkleProofToBUMP()
-func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
+// TestBUMPModel_merkleProofToBUMP will test the method merkleProofToBUMP()
+func TestBUMPModel_merkleProofToBUMP(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Valid Merkle Proof #1", func(t *testing.T) {
@@ -842,7 +842,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 		}
 
 		// when
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 
 		// then
 		assert.Equal(t, expectedBUMP, actualBUMP)
@@ -879,7 +879,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 		}
 
 		// when
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 
 		// then
 		assert.Equal(t, expectedBUMP, actualBUMP)
@@ -916,7 +916,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 		}
 
 		// when
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 
 		// then
 		assert.Equal(t, expectedBUMP, actualBUMP)
@@ -925,7 +925,7 @@ func TestBUMPModel_MerkleProofToBUMP(t *testing.T) {
 	t.Run("Empty Merkle Proof", func(t *testing.T) {
 		blockHeight := uint64(0)
 		mp := bc.MerkleProof{}
-		actualBUMP := MerkleProofToBUMP(&mp, blockHeight)
+		actualBUMP := merkleProofToBUMP(&mp, blockHeight)
 		assert.Equal(t, BUMP{BlockHeight: blockHeight}, actualBUMP)
 	})
 }

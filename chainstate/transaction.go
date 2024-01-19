@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BuxOrg/bux/utils"
+	"github.com/libsv/go-bc"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -18,34 +18,28 @@ func (c *Client) query(ctx context.Context, id string, requiredIn RequiredIn,
 	ctxWithCancel, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// First: try all mAPI miners (Only supported on main and test right now)
-	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
-		if c.Network() == MainNet || c.Network() == TestNet {
-			for index := range c.options.config.minercraftConfig.queryMiners {
-				if c.options.config.minercraftConfig.queryMiners[index] != nil {
-					if res, err := queryMinercraft(
-						ctxWithCancel, c, c.options.config.minercraftConfig.queryMiners[index].Miner, id,
-					); err == nil && checkRequirement(requiredIn, id, res) {
-						return res
-					}
+	switch c.ActiveProvider() {
+	case ProviderMinercraft:
+		for index := range c.options.config.minercraftConfig.queryMiners {
+			if c.options.config.minercraftConfig.queryMiners[index] != nil {
+				if res, err := queryMinercraft(
+					ctxWithCancel, c, c.options.config.minercraftConfig.queryMiners[index], id,
+				); err == nil && checkRequirementMapi(requiredIn, id, res) {
+					return res
 				}
 			}
 		}
-	}
-
-	// Next: try with BroadcastClient (if loaded)
-	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
-		if c.BroadcastClient() != nil {
-			if resp, err := queryBroadcastClient(
-				ctxWithCancel, c, id,
-			); err == nil && checkRequirement(requiredIn, id, resp) {
-				return resp
-			}
+	case ProviderBroadcastClient:
+		resp, err := queryBroadcastClient(
+			ctxWithCancel, c, id,
+		)
+		if err == nil && checkRequirementArc(requiredIn, id, resp) {
+			return resp
 		}
+	default:
+		c.options.logger.Warn().Msg("no active provider for query")
 	}
-
-	// No transaction information found
-	return nil
+	return nil // No transaction information found
 }
 
 // fastestQuery will try ALL providers on once and return the fastest "valid" response based on requirements
@@ -64,38 +58,36 @@ func (c *Client) fastestQuery(ctx context.Context, id string, requiredIn Require
 
 	// Loop each miner (break into a Go routine for each query)
 	var wg sync.WaitGroup
-	if !utils.StringInSlice(ProviderMAPI, c.options.config.excludedProviders) {
-		if c.Network() == MainNet || c.Network() == TestNet {
-			for index := range c.options.config.minercraftConfig.queryMiners {
-				wg.Add(1)
-				go func(
-					ctx context.Context, client *Client,
-					wg *sync.WaitGroup, miner *minercraft.Miner,
-					id string, requiredIn RequiredIn,
-				) {
-					defer wg.Done()
-					if res, err := queryMinercraft(
-						ctx, client, miner, id,
-					); err == nil && checkRequirement(requiredIn, id, res) {
-						resultsChannel <- res
-					}
-				}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.queryMiners[index].Miner, id, requiredIn)
-			}
-		}
-	}
 
-	if !utils.StringInSlice(ProviderBroadcastClient, c.options.config.excludedProviders) {
-		if c.BroadcastClient() != nil {
+	switch c.ActiveProvider() {
+	case ProviderMinercraft:
+		for index := range c.options.config.minercraftConfig.queryMiners {
 			wg.Add(1)
-			go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
+			go func(
+				ctx context.Context, client *Client,
+				wg *sync.WaitGroup, miner *minercraft.Miner,
+				id string, requiredIn RequiredIn,
+			) {
 				defer wg.Done()
-				if resp, err := queryBroadcastClient(
-					ctx, client, id,
-				); err == nil && checkRequirement(requiredIn, id, resp) {
-					resultsChannel <- resp
+				if res, err := queryMinercraft(
+					ctx, client, miner, id,
+				); err == nil && checkRequirementMapi(requiredIn, id, res) {
+					resultsChannel <- res
 				}
-			}(ctxWithCancel, c, id, requiredIn)
+			}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.queryMiners[index], id, requiredIn)
 		}
+	case ProviderBroadcastClient:
+		wg.Add(1)
+		go func(ctx context.Context, client *Client, id string, requiredIn RequiredIn) {
+			defer wg.Done()
+			if resp, err := queryBroadcastClient(
+				ctx, client, id,
+			); err == nil && checkRequirementArc(requiredIn, id, resp) {
+				resultsChannel <- resp
+			}
+		}(ctxWithCancel, c, id, requiredIn)
+	default:
+		c.options.logger.Warn().Msg("no active provider for fastestQuery")
 	}
 
 	// Waiting for all requests to finish
@@ -134,11 +126,19 @@ func queryBroadcastClient(ctx context.Context, client ClientInterface, id string
 		client.DebugLog("error executing request using " + ProviderBroadcastClient + " failed: " + err.Error())
 		return nil, err
 	} else if resp != nil && strings.EqualFold(resp.TxID, id) {
+		bump, err := bc.NewBUMPFromStr(resp.BaseTxResponse.MerklePath)
+		if err != nil {
+			return nil, err
+		}
 		return &TransactionInfo{
 			BlockHash:   resp.BlockHash,
 			BlockHeight: resp.BlockHeight,
 			ID:          resp.TxID,
 			Provider:    resp.Miner,
+			TxStatus:    resp.TxStatus,
+			BUMP:        bump,
+			// it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
+			Confirmations: -1,
 		}, nil
 	}
 	return nil, ErrTransactionIDMismatch

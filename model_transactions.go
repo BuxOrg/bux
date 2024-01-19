@@ -54,6 +54,7 @@ type Transaction struct {
 	XpubMetadata    XpubMetadata    `json:"-" toml:"xpub_metadata" gorm:"<-;type:json;xpub_id specific metadata" bson:"xpub_metadata,omitempty"`
 	XpubOutputValue XpubOutputValue `json:"-" toml:"xpub_output_value" gorm:"<-;type:json;xpub_id specific value" bson:"xpub_output_value,omitempty"`
 	BUMP            BUMP            `json:"bump" toml:"bump" yaml:"bump" gorm:"<-;type:text;comment:BSV Unified Merkle Path (BUMP) Format" bson:"bump,omitempty"`
+	TxStatus        string          `json:"txStatus" toml:"txStatus" yaml:"txStatus" gorm:"<-;type:varchar(64);comment:TxStatus retrieved from Arc API." bson:"txStatus,omitempty"`
 
 	// Virtual Fields
 	OutputValue int64                `json:"output_value" toml:"-" yaml:"-" gorm:"-" bson:"-,omitempty"`
@@ -70,6 +71,7 @@ type Transaction struct {
 	beforeCreateCalled bool                 `gorm:"-" bson:"-"` // Private information that the transaction lifecycle method BeforeCreate was already called
 }
 
+// TransactionGetter interface for getting transactions by their IDs
 type TransactionGetter interface {
 	GetTransactionsByIDs(ctx context.Context, txIDs []string) ([]*Transaction, error)
 }
@@ -234,19 +236,23 @@ func (m *Transaction) getValues() (outputValue uint64, fee uint64) {
 	return
 }
 
-func (m *Transaction) isExternal() bool {
-	return m.draftTransaction == nil
-}
-
 func (m *Transaction) setChainInfo(txInfo *chainstate.TransactionInfo) {
 	m.BlockHash = txInfo.BlockHash
 	m.BlockHeight = uint64(txInfo.BlockHeight)
+	m.TxStatus = txInfo.TxStatus.String()
 	m.setBUMP(txInfo)
 }
 
+// Converts from bc.BUMP to our BUMP struct in Transaction model
 func (m *Transaction) setBUMP(txInfo *chainstate.TransactionInfo) {
-	bump := MerkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
-	m.BUMP = bump
+	switch {
+	case txInfo.MerkleProof != nil:
+		m.BUMP = merkleProofToBUMP(txInfo.MerkleProof, uint64(txInfo.BlockHeight))
+	case txInfo.BUMP != nil:
+		m.BUMP = bcBumpToBUMP(txInfo.BUMP)
+	default:
+		m.client.Logger().Error().Msg("No BUMP or MerkleProof found")
+	}
 }
 
 func (m *Transaction) isMined() bool {

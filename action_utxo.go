@@ -136,7 +136,7 @@ func (c *Client) UnReserveUtxos(ctx context.Context, xPubID, draftID string) err
 	// Check for existing NewRelic transaction
 	ctx = c.GetOrStartTxn(ctx, "unreserve_uxtos_by_draft_id")
 
-	return unReserveUtxos(ctx, xPubID, draftID)
+	return unReserveUtxos(ctx, xPubID, draftID, c.DefaultModelOptions()...)
 }
 
 // should this be optional in the results?

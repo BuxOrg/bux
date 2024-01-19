@@ -85,7 +85,7 @@ func (p pulseClientProvider) verifyMerkleRoots(
 
 	err = json.Unmarshal(bodyBytes, &merkleRootsRes)
 	if err != nil {
-		return nil, fmt.Errorf("error during unmarshaling response body: %s", err.Error())
+		return nil, fmt.Errorf("error during unmarshalling response body: %s", err.Error())
 	}
 
 	return &merkleRootsRes, nil

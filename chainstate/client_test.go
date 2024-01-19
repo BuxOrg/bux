@@ -7,6 +7,7 @@ import (
 	"time"
 
 	broadcast_client "github.com/bitcoin-sv/go-broadcast-client/broadcast/broadcast-client"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tonicpow/go-minercraft/v2"
@@ -45,9 +46,10 @@ func TestNewClient(t *testing.T) {
 	t.Run("custom broadcast client", func(t *testing.T) {
 		arcConfig := broadcast_client.ArcClientConfig{
 			Token:  "",
-			APIUrl: "https://tapi.taal.com/arc",
+			APIUrl: "https://arc.gorillapool.io",
 		}
-		customClient := broadcast_client.Builder().WithArc(arcConfig).Build()
+		logger := zerolog.Nop()
+		customClient := broadcast_client.Builder().WithArc(arcConfig, &logger).Build()
 		require.NotNil(t, customClient)
 		c, err := NewClient(
 			context.Background(),
@@ -62,7 +64,7 @@ func TestNewClient(t *testing.T) {
 
 	t.Run("custom minercraft client", func(t *testing.T) {
 		customClient, err := minercraft.NewClient(
-			minercraft.DefaultClientOptions(), &http.Client{}, minercraft.Arc, nil, nil,
+			minercraft.DefaultClientOptions(), &http.Client{}, minercraft.MAPI, nil, nil,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, customClient)
@@ -76,30 +78,6 @@ func TestNewClient(t *testing.T) {
 		require.NotNil(t, c)
 		assert.NotNil(t, c.Minercraft())
 		assert.Equal(t, customClient, c.Minercraft())
-	})
-
-	t.Run("custom list of broadcast miners", func(t *testing.T) {
-		miners, _ := defaultMiners()
-		c, err := NewClient(
-			context.Background(),
-			WithBroadcastMiners(miners),
-			WithMinercraft(&MinerCraftBase{}),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, miners, c.BroadcastMiners())
-	})
-
-	t.Run("custom list of query miners", func(t *testing.T) {
-		miners, _ := defaultMiners()
-		c, err := NewClient(
-			context.Background(),
-			WithQueryMiners(miners),
-			WithMinercraft(&MinerCraftBase{}),
-		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, miners, c.QueryMiners())
 	})
 
 	t.Run("custom query timeout", func(t *testing.T) {
@@ -125,21 +103,20 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, TestNet, c.Network())
 	})
 
-	t.Run("custom network - stn", func(t *testing.T) {
-		c, err := NewClient(
+	t.Run("no provider when using minercraft with customNet", func(t *testing.T) {
+		_, err := NewClient(
 			context.Background(),
 			WithNetwork(StressTestNet),
 			WithMinercraft(&MinerCraftBase{}),
+			WithFeeUnit(MockDefaultFee),
 		)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-		assert.Equal(t, StressTestNet, c.Network())
+		require.Error(t, err)
 	})
 
-	t.Run("unreacheble miners", func(t *testing.T) {
+	t.Run("unreachable miners", func(t *testing.T) {
 		_, err := NewClient(
 			context.Background(),
-			WithMinercraft(&minerCraftUnreachble{}),
+			WithMinercraft(&minerCraftUnreachable{}),
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrMissingBroadcastMiners)

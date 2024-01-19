@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt/v2"
 )
@@ -287,14 +288,8 @@ func (bump *BUMP) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 
@@ -320,14 +315,8 @@ func (bumps *BUMPs) Scan(value interface{}) error {
 		return nil
 	}
 
-	xType := fmt.Sprintf("%T", value)
-	var byteValue []byte
-	if xType == ValueTypeString {
-		byteValue = []byte(value.(string))
-	} else {
-		byteValue = value.([]byte)
-	}
-	if bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
+	byteValue, err := utils.ToByteArray(value)
+	if err != nil || bytes.Equal(byteValue, []byte("")) || bytes.Equal(byteValue, []byte("\"\"")) {
 		return nil
 	}
 
@@ -348,7 +337,7 @@ func (bumps BUMPs) Value() (driver.Value, error) {
 }
 
 // MerkleProofToBUMP transforms Merkle Proof to BUMP
-func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
+func merkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 	bump := BUMP{BlockHeight: blockHeight}
 
 	height := len(merkleProof.Nodes)
@@ -379,6 +368,28 @@ func MerkleProofToBUMP(merkleProof *bc.MerkleProof, blockHeight uint64) BUMP {
 	}
 	bump.Path = path
 	return bump
+}
+
+func bcBumpToBUMP(bcBump *bc.BUMP) BUMP {
+	path := make([][]BUMPLeaf, len(bcBump.Path))
+	for i := range bcBump.Path {
+		path[i] = make([]BUMPLeaf, len(bcBump.Path[i]))
+		for j, source := range bcBump.Path[i] {
+			leaf := BUMPLeaf{}
+
+			// All fields in bc.leaf are pointers, so we need to use SafeAssign to avoid dereferencing nil pointers
+			utils.SafeAssign(&leaf.Offset, source.Offset)
+			utils.SafeAssign(&leaf.Hash, source.Hash)
+			utils.SafeAssign(&leaf.TxID, source.Txid)
+			utils.SafeAssign(&leaf.Duplicate, source.Duplicate)
+
+			path[i][j] = leaf
+		}
+	}
+	return BUMP{
+		BlockHeight: bcBump.BlockHeight,
+		Path:        path,
+	}
 }
 
 func sortAndAddToPath(txIDPath1 BUMPLeaf, offset uint64, txIDPath2 BUMPLeaf, pairOffset uint64) [][]BUMPLeaf {

@@ -2,17 +2,16 @@ package chainstate
 
 import (
 	"context"
-	"sync"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	"github.com/libsv/go-bt/v2"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
 	"github.com/tonicpow/go-minercraft/v2"
-	"github.com/tonicpow/go-minercraft/v2/apis/mapi"
 )
 
 type (
@@ -42,23 +41,17 @@ type (
 		queryTimeout      time.Duration              // Timeout for transaction query
 		broadcastClient   broadcast.Client           // Broadcast client
 		pulseClient       *PulseClient               // Pulse client
+		feeUnit           *utils.FeeUnit             // The lowest fees among all miners
+		feeQuotes         bool                       // If set, feeUnit will be updated with fee quotes from miner's
 	}
 
 	// minercraftConfig is specific for minercraft configuration
 	minercraftConfig struct {
-		broadcastMiners     []*Miner                // List of loaded miners for broadcasting
-		queryMiners         []*Miner                // List of loaded miners for querying transactions
-		feeUnit             *utils.FeeUnit          // The lowest fees among all miners
-		minercraftFeeQuotes bool                    // If set, feeUnit will be updated with fee quotes from miner's mAPI
-		apiType             minercraft.APIType      // MinerCraft APIType(ARC/mAPI)
-		minerAPIs           []*minercraft.MinerAPIs // List of miners APIs
-	}
+		broadcastMiners []*minercraft.Miner // List of loaded miners for broadcasting
+		queryMiners     []*minercraft.Miner // List of loaded miners for querying transactions
 
-	// Miner is the internal chainstate miner (wraps Minercraft miner with more information)
-	Miner struct {
-		FeeLastChecked time.Time         `json:"fee_last_checked"` // Last time the fee was checked via mAPI
-		FeeUnit        *utils.FeeUnit    `json:"fee_unit"`         // The fee unit returned from Policy request
-		Miner          *minercraft.Miner `json:"miner"`            // The minercraft miner
+		apiType   minercraft.APIType      // MinerCraft APIType(ARC/mAPI)
+		minerAPIs []*minercraft.MinerAPIs // List of miners APIs
 	}
 
 	// PulseClient is the internal chainstate pulse client
@@ -89,8 +82,11 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		client.options.logger = logging.GetDefaultLogger()
 	}
 
-	// Start Minercraft
-	if err := client.startMinerCraft(ctx); err != nil {
+	if err := client.initActiveProvider(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := client.checkFeeUnit(); err != nil {
 		return nil, err
 	}
 
@@ -168,110 +164,55 @@ func (c *Client) QueryTimeout() time.Duration {
 	return c.options.config.queryTimeout
 }
 
-// BroadcastMiners will return the broadcast miners
-func (c *Client) BroadcastMiners() []*Miner {
-	return c.options.config.minercraftConfig.broadcastMiners
-}
-
-// QueryMiners will return the query miners
-func (c *Client) QueryMiners() []*Miner {
-	return c.options.config.minercraftConfig.queryMiners
-}
-
 // FeeUnit will return feeUnit
 func (c *Client) FeeUnit() *utils.FeeUnit {
-	return c.options.config.minercraftConfig.feeUnit
+	return c.options.config.feeUnit
 }
 
-func (c *Client) isMinercraftFeeQuotesEnabled() bool {
-	return c.options.config.minercraftConfig.minercraftFeeQuotes
-}
-
-// ValidateMiners will check if miner is reacheble by requesting its FeeQuote
-// If there was on error on FeeQuote(), the miner will be deleted from miners list
-// If usage of MapiFeeQuotes is enabled and miner is reacheble, miner's fee unit will be upadeted with MAPI fee quotes
-// If FeeQuote returns some quote, but fee is not presented in it, it means that miner is valid but we can't use it's feequote
-func (c *Client) ValidateMiners(ctx context.Context) {
-	ctxWithCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	var wg sync.WaitGroup
-	// Loop all broadcast miners
-	for index := range c.options.config.minercraftConfig.broadcastMiners {
-		wg.Add(1)
-		go func(
-			ctx context.Context, client *Client,
-			wg *sync.WaitGroup, miner *Miner,
-		) {
-			defer wg.Done()
-			// Get the fee quote using the miner
-			// Switched from policyQuote to feeQuote as gorillapool doesn't have such endpoint
-			var fee *bt.Fee
-			if c.Minercraft().APIType() == minercraft.MAPI {
-				quote, err := c.Minercraft().FeeQuote(ctx, miner.Miner)
-				if err != nil {
-					client.options.logger.Error().Msgf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err)
-					miner.FeeUnit = nil
-					return
-				}
-
-				fee = quote.Quote.GetFee(mapi.FeeTypeData)
-				if fee == nil {
-					client.options.logger.Error().Msgf("Fee is missing in %s's FeeQuote response", miner.Miner.Name)
-					return
-				}
-				// Arc doesn't support FeeQuote right now(2023.07.21), that's why PolicyQuote is used
-			} else if c.Minercraft().APIType() == minercraft.Arc {
-				quote, err := c.Minercraft().PolicyQuote(ctx, miner.Miner)
-				if err != nil {
-					client.options.logger.Error().Msgf("No FeeQuote response from miner %s. Reason: %s", miner.Miner.Name, err)
-					miner.FeeUnit = nil
-					return
-				}
-
-				fee = quote.Quote.Fees[0]
-			}
-			if c.isMinercraftFeeQuotesEnabled() {
-				miner.FeeUnit = &utils.FeeUnit{
-					Satoshis: fee.MiningFee.Satoshis,
-					Bytes:    fee.MiningFee.Bytes,
-				}
-				miner.FeeLastChecked = time.Now().UTC()
-			}
-		}(ctxWithCancel, c, &wg, c.options.config.minercraftConfig.broadcastMiners[index])
+// ActiveProvider returns a name of a provider based on config.
+func (c *Client) ActiveProvider() string {
+	excluded := c.options.config.excludedProviders
+	if !utils.StringInSlice(ProviderBroadcastClient, excluded) && c.BroadcastClient() != nil {
+		return ProviderBroadcastClient
 	}
-	wg.Wait()
+	if !utils.StringInSlice(ProviderMinercraft, excluded) && (c.Network() == MainNet || c.Network() == TestNet) {
+		return ProviderMinercraft
+	}
+	return ProviderNone
+}
 
-	c.DeleteUnreacheableMiners()
+func (c *Client) isFeeQuotesEnabled() bool {
+	return c.options.config.feeQuotes
+}
 
-	if c.isMinercraftFeeQuotesEnabled() {
-		c.SetLowestFees()
+func (c *Client) initActiveProvider(ctx context.Context) error {
+	switch c.ActiveProvider() {
+	case ProviderMinercraft:
+		return c.minercraftInit(ctx)
+	case ProviderBroadcastClient:
+		return c.broadcastClientInit(ctx)
+	default:
+		return errors.New("no active provider found")
 	}
 }
 
-// SetLowestFees takes the lowest fees among all miners and sets them as the feeUnit for future transactions
-func (c *Client) SetLowestFees() {
-	minFees := DefaultFee
-	for _, m := range c.options.config.minercraftConfig.broadcastMiners {
-		if float64(minFees.Satoshis)/float64(minFees.Bytes) > float64(m.FeeUnit.Satoshis)/float64(m.FeeUnit.Bytes) {
-			minFees = m.FeeUnit
+func (c *Client) checkFeeUnit() error {
+	feeUnit := c.options.config.feeUnit
+	switch {
+	case feeUnit == nil:
+		return errors.New("no fee unit found")
+	case !feeUnit.IsValid():
+		return fmt.Errorf("invalid fee unit found: %s", feeUnit)
+	case feeUnit.IsZero():
+		c.options.logger.Warn().Msg("fee unit suggests no fees (free)")
+	default:
+		var feeUnitSource string
+		if c.isFeeQuotesEnabled() {
+			feeUnitSource = "fee quotes"
+		} else {
+			feeUnitSource = "configured fee_unit"
 		}
+		c.options.logger.Info().Msgf("using fee unit: %s from %s", feeUnit, feeUnitSource)
 	}
-	c.options.config.minercraftConfig.feeUnit = minFees
-}
-
-// DeleteUnreacheableMiners deletes miners which can't be reacheable from config
-func (c *Client) DeleteUnreacheableMiners() {
-	validMinerIndex := 0
-	for _, miner := range c.options.config.minercraftConfig.broadcastMiners {
-		if miner.FeeUnit != nil {
-			c.options.config.minercraftConfig.broadcastMiners[validMinerIndex] = miner
-			validMinerIndex++
-		}
-	}
-	// Prevent memory leak by erasing truncated miners
-	for i := validMinerIndex; i < len(c.options.config.minercraftConfig.broadcastMiners); i++ {
-		c.options.config.minercraftConfig.broadcastMiners[i] = nil
-	}
-	c.options.config.minercraftConfig.broadcastMiners = c.options.config.minercraftConfig.broadcastMiners[:validMinerIndex]
+	return nil
 }

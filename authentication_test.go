@@ -57,7 +57,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		assert.Equal(t, testXpubAuth, x)
 		assert.Equal(t, true, ok)
 
-		x, ok = GetXpubHashFromRequest(req)
+		x, ok = GetXpubIDFromRequest(req)
 		assert.Equal(t, testXpubAuthHash, x)
 		assert.Equal(t, true, ok)
 	})
@@ -233,7 +233,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		assert.Equal(t, "", x)
 		assert.Equal(t, false, ok)
 
-		x, ok = GetXpubHashFromRequest(req)
+		x, ok = GetXpubIDFromRequest(req)
 		assert.Equal(t, "", x)
 		assert.Equal(t, false, ok)
 	})
@@ -259,7 +259,7 @@ func TestClient_AuthenticateRequest(t *testing.T) {
 		assert.Equal(t, "", x)
 		assert.Equal(t, false, ok)
 
-		x, ok = GetXpubHashFromRequest(req)
+		x, ok = GetXpubIDFromRequest(req)
 		assert.Equal(t, "", x)
 		assert.Equal(t, false, ok)
 	})
@@ -367,7 +367,6 @@ func Test_verifyKeyXPub(t *testing.T) {
 	t.Parallel()
 
 	t.Run("error - missing auth data", func(t *testing.T) {
-
 		err := verifyKeyXPub(testXpubAuth, nil)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrMissingSignature)
@@ -659,8 +658,8 @@ func TestIsAdminRequest(t *testing.T) {
 	})
 }
 
-// TestGetXpubHashFromRequest will test the method GetXpubHashFromRequest()
-func TestGetXpubHashFromRequest(t *testing.T) {
+// TestGetXpubHashFromRequest will test the method GetXpubIDFromRequest()
+func TestGetXpubIDFromRequest(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid value", func(t *testing.T) {
@@ -670,7 +669,7 @@ func TestGetXpubHashFromRequest(t *testing.T) {
 
 		req = setOnRequest(req, ParamXPubHashKey, testXpubAuthHash)
 
-		xPubHash, success := GetXpubHashFromRequest(req)
+		xPubHash, success := GetXpubIDFromRequest(req)
 		assert.Equal(t, testXpubAuthHash, xPubHash)
 		assert.Equal(t, true, success)
 	})
@@ -680,7 +679,7 @@ func TestGetXpubHashFromRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, req)
 
-		xPubHash, success := GetXpubHashFromRequest(req)
+		xPubHash, success := GetXpubIDFromRequest(req)
 		assert.Equal(t, "", xPubHash)
 		assert.Equal(t, false, success)
 	})

@@ -14,7 +14,6 @@ import (
 
 // TestWithNewRelic will test the method WithNewRelic()
 func TestWithNewRelic(t *testing.T) {
-
 	t.Run("get opts", func(t *testing.T) {
 		opt := WithNewRelic()
 		assert.IsType(t, *new(ClientOps), opt)
@@ -35,7 +34,6 @@ func TestWithNewRelic(t *testing.T) {
 
 // TestWithDebugging will test the method WithDebugging()
 func TestWithDebugging(t *testing.T) {
-
 	t.Run("get opts", func(t *testing.T) {
 		opt := WithDebugging()
 		assert.IsType(t, *new(ClientOps), opt)
@@ -138,64 +136,6 @@ func TestWithBroadcastClient(t *testing.T) {
 		opt := WithBroadcastClient(customClient)
 		opt(options)
 		assert.Equal(t, customClient, options.config.broadcastClient)
-	})
-}
-
-// TestWithBroadcastMiners will test the method WithBroadcastMiners()
-func TestWithBroadcastMiners(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithBroadcastMiners(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		opt := WithBroadcastMiners(nil)
-		opt(options)
-		assert.Nil(t, options.config.minercraftConfig.broadcastMiners)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		miners := []*Miner{{Miner: minerTaal}}
-		opt := WithBroadcastMiners(miners)
-		opt(options)
-		assert.Equal(t, miners, options.config.minercraftConfig.broadcastMiners)
-	})
-}
-
-// TestWithQueryMiners will test the method WithQueryMiners()
-func TestWithQueryMiners(t *testing.T) {
-	t.Parallel()
-
-	t.Run("check type", func(t *testing.T) {
-		opt := WithQueryMiners(nil)
-		assert.IsType(t, *new(ClientOps), opt)
-	})
-
-	t.Run("test applying nil", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		opt := WithQueryMiners(nil)
-		opt(options)
-		assert.Nil(t, options.config.minercraftConfig.queryMiners)
-	})
-
-	t.Run("test applying option", func(t *testing.T) {
-		options := &clientOptions{
-			config: &syncConfig{minercraftConfig: &minercraftConfig{}},
-		}
-		miners := []*Miner{{Miner: minerTaal}}
-		opt := WithQueryMiners(miners)
-		opt(options)
-		assert.Equal(t, miners, options.config.minercraftConfig.queryMiners)
 	})
 }
 
@@ -334,9 +274,9 @@ func TestWithExcludedProviders(t *testing.T) {
 		options := &clientOptions{
 			config: &syncConfig{},
 		}
-		opt := WithExcludedProviders([]string{ProviderWhatsOnChain})
+		opt := WithExcludedProviders([]string{ProviderBroadcastClient})
 		opt(options)
 		assert.Equal(t, 1, len(options.config.excludedProviders))
-		assert.Equal(t, ProviderWhatsOnChain, options.config.excludedProviders[0])
+		assert.Equal(t, ProviderBroadcastClient, options.config.excludedProviders[0])
 	})
 }

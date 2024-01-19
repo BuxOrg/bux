@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/rs/zerolog"
@@ -18,56 +19,21 @@ type ClientOps func(c *clientOptions)
 //
 // Useful for starting with the default and then modifying as needed
 func defaultClientOptions() *clientOptions {
-	// Create the default miners
-	bm, qm := defaultMiners()
-	apis, _ := minercraft.DefaultMinersAPIs()
-
 	// Set the default options
 	return &clientOptions{
 		config: &syncConfig{
-			httpClient: nil,
-			minercraftConfig: &minercraftConfig{
-				broadcastMiners:     bm,
-				queryMiners:         qm,
-				minerAPIs:           apis,
-				minercraftFeeQuotes: true,
-				feeUnit:             DefaultFee,
-			},
-			minercraft:      nil,
-			network:         MainNet,
-			queryTimeout:    defaultQueryTimeOut,
-			broadcastClient: nil,
+			httpClient:       nil,
+			minercraftConfig: defaultMinecraftConfig(),
+			minercraft:       nil,
+			network:          MainNet,
+			queryTimeout:     defaultQueryTimeOut,
+			broadcastClient:  nil,
+			feeQuotes:        true,
+			feeUnit:          nil, // fee has to be set explicitly or via fee quotes
 		},
 		debug:           false,
 		newRelicEnabled: false,
 	}
-}
-
-// defaultMiners will return the miners for default configuration
-func defaultMiners() (broadcastMiners []*Miner, queryMiners []*Miner) {
-	// Set the broadcast miners
-	miners, _ := minercraft.DefaultMiners()
-
-	// Loop and add (only miners that support ALL TX QUERY)
-	for index, miner := range miners {
-		broadcastMiners = append(broadcastMiners, &Miner{
-			FeeLastChecked: time.Now().UTC(),
-			FeeUnit:        DefaultFee,
-			Miner:          miners[index],
-		})
-
-		// Only miners that support querying
-		if miner.Name == minercraft.MinerTaal || miner.Name == minercraft.MinerMempool {
-			// minercraft.MinerGorillaPool, (does not have -t index enabled - 4.25.22)
-			// minercraft.MinerMatterpool, (does not have -t index enabled - 4.25.22)
-			queryMiners = append(queryMiners, &Miner{
-				// FeeLastChecked: time.Now().UTC(),
-				// FeeUnit:        DefaultFee,
-				Miner: miners[index],
-			})
-		}
-	}
-	return
 }
 
 // getTxnCtx will check for an existing transaction
@@ -117,31 +83,6 @@ func WithMinercraft(client minercraft.ClientInterface) ClientOps {
 func WithMAPI() ClientOps {
 	return func(c *clientOptions) {
 		c.config.minercraftConfig.apiType = minercraft.MAPI
-	}
-}
-
-// WithArc will specify Arc as an API for minercraft client
-func WithArc() ClientOps {
-	return func(c *clientOptions) {
-		c.config.minercraftConfig.apiType = minercraft.Arc
-	}
-}
-
-// WithBroadcastMiners will set a list of miners for broadcasting
-func WithBroadcastMiners(miners []*Miner) ClientOps {
-	return func(c *clientOptions) {
-		if len(miners) > 0 {
-			c.config.minercraftConfig.broadcastMiners = miners
-		}
-	}
-}
-
-// WithQueryMiners will set a list of miners for querying transactions
-func WithQueryMiners(miners []*Miner) ClientOps {
-	return func(c *clientOptions) {
-		if len(miners) > 0 {
-			c.config.minercraftConfig.queryMiners = miners
-		}
 	}
 }
 
@@ -209,10 +150,17 @@ func WithExcludedProviders(providers []string) ClientOps {
 	}
 }
 
-// WithMinercraftFeeQuotes will set minercraftFeeQuotes flag as true
-func WithMinercraftFeeQuotes() ClientOps {
+// WithFeeQuotes will set minercraftFeeQuotes flag as true
+func WithFeeQuotes(enabled bool) ClientOps {
 	return func(c *clientOptions) {
-		c.config.minercraftConfig.minercraftFeeQuotes = true
+		c.config.feeQuotes = enabled
+	}
+}
+
+// WithFeeUnit will set the fee unit
+func WithFeeUnit(feeUnit *utils.FeeUnit) ClientOps {
+	return func(c *clientOptions) {
+		c.config.feeUnit = feeUnit
 	}
 }
 

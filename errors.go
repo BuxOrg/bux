@@ -43,6 +43,9 @@ var ErrXpubIDMisMatch = errors.New("xpub_id mismatch")
 // ErrMissingXpub is when the field is required but missing
 var ErrMissingXpub = errors.New("could not find xpub")
 
+// ErrAccessKeyNotFound is when the access key not found
+var ErrAccessKeyNotFound = errors.New("access key not found")
+
 // ErrMissingLockingScript is when the field is required but missing
 var ErrMissingLockingScript = errors.New("could not find locking script")
 
@@ -111,9 +114,6 @@ var ErrUtxoAlreadySpent = errors.New("utxo has already been spent")
 
 // ErrDraftNotFound is when the requested draft transaction was not found
 var ErrDraftNotFound = errors.New("corresponding draft transaction not found")
-
-// ErrTaskManagerNotLoaded is when the taskmanager was not loaded
-var ErrTaskManagerNotLoaded = errors.New("taskmanager must be loaded")
 
 // ErrTransactionNotParsed is when the transaction is not parsed but was expected
 var ErrTransactionNotParsed = errors.New("transaction is not parsed")

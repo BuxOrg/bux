@@ -61,7 +61,7 @@ func (c *Client) GetAccessKey(ctx context.Context, xPubID, id string) (*AccessKe
 	if err != nil {
 		return nil, err
 	} else if accessKey == nil {
-		return nil, ErrMissingXpub
+		return nil, ErrAccessKeyNotFound
 	}
 
 	// make sure this is the correct accessKey

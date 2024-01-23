@@ -105,12 +105,33 @@ func TestPaymailClient(t *testing.T) {
 	require.NotNil(t, client)
 }
 
+func exampleGenericCapabilities(t *testing.T, p2pEnabled, beefEnabled bool) *paymail.CapabilitiesPayload {
+	options := []server.ConfigOps{
+		server.WithDomain("test.com"),
+	}
+	if p2pEnabled {
+		options = append(options, server.WithP2PCapabilities())
+	}
+	if beefEnabled {
+		options = append(options, server.WithBeefCapabilities())
+	}
+	config, err := server.NewConfig(new(mockServiceProvider), options...)
+	assert.NoError(t, err)
+	capPayload, err := config.EnrichCapabilities("test.com")
+	if err != nil {
+		return &paymail.CapabilitiesPayload{
+			BsvAlias: "",
+		}
+	}
+	return capPayload
+}
+
 // Test_hasP2P will test the method hasP2P()
 func Test_hasP2P(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no p2p capabilities", func(t *testing.T) {
-		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
+		capabilities := exampleGenericCapabilities(t, false, false)
 		success, p2pDestinationURL, p2pSubmitTxURL, _ := hasP2P(capabilities)
 		assert.Equal(t, false, success)
 		assert.Equal(t, "", p2pDestinationURL)
@@ -118,11 +139,7 @@ func Test_hasP2P(t *testing.T) {
 	})
 
 	t.Run("valid p2p capabilities", func(t *testing.T) {
-		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
-
-		// Add the P2P
-		capabilities.Capabilities[paymail.BRFCP2PTransactions] = "/receive-transaction/{alias}@{domain.tld}"
-		capabilities.Capabilities[paymail.BRFCP2PPaymentDestination] = "/p2p-payment-destination/{alias}@{domain.tld}"
+		capabilities := exampleGenericCapabilities(t, true, false)
 
 		success, p2pDestinationURL, p2pSubmitTxURL, _ := hasP2P(capabilities)
 		assert.Equal(t, true, success)
@@ -136,7 +153,7 @@ func Test_hasP2P_beefCapabilities(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no beef capabilities", func(t *testing.T) {
-		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
+		capabilities := exampleGenericCapabilities(t, false, false)
 		success, p2pDestinationURL, p2pSubmitTxURL, format := hasP2P(capabilities)
 		assert.Equal(t, false, success)
 		assert.Equal(t, BasicPaymailPayloadFormat, format)
@@ -144,13 +161,8 @@ func Test_hasP2P_beefCapabilities(t *testing.T) {
 		assert.Equal(t, "", p2pSubmitTxURL)
 	})
 
-	t.Run("valid p2p capabilities", func(t *testing.T) {
-		capabilities := server.GenericCapabilities(paymail.DefaultBsvAliasVersion, false)
-
-		// Add the P2P
-		capabilities.Capabilities[paymail.BRFCP2PPaymentDestination] = "/p2p-payment-destination/{alias}@{domain.tld}"
-		capabilities.Capabilities[paymail.BRFCBeefTransaction] = "/receive-beef-transaction/{alias}@{domain.tld}"
-
+	t.Run("valid beef capabilities", func(t *testing.T) {
+		capabilities := exampleGenericCapabilities(t, true, true)
 		success, p2pDestinationURL, p2pSubmitTxURL, format := hasP2P(capabilities)
 		assert.Equal(t, true, success)
 		assert.Equal(t, BeefPaymailPayloadFormat, format)

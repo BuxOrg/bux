@@ -105,7 +105,7 @@ func TestPaymailClient(t *testing.T) {
 	require.NotNil(t, client)
 }
 
-func exampleGenericCapabilities(t *testing.T, p2pEnabled, beefEnabled bool) *paymail.CapabilitiesPayload {
+func mockCapabilities(t *testing.T, p2pEnabled, beefEnabled bool) *paymail.CapabilitiesPayload {
 	options := []server.ConfigOps{
 		server.WithDomain("test.com"),
 	}
@@ -131,7 +131,7 @@ func Test_hasP2P(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no p2p capabilities", func(t *testing.T) {
-		capabilities := exampleGenericCapabilities(t, false, false)
+		capabilities := mockCapabilities(t, false, false)
 		success, p2pDestinationURL, p2pSubmitTxURL, _ := hasP2P(capabilities)
 		assert.Equal(t, false, success)
 		assert.Equal(t, "", p2pDestinationURL)
@@ -139,7 +139,7 @@ func Test_hasP2P(t *testing.T) {
 	})
 
 	t.Run("valid p2p capabilities", func(t *testing.T) {
-		capabilities := exampleGenericCapabilities(t, true, false)
+		capabilities := mockCapabilities(t, true, false)
 
 		success, p2pDestinationURL, p2pSubmitTxURL, _ := hasP2P(capabilities)
 		assert.Equal(t, true, success)
@@ -153,7 +153,7 @@ func Test_hasP2P_beefCapabilities(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no beef capabilities", func(t *testing.T) {
-		capabilities := exampleGenericCapabilities(t, false, false)
+		capabilities := mockCapabilities(t, false, false)
 		success, p2pDestinationURL, p2pSubmitTxURL, format := hasP2P(capabilities)
 		assert.Equal(t, false, success)
 		assert.Equal(t, BasicPaymailPayloadFormat, format)
@@ -162,7 +162,7 @@ func Test_hasP2P_beefCapabilities(t *testing.T) {
 	})
 
 	t.Run("valid beef capabilities", func(t *testing.T) {
-		capabilities := exampleGenericCapabilities(t, true, true)
+		capabilities := mockCapabilities(t, true, true)
 		success, p2pDestinationURL, p2pSubmitTxURL, format := hasP2P(capabilities)
 		assert.Equal(t, true, success)
 		assert.Equal(t, BeefPaymailPayloadFormat, format)

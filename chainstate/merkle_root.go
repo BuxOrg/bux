@@ -3,19 +3,17 @@ package chainstate
 import (
 	"context"
 	"errors"
-	"fmt"
 )
 
 // VerifyMerkleRoots will try to verify merkle roots with all available providers
 func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRootConfirmationRequestItem) error {
-	if c.options.config.pulseClient == nil {
+	pc := c.options.config.pulseClient
+	if pc == nil {
 		c.options.logger.Warn().Msg("VerifyMerkleRoots is called even though no pulse client is configured; this likely indicates that the paymail capabilities have been cached.")
 		return errors.New("no pulse client found")
 	}
-	pulseProvider := createPulseProvider(c)
-	merkleRootsRes, err := pulseProvider.verifyMerkleRoots(ctx, c, merkleRoots)
+	merkleRootsRes, err := pc.verifyMerkleRoots(ctx, c.options.logger, merkleRoots)
 	if err != nil {
-		debugLog(c, "", fmt.Sprintf("verify merkle root error: %s from Pulse", err))
 		return err
 	}
 
@@ -29,11 +27,4 @@ func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRoot
 	}
 
 	return nil
-}
-
-func createPulseProvider(c *Client) pulseClientProvider {
-	return pulseClientProvider{
-		url:       c.options.config.pulseClient.url,
-		authToken: c.options.config.pulseClient.authToken,
-	}
 }

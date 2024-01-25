@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+
+	"github.com/rs/zerolog"
 )
 
 // MerkleRootConfirmationState represents the state of each Merkle Root verification
@@ -46,47 +47,67 @@ type MerkleRootsConfirmationsResponse struct {
 }
 
 type pulseClientProvider struct {
-	url       string
-	authToken string
+	url        string
+	authToken  string
+	httpClient *http.Client
 }
 
-// verifyMerkleProof using Pulse
-func (p pulseClientProvider) verifyMerkleRoots(
+func newPulseClientProvider(url, authToken string) *pulseClientProvider {
+	return &pulseClientProvider{url: url, authToken: authToken, httpClient: &http.Client{}}
+}
+
+func (p *pulseClientProvider) verifyMerkleRoots(
 	ctx context.Context,
-	c *Client, merkleRoots []MerkleRootConfirmationRequestItem,
+	logger *zerolog.Logger,
+	merkleRoots []MerkleRootConfirmationRequestItem,
 ) (*MerkleRootsConfirmationsResponse, error) {
 	jsonData, err := json.Marshal(merkleRoots)
 	if err != nil {
-		return nil, err
+		return nil, _prepareError(err, logger, "Error occurred while marshaling merkle roots.")
 	}
 
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, "POST", p.url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return nil, err
+		return nil, _prepareError(err, logger, "Error occurred while creating request for the pulse client.")
 	}
 
 	if p.authToken != "" {
 		req.Header.Set("Authorization", "Bearer "+p.authToken)
 	}
-	res, err := client.Do(req)
-	if err != nil {
-		c.options.logger.Error().Msgf("Error during creating connection to pulse client: %s", err.Error())
-		return nil, err
+	res, err := p.httpClient.Do(req)
+	if res != nil {
+		defer func() {
+			_ = res.Body.Close()
+		}()
 	}
-	defer res.Body.Close() //nolint: all // Close the body
+	if err != nil {
+		return nil, _prepareError(err, logger, "Error occurred while sending request to the Pulse service.")
+	}
+
+	if res.StatusCode != 200 {
+		return nil, _noSuccessCodeError(res, logger)
+	}
 
 	// Parse response body.
 	var merkleRootsRes MerkleRootsConfirmationsResponse
-	bodyBytes, err := io.ReadAll(res.Body)
+	err = json.NewDecoder(res.Body).Decode(&merkleRootsRes)
 	if err != nil {
-		return nil, fmt.Errorf("error during reading response body: %s", err.Error())
-	}
-
-	err = json.Unmarshal(bodyBytes, &merkleRootsRes)
-	if err != nil {
-		return nil, fmt.Errorf("error during unmarshalling response body: %s", err.Error())
+		return nil, _prepareError(err, logger, "Error occurred while parsing response from the Pulse service.")
 	}
 
 	return &merkleRootsRes, nil
+}
+
+// _prepareError returns brief error for http response message and logs detailed information with original error
+func _prepareError(err error, logger *zerolog.Logger, message string) error {
+	logger.Error().Err(err).Msg("[verifyMerkleRoots] " + message)
+	return fmt.Errorf("cannot verify transaction - %s", message)
+}
+
+func _noSuccessCodeError(res *http.Response, logger *zerolog.Logger) error {
+	return _prepareError(
+		fmt.Errorf("pulse client returned status code %d - check Pulse configuration and service status", res.StatusCode),
+		logger,
+		"Received unexpected status code from Pulse service.",
+	)
 }

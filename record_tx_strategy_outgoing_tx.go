@@ -82,7 +82,12 @@ func (strategy *outgoingTx) Validate() error {
 }
 
 func (strategy *outgoingTx) TxID() string {
-	btTx, _ := bt.NewTxFromString(strategy.Hex)
+	btTx, err := bt.NewTxFromString(strategy.Hex)
+
+	// Return hex if hex is invalid. Handle error in error handlers
+	if err != nil {
+		return strategy.Hex
+	}
 	return btTx.TxID()
 }
 

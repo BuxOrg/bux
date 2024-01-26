@@ -187,6 +187,30 @@ func Test_RevertTransaction(t *testing.T) {
 	})
 }
 
+func Test_RecordTransaction(t *testing.T) {
+	//var secondTransaction *Transaction
+	ctx, client, _ := initSimpleTestCase(t)
+	draftTransaction := newDraftTransaction(
+		testXPub, &TransactionConfig{
+			Outputs: []*TransactionOutput{{
+				To:       "1A1PjKqjWMNBzTVdcBru27EV1PHcXWc63W",
+				Satoshis: 1000,
+			}},
+			ChangeNumberOfDestinations: 1,
+			Sync: &SyncConfig{
+				Broadcast:        true,
+				BroadcastInstant: false,
+				PaymailP2P:       false,
+				SyncOnChain:      false,
+			},
+		},
+		append(client.DefaultModelOptions(), New())...,
+	)
+
+	_, err := client.RecordTransaction(ctx, testXPub, "test", draftTransaction.ID, client.DefaultModelOptions()...)
+	require.Error(t, err)
+}
+
 func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, *Transaction, *bip32.ExtendedKey, func()) {
 	// this creates an xpub, destination and utxo
 	ctx, client, deferMe := initSimpleTestCase(t)

@@ -63,12 +63,12 @@ func (p *pulseClientProvider) verifyMerkleRoots(
 ) (*MerkleRootsConfirmationsResponse, error) {
 	jsonData, err := json.Marshal(merkleRoots)
 	if err != nil {
-		return nil, _prepareError(err, logger, "Error occurred while marshaling merkle roots.")
+		return nil, _fmtAndLogError(err, logger, "Error occurred while marshaling merkle roots.")
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", p.url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return nil, _prepareError(err, logger, "Error occurred while creating request for the pulse client.")
+		return nil, _fmtAndLogError(err, logger, "Error occurred while creating request for the pulse client.")
 	}
 
 	if p.authToken != "" {
@@ -81,33 +81,29 @@ func (p *pulseClientProvider) verifyMerkleRoots(
 		}()
 	}
 	if err != nil {
-		return nil, _prepareError(err, logger, "Error occurred while sending request to the Pulse service.")
+		return nil, _fmtAndLogError(err, logger, "Error occurred while sending request to the Pulse service.")
 	}
 
 	if res.StatusCode != 200 {
-		return nil, _noSuccessCodeError(res, logger)
+		return nil, _fmtAndLogError(_statusError(res.StatusCode), logger, "Received unexpected status code from Pulse service.")
 	}
 
 	// Parse response body.
 	var merkleRootsRes MerkleRootsConfirmationsResponse
 	err = json.NewDecoder(res.Body).Decode(&merkleRootsRes)
 	if err != nil {
-		return nil, _prepareError(err, logger, "Error occurred while parsing response from the Pulse service.")
+		return nil, _fmtAndLogError(err, logger, "Error occurred while parsing response from the Pulse service.")
 	}
 
 	return &merkleRootsRes, nil
 }
 
-// _prepareError returns brief error for http response message and logs detailed information with original error
-func _prepareError(err error, logger *zerolog.Logger, message string) error {
+// _fmtAndLogError returns brief error for http response message and logs detailed information with original error
+func _fmtAndLogError(err error, logger *zerolog.Logger, message string) error {
 	logger.Error().Err(err).Msg("[verifyMerkleRoots] " + message)
 	return fmt.Errorf("cannot verify transaction - %s", message)
 }
 
-func _noSuccessCodeError(res *http.Response, logger *zerolog.Logger) error {
-	return _prepareError(
-		fmt.Errorf("pulse client returned status code %d - check Pulse configuration and service status", res.StatusCode),
-		logger,
-		"Received unexpected status code from Pulse service.",
-	)
+func _statusError(statusCode int) error {
+	return fmt.Errorf("pulse client returned status code %d - check Pulse configuration and service status", statusCode)
 }

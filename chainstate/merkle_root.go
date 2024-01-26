@@ -6,6 +6,7 @@ import (
 )
 
 // VerifyMerkleRoots will try to verify merkle roots with all available providers
+// When no error is returned, it means that the pulse client responded with state: Confirmed or UnableToVerify
 func (c *Client) VerifyMerkleRoots(ctx context.Context, merkleRoots []MerkleRootConfirmationRequestItem) error {
 	pc := c.options.config.pulseClient
 	if pc == nil {

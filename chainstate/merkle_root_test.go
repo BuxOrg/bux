@@ -78,6 +78,36 @@ func TestVerifyMerkleRoots(t *testing.T) {
 		assert.Equal(t, 1, httpmock.GetTotalCallCount())
 		assert.True(t, bLogger.contains("Not all merkle roots confirmed"))
 	})
+
+	t.Run("pulse confirmedState", func(t *testing.T) {
+		httpmock.Reset()
+		httpmock.RegisterResponder("POST", mockURL,
+			httpmock.NewJsonResponderOrPanic(200, MerkleRootsConfirmationsResponse{
+				ConfirmationState: Confirmed,
+				Confirmations: []MerkleRootConfirmation{
+					{
+						Hash:         "some-hash",
+						BlockHeight:  1,
+						MerkleRoot:   "some-merkle-root",
+						Confirmation: Confirmed,
+					},
+				},
+			}),
+		)
+		c, bLogger := initMockClient(WithConnectionToPulse(mockURL, "some-token"))
+
+		err := c.VerifyMerkleRoots(context.Background(), []MerkleRootConfirmationRequestItem{
+			{
+				MerkleRoot:  "some-merkle-root",
+				BlockHeight: 1,
+			},
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, 1, httpmock.GetTotalCallCount())
+		assert.False(t, bLogger.contains("ERR"))
+		assert.False(t, bLogger.contains("WARN"))
+	})
 }
 
 // buffLogger allows to check if a certain string was logged

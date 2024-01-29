@@ -142,7 +142,7 @@ func (c *Client) DeletePaymailAddress(ctx context.Context, address string, opts 
 	if err != nil {
 		return err
 	} else if paymailAddress == nil {
-		return ErrMissingPaymail
+		return ErrPaymailNotFound
 	}
 
 	// todo: make a better approach for deleting paymail addresses?

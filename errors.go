@@ -97,6 +97,9 @@ var ErrDuplicateUTXOs = errors.New("duplicate utxos found")
 // ErrPaymailAddressIsInvalid is when the paymail address is NOT alias@domain.com
 var ErrPaymailAddressIsInvalid = errors.New("paymail address is invalid")
 
+// ErrPaymailNotFound is when paymaail could not be found
+var ErrPaymailNotFound = errors.New("paymail could not be found")
+
 // ErrUtxoNotReserved is when the utxo is not reserved, but a transaction tries to spend it
 var ErrUtxoNotReserved = errors.New("transaction utxo has not been reserved for spending")
 

@@ -40,7 +40,7 @@ type (
 		network           Network                    // Current network (mainnet, testnet, stn)
 		queryTimeout      time.Duration              // Timeout for transaction query
 		broadcastClient   broadcast.Client           // Broadcast client
-		pulseClient       *PulseClient               // Pulse client
+		pulseClient       *pulseClientProvider       // Pulse client
 		feeUnit           *utils.FeeUnit             // The lowest fees among all miners
 		feeQuotes         bool                       // If set, feeUnit will be updated with fee quotes from miner's
 	}
@@ -52,12 +52,6 @@ type (
 
 		apiType   minercraft.APIType      // MinerCraft APIType(ARC/mAPI)
 		minerAPIs []*minercraft.MinerAPIs // List of miners APIs
-	}
-
-	// PulseClient is the internal chainstate pulse client
-	PulseClient struct {
-		url       string
-		authToken string
 	}
 )
 

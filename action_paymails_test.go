@@ -29,7 +29,7 @@ func (ts *EmbeddedDBTestSuite) TestClient_NewPaymailAddress() {
 
 			var paymailAddress *PaymailAddress
 			paymailAddress, err = tc.client.NewPaymailAddress(tc.ctx, testXPub, "", testPublicName, testAvatar, tc.client.DefaultModelOptions()...)
-			require.ErrorIs(t, err, ErrPaymailNotFound)
+			require.ErrorIs(t, err, ErrMissingPaymailAddress)
 			require.Nil(t, paymailAddress)
 		})
 

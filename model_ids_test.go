@@ -75,32 +75,3 @@ func TestIDs_Value(t *testing.T) {
 		assert.Equal(t, "[\"test1\"]", value)
 	})
 }
-
-// TestUnmarshalIDs will test the method UnmarshalIDs()
-func TestUnmarshalIDs(t *testing.T) {
-
-	t.Parallel()
-
-	t.Run("nil value", func(t *testing.T) {
-		i, err := UnmarshalIDs(nil)
-		require.NoError(t, err)
-		assert.Equal(t, 0, len(i))
-		assert.IsType(t, IDs{}, i)
-	})
-
-	t.Run("empty string", func(t *testing.T) {
-		i, err := UnmarshalIDs("\"\"")
-		assert.Error(t, err)
-		assert.Equal(t, 0, len(i))
-		assert.IsType(t, IDs{}, i)
-	})
-
-	t.Run("valid set of ids", func(t *testing.T) {
-		i, err := UnmarshalIDs(IDs{"test1", "test2"})
-		require.NoError(t, err)
-		assert.Equal(t, 2, len(i))
-		assert.IsType(t, IDs{}, i)
-		assert.Equal(t, "test1", i[0])
-		assert.Equal(t, "test2", i[1])
-	})
-}

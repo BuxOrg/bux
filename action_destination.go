@@ -78,7 +78,7 @@ func (c *Client) NewDestinationForLockingScript(ctx context.Context, xPubID, loc
 	}
 
 	// set the monitoring, passed down from the initiating function
-	// this will be set when calling NewDestination from http / graphql, but not for instance paymail
+	// this will be set when calling NewDestination from http, but not for instance paymail
 	if monitor {
 		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
 			Valid: true,

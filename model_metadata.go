@@ -5,7 +5,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 	"go.mongodb.org/mongo-driver/bson"
@@ -185,20 +184,4 @@ func (x *XpubMetadata) UnmarshalBSONValue(t bsontype.Type, data []byte) error {
 	}
 
 	return nil
-}
-
-// MarshalMetadata will marshal the custom type
-func MarshalMetadata(m Metadata) graphql.Marshaler {
-	if m == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalMap(m)
-}
-
-// UnmarshalMetadata will unmarshal the custom type
-func UnmarshalMetadata(v interface{}) (Metadata, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return graphql.UnmarshalMap(v)
 }

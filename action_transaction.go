@@ -408,16 +408,13 @@ func (c *Client) UpdateTransaction(ctx context.Context, callbackResp *broadcast.
 		Confirmations: -1,
 	}
 
-	ids := []string{txInfo.ID}
-	// we use GetTransactionsByIDs to reuse existing function as the main one requires xpubID
-	txs, err := c.GetTransactionsByIDs(ctx, ids)
-	if err != nil || len(txs) != 1 {
+	tx, err := c.GetTransaction(ctx, "", txInfo.ID)
+	if err != nil {
 		msg := fmt.Sprintf("failed to get transaction by id while processing callback: %v", txInfo.ID)
 		c.options.logger.Err(err).Msg(msg)
 		return err
 	}
 
-	tx := txs[0]
 	tx.setChainInfo(txInfo)
 	if err = tx.Save(ctx); err != nil {
 		msg := fmt.Sprintf("failed to save transaction while processing callback: %v", txInfo.ID)

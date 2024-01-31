@@ -387,8 +387,7 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 func (c *Client) UpdateTransaction(ctx context.Context, callbackResp *broadcast.SubmittedTx) error {
 	bump, err := bc.NewBUMPFromStr(callbackResp.MerklePath)
 	if err != nil {
-		msg := fmt.Sprintf("failed to parse merkle path from broadcast callback - tx: %v", callbackResp)
-		c.options.logger.Err(err).Msg(msg)
+		c.options.logger.Err(err).Msgf("failed to parse merkle path from broadcast callback - tx: %v", callbackResp)
 		return err
 	}
 
@@ -404,15 +403,13 @@ func (c *Client) UpdateTransaction(ctx context.Context, callbackResp *broadcast.
 
 	tx, err := c.GetTransaction(ctx, "", txInfo.ID)
 	if err != nil {
-		msg := fmt.Sprintf("failed to get transaction by id while processing callback: %v", txInfo.ID)
-		c.options.logger.Err(err).Msg(msg)
+		c.options.logger.Err(err).Msgf("failed to get transaction by id while processing callback: %v", txInfo.ID)
 		return err
 	}
 
 	tx.setChainInfo(txInfo)
 	if err = tx.Save(ctx); err != nil {
-		msg := fmt.Sprintf("failed to save transaction while processing callback: %v", txInfo.ID)
-		c.options.logger.Err(err).Msg(msg)
+		c.options.logger.Err(err).Msgf("failed to save transaction while processing callback: %v", txInfo.ID)
 		return err
 	}
 

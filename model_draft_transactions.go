@@ -130,14 +130,6 @@ func (m *DraftTransaction) Save(ctx context.Context) (err error) {
 		m.Client().Logger().Error().
 			Str("draftTxID", m.GetID()).
 			Msgf("save tx error: %s", err.Error())
-
-		// todo: run in a go routine?
-		// un-reserve the utxos
-		if utxoErr := unReserveUtxos(
-			ctx, m.XpubID, m.ID, m.GetOptions(false)...,
-		); utxoErr != nil {
-			err = errors.Wrap(err, utxoErr.Error())
-		}
 	}
 	return
 }

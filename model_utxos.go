@@ -110,39 +110,6 @@ func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 	return utxos, nil
 }
 
-// unReserveUtxos remove the reservation on the utxos for the given draft ID
-func unReserveUtxos(ctx context.Context, xPubID, draftID string, opts ...ModelOps) error {
-	var models []Utxo
-	conditions := map[string]interface{}{
-		xPubIDField:  xPubID,
-		draftIDField: draftID,
-	}
-
-	// Get the records
-	if err := getModels(
-		ctx, NewBaseModel(ModelNameEmpty, opts...).Client().Datastore(),
-		&models, conditions, nil, defaultDatabaseReadTimeout,
-	); err != nil {
-		if errors.Is(err, datastore.ErrNoResults) {
-			return nil
-		}
-		return err
-	}
-
-	// Loop and un-reserve
-	for index := range models {
-		utxo := models[index]
-		utxo.enrich(ModelUtxo, opts...)
-		utxo.DraftID.Valid = false
-		utxo.ReservedAt.Valid = false
-		if err := utxo.Save(ctx); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // reserveUtxos reserve utxos for the given draft ID and amount
 func reserveUtxos(ctx context.Context, xPubID, draftID string,
 	satoshis uint64, feePerByte float64, fromUtxos []*UtxoPointer, opts ...ModelOps,
@@ -225,11 +192,6 @@ reserveUtxoLoop:
 	}
 
 	if reservedSatoshis < satoshis {
-		if err = unReserveUtxos(
-			ctx, xPubID, draftID, m.GetOptions(false)...,
-		); err != nil {
-			return nil, errors.Wrap(err, ErrNotEnoughUtxos.Error())
-		}
 		return nil, ErrNotEnoughUtxos
 	}
 

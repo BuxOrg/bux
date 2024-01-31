@@ -160,7 +160,6 @@ type UTXOService interface {
 		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
 	GetUtxosByXpubID(ctx context.Context, xPubID string, metadata *Metadata, conditions *map[string]interface{},
 		queryParams *datastore.QueryParams) ([]*Utxo, error)
-	UnReserveUtxos(ctx context.Context, xPubID, draftID string) error
 }
 
 // XPubService is the xPub actions

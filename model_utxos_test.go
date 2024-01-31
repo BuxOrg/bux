@@ -153,38 +153,6 @@ func TestUtxo_GetModelName(t *testing.T) {
 	assert.Equal(t, ModelUtxo.String(), utxo.GetModelName())
 }
 
-// TestUtxo_UnReserveUtxos un-reserve utxos
-func TestUtxo_UnReserveUtxos(t *testing.T) {
-	t.Run("un-reserve 2000", func(t *testing.T) {
-		ctx, client, deferMe := CreateTestSQLiteClient(t, false, false, withTaskManagerMockup())
-		defer deferMe()
-
-		err := createTestUtxos(ctx, client)
-		require.NoError(t, err)
-
-		var utxos []*Utxo
-		utxos, err = reserveUtxos(ctx, testXPubID, testDraftID2, 2000, 0.5, nil, client.DefaultModelOptions()...)
-		require.NoError(t, err)
-		assert.Len(t, utxos, 2)
-		for _, utxo := range utxos {
-			assert.True(t, utxo.DraftID.Valid)
-			assert.True(t, utxo.ReservedAt.Valid)
-		}
-
-		err = unReserveUtxos(ctx, testXPubID, testDraftID2, client.DefaultModelOptions()...)
-		require.NoError(t, err)
-		for _, utxo := range utxos {
-			var u *Utxo
-			u, err = getUtxo(ctx, utxo.TransactionID, utxo.OutputIndex, client.DefaultModelOptions()...)
-			require.NoError(t, err)
-			assert.Equal(t, utxo.TransactionID, u.TransactionID)
-			assert.Equal(t, utxo.OutputIndex, u.OutputIndex)
-			assert.False(t, u.DraftID.Valid)
-			assert.False(t, u.ReservedAt.Valid)
-		}
-	})
-}
-
 // TestUtxo_ReserveUtxos reserve utxos
 func TestUtxo_ReserveUtxos(t *testing.T) {
 	t.Run("reserve 1000", func(t *testing.T) {
@@ -352,9 +320,6 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
-
-		err = unReserveUtxos(ctx, testXPubID, testDraftID2, opts...)
-		require.NoError(t, err)
 
 		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)

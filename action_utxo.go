@@ -131,14 +131,6 @@ func (c *Client) GetUtxoByTransactionID(ctx context.Context, txID string, output
 	return utxo, nil
 }
 
-// UnReserveUtxos remove the reservation on the utxos for the given draft ID
-func (c *Client) UnReserveUtxos(ctx context.Context, xPubID, draftID string) error {
-	// Check for existing NewRelic transaction
-	ctx = c.GetOrStartTxn(ctx, "unreserve_uxtos_by_draft_id")
-
-	return unReserveUtxos(ctx, xPubID, draftID, c.DefaultModelOptions()...)
-}
-
 // should this be optional in the results?
 func (c *Client) enrichUtxoTransactions(ctx context.Context, utxos []*Utxo) {
 	for index, utxo := range utxos {

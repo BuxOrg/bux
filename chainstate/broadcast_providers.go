@@ -94,14 +94,19 @@ func (provider broadcastClientProvider) broadcast(ctx context.Context, c *Client
 	return broadcastWithBroadcastClient(ctx, c, provider.txID, provider.txHex)
 }
 
-func broadcastWithBroadcastClient(ctx context.Context, client ClientInterface, txID, hex string) error {
+func broadcastWithBroadcastClient(ctx context.Context, client *Client, txID, hex string) error {
 	debugLog(client, txID, "executing broadcast request for "+ProviderBroadcastClient)
 
 	tx := broadcast.Transaction{
 		Hex: hex,
 	}
 
-	result, err := client.BroadcastClient().SubmitTransaction(ctx, &tx, broadcast.WithRawFormat())
+	result, err := client.BroadcastClient().SubmitTransaction(
+		ctx,
+		&tx,
+		broadcast.WithRawFormat(),
+		broadcast.WithCallback(client.options.config.callbackURL, client.options.config.callbackToken),
+	)
 	if err != nil {
 		debugLog(client, txID, "error broadcast request for "+ProviderBroadcastClient+" failed: "+err.Error())
 		return err

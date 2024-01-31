@@ -9,6 +9,8 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt"
 	"github.com/mrz1836/go-datastore"
 )
@@ -379,6 +381,45 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	err = transaction.Save(ctx) // update existing record
 
 	return err
+}
+
+// UpdateTransaction will update the broadcast callback transaction info, like: block height, block hash, status, bump.
+func (c *Client) UpdateTransaction(ctx context.Context, callbackResp *broadcast.SubmittedTx) error {
+	bump, err := bc.NewBUMPFromStr(callbackResp.MerklePath)
+	if err != nil {
+		msg := fmt.Sprintf("failed to parse merkle path from broadcast callback - tx: %v", callbackResp)
+		c.options.logger.Err(err).Msg(msg)
+		return err
+	}
+
+	txInfo := &chainstate.TransactionInfo{
+		BlockHash:   callbackResp.BlockHash,
+		BlockHeight: callbackResp.BlockHeight,
+		ID:          callbackResp.TxID,
+		TxStatus:    callbackResp.TxStatus,
+		BUMP:        bump,
+		// it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
+		Confirmations: -1,
+	}
+
+	ids := []string{txInfo.ID}
+	// we use GetTransactionsByIDs to reuse existing function as the main one requires xpubID
+	txs, err := c.GetTransactionsByIDs(ctx, ids)
+	if err != nil || len(txs) != 1 {
+		msg := fmt.Sprintf("failed to get transaction by id while processing callback: %v", txInfo.ID)
+		c.options.logger.Err(err).Msg(msg)
+		return err
+	}
+
+	tx := txs[0]
+	tx.setChainInfo(txInfo)
+	if err = tx.Save(ctx); err != nil {
+		msg := fmt.Sprintf("failed to save transaction while processing callback: %v", txInfo.ID)
+		c.options.logger.Err(err).Msg(msg)
+		return err
+	}
+
+	return nil
 }
 
 func generateTxIDFilterConditions(txIDs []string) *map[string]interface{} {

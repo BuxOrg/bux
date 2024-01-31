@@ -21,6 +21,9 @@ go.list
 # Jetbrains
 .idea/
 
+#VSCode
+.vscode/
+
 # Eclipse
 .project
 

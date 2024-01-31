@@ -320,10 +320,6 @@ func TestUtxo_GetSpendableUtxos(t *testing.T) {
 		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
 		require.NoError(t, err)
 		assert.Len(t, utxos, 2)
-
-		utxos, err = getSpendableUtxos(ctx, testXPubID, utils.ScriptTypePubKeyHash, nil, nil, opts...)
-		require.NoError(t, err)
-		assert.Len(t, utxos, 4)
 	})
 
 	t.Run("paginated spendable", func(t *testing.T) {

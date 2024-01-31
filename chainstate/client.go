@@ -212,11 +212,3 @@ func (c *Client) checkFeeUnit() error {
 	}
 	return nil
 }
-
-// func (c *Client) getCallbackRoute() error {
-// 	// return c.options.config.
-// }
-
-func (c *Client) getCallbackToken() string {
-	return c.options.config.callbackToken
-}

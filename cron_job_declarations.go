@@ -40,7 +40,7 @@ func (c *Client) cronJobs() taskmanager.CronJobs {
 			Handler: handler(taskBroadcastTransactions),
 		},
 		CronJobNameSyncTransactionSync: {
-			Period:  120 * time.Second,
+			Period:  600 * time.Second,
 			Handler: handler(taskSyncTransactions),
 		},
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
@@ -146,6 +147,7 @@ type TransactionService interface {
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
 	RecordRawTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
+	UpdateTransaction(ctx context.Context, txInfo *broadcast.SubmittedTx) error
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
 	RevertTransaction(ctx context.Context, id string) error
 }

@@ -184,3 +184,11 @@ func WithConnectionToPulse(url, authToken string) ClientOps {
 		c.config.pulseClient = newPulseClientProvider(url, authToken)
 	}
 }
+
+// WithCallback will set broadcast callback settings
+func WithCallback(callbackURL, callbackAuthToken string) ClientOps {
+	return func(c *clientOptions) {
+		c.config.callbackURL = callbackURL
+		c.config.callbackToken = callbackAuthToken
+	}
+}

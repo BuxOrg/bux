@@ -8,6 +8,8 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
+	"hash/adler32"
 	"math"
 	"strconv"
 
@@ -93,6 +95,23 @@ func LittleEndianBytes64(value uint64, resultLength uint32) []byte {
 	binary.LittleEndian.PutUint64(buf, value)
 
 	return buf
+}
+
+// HashAdler32 returns computed string calculated with Adler32 function.
+func HashAdler32(input string) (string, error) {
+	if input == "" {
+		return "", fmt.Errorf("input string is empty - cannot apply adler32 hash function")
+	}
+	data := []byte(input)
+	hasher := adler32.New()
+	_, err := hasher.Write(data)
+	if err != nil {
+		return "", err
+	}
+
+	sum := hasher.Sum32()
+
+	return fmt.Sprintf("%08x", sum), nil
 }
 
 // SafeAssign - Assigns value (not pointer) the src to dest if src is not nil

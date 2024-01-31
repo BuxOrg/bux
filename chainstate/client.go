@@ -33,6 +33,8 @@ type (
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
+		callbackURL       string                     // Broadcast callback URL
+		callbackToken     string                     // Broadcast callback access token
 		excludedProviders []string                   // List of provider names
 		httpClient        HTTPInterface              // Custom HTTP client (Minercraft, WOC)
 		minercraftConfig  *minercraftConfig          // minercraftConfig configuration
@@ -209,4 +211,12 @@ func (c *Client) checkFeeUnit() error {
 		c.options.logger.Info().Msgf("using fee unit: %s from %s", feeUnit, feeUnitSource)
 	}
 	return nil
+}
+
+// func (c *Client) getCallbackRoute() error {
+// 	// return c.options.config.
+// }
+
+func (c *Client) getCallbackToken() string {
+	return c.options.config.callbackToken
 }

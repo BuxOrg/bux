@@ -409,17 +409,17 @@ func (c *Client) UpdateTransaction(ctx context.Context, callbackResp *broadcast.
 
 	tx, err := c.GetTransaction(ctx, "", txInfo.ID)
 	if err != nil {
-		c.options.logger.Err(err).Msgf("failed to get transaction by id while processing callback: %v", txInfo.ID)
+		c.options.logger.Err(err).Msgf("failed to get transaction by id: %v", txInfo.ID)
 		return err
 	}
 
-	tx.setChainInfo(txInfo)
-	if err = tx.Save(ctx); err != nil {
-		c.options.logger.Err(err).Msgf("failed to save transaction while processing callback: %v", txInfo.ID)
+	syncTx, err := GetSyncTransactionByTxID(ctx, txInfo.ID, c.DefaultModelOptions()...)
+	if err != nil {
+		c.options.logger.Err(err).Msgf("failed to get sync transaction by tx id: %v", txInfo.ID)
 		return err
 	}
 
-	return nil
+	return processSyncTxSave(ctx, txInfo, syncTx, tx)
 }
 
 func generateTxIDFilterConditions(txIDs []string) *map[string]interface{} {

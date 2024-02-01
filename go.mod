@@ -3,7 +3,6 @@ module github.com/BuxOrg/bux
 go 1.21.5
 
 require (
-	github.com/99designs/gqlgen v0.17.42
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/bitcoin-sv/go-broadcast-client v0.16.0
 	github.com/bitcoin-sv/go-paymail v0.12.1
@@ -42,6 +41,7 @@ require (
 )
 
 require (
+	github.com/99designs/gqlgen v0.17.42 // indirect
 	github.com/acobaugh/osrelease v0.1.0 // indirect
 	github.com/bitcoinschema/go-bpu v0.1.3 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect

@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/mrz1836/go-datastore"
 	"gorm.io/gorm"
@@ -52,24 +51,4 @@ func (IDs) GormDBDataType(db *gorm.DB, _ *schema.Field) string {
 		return datastore.JSONB
 	}
 	return datastore.JSON
-}
-
-// UnmarshalIDs will marshal the custom type
-func UnmarshalIDs(v interface{}) (IDs, error) {
-	if v == nil {
-		return nil, nil
-	}
-
-	// Try to unmarshal
-	ids, err := graphql.UnmarshalAny(v)
-	if err != nil {
-		return nil, err
-	}
-
-	// Cast interface back to IDs (safely)
-	if idCast, ok := ids.(IDs); ok {
-		return idCast, nil
-	}
-
-	return nil, ErrCannotConvertToIDs
 }

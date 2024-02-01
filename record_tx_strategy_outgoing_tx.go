@@ -70,6 +70,10 @@ func (strategy *outgoingTx) Validate() error {
 		return ErrMissingFieldHex
 	}
 
+	if _, err := bt.NewTxFromString(strategy.Hex); err != nil {
+		return fmt.Errorf("invalid hex: %w", err)
+	}
+
 	if strategy.RelatedDraftID == "" {
 		return errors.New("empty RelatedDraftID")
 	}
@@ -82,12 +86,7 @@ func (strategy *outgoingTx) Validate() error {
 }
 
 func (strategy *outgoingTx) TxID() string {
-	btTx, err := bt.NewTxFromString(strategy.Hex)
-
-	// Return hex if hex is invalid. Handle error in error handlers
-	if err != nil {
-		return strategy.Hex
-	}
+	btTx, _ := bt.NewTxFromString(strategy.Hex)
 	return btTx.TxID()
 }
 

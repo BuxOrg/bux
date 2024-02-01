@@ -20,7 +20,7 @@ func (c *Client) GetPaymailAddress(ctx context.Context, address string, opts ...
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {
-		return nil, ErrMissingPaymail
+		return nil, ErrPaymailNotFound
 	}
 
 	return paymailAddress, nil
@@ -174,7 +174,7 @@ func (c *Client) UpdatePaymailAddressMetadata(ctx context.Context, address strin
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {
-		return nil, ErrMissingPaymail
+		return nil, ErrPaymailNotFound
 	}
 
 	// Update the metadata
@@ -200,7 +200,7 @@ func (c *Client) UpdatePaymailAddress(ctx context.Context, address, publicName, 
 	if err != nil {
 		return nil, err
 	} else if paymailAddress == nil {
-		return nil, ErrMissingPaymail
+		return nil, ErrPaymailNotFound
 	}
 
 	// Update the public name

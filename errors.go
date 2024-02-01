@@ -172,9 +172,6 @@ var ErrUnknownAccessKey = errors.New("unknown access key")
 // ErrAccessKeyRevoked is when the access key has been revoked
 var ErrAccessKeyRevoked = errors.New("access key has been revoked")
 
-// ErrMissingPaymail missing paymail
-var ErrMissingPaymail = errors.New("missing paymail")
-
 // ErrMissingPaymailID missing id in paymail
 var ErrMissingPaymailID = errors.New("missing id in paymail")
 

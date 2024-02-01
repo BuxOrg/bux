@@ -35,7 +35,7 @@ func GetSyncTransactionByTxID(ctx context.Context, txID string, opts ...ModelOps
 	// Get the records by status
 	txs, err := _getSyncTransactionsByConditions(ctx,
 		map[string]interface{}{
-			txID: txID,
+			idField: txID,
 		},
 		nil, opts...,
 	)

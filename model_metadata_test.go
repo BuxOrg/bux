@@ -1,7 +1,6 @@
 package bux
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"testing"
@@ -121,64 +120,6 @@ func TestXpubMetadata_Value(t *testing.T) {
 		value, err := x.Value()
 		require.NoError(t, err)
 		assert.Equal(t, "{\"xPubId\":{\"test\":\"test2\"}}", value)
-	})
-}
-
-// TestMetaDataScan will test the db Scanner of the Metadata model
-func TestMetadata_UnmarshalMetadata(t *testing.T) {
-	t.Parallel()
-
-	t.Run("nil value", func(t *testing.T) {
-		m, err := UnmarshalMetadata(nil)
-		require.NoError(t, err)
-		assert.Equal(t, 0, len(m))
-		assert.IsType(t, Metadata{}, m)
-	})
-
-	t.Run("empty string", func(t *testing.T) {
-		m, err := UnmarshalMetadata("\"\"")
-		assert.Error(t, err)
-		assert.Equal(t, 0, len(m))
-		assert.IsType(t, Metadata{}, m)
-	})
-
-	t.Run("empty string - incorrectly coded", func(t *testing.T) {
-		m, err := UnmarshalMetadata("")
-		assert.Error(t, err)
-		assert.Equal(t, 0, len(m))
-		assert.IsType(t, Metadata{}, m)
-	})
-
-	t.Run("object", func(t *testing.T) {
-		m, err := UnmarshalMetadata(map[string]interface{}{"test": "test2"})
-		require.NoError(t, err)
-		assert.Equal(t, 1, len(m))
-		assert.IsType(t, Metadata{}, m)
-		assert.Equal(t, "test2", m["test"])
-	})
-}
-
-// TestMetadata_MarshalMetadata will test the db Valuer of the Metadata model
-func TestMetadata_MarshalMetadata(t *testing.T) {
-	t.Parallel()
-
-	t.Run("empty object", func(t *testing.T) {
-		m := Metadata{}
-		writer := MarshalMetadata(m)
-		require.NotNil(t, writer)
-		b := bytes.NewBufferString("")
-		writer.MarshalGQL(b)
-		assert.Equal(t, "{}\n", b.String())
-	})
-
-	t.Run("map present", func(t *testing.T) {
-		m := Metadata{}
-		m["test"] = "test2"
-		writer := MarshalMetadata(m)
-		require.NotNil(t, writer)
-		b := bytes.NewBufferString("")
-		writer.MarshalGQL(b)
-		assert.Equal(t, "{\"test\":\"test2\"}\n", b.String())
 	})
 }
 

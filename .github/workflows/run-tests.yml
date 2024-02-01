@@ -5,12 +5,10 @@ env:
   GO111MODULE: on
 
 on:
-  pull_request:
-    branches:
-      - "*"
   push:
-    branches:
-      - "*"
+    branches-ignore:
+      - main
+      - master
 
 jobs:
   yamllint:

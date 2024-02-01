@@ -181,6 +181,6 @@ func WithBroadcastClient(client broadcast.Client) ClientOps {
 // WithConnectionToPulse will set pulse API settings.
 func WithConnectionToPulse(url, authToken string) ClientOps {
 	return func(c *clientOptions) {
-		c.config.pulseClient = &PulseClient{url, authToken}
+		c.config.pulseClient = newPulseClientProvider(url, authToken)
 	}
 }

@@ -136,9 +136,7 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 	if provider, err = syncTx.Client().Chainstate().Broadcast(
 		ctx, syncTx.ID, txHex, defaultBroadcastTimeout,
 	); err != nil {
-		_bailAndSaveSyncTransaction(
-			ctx, syncTx, SyncStatusError, syncActionBroadcast, provider, "broadcast error: "+err.Error(),
-		)
+		_bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusReady, syncActionBroadcast, provider, err.Error())
 		return err
 	}
 

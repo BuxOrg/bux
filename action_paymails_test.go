@@ -81,7 +81,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 
 			paymail := ""
 			err := tc.client.DeletePaymailAddress(tc.ctx, paymail, tc.client.DefaultModelOptions()...)
-			require.ErrorIs(t, err, ErrMissingPaymail)
+			require.ErrorIs(t, err, ErrPaymailNotFound)
 		})
 
 		ts.T().Run(testCase.name+" - delete unknown paymail address", func(t *testing.T) {
@@ -89,7 +89,7 @@ func (ts *EmbeddedDBTestSuite) Test_DeletePaymailAddress() {
 			defer tc.Close(tc.ctx)
 
 			err := tc.client.DeletePaymailAddress(tc.ctx, testPaymail, tc.client.DefaultModelOptions()...)
-			require.ErrorIs(t, err, ErrMissingPaymail)
+			require.ErrorIs(t, err, ErrPaymailNotFound)
 		})
 
 		ts.T().Run(testCase.name+" - delete paymail address", func(t *testing.T) {

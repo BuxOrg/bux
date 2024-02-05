@@ -32,15 +32,15 @@ func (c *Client) cronJobs() taskmanager.CronJobs {
 			Handler: handler(taskCleanupDraftTransactions),
 		},
 		CronJobNameIncomingTransaction: {
-			Period:  30 * time.Second,
+			Period:  2 * time.Minute,
 			Handler: handler(taskProcessIncomingTransactions),
 		},
 		CronJobNameSyncTransactionBroadcast: {
-			Period:  30 * time.Second,
+			Period:  2 * time.Minute,
 			Handler: handler(taskBroadcastTransactions),
 		},
 		CronJobNameSyncTransactionSync: {
-			Period:  120 * time.Second,
+			Period:  5 * time.Minute,
 			Handler: handler(taskSyncTransactions),
 		},
 	}

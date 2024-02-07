@@ -157,10 +157,6 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	metadata[p2pMetadataField] = p2pTx.MetaData
 	metadata[ReferenceIDField] = p2pTx.Reference
 
-	//var rts recordIncomingTxStrategy
-	//if err := rts.Validate(); err != nil {
-	//	return nil, err
-	//}
 	// Record the transaction
 	rts, err := getIncomingTxRecordStrategy(ctx, p.client, p2pTx.Hex)
 	if err != nil {

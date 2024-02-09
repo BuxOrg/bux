@@ -162,6 +162,9 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	if err := rts.Validate(); err != nil {
+		return nil, err
+	}
 
 	rts.ForceBroadcast(true)
 

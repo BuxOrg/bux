@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/libsv/go-bt/v2"
 	"github.com/rs/zerolog"
 )
 
@@ -50,6 +51,10 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 func (strategy *internalIncomingTx) Validate() error {
 	if strategy.Tx == nil {
 		return errors.New("tx cannot be nil")
+	}
+
+	if _, err := bt.NewTxFromString(strategy.Tx.Hex); err != nil {
+		return fmt.Errorf("invalid hex: %w", err)
 	}
 
 	return nil // is valid

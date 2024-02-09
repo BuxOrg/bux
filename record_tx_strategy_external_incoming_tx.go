@@ -59,6 +59,10 @@ func (strategy *externalIncomingTx) Validate() error {
 		return ErrMissingFieldHex
 	}
 
+	if _, err := bt.NewTxFromString(strategy.Hex); err != nil {
+		return fmt.Errorf("invalid hex: %w", err)
+	}
+
 	return nil // is valid
 }
 

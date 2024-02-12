@@ -162,6 +162,9 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	if err := rts.Validate(); err != nil {
+		return nil, err
+	}
 
 	rts.ForceBroadcast(true)
 
@@ -207,7 +210,7 @@ func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Con
 	if err != nil {
 		return nil, nil, err
 	} else if paymailAddress == nil {
-		return nil, nil, ErrMissingPaymail
+		return nil, nil, ErrPaymailNotFound
 	}
 
 	unlock, err := newWaitWriteLock(ctx, lockKey(paymailAddress), p.client.Cachestore())

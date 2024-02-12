@@ -76,6 +76,7 @@ func getIncomingTxRecordStrategy(ctx context.Context, c ClientInterface, txHex s
 	}
 
 	return rts, nil
+
 }
 
 func waitForRecordTxWriteLock(ctx context.Context, c ClientInterface, key string) func() {

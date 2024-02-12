@@ -97,6 +97,9 @@ var ErrDuplicateUTXOs = errors.New("duplicate utxos found")
 // ErrPaymailAddressIsInvalid is when the paymail address is NOT alias@domain.com
 var ErrPaymailAddressIsInvalid = errors.New("paymail address is invalid")
 
+// ErrPaymailNotFound is when paymaail could not be found
+var ErrPaymailNotFound = errors.New("paymail could not be found")
+
 // ErrUtxoNotReserved is when the utxo is not reserved, but a transaction tries to spend it
 var ErrUtxoNotReserved = errors.New("transaction utxo has not been reserved for spending")
 
@@ -104,7 +107,7 @@ var ErrUtxoNotReserved = errors.New("transaction utxo has not been reserved for 
 var ErrDraftIDMismatch = errors.New("transaction draft id does not match utxo draft reservation id")
 
 // ErrMissingTxHex is when the hex is missing or invalid and creates an empty id
-var ErrMissingTxHex = errors.New("transaction hex is empty or id is missing")
+var ErrMissingTxHex = errors.New("transaction hex is invalid or id is missing")
 
 // ErrMissingBlockHeaderHash is when the hash is missing or invalid and creates an empty id
 var ErrMissingBlockHeaderHash = errors.New("block header hash is empty or id is missing")
@@ -168,9 +171,6 @@ var ErrUnknownAccessKey = errors.New("unknown access key")
 
 // ErrAccessKeyRevoked is when the access key has been revoked
 var ErrAccessKeyRevoked = errors.New("access key has been revoked")
-
-// ErrMissingPaymail missing paymail
-var ErrMissingPaymail = errors.New("missing paymail")
 
 // ErrMissingPaymailID missing id in paymail
 var ErrMissingPaymailID = errors.New("missing id in paymail")

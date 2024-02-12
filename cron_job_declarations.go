@@ -19,33 +19,50 @@ type cronJobHandler func(ctx context.Context, client *Client) error
 
 // here is where we define all the cron jobs for the client
 func (c *Client) cronJobs() taskmanager.CronJobs {
-	// handler adds the client pointer to the cronJobTask by using a closure
-	handler := func(cronJobTask cronJobHandler) taskmanager.CronJobHandler {
-		return func(ctx context.Context) error {
-			return cronJobTask(ctx, c)
+	jobs := taskmanager.CronJobs{}
+
+	addJob := func(name string, period time.Duration, task cronJobHandler) {
+		// handler adds the client pointer to the cronJobTask by using a closure
+		handler := func(ctx context.Context) (err error) {
+			if metrics, enabled := c.Metrics(); enabled {
+				end := metrics.TrackCron(name)
+				defer func() {
+					success := err == nil
+					end(success)
+				}()
+			}
+			err = task(ctx, c)
+			return
+		}
+
+		jobs[name] = taskmanager.CronJob{
+			Handler: handler,
+			Period:  period,
 		}
 	}
 
-	jobs := taskmanager.CronJobs{
-		CronJobNameDraftTransactionCleanUp: {
-			Period:  60 * time.Second,
-			Handler: handler(taskCleanupDraftTransactions),
-		},
-		CronJobNameSyncTransactionBroadcast: {
-			Period:  2 * time.Minute,
-			Handler: handler(taskBroadcastTransactions),
-		},
-		CronJobNameSyncTransactionSync: {
-			Period:  600 * time.Second,
-			Handler: handler(taskSyncTransactions),
-		},
-	}
+	addJob(
+		CronJobNameDraftTransactionCleanUp,
+		60*time.Second,
+		taskCleanupDraftTransactions,
+	)
+	addJob(
+		CronJobNameSyncTransactionBroadcast,
+		2*time.Minute,
+		taskBroadcastTransactions,
+	)
+	addJob(
+		CronJobNameSyncTransactionSync,
+		5*time.Minute,
+		taskSyncTransactions,
+	)
 
 	if _, enabled := c.Metrics(); enabled {
-		jobs[CronJobNameCalculateMetrics] = taskmanager.CronJob{
-			Period:  15 * time.Second,
-			Handler: handler(taskCalculateMetrics),
-		}
+		addJob(
+			CronJobNameCalculateMetrics,
+			15*time.Second,
+			taskCalculateMetrics,
+		)
 	}
 
 	return jobs

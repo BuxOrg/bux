@@ -3,7 +3,12 @@ package metrics
 // Collector is an interface that is used to register metrics
 type Collector interface {
 	RegisterGauge(name string) GaugeInterface
+	RegisterGaugeVec(name string, labels ...string) GaugeVecInterface
 	RegisterHistogramVec(name string, labels ...string) HistogramVecInterface
+}
+
+type GaugeVecInterface interface {
+	WithLabelValues(lvs ...string) GaugeInterface
 }
 
 // GaugeInterface is an interface that is used to track gauges of values

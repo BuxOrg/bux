@@ -3,17 +3,21 @@ Package metrics provides a way to track metrics in the application. Functionalit
 */
 package metrics
 
-import "time"
+import (
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 // Metrics is a struct that contains all the metrics that are used to track in the package
 type Metrics struct {
 	collector         Collector
 	Stats             Stats
-	verifyMerkleRoots HistogramVecInterface
-	recordTransaction HistogramVecInterface
-	queryTransaction  HistogramVecInterface
-	cronHistogram     HistogramVecInterface
-	cronLastExecution GaugeVecInterface
+	verifyMerkleRoots *prometheus.HistogramVec
+	recordTransaction *prometheus.HistogramVec
+	queryTransaction  *prometheus.HistogramVec
+	cronHistogram     *prometheus.HistogramVec
+	cronLastExecution *prometheus.GaugeVec
 }
 
 // NewMetrics is a constructor for the Metrics struct

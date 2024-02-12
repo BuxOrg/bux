@@ -124,23 +124,5 @@ func taskCalculateMetrics(ctx context.Context, client *Client) error {
 		m.Stats.AccessKey.Set(float64(accessKeysCount))
 	}
 
-	inTransactionsFilter := map[string]interface{}{
-		"direction": TransactionDirectionIn,
-	}
-	if transactionsCount, err := getTransactionsCount(ctx, nil, &inTransactionsFilter, modelOpts...); err != nil {
-		client.options.logger.Error().Err(err).Msg("error getting transactions count")
-	} else {
-		m.Stats.TransactionIn.Set(float64(transactionsCount))
-	}
-
-	outTransactionsFilter := map[string]interface{}{
-		"direction": TransactionDirectionOut,
-	}
-	if transactionsCount, err := getTransactionsCount(ctx, nil, &outTransactionsFilter, modelOpts...); err != nil {
-		client.options.logger.Error().Err(err).Msg("error getting transactions count")
-	} else {
-		m.Stats.TransactionOut.Set(float64(transactionsCount))
-	}
-
 	return nil
 }

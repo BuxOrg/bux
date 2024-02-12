@@ -38,6 +38,7 @@ func (c *Client) loadChainstate(ctx context.Context) (err error) {
 	if c.options.chainstate.ClientInterface == nil {
 		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithUserAgent(c.UserAgent()))
 		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithHTTPClient(c.HTTPClient()))
+		c.options.chainstate.options = append(c.options.chainstate.options, chainstate.WithMetrics(c.options.metrics))
 		c.options.chainstate.ClientInterface, err = chainstate.NewClient(ctx, c.options.chainstate.options...)
 	}
 

@@ -11,6 +11,7 @@ type Metrics struct {
 	Stats             Stats
 	verifyMerkleRoots HistogramVecInterface
 	recordTransaction HistogramVecInterface
+	queryTransaction  HistogramVecInterface
 }
 
 // NewMetrics is a constructor for the Metrics struct
@@ -20,6 +21,7 @@ func NewMetrics(collector Collector) *Metrics {
 		Stats:             registerStats(collector),
 		verifyMerkleRoots: collector.RegisterHistogramVec(verifyMerkleRootsHistogramName, "classification"),
 		recordTransaction: collector.RegisterHistogramVec(recordTransactionHistogramName, "classification", "strategy"),
+		queryTransaction:  collector.RegisterHistogramVec(queryTransactionHistogramName, "classification"),
 	}
 }
 
@@ -39,6 +41,14 @@ func (m *Metrics) TrackRecordTransaction(strategyName string) EndWithClassificat
 	start := time.Now()
 	return func(success bool) {
 		m.verifyMerkleRoots.WithLabelValues(classify(success), strategyName).Observe(time.Since(start).Seconds())
+	}
+}
+
+// TrackQueryTransaction is used to track the time it takes to query a transaction
+func (m *Metrics) TrackQueryTransaction() EndWithClassification {
+	start := time.Now()
+	return func(success bool) {
+		m.verifyMerkleRoots.WithLabelValues(classify(success)).Observe(time.Since(start).Seconds())
 	}
 }
 

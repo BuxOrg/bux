@@ -44,7 +44,15 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 // Note: this is slow, but follows a specific order: mAPI -> WhatsOnChain
 func (c *Client) QueryTransaction(
 	ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
-) (*TransactionInfo, error) {
+) (transaction *TransactionInfo, err error) {
+	if c.options.metrics != nil {
+		end := c.options.metrics.TrackQueryTransaction()
+		defer func() {
+			success := err == nil
+			end(success)
+		}()
+	}
+
 	// Basic validation
 	if len(id) < 50 {
 		return nil, ErrInvalidTransactionID

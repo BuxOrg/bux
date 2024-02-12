@@ -33,7 +33,6 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, "", destination.LockingScript)
-		assert.Equal(t, false, destination.Monitor.Valid)
 		assert.Equal(t, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", destination.GetID())
 	})
 
@@ -46,7 +45,6 @@ func TestDestination_newDestination(t *testing.T) {
 		assert.Equal(t, ModelDestination.String(), destination.GetModelName())
 		assert.Equal(t, true, destination.IsNew())
 		assert.Equal(t, testScript, destination.LockingScript)
-		assert.Equal(t, false, destination.Monitor.Valid)
 		assert.Equal(t, xPubID, destination.XpubID)
 		assert.Equal(t, bscript2.ScriptTypeNonStandard, destination.Type)
 		assert.Equal(t, testDestinationID, destination.GetID())
@@ -284,7 +282,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false, opts...,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, opts...,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, destination)
@@ -312,7 +310,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, "bad-value", utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
+			ctx, "bad-value", utils.ChainExternal, utils.ScriptTypePubKeyHash,
 			opts...,
 		)
 		require.Error(t, err)
@@ -332,7 +330,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash, false,
+			ctx, testXPub, utils.ChainExternal, utils.ScriptTypePubKeyHash,
 			opts...,
 		)
 		require.Error(t, err)
@@ -357,7 +355,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestination(
-			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypeMultiSig, false,
+			ctx, rawXPub, utils.ChainExternal, utils.ScriptTypeMultiSig,
 			opts...,
 		)
 		require.Error(t, err)
@@ -381,7 +379,7 @@ func TestClient_NewDestination(t *testing.T) {
 
 		// Create a new destination
 		destination, err := client.NewDestinationForLockingScript(
-			ctx, utils.Hash(rawXPub), stasHex, false,
+			ctx, utils.Hash(rawXPub), stasHex,
 			opts...,
 		)
 		require.NoError(t, err)
@@ -412,7 +410,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Create model
 		tc.MockSQLDB.ExpectExec("INSERT INTO `"+tc.tablePrefix+"_destinations` ("+
 			"`created_at`,`updated_at`,`metadata`,`deleted_at`,`id`,`xpub_id`,`locking_script`,"+
-			"`type`,`chain`,`num`,`address`,`draft_id`,`monitor`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
+			"`type`,`chain`,`num`,`address`,`draft_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -425,7 +423,6 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -459,7 +456,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		// Create model
 		tc.MockSQLDB.ExpectExec("INSERT INTO `"+tc.tablePrefix+"_destinations` ("+
 			"`created_at`,`updated_at`,`metadata`,`deleted_at`,`id`,`xpub_id`,`locking_script`,"+
-			"`type`,`chain`,`num`,`address`,`draft_id`,`monitor`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
+			"`type`,`chain`,`num`,`address`,`draft_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -472,7 +469,6 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX
@@ -504,7 +500,7 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 		tc.MockSQLDB.ExpectBegin()
 
 		// Create model
-		tc.MockSQLDB.ExpectExec(`INSERT INTO "`+tc.tablePrefix+`_destinations" ("created_at","updated_at","metadata","deleted_at","id","xpub_id","locking_script","type","chain","num","address","draft_id","monitor") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`).WithArgs(
+		tc.MockSQLDB.ExpectExec(`INSERT INTO "`+tc.tablePrefix+`_destinations" ("created_at","updated_at","metadata","deleted_at","id","xpub_id","locking_script","type","chain","num","address","draft_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).WithArgs(
 			tester.AnyTime{},    // created_at
 			tester.AnyTime{},    // updated_at
 			nil,                 // metadata
@@ -517,7 +513,6 @@ func (ts *EmbeddedDBTestSuite) TestDestination_Save() {
 			0,                   // num
 			destination.Address, // address
 			testDraftID,         // draft_id
-			nil,                 // monitor
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		// Commit the TX

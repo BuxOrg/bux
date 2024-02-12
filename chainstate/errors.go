@@ -22,6 +22,3 @@ var ErrMissingBroadcastMiners = errors.New("missing: broadcasting miners")
 
 // ErrMissingQueryMiners is when query miners are missing
 var ErrMissingQueryMiners = errors.New("missing: query miners")
-
-// ErrMonitorNotAvailable is when the monitor processor is not available
-var ErrMonitorNotAvailable = errors.New("monitor processor not available")

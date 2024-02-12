@@ -30,6 +30,25 @@ func GetSyncTransactionByID(ctx context.Context, id string, opts ...ModelOps) (*
 	return txs[0], nil
 }
 
+// GetSyncTransactionByTxID will get a sync transaction by it's transaction id.
+func GetSyncTransactionByTxID(ctx context.Context, txID string, opts ...ModelOps) (*SyncTransaction, error) {
+	// Get the records by status
+	txs, err := _getSyncTransactionsByConditions(ctx,
+		map[string]interface{}{
+			idField: txID,
+		},
+		nil, opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(txs) != 1 {
+		return nil, nil
+	}
+
+	return txs[0], nil
+}
+
 /*** /exported funcs ***/
 
 /*** public unexported funcs ***/

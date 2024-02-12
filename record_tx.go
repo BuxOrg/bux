@@ -7,6 +7,7 @@ import (
 )
 
 type recordTxStrategy interface {
+	Name() string
 	TxID() string
 	LockKey() string
 	Validate() error
@@ -19,11 +20,20 @@ type recordIncomingTxStrategy interface {
 	FailOnBroadcastError(forceFail bool)
 }
 
-func recordTransaction(ctx context.Context, c ClientInterface, strategy recordTxStrategy, opts ...ModelOps) (*Transaction, error) {
+func recordTransaction(ctx context.Context, c ClientInterface, strategy recordTxStrategy, opts ...ModelOps) (transaction *Transaction, err error) {
+	if metrics, enabled := c.Metrics(); enabled {
+		end := metrics.TrackRecordTransaction(strategy.Name())
+		defer func() {
+			success := err == nil
+			end(success)
+		}()
+	}
+
 	unlock := waitForRecordTxWriteLock(ctx, c, strategy.LockKey())
 	defer unlock()
 
-	return strategy.Execute(ctx, c, opts)
+	transaction, err = strategy.Execute(ctx, c, opts)
+	return
 }
 
 func getRecordTxStrategy(ctx context.Context, c ClientInterface, xPubKey, txHex, draftID string) (recordTxStrategy, error) {

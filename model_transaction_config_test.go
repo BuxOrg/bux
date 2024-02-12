@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	emptyConfigJSON = "{\"change_destinations\":[{\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\",\"deleted_at\":null,\"id\":\"c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646\",\"xpub_id\":\"1a0b10d4eda0636aae1709e7e7080485a4d99af3ca2962c6e677cf5b53d8ab8c\",\"locking_script\":\"76a9147ff514e6ae3deb46e6644caac5cdd0bf2388906588ac\",\"type\":\"pubkeyhash\",\"chain\":1,\"num\":123,\"address\":\"1CfaQw9udYNPccssFJFZ94DN8MqNZm9nGt\",\"draft_id\":\"test-reference\",\"monitor\":null}],\"change_destinations_strategy\":\"\",\"change_minimum_satoshis\":0,\"change_number_of_destinations\":0,\"change_satoshis\":124,\"expires_in\":20000000000,\"fee\":12,\"fee_unit\":{\"satoshis\":1,\"bytes\":20},\"from_utxos\":null,\"include_utxos\":null,\"inputs\":null,\"outputs\":null,\"sync\":null}"
+	emptyConfigJSON = "{\"change_destinations\":[{\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\",\"deleted_at\":null,\"id\":\"c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646\",\"xpub_id\":\"1a0b10d4eda0636aae1709e7e7080485a4d99af3ca2962c6e677cf5b53d8ab8c\",\"locking_script\":\"76a9147ff514e6ae3deb46e6644caac5cdd0bf2388906588ac\",\"type\":\"pubkeyhash\",\"chain\":1,\"num\":123,\"address\":\"1CfaQw9udYNPccssFJFZ94DN8MqNZm9nGt\",\"draft_id\":\"test-reference\"}],\"change_destinations_strategy\":\"\",\"change_minimum_satoshis\":0,\"change_number_of_destinations\":0,\"change_satoshis\":124,\"expires_in\":20000000000,\"fee\":12,\"fee_unit\":{\"satoshis\":1,\"bytes\":20},\"from_utxos\":null,\"include_utxos\":null,\"inputs\":null,\"outputs\":null,\"sync\":null}"
 	opReturn        = "006a2231394878696756345179427633744870515663554551797131707a5a56646f417574324b65657020616e20657965206f6e207468697320706c61636520666f7220736f6d65204a616d696679206c6f76652e2e2e200d746578742f6d61726b646f776e055554462d38"
 	unsetConfigJSON = "{\"change_destinations\":null,\"change_destinations_strategy\":\"\",\"change_minimum_satoshis\":0,\"change_number_of_destinations\":0,\"change_satoshis\":0,\"expires_in\":0,\"fee\":0,\"fee_unit\":null,\"from_utxos\":null,\"include_utxos\":null,\"inputs\":null,\"outputs\":null,\"sync\":null}"
 
@@ -167,8 +167,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err := out.processOutput(
 			context.Background(), nil, client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrOutputValueNotRecognized)
@@ -184,8 +183,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err := out.processOutput(
 			context.Background(), nil, client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrPaymailAddressIsInvalid)
@@ -216,19 +214,9 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
-		require.NoError(t, err)
-		assert.Equal(t, satoshis, out.Satoshis)
-		assert.Equal(t, testAlias+"@"+testDomain, out.To)
-		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
-		assert.Equal(t, testAlias, out.PaymailP4.Alias)
-		assert.Equal(t, testDomain, out.PaymailP4.Domain)
-		assert.Equal(t, defaultAddressResolutionPurpose, out.PaymailP4.Note)
-		assert.Equal(t, ResolutionTypeBasic, out.PaymailP4.ResolutionType)
-		assert.Equal(t, "", out.PaymailP4.ReferenceID)
-		assert.Equal(t, "", out.PaymailP4.ReceiveEndpoint)
+		assert.Equal(t, err.Error(), "paymail provider does not support P2P")
 	})
 
 	t.Run("basic $handle -> paymail address resolution - valid response", func(t *testing.T) {
@@ -259,19 +247,9 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
-		require.NoError(t, err)
-		assert.Equal(t, satoshis, out.Satoshis)
-		assert.Equal(t, testAlias+"@"+handleDomain, out.To)
-		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
-		assert.Equal(t, testAlias, out.PaymailP4.Alias)
-		assert.Equal(t, handleDomain, out.PaymailP4.Domain)
-		assert.Equal(t, defaultAddressResolutionPurpose, out.PaymailP4.Note)
-		assert.Equal(t, ResolutionTypeBasic, out.PaymailP4.ResolutionType)
-		assert.Equal(t, "", out.PaymailP4.ReferenceID)
-		assert.Equal(t, "", out.PaymailP4.ReceiveEndpoint)
+		assert.Equal(t, err.Error(), "paymail provider does not support P2P")
 	})
 
 	t.Run("basic 1handle -> paymail address resolution - valid response", func(t *testing.T) {
@@ -302,19 +280,9 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
-		require.NoError(t, err)
-		assert.Equal(t, satoshis, out.Satoshis)
-		assert.Equal(t, testAlias+"@"+handleDomain, out.To)
-		assert.Equal(t, defaultSenderPaymail, out.PaymailP4.FromPaymail)
-		assert.Equal(t, testAlias, out.PaymailP4.Alias)
-		assert.Equal(t, handleDomain, out.PaymailP4.Domain)
-		assert.Equal(t, defaultAddressResolutionPurpose, out.PaymailP4.Note)
-		assert.Equal(t, ResolutionTypeBasic, out.PaymailP4.ResolutionType)
-		assert.Equal(t, "", out.PaymailP4.ReferenceID)
-		assert.Equal(t, "", out.PaymailP4.ReceiveEndpoint)
+		assert.Equal(t, err.Error(), "paymail provider does not support P2P")
 	})
 
 	t.Run("p2p paymail address resolution - valid response", func(t *testing.T) {
@@ -342,8 +310,7 @@ func TestTransactionConfig_processOutput(t *testing.T) {
 
 		err = out.processOutput(
 			context.Background(), tc.Cachestore(), client,
-			defaultSenderPaymail, defaultAddressResolutionPurpose,
-			true,
+			defaultSenderPaymail, true,
 		)
 		require.NoError(t, err)
 		assert.Equal(t, satoshis, out.Satoshis)

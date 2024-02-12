@@ -33,14 +33,6 @@ func (p *paymailOptions) FromSender() string {
 	return defaultSenderPaymail
 }
 
-// Note will return either the configuration value or the application default
-func (p *paymailOptions) Note() string {
-	if len(p.serverConfig.DefaultNote) > 0 {
-		return p.serverConfig.DefaultNote
-	}
-	return defaultAddressResolutionPurpose
-}
-
 // ServerConfig will return the Paymail Server configuration from the options struct
 func (p *paymailOptions) ServerConfig() *PaymailServerOptions {
 	return p.serverConfig

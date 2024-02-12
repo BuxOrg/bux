@@ -10,6 +10,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/logging"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
@@ -41,9 +42,6 @@ func defaultClientOptions() *clientOptions {
 	datastoreLogger := logging.CreateGormLoggerAdapter(&dWarnLogger, "datastore")
 	// Set the default options
 	return &clientOptions{
-		// Incoming Transaction Checker (lookup external tx via miner for validity)
-		itc: true,
-
 		// By default check input utxos (unless disabled by the user)
 		iuc: true,
 
@@ -239,26 +237,10 @@ func WithModels(models ...interface{}) ClientOps {
 	}
 }
 
-// WithITCDisabled will disable (ITC) incoming transaction checking
-func WithITCDisabled() ClientOps {
-	return func(c *clientOptions) {
-		c.itc = false
-	}
-}
-
 // WithIUCDisabled will disable checking the input utxos
 func WithIUCDisabled() ClientOps {
 	return func(c *clientOptions) {
 		c.iuc = false
-	}
-}
-
-// WithImportBlockHeaders will import block headers on startup
-func WithImportBlockHeaders(importBlockHeadersURL string) ClientOps {
-	return func(c *clientOptions) {
-		if len(importBlockHeadersURL) > 0 {
-			c.importBlockHeadersURL = importBlockHeadersURL
-		}
 	}
 }
 
@@ -298,6 +280,19 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 
 			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
 			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
+		}
+	}
+}
+
+// -----------------------------------------------------------------
+// METRICS
+// -----------------------------------------------------------------
+
+// WithMetrics will set the metrics with a collector interface
+func WithMetrics(collector metrics.Collector) ClientOps {
+	return func(c *clientOptions) {
+		if collector != nil {
+			c.metrics = metrics.NewMetrics(collector)
 		}
 	}
 }
@@ -469,9 +464,7 @@ func WithPaymailClient(client paymail.ClientInterface) ClientOps {
 }
 
 // WithPaymailSupport will set the configuration for Paymail support (as a server)
-func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string,
-	domainValidation, senderValidation bool,
-) ClientOps {
+func WithPaymailSupport(domains []string, defaultFromPaymail string, domainValidation, senderValidation bool) ClientOps {
 	return func(c *clientOptions) {
 		// Add generic capabilities
 		c.paymail.serverConfig.options = append(c.paymail.serverConfig.options, server.WithP2PCapabilities())
@@ -495,9 +488,6 @@ func WithPaymailSupport(domains []string, defaultFromPaymail, defaultNote string
 		if len(defaultFromPaymail) > 0 {
 			c.paymail.serverConfig.DefaultFromPaymail = defaultFromPaymail
 		}
-		if len(defaultNote) > 0 {
-			c.paymail.serverConfig.DefaultNote = defaultNote
-		}
 
 		// Add the paymail_address model in bux
 		c.addModels(migrateList, newPaymail(""))
@@ -519,16 +509,13 @@ func WithPaymailBeefSupport(pulseURL, pulseAuthToken string) ClientOps {
 // WithPaymailServerConfig will set the custom server configuration for Paymail
 //
 // This will allow overriding the Configuration.actions (paymail service provider)
-func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail, defaultNote string) ClientOps {
+func WithPaymailServerConfig(config *server.Configuration, defaultFromPaymail string) ClientOps {
 	return func(c *clientOptions) {
 		if config != nil {
 			c.paymail.serverConfig.Configuration = config
 		}
 		if len(defaultFromPaymail) > 0 {
 			c.paymail.serverConfig.DefaultFromPaymail = defaultFromPaymail
-		}
-		if len(defaultNote) > 0 {
-			c.paymail.serverConfig.DefaultNote = defaultNote
 		}
 
 		// Add the paymail_address model in bux
@@ -687,5 +674,12 @@ func WithMinercraftAPIs(miners []*minercraft.MinerAPIs) ClientOps {
 func WithBroadcastClient(broadcastClient broadcast.Client) ClientOps {
 	return func(c *clientOptions) {
 		c.chainstate.options = append(c.chainstate.options, chainstate.WithBroadcastClient(broadcastClient))
+	}
+}
+
+// WithCallback set callback settings
+func WithCallback(callbackURL string, callbackToken string) ClientOps {
+	return func(c *clientOptions) {
+		c.chainstate.options = append(c.chainstate.options, chainstate.WithCallback(callbackURL, callbackToken))
 	}
 }

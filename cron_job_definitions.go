@@ -53,17 +53,6 @@ func taskCleanupDraftTransactions(ctx context.Context, client *Client) error {
 	return nil
 }
 
-// taskProcessIncomingTransactions will process any incoming transactions found
-func taskProcessIncomingTransactions(ctx context.Context, client *Client) error {
-	client.Logger().Info().Msg("running process incoming transaction(s) task...")
-
-	err := processIncomingTransactions(ctx, client.Logger(), 10, WithClient(client))
-	if err == nil || errors.Is(err, datastore.ErrNoResults) {
-		return nil
-	}
-	return err
-}
-
 // taskBroadcastTransactions will broadcast any transactions
 func taskBroadcastTransactions(ctx context.Context, client *Client) error {
 	client.Logger().Info().Msg("running broadcast transaction(s) task...")
@@ -95,4 +84,45 @@ func taskSyncTransactions(ctx context.Context, client *Client) error {
 		return nil
 	}
 	return err
+}
+
+func taskCalculateMetrics(ctx context.Context, client *Client) error {
+	m, enabled := client.Metrics()
+	if !enabled {
+		return errors.New("metrics are not enabled")
+	}
+
+	modelOpts := client.DefaultModelOptions()
+
+	if xpubsCount, err := getXPubsCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting xpubs count")
+	} else {
+		m.SetXPubCount(xpubsCount)
+	}
+
+	if utxosCount, err := getUtxosCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting utxos count")
+	} else {
+		m.SetUtxoCount(utxosCount)
+	}
+
+	if paymailsCount, err := getPaymailAddressesCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting paymails count")
+	} else {
+		m.SetPaymailCount(paymailsCount)
+	}
+
+	if destinationsCount, err := getDestinationsCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting destinations count")
+	} else {
+		m.SetDestinationCount(destinationsCount)
+	}
+
+	if accessKeysCount, err := getAccessKeysCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting access keys count")
+	} else {
+		m.SetAccessKeyCount(accessKeysCount)
+	}
+
+	return nil
 }

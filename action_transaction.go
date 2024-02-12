@@ -9,6 +9,8 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
+	"github.com/libsv/go-bc"
 	"github.com/libsv/go-bt"
 	"github.com/mrz1836/go-datastore"
 )
@@ -46,13 +48,7 @@ func (c *Client) RecordRawTransaction(ctx context.Context, txHex string,
 ) (*Transaction, error) {
 	ctx = c.GetOrStartTxn(ctx, "record_raw_transaction")
 
-	allowUnknown := true
-	monitor := c.options.chainstate.Monitor()
-	if monitor != nil {
-		allowUnknown = monitor.AllowUnknownTransactions()
-	}
-
-	return saveRawTransaction(ctx, c, allowUnknown, txHex, opts...)
+	return saveRawTransaction(ctx, c, true, txHex, opts...)
 }
 
 // NewTransaction will create a new draft transaction and return it
@@ -385,6 +381,39 @@ func (c *Client) RevertTransaction(ctx context.Context, id string) error {
 	err = transaction.Save(ctx) // update existing record
 
 	return err
+}
+
+// UpdateTransaction will update the broadcast callback transaction info, like: block height, block hash, status, bump.
+func (c *Client) UpdateTransaction(ctx context.Context, callbackResp *broadcast.SubmittedTx) error {
+	bump, err := bc.NewBUMPFromStr(callbackResp.MerklePath)
+	if err != nil {
+		c.options.logger.Err(err).Msgf("failed to parse merkle path from broadcast callback - tx: %v", callbackResp)
+		return err
+	}
+
+	txInfo := &chainstate.TransactionInfo{
+		BlockHash:   callbackResp.BlockHash,
+		BlockHeight: callbackResp.BlockHeight,
+		ID:          callbackResp.TxID,
+		TxStatus:    callbackResp.TxStatus,
+		BUMP:        bump,
+		// it's not possible to get confirmations from broadcast client; zero would be treated as "not confirmed" that's why -1
+		Confirmations: -1,
+	}
+
+	tx, err := c.GetTransaction(ctx, "", txInfo.ID)
+	if err != nil {
+		c.options.logger.Err(err).Msgf("failed to get transaction by id: %v", txInfo.ID)
+		return err
+	}
+
+	syncTx, err := GetSyncTransactionByTxID(ctx, txInfo.ID, c.DefaultModelOptions()...)
+	if err != nil {
+		c.options.logger.Err(err).Msgf("failed to get sync transaction by tx id: %v", txInfo.ID)
+		return err
+	}
+
+	return processSyncTxSave(ctx, txInfo, syncTx, tx)
 }
 
 func generateTxIDFilterConditions(txIDs []string) *map[string]interface{} {

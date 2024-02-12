@@ -16,7 +16,6 @@ require (
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jarcoal/httpmock v1.3.1
-	github.com/korovkin/limiter v0.0.0-20230307205149-3d4b2b34c99d
 	github.com/libsv/go-bc v0.1.26
 	github.com/libsv/go-bk v0.1.6
 	github.com/libsv/go-bt v1.0.8
@@ -43,6 +42,7 @@ require (
 require (
 	github.com/99designs/gqlgen v0.17.43 // indirect
 	github.com/acobaugh/osrelease v0.1.0 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitcoinschema/go-bpu v0.1.3 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
 	github.com/bitcoinsv/bsvutil v0.0.0-20181216182056-1d77cf353ea9 // indirect
@@ -89,6 +89,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/miekg/dns v1.1.57 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
@@ -96,6 +97,10 @@ require (
 	github.com/newrelic/go-agent/v3/integrations/nrmongo v1.1.3 // indirect
 	github.com/onsi/gomega v1.27.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.18.0
+	github.com/prometheus/client_model v0.5.0 // indirect
+	github.com/prometheus/common v0.45.0 // indirect
+	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/segmentio/encoding v0.4.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect

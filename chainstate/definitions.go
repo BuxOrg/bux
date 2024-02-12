@@ -10,7 +10,6 @@ const (
 	defaultFalsePositiveRate       = 0.01
 	defaultFeeLastCheckIgnore      = 2 * time.Minute
 	defaultMaxNumberOfDestinations = 100000
-	defaultMonitorDays             = 7
 	defaultQueryTimeOut            = 15 * time.Second
 	whatsOnChainRateLimitWithKey   = 20
 )

@@ -8,4 +8,9 @@ const (
 	queryTransactionHistogramName  = domainPrefix + "query_transaction_histogram"
 )
 
+const (
+	cronHistogramName          = domainPrefix + "cron_histogram"
+	cronLastExecutionGaugeName = domainPrefix + "cron_last_execution_gauge"
+)
+
 const xpubGaugeName = domainPrefix + "xpub_gauge"

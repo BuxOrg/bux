@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/logging"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -23,11 +24,12 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config          *syncConfig     // Configuration for broadcasting and other chain-state actions
-		debug           bool            // For extra logs and additional debug information
-		logger          *zerolog.Logger // Logger interface
-		newRelicEnabled bool            // If NewRelic is enabled (parent application)
-		userAgent       string          // Custom user agent for outgoing HTTP Requests
+		config          *syncConfig      // Configuration for broadcasting and other chain-state actions
+		debug           bool             // For extra logs and additional debug information
+		logger          *zerolog.Logger  // Logger interface
+		metrics         *metrics.Metrics // For collecting metrics (if enabled)
+		newRelicEnabled bool             // If NewRelic is enabled (parent application)
+		userAgent       string           // Custom user agent for outgoing HTTP Requests
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
@@ -95,12 +97,10 @@ func (c *Client) Close(ctx context.Context) {
 		defer txn.StartSegment("close_chainstate").End()
 	}
 	if c != nil && c.options.config != nil {
-
 		// Close minercraft
 		if c.options.config.minercraft != nil {
 			c.options.config.minercraft = nil
 		}
-
 	}
 }
 

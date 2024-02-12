@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -33,6 +34,7 @@ func defaultClientOptions() *clientOptions {
 		},
 		debug:           false,
 		newRelicEnabled: false,
+		metrics:         nil,
 	}
 }
 
@@ -171,5 +173,12 @@ func WithCallback(callbackURL, callbackAuthToken string) ClientOps {
 	return func(c *clientOptions) {
 		c.config.callbackURL = callbackURL
 		c.config.callbackToken = callbackAuthToken
+	}
+}
+
+// WithMetrics will set metrics
+func WithMetrics(metrics *metrics.Metrics) ClientOps {
+	return func(c *clientOptions) {
+		c.metrics = metrics
 	}
 }

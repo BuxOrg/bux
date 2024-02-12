@@ -2,6 +2,7 @@ package bux
 
 import (
 	"context"
+
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/notifications"

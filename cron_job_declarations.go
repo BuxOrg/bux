@@ -12,6 +12,7 @@ const (
 	CronJobNameDraftTransactionCleanUp  = "draft_transaction_clean_up"
 	CronJobNameSyncTransactionBroadcast = "sync_transaction_broadcast"
 	CronJobNameSyncTransactionSync      = "sync_transaction_sync"
+	CronJobNameCalculateMetrics         = "calculate_metrics"
 )
 
 type cronJobHandler func(ctx context.Context, client *Client) error
@@ -25,7 +26,7 @@ func (c *Client) cronJobs() taskmanager.CronJobs {
 		}
 	}
 
-	return taskmanager.CronJobs{
+	jobs := taskmanager.CronJobs{
 		CronJobNameDraftTransactionCleanUp: {
 			Period:  60 * time.Second,
 			Handler: handler(taskCleanupDraftTransactions),
@@ -39,4 +40,13 @@ func (c *Client) cronJobs() taskmanager.CronJobs {
 			Handler: handler(taskSyncTransactions),
 		},
 	}
+
+	if _, enabled := c.Metrics(); enabled {
+		jobs[CronJobNameCalculateMetrics] = taskmanager.CronJob{
+			Period:  15 * time.Second,
+			Handler: handler(taskCalculateMetrics),
+		}
+	}
+
+	return jobs
 }

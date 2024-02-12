@@ -187,6 +187,56 @@ func Test_RevertTransaction(t *testing.T) {
 	})
 }
 
+func Test_RecordTransaction(t *testing.T) {
+	ctx, client, _ := initSimpleTestCase(t)
+	// given
+	draftTransaction := newDraftTransaction(
+		testXPub, &TransactionConfig{
+			Outputs: []*TransactionOutput{{
+				To:       "1A1PjKqjWMNBzTVdcBru27EV1PHcXWc63W",
+				Satoshis: 1000,
+			}},
+			ChangeNumberOfDestinations: 1,
+			Sync: &SyncConfig{
+				Broadcast:        true,
+				BroadcastInstant: false,
+				PaymailP2P:       false,
+				SyncOnChain:      false,
+			},
+		},
+		append(client.DefaultModelOptions(), New())...,
+	)
+	draftTransactionID := draftTransaction.ID
+
+	t.Run("hex validation -> invalid hex", func(t *testing.T) {
+		invalidHex := "test"
+		// when
+		_, err := client.RecordTransaction(ctx, testXPub, invalidHex, draftTransactionID, client.DefaultModelOptions()...)
+
+		//then
+		require.Error(t, err)
+	})
+
+	t.Run("hex validation -> empty hex", func(t *testing.T) {
+		emptyHex := ""
+		// when
+		_, err := client.RecordTransaction(ctx, testXPub, emptyHex, draftTransactionID, client.DefaultModelOptions()...)
+
+		//then
+		require.Error(t, err)
+	})
+
+	t.Run("hex validation -> valid hex", func(t *testing.T) {
+		validHex := "020000000165bb8d2733298b2d3b441a871868d6323c5392facf0d3eced3a6c6a17dc84c10000000006a473044022057b101e9a017cdcc333ef66a4a1e78720ae15adf7d1be9c33abec0fe56bc849d022013daa203095522039fadaba99e567ec3cf8615861d3b7258d5399c9f1f4ace8f412103b9c72aebee5636664b519e5f7264c78614f1e57fa4097ae83a3012a967b1c4b9ffffffff03e0930400000000001976a91413473d21dc9e1fb392f05a028b447b165a052d4d88acf9020000000000001976a91455decebedd9a6c2c2d32cf0ee77e2640c3955d3488ac00000000000000000c006a09446f7457616c6c657400000000"
+		// when
+		_, err := client.RecordTransaction(ctx, testXPub, validHex, "", client.DefaultModelOptions()...)
+
+		//then
+		require.NotContains(t, err.Error(), "invalid hex")
+	})
+
+}
+
 func initRevertTransactionData(t *testing.T) (context.Context, ClientInterface, *Transaction, *bip32.ExtendedKey, func()) {
 	// this creates an xpub, destination and utxo
 	ctx, client, deferMe := initSimpleTestCase(t)

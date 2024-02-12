@@ -41,7 +41,7 @@ require (
 )
 
 require (
-	github.com/99designs/gqlgen v0.17.42 // indirect
+	github.com/99designs/gqlgen v0.17.43 // indirect
 	github.com/acobaugh/osrelease v0.1.0 // indirect
 	github.com/bitcoinschema/go-bpu v0.1.3 // indirect
 	github.com/bitcoinsv/bsvd v0.0.0-20190609155523-4c29707f7173 // indirect
@@ -110,7 +110,7 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.10 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.11 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

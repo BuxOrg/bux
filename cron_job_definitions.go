@@ -87,7 +87,7 @@ func taskSyncTransactions(ctx context.Context, client *Client) error {
 }
 
 func taskCalculateMetrics(ctx context.Context, client *Client) error {
-	metrics, enabled := client.Metrics()
+	m, enabled := client.Metrics()
 	if !enabled {
 		return errors.New("metrics are not enabled")
 	}
@@ -97,7 +97,49 @@ func taskCalculateMetrics(ctx context.Context, client *Client) error {
 	if xpubsCount, err := getXPubsCount(ctx, nil, nil, modelOpts...); err != nil {
 		client.options.logger.Error().Err(err).Msg("error getting xpubs count")
 	} else {
-		metrics.Stats.XPub.Set(float64(xpubsCount))
+		m.Stats.XPub.Set(float64(xpubsCount))
+	}
+
+	if utxosCount, err := getUtxosCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting utxos count")
+	} else {
+		m.Stats.Utxo.Set(float64(utxosCount))
+	}
+
+	if paymailsCount, err := getPaymailAddressesCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting paymails count")
+	} else {
+		m.Stats.Paymail.Set(float64(paymailsCount))
+	}
+
+	if destinationsCount, err := getDestinationsCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting destinations count")
+	} else {
+		m.Stats.Destination.Set(float64(destinationsCount))
+	}
+
+	if accessKeysCount, err := getAccessKeysCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting access keys count")
+	} else {
+		m.Stats.AccessKey.Set(float64(accessKeysCount))
+	}
+
+	inTransactionsFilter := map[string]interface{}{
+		"direction": TransactionDirectionIn,
+	}
+	if transactionsCount, err := getTransactionsCount(ctx, nil, &inTransactionsFilter, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting transactions count")
+	} else {
+		m.Stats.TransactionIn.Set(float64(transactionsCount))
+	}
+
+	outTransactionsFilter := map[string]interface{}{
+		"direction": TransactionDirectionOut,
+	}
+	if transactionsCount, err := getTransactionsCount(ctx, nil, &outTransactionsFilter, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting transactions count")
+	} else {
+		m.Stats.TransactionOut.Set(float64(transactionsCount))
 	}
 
 	return nil

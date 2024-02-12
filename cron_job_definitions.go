@@ -97,31 +97,31 @@ func taskCalculateMetrics(ctx context.Context, client *Client) error {
 	if xpubsCount, err := getXPubsCount(ctx, nil, nil, modelOpts...); err != nil {
 		client.options.logger.Error().Err(err).Msg("error getting xpubs count")
 	} else {
-		m.Stats.XPub.Set(float64(xpubsCount))
+		m.SetXPubCount(xpubsCount)
 	}
 
 	if utxosCount, err := getUtxosCount(ctx, nil, nil, modelOpts...); err != nil {
 		client.options.logger.Error().Err(err).Msg("error getting utxos count")
 	} else {
-		m.Stats.Utxo.Set(float64(utxosCount))
+		m.SetUtxoCount(utxosCount)
 	}
 
 	if paymailsCount, err := getPaymailAddressesCount(ctx, nil, nil, modelOpts...); err != nil {
 		client.options.logger.Error().Err(err).Msg("error getting paymails count")
 	} else {
-		m.Stats.Paymail.Set(float64(paymailsCount))
+		m.SetPaymailCount(paymailsCount)
 	}
 
 	if destinationsCount, err := getDestinationsCount(ctx, nil, nil, modelOpts...); err != nil {
 		client.options.logger.Error().Err(err).Msg("error getting destinations count")
 	} else {
-		m.Stats.Destination.Set(float64(destinationsCount))
+		m.SetDestinationCount(destinationsCount)
 	}
 
 	if accessKeysCount, err := getAccessKeysCount(ctx, nil, nil, modelOpts...); err != nil {
 		client.options.logger.Error().Err(err).Msg("error getting access keys count")
 	} else {
-		m.Stats.AccessKey.Set(float64(accessKeysCount))
+		m.SetAccessKeyCount(accessKeysCount)
 	}
 
 	return nil

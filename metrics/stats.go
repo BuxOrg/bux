@@ -1,22 +1,26 @@
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
-
-// Stats is a struct that contains all the gauges that are used to track the calculated stats of the application
-type Stats struct {
-	XPub        prometheus.Gauge
-	Utxo        prometheus.Gauge
-	Paymail     prometheus.Gauge
-	Destination prometheus.Gauge
-	AccessKey   prometheus.Gauge
+// SetXPubCount adds a value to the stats gauge with the label "xpub"
+func (m *Metrics) SetXPubCount(value int64) {
+	m.stats.WithLabelValues("xpub").Set(float64(value))
 }
 
-func registerStats(collector Collector) Stats {
-	return Stats{
-		XPub:        collector.RegisterGauge(xpubGaugeName),
-		Utxo:        collector.RegisterGauge(utxoGaugeName),
-		Paymail:     collector.RegisterGauge(paymailGaugeName),
-		Destination: collector.RegisterGauge(destinationGaugeName),
-		AccessKey:   collector.RegisterGauge(accessKeyGaugeName),
-	}
+// SetUtxoCount adds a value to the stats gauge with the label "utxo"
+func (m *Metrics) SetUtxoCount(value int64) {
+	m.stats.WithLabelValues("utxo").Set(float64(value))
+}
+
+// SetPaymailCount adds a value to the stats gauge with the label "paymail"
+func (m *Metrics) SetPaymailCount(value int64) {
+	m.stats.WithLabelValues("paymail").Set(float64(value))
+}
+
+// SetDestinationCount adds a value to the stats gauge with the label "destination"
+func (m *Metrics) SetDestinationCount(value int64) {
+	m.stats.WithLabelValues("destination").Set(float64(value))
+}
+
+// SetAccessKeyCount adds a value to the stats gauge with the label "access_key
+func (m *Metrics) SetAccessKeyCount(value int64) {
+	m.stats.WithLabelValues("access_key").Set(float64(value))
 }

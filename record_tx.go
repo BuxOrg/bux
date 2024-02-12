@@ -7,6 +7,7 @@ import (
 )
 
 type recordTxStrategy interface {
+	Name() string
 	TxID() string
 	LockKey() string
 	Validate() error
@@ -21,8 +22,7 @@ type recordIncomingTxStrategy interface {
 
 func recordTransaction(ctx context.Context, c ClientInterface, strategy recordTxStrategy, opts ...ModelOps) (transaction *Transaction, err error) {
 	if metrics, enabled := c.Metrics(); enabled {
-		strategyType := fmt.Sprintf("%T", strategy)
-		end := metrics.TrackRecordTransaction(strategyType)
+		end := metrics.TrackRecordTransaction(strategy.Name())
 		defer func() {
 			success := err == nil
 			end(success)

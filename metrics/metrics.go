@@ -11,11 +11,18 @@ import (
 
 // Metrics is a struct that contains all the metrics that are used to track in the package
 type Metrics struct {
-	collector         Collector
-	Stats             Stats
+	// collector is used to register the metrics
+	collector Collector
+
+	// Stats contains all the gauges that track the db-calculated stats
+	stats *prometheus.GaugeVec
+
+	// the histograms that track the time it takes to perform certain operations
 	verifyMerkleRoots *prometheus.HistogramVec
 	recordTransaction *prometheus.HistogramVec
 	queryTransaction  *prometheus.HistogramVec
+
+	// each cronJob is observed by the duration it takes to execute and the last time it was executed
 	cronHistogram     *prometheus.HistogramVec
 	cronLastExecution *prometheus.GaugeVec
 }
@@ -24,7 +31,7 @@ type Metrics struct {
 func NewMetrics(collector Collector) *Metrics {
 	return &Metrics{
 		collector:         collector,
-		Stats:             registerStats(collector),
+		stats:             collector.RegisterGaugeVec(statsGaugeName, "name"),
 		verifyMerkleRoots: collector.RegisterHistogramVec(verifyMerkleRootsHistogramName, "classification"),
 		recordTransaction: collector.RegisterHistogramVec(recordTransactionHistogramName, "classification", "strategy"),
 		queryTransaction:  collector.RegisterHistogramVec(queryTransactionHistogramName, "classification"),
@@ -48,7 +55,7 @@ func (m *Metrics) TrackVerifyMerkleRoots() EndWithClassification {
 func (m *Metrics) TrackRecordTransaction(strategyName string) EndWithClassification {
 	start := time.Now()
 	return func(success bool) {
-		m.verifyMerkleRoots.WithLabelValues(classify(success), strategyName).Observe(time.Since(start).Seconds())
+		m.recordTransaction.WithLabelValues(classify(success), strategyName).Observe(time.Since(start).Seconds())
 	}
 }
 
@@ -56,7 +63,7 @@ func (m *Metrics) TrackRecordTransaction(strategyName string) EndWithClassificat
 func (m *Metrics) TrackQueryTransaction() EndWithClassification {
 	start := time.Now()
 	return func(success bool) {
-		m.verifyMerkleRoots.WithLabelValues(classify(success)).Observe(time.Since(start).Seconds())
+		m.queryTransaction.WithLabelValues(classify(success)).Observe(time.Since(start).Seconds())
 	}
 }
 

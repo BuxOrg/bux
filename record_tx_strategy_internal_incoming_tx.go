@@ -15,6 +15,10 @@ type internalIncomingTx struct {
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 }
 
+func (strategy *internalIncomingTx) Name() string {
+	return "internal_incoming_tx"
+}
+
 func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
 	logger.Info().

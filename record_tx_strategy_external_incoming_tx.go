@@ -14,6 +14,10 @@ type externalIncomingTx struct {
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 }
 
+func (strategy *externalIncomingTx) Name() string {
+	return "external_incoming_tx"
+}
+
 func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
 	transaction, err := _createExternalTxToRecord(ctx, strategy, c, opts)

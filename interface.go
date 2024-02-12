@@ -6,6 +6,7 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
@@ -186,4 +187,5 @@ type ClientInterface interface {
 	SetNotificationsClient(notifications.ClientInterface)
 	UserAgent() string
 	Version() string
+	Metrics() (metrics *metrics.Metrics, enabled bool)
 }

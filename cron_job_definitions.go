@@ -85,3 +85,20 @@ func taskSyncTransactions(ctx context.Context, client *Client) error {
 	}
 	return err
 }
+
+func taskCalculateMetrics(ctx context.Context, client *Client) error {
+	metrics, enabled := client.Metrics()
+	if !enabled {
+		return errors.New("metrics are not enabled")
+	}
+
+	modelOpts := client.DefaultModelOptions()
+
+	if xpubsCount, err := getXPubsCount(ctx, nil, nil, modelOpts...); err != nil {
+		client.options.logger.Error().Err(err).Msg("error getting xpubs count")
+	} else {
+		metrics.Stats.XPub.Set(float64(xpubsCount))
+	}
+
+	return nil
+}

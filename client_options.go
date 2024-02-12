@@ -10,6 +10,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/logging"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/BuxOrg/bux/utils"
@@ -279,6 +280,19 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 
 			cachestoreLogger := logging.CreateGormLoggerAdapter(customLogger, "cachestore")
 			c.cacheStore.options = append(c.cacheStore.options, cachestore.WithLogger(cachestoreLogger))
+		}
+	}
+}
+
+// -----------------------------------------------------------------
+// METRICS
+// -----------------------------------------------------------------
+
+// WithMetrics will set the metrics with a collector interface
+func WithMetrics(collector metrics.Collector) ClientOps {
+	return func(c *clientOptions) {
+		if collector != nil {
+			c.metrics = metrics.NewMetrics(collector)
 		}
 	}
 }

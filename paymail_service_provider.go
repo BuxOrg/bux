@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"reflect"
+
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-paymail"
@@ -12,7 +14,6 @@ import (
 	"github.com/bitcoin-sv/go-paymail/spv"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
-	"reflect"
 )
 
 // PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server
@@ -190,15 +191,24 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(
 	ctx context.Context,
 	merkleRoots []*spv.MerkleRootConfirmationRequestItem,
-) error {
-	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0)
+) (err error) {
+	if metrics, enabled := p.client.Metrics(); enabled {
+		end := metrics.TrackVerifyMerkleRoots()
+		defer func() {
+			success := err == nil
+			end(success)
+		}()
+	}
+
+	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0, len(merkleRoots))
 	for _, m := range merkleRoots {
 		request = append(request, chainstate.MerkleRootConfirmationRequestItem{
 			MerkleRoot:  m.MerkleRoot,
 			BlockHeight: m.BlockHeight,
 		})
 	}
-	return p.client.Chainstate().VerifyMerkleRoots(ctx, request)
+	err = p.client.Chainstate().VerifyMerkleRoots(ctx, request)
+	return
 }
 
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {

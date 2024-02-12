@@ -7,6 +7,7 @@ import (
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
 	"github.com/BuxOrg/bux/logging"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
 	"github.com/bitcoin-sv/go-paymail"
@@ -35,6 +36,7 @@ type (
 		httpClient    HTTPInterface         // HTTP interface to use
 		iuc           bool                  // (Input UTXO Check) True will check input utxos when saving transactions
 		logger        *zerolog.Logger       // Internal logging
+		metrics       *metrics.Metrics      // Metrics with a collector interface
 		models        *modelOptions         // Configuration options for the loaded models
 		newRelic      *newRelicOptions      // Configuration options for NewRelic
 		notifications *notificationsOptions // Configuration options for Notifications
@@ -415,4 +417,9 @@ func (c *Client) UserAgent() string {
 // Version will return the version
 func (c *Client) Version() string {
 	return version
+}
+
+// Metrics will return the metrics client (if it's enabled)
+func (c *Client) Metrics() (metrics *metrics.Metrics, enabled bool) {
+	return c.options.metrics, c.options.metrics != nil
 }

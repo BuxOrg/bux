@@ -7,7 +7,6 @@ import (
 
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
-	"github.com/centrifugal/centrifuge-go"
 	"github.com/tonicpow/go-minercraft/v2"
 )
 
@@ -52,23 +51,4 @@ type ClientInterface interface {
 	Network() Network
 	QueryTimeout() time.Duration
 	FeeUnit() *utils.FeeUnit
-}
-
-// SocketHandler is composite interface of centrifuge handlers interfaces
-type SocketHandler interface {
-	OnConnect(*centrifuge.Client, centrifuge.ConnectEvent)
-	OnDisconnect(*centrifuge.Client, centrifuge.DisconnectEvent)
-	OnError(*centrifuge.Client, centrifuge.ErrorEvent)
-	OnJoin(*centrifuge.Subscription, centrifuge.JoinEvent)
-	OnLeave(*centrifuge.Subscription, centrifuge.LeaveEvent)
-	OnMessage(*centrifuge.Client, centrifuge.MessageEvent)
-	OnPublish(*centrifuge.Subscription, centrifuge.PublishEvent)
-	OnServerJoin(*centrifuge.Client, centrifuge.ServerJoinEvent)
-	OnServerLeave(*centrifuge.Client, centrifuge.ServerLeaveEvent)
-	OnServerPublish(*centrifuge.Client, centrifuge.ServerPublishEvent)
-	OnServerSubscribe(*centrifuge.Client, centrifuge.ServerSubscribeEvent)
-	OnServerUnsubscribe(*centrifuge.Client, centrifuge.ServerUnsubscribeEvent)
-	OnSubscribeError(*centrifuge.Subscription, centrifuge.SubscribeErrorEvent)
-	OnSubscribeSuccess(*centrifuge.Subscription, centrifuge.SubscribeSuccessEvent)
-	OnUnsubscribe(*centrifuge.Subscription, centrifuge.UnsubscribeEvent)
 }

@@ -9,8 +9,32 @@ import (
 	"time"
 )
 
+type HexFormatFlag byte
+
+const (
+	RawTx HexFormatFlag = 1
+	Ef    HexFormatFlag = 3
+)
+
+func (flag HexFormatFlag) Contains(other HexFormatFlag) bool {
+	return (flag & other) == other
+}
+
 // Broadcast will attempt to broadcast a transaction using the given providers
-func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) (string, error) {
+func (c *Client) SupportedBroadcastFormats() HexFormatFlag {
+	switch c.ActiveProvider() {
+	case ProviderMinercraft:
+		return RawTx
+
+	case ProviderBroadcastClient:
+		return RawTx + Ef
+
+	default:
+		return RawTx
+	}
+}
+
+func (c *Client) Broadcast(ctx context.Context, id, txHex string, format HexFormatFlag, timeout time.Duration) (string, error) {
 	// Basic validation
 	if len(id) < 50 {
 		return "", ErrInvalidTransactionID
@@ -18,15 +42,11 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 		return "", ErrInvalidTransactionHex
 	}
 
-	// Debug the id and hex
-	c.DebugLog("tx_id: " + id)
-	c.DebugLog("tx_hex: " + txHex)
-
 	// Broadcast or die
 	successCompleteCh := make(chan string)
 	errorCh := make(chan string)
 
-	go c.broadcast(ctx, id, txHex, timeout, successCompleteCh, errorCh)
+	go c.broadcast(ctx, id, txHex, format, timeout, successCompleteCh, errorCh)
 
 	// wait for first success
 	success := <-successCompleteCh

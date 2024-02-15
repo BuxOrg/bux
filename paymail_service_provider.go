@@ -14,6 +14,7 @@ import (
 	"github.com/bitcoin-sv/go-paymail/spv"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
+	"github.com/libsv/go-bt/v2"
 )
 
 // PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server
@@ -155,11 +156,9 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	metadata[ReferenceIDField] = p2pTx.Reference
 
 	// Record the transaction
-	rts, err := getIncomingTxRecordStrategy(ctx, p.client, p2pTx.Hex)
+	btTx := buildBtTx(p2pTx)
+	rts, err := getIncomingTxRecordStrategy(ctx, p.client, btTx)
 	if err != nil {
-		return nil, err
-	}
-	if err := rts.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -185,6 +184,25 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 		Note: p2pTx.MetaData.Note,
 		TxID: transaction.ID,
 	}, nil
+}
+
+func buildBtTx(p2pTx *paymail.P2PTransaction) *bt.Tx {
+	if p2pTx.DecodedBeef == nil {
+		res := p2pTx.DecodedBeef.GetLatestTx()
+
+		for _, input := range res.Inputs {
+			prevTxDt := find(p2pTx.DecodedBeef.Transactions, func(tx *beef.TxData) bool { return tx.Transaction.TxID() == input.PreviousTxIDStr() })
+
+			o := (*prevTxDt).Transaction.Outputs[input.PreviousTxOutIndex]
+			input.PreviousTxSatoshis = o.Satoshis
+			input.PreviousTxScript = o.LockingScript
+		}
+
+		return res
+	}
+
+	res, _ := bt.NewTxFromString(p2pTx.Hex)
+	return res
 }
 
 // VerifyMerkleRoots will verify the merkle roots by checking them in external header service - Pulse

@@ -22,11 +22,11 @@ type mapiBroadcastProvider struct {
 	txID, txHex string
 }
 
-func (provider mapiBroadcastProvider) getName() string {
+func (provider *mapiBroadcastProvider) getName() string {
 	return provider.miner.Name
 }
 
-func (provider mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
+func (provider *mapiBroadcastProvider) broadcast(ctx context.Context, c *Client) error {
 	return broadcastMAPI(ctx, c, provider.miner, provider.txID, provider.txHex)
 }
 
@@ -83,36 +83,46 @@ func emptyBroadcastResponseErr(txID string) error {
 // BroadcastClient provider
 type broadcastClientProvider struct {
 	txID, txHex string
+	format      HexFormatFlag
 }
 
-func (provider broadcastClientProvider) getName() string {
+func (provider *broadcastClientProvider) getName() string {
 	return ProviderBroadcastClient
 }
 
 // Broadcast using BroadcastClient
-func (provider broadcastClientProvider) broadcast(ctx context.Context, c *Client) error {
-	return broadcastWithBroadcastClient(ctx, c, provider.txID, provider.txHex)
-}
-
-func broadcastWithBroadcastClient(ctx context.Context, client *Client, txID, hex string) error {
-	debugLog(client, txID, "executing broadcast request for "+ProviderBroadcastClient)
+func (provider *broadcastClientProvider) broadcast(ctx context.Context, c *Client) error {
+	c.options.logger.Debug().
+		Str("txID", provider.txID).
+		Msgf("executing broadcast request for %s", provider.getName())
 
 	tx := broadcast.Transaction{
-		Hex: hex,
+		Hex: provider.txHex,
 	}
 
-	result, err := client.BroadcastClient().SubmitTransaction(
+	formatOpt := broadcast.WithRawFormat()
+	if provider.format.Contains(Ef) {
+		formatOpt = broadcast.WithEfFormat()
+	}
+
+	result, err := c.BroadcastClient().SubmitTransaction(
 		ctx,
 		&tx,
-		broadcast.WithRawFormat(),
-		broadcast.WithCallback(client.options.config.callbackURL, client.options.config.callbackToken),
+		formatOpt,
+		broadcast.WithCallback(c.options.config.callbackURL, c.options.config.callbackToken),
 	)
+
 	if err != nil {
-		debugLog(client, txID, "error broadcast request for "+ProviderBroadcastClient+" failed: "+err.Error())
+		c.options.logger.Debug().
+			Str("txID", provider.txID).
+			Msgf("error broadcast request for %s failed: %s", provider.getName(), err.Error())
+
 		return err
 	}
 
-	debugLog(client, txID, "result broadcast request for "+ProviderBroadcastClient+" blockhash: "+result.BlockHash+" status: "+result.TxStatus.String())
+	c.options.logger.Debug().
+		Str("txID", provider.txID).
+		Msgf("result broadcast request for %s blockhash: %s status: %s", provider.getName(), result.BlockHash, result.TxStatus.String())
 
 	return nil
 }

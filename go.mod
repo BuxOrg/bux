@@ -23,7 +23,7 @@ require (
 	github.com/mrz1836/go-cachestore v0.3.6
 	github.com/mrz1836/go-datastore v0.5.14
 	github.com/mrz1836/go-logger v0.3.3
-	github.com/newrelic/go-agent/v3 v3.29.1
+	github.com/newrelic/go-agent/v3 v3.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1

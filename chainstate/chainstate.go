@@ -13,7 +13,7 @@ type HexFormatFlag byte
 
 const (
 	RawTx HexFormatFlag = 1
-	Ef    HexFormatFlag = 3
+	Ef    HexFormatFlag = 2
 )
 
 func (flag HexFormatFlag) Contains(other HexFormatFlag) bool {
@@ -27,7 +27,7 @@ func (c *Client) SupportedBroadcastFormats() HexFormatFlag {
 		return RawTx
 
 	case ProviderBroadcastClient:
-		return RawTx + Ef
+		return RawTx | Ef
 
 	default:
 		return RawTx

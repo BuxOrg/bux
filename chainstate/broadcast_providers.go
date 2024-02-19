@@ -31,8 +31,11 @@ func (provider *mapiBroadcastProvider) broadcast(ctx context.Context, c *Client)
 }
 
 // broadcastMAPI will broadcast a transaction to a miner using mAPI
-func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraft.Miner, id, hex string) error {
-	debugLog(client, id, "executing broadcast request in mapi using miner: "+miner.Name)
+func broadcastMAPI(ctx context.Context, client *Client, miner *minercraft.Miner, id, hex string) error {
+	logger := client.options.logger
+	logger.Debug().
+		Str("txID", id).
+		Msgf("executing broadcast request in mapi using miner: %s", miner.Name)
 
 	resp, err := client.Minercraft().SubmitTransaction(ctx, miner, &minercraft.Transaction{
 		CallBackEncryption: "", // todo: allow customizing the payload
@@ -44,7 +47,10 @@ func broadcastMAPI(ctx context.Context, client ClientInterface, miner *minercraf
 		RawTx:              hex,
 	})
 	if err != nil {
-		debugLog(client, id, "error executing request in mapi using miner: "+miner.Name+" failed: "+err.Error())
+		logger.Debug().
+			Str("txID", id).
+			Msgf("error executing request in mapi using miner: %s failed: %s", miner.Name, err.Error())
+
 		return err
 	}
 
@@ -92,7 +98,9 @@ func (provider *broadcastClientProvider) getName() string {
 
 // Broadcast using BroadcastClient
 func (provider *broadcastClientProvider) broadcast(ctx context.Context, c *Client) error {
-	c.options.logger.Debug().
+	logger := c.options.logger
+
+	logger.Debug().
 		Str("txID", provider.txID).
 		Msgf("executing broadcast request for %s", provider.getName())
 
@@ -103,6 +111,14 @@ func (provider *broadcastClientProvider) broadcast(ctx context.Context, c *Clien
 	formatOpt := broadcast.WithRawFormat()
 	if provider.format.Contains(Ef) {
 		formatOpt = broadcast.WithEfFormat()
+
+		logger.Debug().
+			Str("txID", provider.txID).
+			Msgf("boradcast with broadcast-client in Extended Format")
+	} else {
+		logger.Debug().
+			Str("txID", provider.txID).
+			Msgf("boradcast with broadcast-client in RawTx format")
 	}
 
 	result, err := c.BroadcastClient().SubmitTransaction(
@@ -113,14 +129,14 @@ func (provider *broadcastClientProvider) broadcast(ctx context.Context, c *Clien
 	)
 
 	if err != nil {
-		c.options.logger.Debug().
+		logger.Debug().
 			Str("txID", provider.txID).
 			Msgf("error broadcast request for %s failed: %s", provider.getName(), err.Error())
 
 		return err
 	}
 
-	c.options.logger.Debug().
+	logger.Debug().
 		Str("txID", provider.txID).
 		Msgf("result broadcast request for %s blockhash: %s status: %s", provider.getName(), result.BlockHash, result.TxStatus.String())
 

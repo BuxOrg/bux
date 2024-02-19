@@ -187,7 +187,7 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 }
 
 func buildBtTx(p2pTx *paymail.P2PTransaction) *bt.Tx {
-	if p2pTx.DecodedBeef == nil {
+	if p2pTx.DecodedBeef != nil {
 		res := p2pTx.DecodedBeef.GetLatestTx()
 
 		for _, input := range res.Inputs {

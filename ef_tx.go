@@ -7,6 +7,7 @@ import (
 	"github.com/libsv/go-bt/v2"
 )
 
+// ToEfHex generates Extended Format hex of transaction
 func ToEfHex(ctx context.Context, tx *Transaction, store TransactionGetter) (efHex string, ok bool) {
 	btTx := tx.parsedTx
 
@@ -51,8 +52,8 @@ func hydrate(ctx context.Context, tx *bt.Tx, store TransactionGetter) (ok bool) 
 	}
 
 	for _, input := range tx.Inputs {
-		prevTxId := input.PreviousTxIDStr()
-		pTx := find(parentTxs, func(tx *Transaction) bool { return tx.ID == prevTxId })
+		prevTxID := input.PreviousTxIDStr()
+		pTx := find(parentTxs, func(tx *Transaction) bool { return tx.ID == prevTxID })
 
 		pbtTx, err := bt.NewTxFromString((*pTx).Hex)
 		if err != nil {

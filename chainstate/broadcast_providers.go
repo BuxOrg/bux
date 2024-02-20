@@ -114,11 +114,11 @@ func (provider *broadcastClientProvider) broadcast(ctx context.Context, c *Clien
 
 		logger.Debug().
 			Str("txID", provider.txID).
-			Msgf("boradcast with broadcast-client in Extended Format")
+			Msgf("broadcast with broadcast-client in Extended Format")
 	} else {
 		logger.Debug().
 			Str("txID", provider.txID).
-			Msgf("boradcast with broadcast-client in RawTx format")
+			Msgf("broadcast with broadcast-client in RawTx format")
 	}
 
 	result, err := c.BroadcastClient().SubmitTransaction(

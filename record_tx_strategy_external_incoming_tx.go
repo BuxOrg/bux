@@ -13,7 +13,7 @@ type externalIncomingTx struct {
 	broadcastNow         bool // e.g. BEEF must be broadcasted now
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 
-	txId string
+	txID string
 }
 
 func (strategy *externalIncomingTx) Name() string {
@@ -64,10 +64,10 @@ func (strategy *externalIncomingTx) Validate() error {
 }
 
 func (strategy *externalIncomingTx) TxID() string {
-	if strategy.txId == "" {
-		strategy.txId = strategy.BtTx.TxID()
+	if strategy.txID == "" {
+		strategy.txID = strategy.BtTx.TxID()
 	}
-	return strategy.txId
+	return strategy.txID
 }
 
 func (strategy *externalIncomingTx) LockKey() string {

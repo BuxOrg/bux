@@ -14,7 +14,7 @@ type outgoingTx struct {
 	RelatedDraftID string
 	XPubKey        string
 
-	txId string
+	txID string
 }
 
 func (strategy *outgoingTx) Name() string {
@@ -89,10 +89,10 @@ func (strategy *outgoingTx) Validate() error {
 }
 
 func (strategy *outgoingTx) TxID() string {
-	if strategy.txId == "" {
-		strategy.txId = strategy.BtTx.TxID()
+	if strategy.txID == "" {
+		strategy.txID = strategy.BtTx.TxID()
 	}
-	return strategy.txId
+	return strategy.txID
 }
 
 func (strategy *outgoingTx) LockKey() string {

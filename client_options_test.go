@@ -2,11 +2,6 @@ package bux
 
 import (
 	"context"
-	"net/http"
-	"os"
-	"testing"
-	"time"
-
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/logging"
 	"github.com/BuxOrg/bux/taskmanager"
@@ -20,6 +15,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"net/http"
+	"os"
+	"testing"
+	"time"
 )
 
 // TestNewRelicOptions will test the method enable()
@@ -264,6 +263,9 @@ func TestWithRedis(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping live local redis tests")
 		}
+		client, conn := tester.LoadMockRedis(10*time.Second, 10*time.Second, 10, 10)
+		require.NotNil(t, client)
+		require.NotNil(t, conn)
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
@@ -271,6 +273,7 @@ func TestWithRedis(t *testing.T) {
 			WithRedis(&cachestore.RedisConfig{
 				URL: cachestore.RedisPrefix + "localhost:6379",
 			}),
+			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&testLogger),
@@ -288,6 +291,9 @@ func TestWithRedis(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping live local redis tests")
 		}
+		client, conn := tester.LoadMockRedis(10*time.Second, 10*time.Second, 10, 10)
+		require.NotNil(t, client)
+		require.NotNil(t, conn)
 
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
@@ -295,6 +301,7 @@ func TestWithRedis(t *testing.T) {
 			WithRedis(&cachestore.RedisConfig{
 				URL: "localhost:6379",
 			}),
+			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&testLogger),
@@ -503,14 +510,16 @@ func TestWithTaskQ(t *testing.T) {
 			t.Skip("skipping live local redis tests")
 		}
 
+		client, conn := tester.LoadMockRedis(10*time.Second, 10*time.Second, 10, 10)
+		require.NotNil(t, client)
+		require.NotNil(t, conn)
+
 		tc, err := NewClient(
 			tester.GetNewRelicCtx(t, defaultNewRelicApp, defaultNewRelicTx),
 			WithTaskqConfig(
 				taskmanager.DefaultTaskQConfig(tester.RandomTablePrefix(), taskmanager.WithRedis("localhost:6379")),
 			),
-			WithRedis(&cachestore.RedisConfig{
-				URL: cachestore.RedisPrefix + "localhost:6379",
-			}),
+			WithRedisConnection(client),
 			WithSQLite(tester.SQLiteTestConfig(false, true)),
 			WithMinercraft(&chainstate.MinerCraftBase{}),
 			WithLogger(&testLogger),

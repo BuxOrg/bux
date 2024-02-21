@@ -67,9 +67,8 @@ type EmbeddedDBTestSuite struct {
 // serveMySQL will serve the MySQL server and exit if quit
 func (ts *EmbeddedDBTestSuite) serveMySQL() {
 	err := ts.MySQLServer.Start()
-	if err != nil {
+	if err == nil {
 		for {
-
 			select {
 			case <-ts.quit:
 				ts.MySQLServer.Close()

@@ -4,9 +4,6 @@ import (
 	"errors"
 )
 
-// ErrCannotConvertToIDs is the error when the conversion fails from interface into type IDs
-var ErrCannotConvertToIDs = errors.New("cannot convert value to type IDs")
-
 // ErrMissingDestination is an error when a destination could not be found
 var ErrMissingDestination = errors.New("destination could not be found")
 

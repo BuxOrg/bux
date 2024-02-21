@@ -40,6 +40,7 @@ const (
 	ModelTransaction         ModelName = "transaction"
 	ModelUtxo                ModelName = "utxo"
 	ModelXPub                ModelName = "xpub"
+	ModelContact             ModelName = "contact"
 )
 
 // AllModelNames is a list of all models
@@ -55,6 +56,7 @@ var AllModelNames = []ModelName{
 	ModelTransaction,
 	ModelUtxo,
 	ModelXPub,
+	ModelContact,
 }
 
 // Internal table names
@@ -69,6 +71,7 @@ const (
 	tableTransactions         = "transactions"
 	tableUTXOs                = "utxos"
 	tableXPubs                = "xpubs"
+	tableContacts             = "contacts"
 )
 
 const (
@@ -98,6 +101,8 @@ const (
 	blockHashField       = "block_hash"
 	merkleProofField     = "merkle_proof"
 	bumpField            = "bump"
+	fullNameField        = "full_name"
+	paymailField         = "paymail"
 
 	// Universal statuses
 	statusCanceled   = "canceled"
@@ -109,6 +114,11 @@ const (
 	statusProcessing = "processing"
 	statusReady      = "ready"
 	statusSkipped    = "skipped"
+
+	// Contact statuses
+	notAuthenticated   = "not authenticated"
+	awaitingAcceptance = "awaiting acceptance"
+	confirmed          = "confirmed"
 
 	// Paymail / Handles
 	cacheKeyAddressResolution       = "paymail-address-resolution-"
@@ -181,6 +191,10 @@ var BaseModels = []interface{}{
 	// Unspent outputs from known transactions
 	&Utxo{
 		Model: *NewBaseModel(ModelUtxo),
+	},
+
+	&Contact{
+		Model: *NewBaseModel(ModelContact),
 	},
 
 	// Paymail addresses related to XPubs (automatically added when paymail is enabled)

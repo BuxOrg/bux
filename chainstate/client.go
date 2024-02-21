@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/BuxOrg/bux/logging"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -23,16 +24,18 @@ type (
 
 	// clientOptions holds all the configuration for the client
 	clientOptions struct {
-		config          *syncConfig     // Configuration for broadcasting and other chain-state actions
-		debug           bool            // For extra logs and additional debug information
-		logger          *zerolog.Logger // Logger interface
-		monitor         MonitorService  // Monitor service
-		newRelicEnabled bool            // If NewRelic is enabled (parent application)
-		userAgent       string          // Custom user agent for outgoing HTTP Requests
+		config          *syncConfig      // Configuration for broadcasting and other chain-state actions
+		debug           bool             // For extra logs and additional debug information
+		logger          *zerolog.Logger  // Logger interface
+		metrics         *metrics.Metrics // For collecting metrics (if enabled)
+		newRelicEnabled bool             // If NewRelic is enabled (parent application)
+		userAgent       string           // Custom user agent for outgoing HTTP Requests
 	}
 
 	// syncConfig holds all the configuration about the different sync processes
 	syncConfig struct {
+		callbackURL       string                     // Broadcast callback URL
+		callbackToken     string                     // Broadcast callback access token
 		excludedProviders []string                   // List of provider names
 		httpClient        HTTPInterface              // Custom HTTP client (Minercraft, WOC)
 		minercraftConfig  *minercraftConfig          // minercraftConfig configuration
@@ -94,16 +97,9 @@ func (c *Client) Close(ctx context.Context) {
 		defer txn.StartSegment("close_chainstate").End()
 	}
 	if c != nil && c.options.config != nil {
-
 		// Close minercraft
 		if c.options.config.minercraft != nil {
 			c.options.config.minercraft = nil
-		}
-
-		// Stop the active Monitor (if not already stopped)
-		if c.options.monitor != nil {
-			_ = c.options.monitor.Stop(ctx)
-			c.options.monitor = nil
 		}
 	}
 }
@@ -141,11 +137,6 @@ func (c *Client) Network() Network {
 // Minercraft will return the Minercraft client
 func (c *Client) Minercraft() minercraft.ClientInterface {
 	return c.options.config.minercraft
-}
-
-// Monitor will return the Monitor client
-func (c *Client) Monitor() MonitorService {
-	return c.options.monitor
 }
 
 // BroadcastClient will return the BroadcastClient client

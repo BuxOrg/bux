@@ -6,10 +6,11 @@ import (
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/cluster"
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/notifications"
 	"github.com/BuxOrg/bux/taskmanager"
+	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/bitcoin-sv/go-paymail"
-	"github.com/libsv/go-bc"
 	"github.com/mrz1836/go-cachestore"
 	"github.com/mrz1836/go-datastore"
 	"github.com/rs/zerolog"
@@ -43,19 +44,6 @@ type AdminService interface {
 		conditions *map[string]interface{}, opts ...ModelOps) (int64, error)
 }
 
-// BlockHeaderService is the block header actions
-type BlockHeaderService interface {
-	GetBlockHeaderByHeight(ctx context.Context, height uint32) (*BlockHeader, error)
-	GetBlockHeaders(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-		queryParams *datastore.QueryParams, opts ...ModelOps) ([]*BlockHeader, error)
-	GetBlockHeadersCount(ctx context.Context, metadata *Metadata, conditions *map[string]interface{},
-		opts ...ModelOps) (int64, error)
-	GetLastBlockHeader(ctx context.Context) (*BlockHeader, error)
-	GetUnsyncedBlockHeaders(ctx context.Context) ([]*BlockHeader, error)
-	RecordBlockHeader(ctx context.Context, hash string, height uint32, bh bc.BlockHeader,
-		opts ...ModelOps) (*BlockHeader, error)
-}
-
 // ClientService is the client related services
 type ClientService interface {
 	Cachestore() cachestore.ClientInterface
@@ -86,9 +74,9 @@ type DestinationService interface {
 		queryParams *datastore.QueryParams) ([]*Destination, error)
 	GetDestinationsByXpubIDCount(ctx context.Context, xPubID string, usingMetadata *Metadata,
 		conditions *map[string]interface{}) (int64, error)
-	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string, monitor bool,
+	NewDestination(ctx context.Context, xPubKey string, chain uint32, destinationType string,
 		opts ...ModelOps) (*Destination, error)
-	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string, monitor bool,
+	NewDestinationForLockingScript(ctx context.Context, xPubID, lockingScript string,
 		opts ...ModelOps) (*Destination, error)
 	UpdateDestinationMetadataByID(ctx context.Context, xPubID, id string, metadata Metadata) (*Destination, error)
 	UpdateDestinationMetadataByLockingScript(ctx context.Context, xPubID,
@@ -150,6 +138,7 @@ type TransactionService interface {
 	RecordTransaction(ctx context.Context, xPubKey, txHex, draftID string,
 		opts ...ModelOps) (*Transaction, error)
 	RecordRawTransaction(ctx context.Context, txHex string, opts ...ModelOps) (*Transaction, error)
+	UpdateTransaction(ctx context.Context, txInfo *broadcast.SubmittedTx) error
 	UpdateTransactionMetadata(ctx context.Context, xPubID, id string, metadata Metadata) (*Transaction, error)
 	RevertTransaction(ctx context.Context, id string) error
 }
@@ -179,7 +168,6 @@ type XPubService interface {
 type ClientInterface interface {
 	AccessKeyService
 	AdminService
-	BlockHeaderService
 	ClientService
 	DestinationService
 	DraftTransactionService
@@ -196,14 +184,13 @@ type ClientInterface interface {
 	DefaultSyncConfig() *SyncConfig
 	EnableNewRelic()
 	GetOrStartTxn(ctx context.Context, name string) context.Context
-	ImportBlockHeadersFromURL() string
 	IsDebug() bool
 	IsEncryptionKeySet() bool
-	IsITCEnabled() bool
 	IsIUCEnabled() bool
 	IsMigrationEnabled() bool
 	IsNewRelicEnabled() bool
 	SetNotificationsClient(notifications.ClientInterface)
 	UserAgent() string
 	Version() string
+	Metrics() (metrics *metrics.Metrics, enabled bool)
 }

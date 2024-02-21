@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/BuxOrg/bux/metrics"
 	"github.com/BuxOrg/bux/utils"
 	"github.com/bitcoin-sv/go-broadcast-client/broadcast"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -33,6 +34,7 @@ func defaultClientOptions() *clientOptions {
 		},
 		debug:           false,
 		newRelicEnabled: false,
+		metrics:         nil,
 	}
 }
 
@@ -122,25 +124,6 @@ func WithLogger(customLogger *zerolog.Logger) ClientOps {
 	}
 }
 
-// WithMonitoring will create a new monitorConfig interface with the given options
-func WithMonitoring(ctx context.Context, monitorOptions *MonitorOptions) ClientOps {
-	return func(c *clientOptions) {
-		if monitorOptions != nil {
-			// Create the default Monitor for monitoring destinations
-			c.monitor = NewMonitor(ctx, monitorOptions)
-		}
-	}
-}
-
-// WithMonitoringInterface will set the interface to use for monitoring the blockchain
-func WithMonitoringInterface(monitor MonitorService) ClientOps {
-	return func(c *clientOptions) {
-		if monitor != nil {
-			c.monitor = monitor
-		}
-	}
-}
-
 // WithExcludedProviders will set a list of excluded providers
 func WithExcludedProviders(providers []string) ClientOps {
 	return func(c *clientOptions) {
@@ -182,5 +165,20 @@ func WithBroadcastClient(client broadcast.Client) ClientOps {
 func WithConnectionToPulse(url, authToken string) ClientOps {
 	return func(c *clientOptions) {
 		c.config.pulseClient = newPulseClientProvider(url, authToken)
+	}
+}
+
+// WithCallback will set broadcast callback settings
+func WithCallback(callbackURL, callbackAuthToken string) ClientOps {
+	return func(c *clientOptions) {
+		c.config.callbackURL = callbackURL
+		c.config.callbackToken = callbackAuthToken
+	}
+}
+
+// WithMetrics will set metrics
+func WithMetrics(metrics *metrics.Metrics) ClientOps {
+	return func(c *clientOptions) {
+		c.metrics = metrics
 	}
 }

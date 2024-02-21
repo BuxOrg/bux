@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/libsv/go-bt/v2"
 	"github.com/rs/zerolog"
 )
 
@@ -12,6 +13,10 @@ type internalIncomingTx struct {
 	Tx                   *Transaction
 	broadcastNow         bool // e.g. BEEF must be broadcasted now
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
+}
+
+func (strategy *internalIncomingTx) Name() string {
+	return "internal_incoming_tx"
 }
 
 func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
@@ -50,6 +55,10 @@ func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 func (strategy *internalIncomingTx) Validate() error {
 	if strategy.Tx == nil {
 		return errors.New("tx cannot be nil")
+	}
+
+	if _, err := bt.NewTxFromString(strategy.Tx.Hex); err != nil {
+		return fmt.Errorf("invalid hex: %w", err)
 	}
 
 	return nil // is valid

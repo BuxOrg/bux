@@ -2,11 +2,9 @@ package bux
 
 import (
 	"context"
-	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/BuxOrg/bux/chainstate"
 	"github.com/BuxOrg/bux/utils"
@@ -16,7 +14,6 @@ import (
 	"github.com/bitcoin-sv/go-paymail/spv"
 	"github.com/bitcoinschema/go-bitcoin/v2"
 	"github.com/libsv/go-bk/bec"
-	customTypes "github.com/mrz1836/go-datastore/custom_types"
 )
 
 // PaymailDefaultServiceProvider is an interface for overriding the paymail actions in go-paymail/server
@@ -89,7 +86,7 @@ func (p *PaymailDefaultServiceProvider) CreateAddressResolutionResponse(
 		return nil, err
 	}
 	destination, err := createDestination(
-		ctx, paymailAddress, pubKey, true, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, paymailAddress, pubKey, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -127,7 +124,7 @@ func (p *PaymailDefaultServiceProvider) CreateP2PDestinationResponse(
 		return nil, err
 	}
 	destination, err = createDestination(
-		ctx, paymailAddress, pubKey, false, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
+		ctx, paymailAddress, pubKey, append(p.client.DefaultModelOptions(), WithMetadatas(metadata))...,
 	)
 	if err != nil {
 		return nil, err
@@ -162,6 +159,9 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	if err := rts.Validate(); err != nil {
+		return nil, err
+	}
 
 	rts.ForceBroadcast(true)
 
@@ -191,15 +191,24 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(
 	ctx context.Context,
 	merkleRoots []*spv.MerkleRootConfirmationRequestItem,
-) error {
-	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0)
+) (err error) {
+	if metrics, enabled := p.client.Metrics(); enabled {
+		end := metrics.TrackVerifyMerkleRoots()
+		defer func() {
+			success := err == nil
+			end(success)
+		}()
+	}
+
+	request := make([]chainstate.MerkleRootConfirmationRequestItem, 0, len(merkleRoots))
 	for _, m := range merkleRoots {
 		request = append(request, chainstate.MerkleRootConfirmationRequestItem{
 			MerkleRoot:  m.MerkleRoot,
 			BlockHeight: m.BlockHeight,
 		})
 	}
-	return p.client.Chainstate().VerifyMerkleRoots(ctx, request)
+	err = p.client.Chainstate().VerifyMerkleRoots(ctx, request)
+	return
 }
 
 func (p *PaymailDefaultServiceProvider) createPaymailInformation(ctx context.Context, alias, domain string, opts ...ModelOps) (paymailAddress *PaymailAddress, pubKey *derivedPubKey, err error) {
@@ -244,7 +253,7 @@ func getXpubForPaymail(ctx context.Context, client ClientInterface, paymailAddre
 	)
 }
 
-func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubKey *derivedPubKey, monitor bool, opts ...ModelOps) (destination *Destination, err error) {
+func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubKey *derivedPubKey, opts ...ModelOps) (destination *Destination, err error) {
 	lockingScript, err := createLockingScript(pubKey.ecPubKey)
 	if err != nil {
 		return nil, err
@@ -255,14 +264,6 @@ func createDestination(ctx context.Context, paymailAddress *PaymailAddress, pubK
 	destination = newDestination(paymailAddress.XpubID, lockingScript, append(opts, New())...)
 	destination.Chain = utils.ChainExternal
 	destination.Num = pubKey.chainNum
-
-	// Only on for basic address resolution, not enabled for p2p
-	if monitor {
-		destination.Monitor = customTypes.NullTime{NullTime: sql.NullTime{
-			Valid: true,
-			Time:  time.Now(),
-		}}
-	}
 
 	if err = destination.Save(ctx); err != nil {
 		return nil, err

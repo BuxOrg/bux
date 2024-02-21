@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-// MonitorBlockHeaders will start up a block headers monitor
-func (c *Client) MonitorBlockHeaders(_ context.Context) error {
-	return nil
-}
-
 // Broadcast will attempt to broadcast a transaction using the given providers
 func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.Duration) (string, error) {
 	// Basic validation
@@ -49,7 +44,15 @@ func (c *Client) Broadcast(ctx context.Context, id, txHex string, timeout time.D
 // Note: this is slow, but follows a specific order: mAPI -> WhatsOnChain
 func (c *Client) QueryTransaction(
 	ctx context.Context, id string, requiredIn RequiredIn, timeout time.Duration,
-) (*TransactionInfo, error) {
+) (transaction *TransactionInfo, err error) {
+	if c.options.metrics != nil {
+		end := c.options.metrics.TrackQueryTransaction()
+		defer func() {
+			success := err == nil
+			end(success)
+		}()
+	}
+
 	// Basic validation
 	if len(id) < 50 {
 		return nil, ErrInvalidTransactionID

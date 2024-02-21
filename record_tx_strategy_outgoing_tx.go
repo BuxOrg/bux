@@ -15,6 +15,10 @@ type outgoingTx struct {
 	XPubKey        string
 }
 
+func (strategy *outgoingTx) Name() string {
+	return "outgoing_tx"
+}
+
 func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
 	logger.Info().
@@ -70,6 +74,10 @@ func (strategy *outgoingTx) Validate() error {
 		return ErrMissingFieldHex
 	}
 
+	if _, err := bt.NewTxFromString(strategy.Hex); err != nil {
+		return fmt.Errorf("invalid hex: %w", err)
+	}
+
 	if strategy.RelatedDraftID == "" {
 		return errors.New("empty RelatedDraftID")
 	}
@@ -96,7 +104,6 @@ func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInt
 	tx, err := newTransactionWithDraftID(
 		oTx.Hex, oTx.RelatedDraftID, newOpts...,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +124,6 @@ func _createOutgoingTxToRecord(ctx context.Context, oTx *outgoingTx, c ClientInt
 
 func _hydrateOutgoingWithDraft(ctx context.Context, tx *Transaction) error {
 	draft, err := getDraftTransactionID(ctx, tx.XPubID, tx.DraftID, tx.GetOptions(false)...)
-
 	if err != nil {
 		return err
 	}

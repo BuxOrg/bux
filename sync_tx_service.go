@@ -219,14 +219,17 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		}
 		return err
 	}
+	return processSyncTxSave(ctx, txInfo, syncTx, transaction)
+}
 
+func processSyncTxSave(ctx context.Context, txInfo *chainstate.TransactionInfo, syncTx *SyncTransaction, transaction *Transaction) error {
 	if !txInfo.Valid() {
 		syncTx.Client().Logger().Warn().
 			Str("txID", syncTx.ID).
 			Msgf("txInfo is invalid, will try again later")
 
 		if syncTx.Client().IsDebug() {
-			txInfoJSON, _ := json.Marshal(txInfo) //nolint:errchkjson // error is not needed
+			txInfoJSON, _ := json.Marshal(txInfo)
 			syncTx.Client().Logger().Debug().
 				Str("txID", syncTx.ID).
 				Msgf("txInfo: %s", string(txInfoJSON))
@@ -236,18 +239,15 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 
 	transaction.setChainInfo(txInfo)
 
-	// Create status message
 	message := "transaction was found on-chain by " + chainstate.ProviderBroadcastClient
 
-	// Save the transaction (should NOT error)
-	if err = transaction.Save(ctx); err != nil {
+	if err := transaction.Save(ctx); err != nil {
 		_bailAndSaveSyncTransaction(
 			ctx, syncTx, SyncStatusError, syncActionSync, "internal", err.Error(),
 		)
 		return err
 	}
 
-	// Update the sync status
 	syncTx.SyncStatus = SyncStatusComplete
 	syncTx.Results.LastMessage = message
 	syncTx.Results.Results = append(syncTx.Results.Results, &SyncResult{
@@ -257,8 +257,7 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 		StatusMessage: message,
 	})
 
-	// Update the sync transaction record
-	if err = syncTx.Save(ctx); err != nil {
+	if err := syncTx.Save(ctx); err != nil {
 		_bailAndSaveSyncTransaction(ctx, syncTx, SyncStatusError, syncActionSync, "internal", err.Error())
 		return err
 	}
@@ -266,7 +265,6 @@ func _syncTxDataFromChain(ctx context.Context, syncTx *SyncTransaction, transact
 	syncTx.Client().Logger().Info().
 		Str("txID", syncTx.ID).
 		Msgf("Transaction processed successfully")
-	// Done!
 	return nil
 }
 

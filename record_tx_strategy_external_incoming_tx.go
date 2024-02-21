@@ -14,14 +14,12 @@ type externalIncomingTx struct {
 	allowBroadcastErrors bool // only BEEF cannot allow for broadcast errors
 }
 
+func (strategy *externalIncomingTx) Name() string {
+	return "external_incoming_tx"
+}
+
 func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	logger := c.Logger()
-
-	// process
-	if !strategy.broadcastNow && c.IsITCEnabled() { // do not save transaction to database now, save IncomingTransaction instead and let task manager handle and process it
-		return _addTxToCheck(ctx, strategy, c, opts)
-	}
-
 	transaction, err := _createExternalTxToRecord(ctx, strategy, c, opts)
 	if err != nil {
 		return nil, fmt.Errorf("creation of external incoming tx failed. Reason: %w", err)
@@ -59,6 +57,10 @@ func (strategy *externalIncomingTx) Validate() error {
 		return ErrMissingFieldHex
 	}
 
+	if _, err := bt.NewTxFromString(strategy.Hex); err != nil {
+		return fmt.Errorf("invalid hex: %w", err)
+	}
+
 	return nil // is valid
 }
 
@@ -77,31 +79,6 @@ func (strategy *externalIncomingTx) ForceBroadcast(force bool) {
 
 func (strategy *externalIncomingTx) FailOnBroadcastError(forceFail bool) {
 	strategy.allowBroadcastErrors = !forceFail
-}
-
-func _addTxToCheck(ctx context.Context, tx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
-	logger := c.Logger()
-
-	incomingTx, err := newIncomingTransaction(tx.Hex, c.DefaultModelOptions(append(opts, New())...)...)
-	if err != nil {
-		return nil, fmt.Errorf("tx creation failed. Reason: %w", err)
-	}
-
-	logger.Info().
-		Str("txID", incomingTx.ID).
-		Msg("start ITC")
-
-	if err = incomingTx.Save(ctx); err != nil {
-		return nil, fmt.Errorf("adding new IncomingTx to check queue failed. Reason: %w", err)
-	}
-
-	result := incomingTx.toTransactionDto()
-	result.Status = statusProcessing
-
-	logger.Info().
-		Str("txID", incomingTx.ID).
-		Msg("complete ITC")
-	return result, nil
 }
 
 func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {

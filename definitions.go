@@ -6,49 +6,42 @@ import (
 
 // Defaults for engine functionality
 const (
-	changeOutputSize               = uint64(35)       // Average size in bytes of a change output
-	databaseLongReadTimeout        = 30 * time.Second // For all "GET" or "SELECT" methods
-	defaultBroadcastTimeout        = 25 * time.Second // Default timeout for broadcasting
-	defaultCacheLockTTL            = 20               // in Seconds
-	defaultCacheLockTTW            = 10               // in Seconds
-	defaultDatabaseReadTimeout     = 20 * time.Second // For all "GET" or "SELECT" methods
-	defaultDraftTxExpiresIn        = 20 * time.Second // Default TTL for draft transactions
-	defaultHTTPTimeout             = 20 * time.Second // Default timeout for HTTP requests
-	defaultMonitorSleep            = 2 * time.Second
-	defaultMonitorLockTTL          = 10                // in seconds - should be larger than defaultMonitorSleep
-	defaultOverheadSize            = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime
-	defaultQueryTxTimeout          = 10 * time.Second  // Default timeout for syncing on-chain information
-	defaultSleepForNewBlockHeaders = 30 * time.Second  // Default wait before checking for a new unprocessed block
-	defaultUserAgent               = "bux: " + version // Default user agent
-	dustLimit                      = uint64(1)         // Dust limit
-	mongoTestVersion               = "6.0.4"           // Mongo Testing Version
-	sqliteTestVersion              = "3.37.0"          // SQLite Testing Version (dummy version for now)
-	version                        = "v0.13.0"         // bux version
+	changeOutputSize           = uint64(35)        // Average size in bytes of a change output
+	databaseLongReadTimeout    = 30 * time.Second  // For all "GET" or "SELECT" methods
+	defaultBroadcastTimeout    = 25 * time.Second  // Default timeout for broadcasting
+	defaultCacheLockTTL        = 20                // in Seconds
+	defaultCacheLockTTW        = 10                // in Seconds
+	defaultDatabaseReadTimeout = 20 * time.Second  // For all "GET" or "SELECT" methods
+	defaultDraftTxExpiresIn    = 20 * time.Second  // Default TTL for draft transactions
+	defaultHTTPTimeout         = 20 * time.Second  // Default timeout for HTTP requests
+	defaultOverheadSize        = uint64(8)         // 8 bytes is the default overhead in a transaction = 4 bytes version + 4 bytes nLockTime
+	defaultQueryTxTimeout      = 10 * time.Second  // Default timeout for syncing on-chain information
+	defaultUserAgent           = "bux: " + version // Default user agent
+	dustLimit                  = uint64(1)         // Dust limit
+	mongoTestVersion           = "6.0.4"           // Mongo Testing Version
+	sqliteTestVersion          = "3.37.0"          // SQLite Testing Version (dummy version for now)
+	version                    = "v0.14.2"         // bux version
 )
 
 // All the base models
 const (
-	ModelAccessKey           ModelName = "access_key"
-	ModelBlockHeader         ModelName = "block_header"
-	ModelDestination         ModelName = "destination"
-	ModelDraftTransaction    ModelName = "draft_transaction"
-	ModelIncomingTransaction ModelName = "incoming_transaction"
-	ModelMetadata            ModelName = "metadata"
-	ModelNameEmpty           ModelName = "empty"
-	ModelPaymailAddress      ModelName = "paymail_address"
-	ModelSyncTransaction     ModelName = "sync_transaction"
-	ModelTransaction         ModelName = "transaction"
-	ModelUtxo                ModelName = "utxo"
-	ModelXPub                ModelName = "xpub"
-	ModelContact             ModelName = "contact"
+	ModelAccessKey        ModelName = "access_key"
+	ModelDestination      ModelName = "destination"
+	ModelDraftTransaction ModelName = "draft_transaction"
+	ModelMetadata         ModelName = "metadata"
+	ModelNameEmpty        ModelName = "empty"
+	ModelPaymailAddress   ModelName = "paymail_address"
+	ModelSyncTransaction  ModelName = "sync_transaction"
+	ModelTransaction      ModelName = "transaction"
+	ModelUtxo             ModelName = "utxo"
+	ModelXPub             ModelName = "xpub"
+	ModelContact          ModelName = "contact"
 )
 
 // AllModelNames is a list of all models
 var AllModelNames = []ModelName{
 	ModelAccessKey,
-	ModelBlockHeader,
 	ModelDestination,
-	ModelIncomingTransaction,
 	ModelMetadata,
 	ModelPaymailAddress,
 	ModelPaymailAddress,
@@ -61,17 +54,15 @@ var AllModelNames = []ModelName{
 
 // Internal table names
 const (
-	tableAccessKeys           = "access_keys"
-	tableBlockHeaders         = "block_headers"
-	tableDestinations         = "destinations"
-	tableDraftTransactions    = "draft_transactions"
-	tableIncomingTransactions = "incoming_transactions"
-	tablePaymailAddresses     = "paymail_addresses"
-	tableSyncTransactions     = "sync_transactions"
-	tableTransactions         = "transactions"
-	tableUTXOs                = "utxos"
-	tableXPubs                = "xpubs"
-	tableContacts             = "contacts"
+	tableAccessKeys        = "access_keys"
+	tableDestinations      = "destinations"
+	tableDraftTransactions = "draft_transactions"
+	tablePaymailAddresses  = "paymail_addresses"
+	tableSyncTransactions  = "sync_transactions"
+	tableTransactions      = "transactions"
+	tableUTXOs             = "utxos"
+	tableXPubs             = "xpubs"
+	tableContacts          = "contacts"
 )
 
 const (
@@ -121,16 +112,15 @@ const (
 	confirmed          = "confirmed"
 
 	// Paymail / Handles
-	cacheKeyAddressResolution       = "paymail-address-resolution-"
-	cacheKeyCapabilities            = "paymail-capabilities-"
-	cacheTTLAddressResolution       = 2 * time.Minute
-	cacheTTLCapabilities            = 60 * time.Minute
-	defaultAddressResolutionPurpose = "Created with BUX: getbux.io"
-	defaultSenderPaymail            = "buxorg@moneybutton.com"
-	handleHandcashPrefix            = "$"
-	handleMaxLength                 = 25
-	handleRelayPrefix               = "1"
-	p2pMetadataField                = "p2p_tx_metadata"
+	cacheKeyAddressResolution = "paymail-address-resolution-"
+	cacheKeyCapabilities      = "paymail-capabilities-"
+	cacheTTLAddressResolution = 2 * time.Minute
+	cacheTTLCapabilities      = 60 * time.Minute
+	defaultSenderPaymail      = "buxorg@bux.com"
+	handleHandcashPrefix      = "$"
+	handleMaxLength           = 25
+	handleRelayPrefix         = "1"
+	p2pMetadataField          = "p2p_tx_metadata"
 
 	// Misc
 	gormTypeText = "text"
@@ -163,19 +153,9 @@ var BaseModels = []interface{}{
 		Model: *NewBaseModel(ModelDraftTransaction),
 	},
 
-	// Incoming transactions (external & unknown) (related to Transaction & Draft)
-	&IncomingTransaction{
-		Model: *NewBaseModel(ModelIncomingTransaction),
-	},
-
 	// Finalized transactions (related to Draft)
 	&Transaction{
 		Model: *NewBaseModel(ModelTransaction),
-	},
-
-	// Block Headers as received by the BitCoin network
-	&BlockHeader{
-		Model: *NewBaseModel(ModelBlockHeader),
 	},
 
 	// Sync configuration for transactions (on-chain) (related to Transaction)

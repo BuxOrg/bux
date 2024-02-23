@@ -2,6 +2,9 @@
 
 # BUX
 
+# :warning: This repository is deprecated. :warning: 
+## Use [github.com/bitcoin-sv/spv-wallet/engine](https://github.com/bitcoin-sv/spv-wallet/tree/master/engine) instead 
+
 [![Release](https://img.shields.io/github/release-pre/BuxOrg/bux.svg?logo=github&style=flat&v=2)](https://github.com/BuxOrg/bux/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/BuxOrg/bux/run-tests.yml?branch=master&v=2)](https://github.com/BuxOrg/bux/actions)
 [![Report](https://goreportcard.com/badge/github.com/BuxOrg/bux?style=flat&v=2)](https://goreportcard.com/report/github.com/BuxOrg/bux)

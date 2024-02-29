@@ -21,9 +21,9 @@ require (
 	github.com/libsv/go-bt/v2 v2.2.5
 	github.com/mrz1836/go-cache v0.9.4
 	github.com/mrz1836/go-cachestore v0.3.6
-	github.com/mrz1836/go-datastore v0.5.14
+	github.com/mrz1836/go-datastore v0.5.16
 	github.com/mrz1836/go-logger v0.3.3
-	github.com/newrelic/go-agent/v3 v3.29.1
+	github.com/newrelic/go-agent/v3 v3.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
@@ -33,12 +33,12 @@ require (
 	github.com/tryvium-travels/memongo v0.11.0
 	github.com/vmihailenco/taskq/v3 v3.2.9
 	go.elastic.co/ecszerolog v0.2.0
-	go.mongodb.org/mongo-driver v1.13.1
+	go.mongodb.org/mongo-driver v1.14.0
 	gorm.io/gorm v1.25.7
 )
 
 require (
-	github.com/99designs/gqlgen v0.17.43 // indirect
+	github.com/99designs/gqlgen v0.17.44 // indirect
 	github.com/acobaugh/osrelease v0.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitcoinschema/go-bpu v0.1.3 // indirect
@@ -74,7 +74,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/libsv/go-p2p v0.1.5 // indirect
@@ -114,22 +114,22 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.16.1 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014 // indirect
-	google.golang.org/grpc v1.61.0 // indirect
+	golang.org/x/tools v0.17.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240228224816-df926f6c8641 // indirect
+	google.golang.org/grpc v1.62.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.4 // indirect
 	gorm.io/driver/postgres v1.5.6 // indirect
 	gorm.io/driver/sqlite v1.5.5 // indirect
-	gorm.io/plugin/dbresolver v1.5.0 // indirect
+	gorm.io/plugin/dbresolver v1.5.1 // indirect
 )
 
 // Issue with redislock package - related to taskq

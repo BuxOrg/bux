@@ -335,6 +335,7 @@ linters:
     - dupl
     - goconst
     - testifylint
+    - nilerr
   disable-all: false
   presets:
     - bugs

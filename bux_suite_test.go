@@ -3,7 +3,6 @@ package bux
 import (
 	"context"
 	"fmt"
-	"github.com/rs/zerolog"
 	"sync"
 	"testing"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/dolthub/go-mysql-server/server"
 	embeddedPostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/mrz1836/go-datastore"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/tryvium-travels/memongo"

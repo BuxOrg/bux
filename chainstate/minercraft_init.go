@@ -136,7 +136,7 @@ func (i *minercraftInitializer) getFeeQuote(ctx context.Context, miner *minercra
 
 	quote, err := c.Minercraft().FeeQuote(ctx, miner)
 	if err != nil {
-		return nil, fmt.Errorf("no FeeQuote response from miner %s. Reason: %s", miner.Name, err)
+		return nil, fmt.Errorf("no FeeQuote response from miner %s. Reason: %w", miner.Name, err)
 	}
 
 	btFee := quote.Quote.GetFee(mapi.FeeTypeData)

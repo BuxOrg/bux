@@ -26,6 +26,6 @@ func find[E any](collection []E, predicate func(E) bool) *E {
 	return nil
 }
 
-func contains[E any](collection []E, predicate func(E) bool) bool{
+func contains[E any](collection []E, predicate func(E) bool) bool {
 	return find(collection, predicate) != nil
 }

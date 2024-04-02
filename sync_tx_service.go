@@ -117,7 +117,8 @@ func broadcastSyncTransaction(ctx context.Context, syncTx *SyncTransaction) erro
 		txHex = syncTx.transaction.Hex
 	} else {
 		// else get hex from DB
-		transaction, err := getTransactionByID(
+		var transaction *Transaction
+		transaction, err = getTransactionByID(
 			ctx, "", syncTx.ID, syncTx.GetOptions(false)...,
 		)
 		if err != nil {

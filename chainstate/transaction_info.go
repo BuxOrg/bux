@@ -22,7 +22,7 @@ type TransactionInfo struct {
 // BlockHash and MerkleProof (from mAPI) or BUMP (from Arc)
 func (t *TransactionInfo) Valid() bool {
 	arcInvalid := t.BUMP == nil
-	mApiInvalid := t.MerkleProof == nil || t.MerkleProof.TxOrID == "" || len(t.MerkleProof.Nodes) == 0
-	invalid := t.BlockHash == "" || (arcInvalid && mApiInvalid)
+	mAPIInvalid := t.MerkleProof == nil || t.MerkleProof.TxOrID == "" || len(t.MerkleProof.Nodes) == 0
+	invalid := t.BlockHash == "" || (arcInvalid && mAPIInvalid)
 	return !invalid
 }

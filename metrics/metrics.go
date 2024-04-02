@@ -71,7 +71,7 @@ func (m *Metrics) TrackQueryTransaction() EndWithClassification {
 func (m *Metrics) TrackCron(name string) EndWithClassification {
 	start := time.Now()
 	m.cronLastExecution.WithLabelValues(name).Set(float64(start.Unix()))
-	return func(success bool) {
+	return func(_ bool) {
 		m.cronHistogram.WithLabelValues(name).Observe(time.Since(start).Seconds())
 	}
 }

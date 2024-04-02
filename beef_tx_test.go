@@ -282,7 +282,7 @@ func Test_ToBeef_ErrorPaths(t *testing.T) {
 	}
 }
 
-func createProcessedTx(ctx context.Context, t *testing.T, client ClientInterface, testCase *beefTestCase, ancestors []*Transaction) *Transaction {
+func createProcessedTx(_ context.Context, t *testing.T, client ClientInterface, testCase *beefTestCase, ancestors []*Transaction) *Transaction {
 	draftTx := newDraftTransaction(
 		testXPub, &TransactionConfig{
 			Inputs: createInputsUsingAncestors(ancestors, client),
@@ -323,7 +323,7 @@ func addAncestor(ctx context.Context, testCase *beefTestCaseAncestor, client Cli
 		ancestor.BlockHeight = uint64(testCase.blockHeight)
 
 		var bump BUMP
-		err := json.Unmarshal([]byte(testCase.bumpJSON), &bump)
+		err = json.Unmarshal([]byte(testCase.bumpJSON), &bump)
 		require.NoError(t, err)
 		ancestor.BUMP = bump
 	} else {

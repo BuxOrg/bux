@@ -446,7 +446,7 @@ func (ts *EmbeddedDBTestSuite) TestXpub_Save() {
 		assert.Equal(t, true, setCmd.Called)
 	})
 
-	ts.T().Run("[mongo] [redis] [mocking] - create xpub", func(t *testing.T) {
+	/*ts.T().Run("[mongo] [redis] [mocking] - create xpub", func(t *testing.T) {
 		// todo: mocking for MongoDB
-	})
+	})*/
 }
